@@ -1193,7 +1193,7 @@ def puzzle_cards():
         {"key": "stolen_purples", **shape("stolen_purples", "red"),
          "play": act(["show:enemy.hand:optional"]),
          "chosen": {"where": ["tagged:purple@target"],
-                    "action": ["set_owner:target:mine", "move:target:mine.discard"]}},
+                    "action": ["set_owner:target:mine.player", "move:target:mine.discard"]}},
         {"key": "thinking_ahead", **shape("thinking_ahead", "blue"),
          "play": act(["stat_gain:money@mine.player:1"]),
          "reactions": [{"to": "attack", "whose": "enemy", "text": "Become immune",
@@ -2064,7 +2064,7 @@ def character_cards():
                     "asset": "star:6:%s" % colour, "tooltip": tip,
                     "play": {"action": deal + ["set_name:mine.player:text@self",
                                               "stat_gain:picked@mine.player:1",
-                                              "set_owner:self:mine"],
+                                              "set_owner:self:mine.player"],
                              "spent": "mine.fighter"}})
     return out
 

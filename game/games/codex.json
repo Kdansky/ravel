@@ -4310,7 +4310,7 @@
             "stat_set:slot@each.enemy.dothram:0",
             "stat_set:guard@each.enemy.dothram:0",
             "move:enemy.dothram:mine.army",
-            "set_owner:enemy.dothram:mine"
+            "set_owner:enemy.dothram:mine.player"
           ]
         }
       ]
@@ -4334,7 +4334,7 @@
             "stat_set:slot@each.enemy.army.held:0",
             "stat_set:guard@each.enemy.army.held:0",
             "move:enemy.army.held:mine.army",
-            "set_owner:enemy.army.held:mine",
+            "set_owner:enemy.army.held:mine.player",
             "stat_set:taken@each.mine.army.held:0"
           ]
         }
@@ -6256,7 +6256,7 @@
         ],
         "action": [
           "move:target:mine.army",
-          "set_owner:target:mine",
+          "set_owner:target:mine.player",
           "stat_set:ready_since@target:0"
         ]
       }
@@ -7162,7 +7162,7 @@
         },
         "action": [
           "move:target:mine.army",
-          "set_owner:target:mine",
+          "set_owner:target:mine.player",
           "stat_set:slot@target:0",
           "stat_set:guard@target:0",
           "move_to:mine.ongoing",
@@ -7884,7 +7884,7 @@
         },
         "action": [
           "move:target:mine.structures",
-          "set_owner:target:mine"
+          "set_owner:target:mine.player"
         ]
       }
     },
@@ -16808,7 +16808,7 @@
           ]
         },
         "action": [
-          "set_owner:target:mine",
+          "set_owner:target:mine.player",
           "move:target:mine.army",
           "ready:target",
           "stat_set:ready_since@target:1",

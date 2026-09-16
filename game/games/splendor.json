@@ -398,7 +398,7 @@
           "stat_gain:reserve_slots@mine.player:sum:reserved@self",
           "stat_set:reserved@self:0",
           "stat_set:buyable@self:0",
-          "set_owner:self:mine",
+          "set_owner:self:mine.player",
           "move_to:mine.tableau",
           "stat_set:done@mine.player:1",
           "end_phase"
@@ -436,7 +436,7 @@
         "action": [
           "stat_gain:score@mine.player:3",
           "stat_set:ok@self:0",
-          "set_owner:self:mine",
+          "set_owner:self:mine.player",
           "move_to:mine.tableau",
           "end_phase"
         ]
@@ -1066,7 +1066,7 @@
         "cost": { "reserve_slots": 1 },
         "target": { "type": "card", "count": 1, "zones": ["t1_row", "t2_row", "t3_row"] },
         "action": [
-          "set_owner:target:mine",
+          "set_owner:target:mine.player",
           "stat_set:reserved@target:1",
           "move:target:mine.reserve",
           "stat_gain:t_gold@mine.player:count:has_gold@supply.pile_gold",

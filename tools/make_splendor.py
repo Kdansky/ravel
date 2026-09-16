@@ -149,7 +149,7 @@ def buying():
         # Nothing prices a card once it is bought, so this is what stops a
         # tableau card being bought again: it is no longer for sale.
         "stat_set:buyable@self:0",
-        "set_owner:self:mine",
+        "set_owner:self:mine.player",
         "move_to:mine.tableau",
         "stat_set:done@mine.player:1",
         "end_phase",
@@ -416,7 +416,7 @@ def buttons():
          "play": {"phases": ["act"], "cost": {"reserve_slots": 1},
                   "target": {"type": "card", "count": 1,
                              "zones": ["t1_row", "t2_row", "t3_row"]},
-                  "action": ["set_owner:target:mine", "stat_set:reserved@target:1",
+                  "action": ["set_owner:target:mine.player", "stat_set:reserved@target:1",
                              "move:target:mine.reserve"] + RESERVE_GOLD}},
         {"key": "done_button", "text": "Done taking",
          "asset": "circle:slate",
@@ -621,7 +621,7 @@ def build(here):
                 # count:noble_ready asks the whole table, not just the row.
                 "play": {"phases": ["noble_pick"], "needs": ["ok@self >= 1"],
                          "action": ["stat_gain:score@mine.player:3", "stat_set:ok@self:0",
-                                    "set_owner:self:mine", "move_to:mine.tableau", "end_phase"]},
+                                    "set_owner:self:mine.player", "move_to:mine.tableau", "end_phase"]},
             },
         },
         "zones": zones(rows),

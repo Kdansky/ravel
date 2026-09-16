@@ -705,8 +705,18 @@ market row refills without any condition asking what was bought.
 ### Take control of the target.
 
 ```json
-"action": ["set_owner:target:mine"]
+"action": ["set_owner:target:mine.player"]
 ```
+
+### Hand this card to the other player.
+
+```json
+"action": ["set_owner:target:opponent", "move:target:enemy.discard"]
+```
+
+Whose a card is is named by an ordinary scope, the same way `set_active_seat` and `set_priority`
+name a seat: the scope resolves to a card and the seat is whose that card is. `none` is the one
+word of its own, because nobody is not a seat and an empty scope means *skip*, not *clear*.
 
 ### Turn this pawn into a queen.
 

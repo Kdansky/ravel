@@ -1078,7 +1078,7 @@
       },
       "chosen": {
         "where": ["tagged:purple@target"],
-        "action": ["set_owner:target:mine", "move:target:mine.discard"]
+        "action": ["set_owner:target:mine.player", "move:target:mine.discard"]
       },
       "tooltip": "Chosen opponent reveals his hand and discards all purples. Steal one of those purples (to your discard pile). If you do, trash this chip.\n\nDEV: you take one purple out of their revealed hand. The rest of their purples are not discarded, which would want a scope that reaches inside a hand.",
       "card_stats": { "hits": 1, "price": 4 }
@@ -3195,7 +3195,7 @@
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine"
+          "set_owner:self:mine.player"
         ],
         "spent": "mine.fighter"
       }
@@ -3215,7 +3215,7 @@
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine"
+          "set_owner:self:mine.player"
         ],
         "spent": "mine.fighter"
       }
@@ -3235,7 +3235,7 @@
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine"
+          "set_owner:self:mine.player"
         ],
         "spent": "mine.fighter"
       }
@@ -3255,7 +3255,7 @@
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine"
+          "set_owner:self:mine.player"
         ],
         "spent": "mine.fighter"
       }
@@ -3275,7 +3275,7 @@
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine"
+          "set_owner:self:mine.player"
         ],
         "spent": "mine.fighter"
       }
@@ -3295,7 +3295,7 @@
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine"
+          "set_owner:self:mine.player"
         ],
         "spent": "mine.fighter"
       }
@@ -3315,7 +3315,7 @@
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine"
+          "set_owner:self:mine.player"
         ],
         "spent": "mine.fighter"
       }
@@ -3335,7 +3335,7 @@
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine"
+          "set_owner:self:mine.player"
         ],
         "spent": "mine.fighter"
       }
@@ -3355,7 +3355,7 @@
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine"
+          "set_owner:self:mine.player"
         ],
         "spent": "mine.fighter"
       }
@@ -3375,7 +3375,7 @@
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine"
+          "set_owner:self:mine.player"
         ],
         "spent": "mine.fighter"
       }
@@ -3395,7 +3395,7 @@
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine"
+          "set_owner:self:mine.player"
         ],
         "spent": "mine.fighter"
       }
@@ -3415,7 +3415,7 @@
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine"
+          "set_owner:self:mine.player"
         ],
         "spent": "mine.fighter"
       }
@@ -3435,7 +3435,7 @@
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine"
+          "set_owner:self:mine.player"
         ],
         "spent": "mine.fighter"
       }
@@ -3455,7 +3455,7 @@
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine"
+          "set_owner:self:mine.player"
         ],
         "spent": "mine.fighter"
       }
@@ -3475,7 +3475,7 @@
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine"
+          "set_owner:self:mine.player"
         ],
         "spent": "mine.fighter"
       }
@@ -3495,7 +3495,7 @@
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine"
+          "set_owner:self:mine.player"
         ],
         "spent": "mine.fighter"
       }
@@ -3515,7 +3515,7 @@
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine"
+          "set_owner:self:mine.player"
         ],
         "spent": "mine.fighter"
       }
@@ -3535,7 +3535,7 @@
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine"
+          "set_owner:self:mine.player"
         ],
         "spent": "mine.fighter"
       }
@@ -3555,7 +3555,7 @@
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine"
+          "set_owner:self:mine.player"
         ],
         "spent": "mine.fighter"
       }
@@ -3575,7 +3575,7 @@
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine"
+          "set_owner:self:mine.player"
         ],
         "spent": "mine.fighter"
       }

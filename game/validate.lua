@@ -1473,7 +1473,7 @@ function M.check(G)
 					warn("%s: '%s' says '%s' happens to a piece already standing there — it should be 'purge', 'refuse', or the zone taken pieces go to%s",
 						where, op, a, suggest(sc.name, G.zone_defs))
 				end
-			elseif t == "scope" then
+			elseif t == "scope" or (t == "owner" and a ~= "none") then
 				local sc = predicate.parse_scope(a)
 				local named = sc and scope_named(sc.name)
 				if opponent_ok(where, "'" .. op .. "'", a, { name = named }) then
@@ -1566,12 +1566,6 @@ function M.check(G)
 					warn('%s: "%s" is not an order the engine knows — it knows "by_column", and naming '
 						.. "none acts in the order the cards are in%s",
 						where, tostring(a), suggest(a, ORDER_WORDS))
-				end
-			elseif t == "seat" then
-				-- A seat by its own key, the one that is up, or nobody.
-				if a ~= "none" and a ~= "mine" and not (G.seat_index or {})[a] then
-					warn("%s: '%s' hands the card to '%s', which is neither a seat nor \"mine\" nor \"none\"%s",
-						where, op, tostring(a), suggest(a, G.seat_index or {}))
 				end
 			elseif t == "pattern" then
 				-- One direction, because the op slides everything the same way.

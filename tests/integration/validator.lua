@@ -105,7 +105,7 @@ local CASES = {
 		function(g) g.card_defs.c_flee.on_play = { "move:nowhere:hand" } end },
 	{ "an amount that is not one", "takes an amount, and", 
 		function(g) g.card_defs.c_flee.on_play = { "create:hand:pearl:lots" } end },
-	{ "a card handed to nobody", "which is neither a seat nor",
+	{ "a card handed to nobody nameable", "which is neither a zone nor a tag",
 		function(g) g.card_defs.c_flee.on_play = { "set_owner:self:nobody" } end },
 	{ "cards taken out of origin", "cannot take cards out of 'origin'",
 		function(g) g.card_defs.c_flee.on_play = { "move:origin:hand" } end },

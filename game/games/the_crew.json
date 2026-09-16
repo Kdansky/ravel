@@ -78,9 +78,12 @@
   "tags": {
     "play_card": {
       "tooltip": "Follow the led suit if you hold it. Rockets beat every colour.",
-      "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] }
+      "play": {
+        "needs": ["suit@self == led@plan"],
+        "action": ["set_owner:self:mine.player", "move_to:trick"]
+      }
     },
-    "task": { "play": { "action": ["set_owner:self:mine", "move_to:tasks"] } },
+    "task": { "play": { "action": ["set_owner:self:mine.player", "move_to:tasks"] } },
     "in_trick": {
       "abilities": [
         {

@@ -653,19 +653,13 @@ def choice_templates():
               "Move a non-Wizard Fire card from your opponent's discard to yours.",
               ["show:enemy.discard.fire:optional"],
               needs=["count:fire@enemy.discard >= 1"],
-              chosen=["set_owner:target:mine", "move:target:mine.discard"],
+              chosen=["set_owner:target:mine.player", "move:target:mine.discard"],
               where=["not_tagged:wizard_spell@target"]),
         entry("bat_give", "Give one of yours",
               "Move a non-Wizard Fire card from your discard to your opponent's.",
               ["show:mine.discard.fire:optional"],
               needs=["count:fire@mine.discard >= 1"],
-              # `set_owner` says "mine" or "none" and has no word for the other
-              # seat, so the other seat is made the one acting for two lines --
-              # the same flip the empty piles use, where `mine` is theirs from
-              # inside the window.
-              chosen=["set_priority:enemy.player",
-                      "set_owner:target:mine", "move:target:mine.discard",
-                      "clear_priority"],
+              chosen=["set_owner:target:opponent", "move:target:enemy.discard"],
               where=["not_tagged:wizard_spell@target"]),
 
         # Ruby's "OR", standing in the same question as the three cards it is

@@ -146,12 +146,16 @@ function M.test_placement_set_owner_hands_a_card_over(check)
 	with_game(function(name)
 		flow.init(name, 3)
 		local c = put("two", "mark")
-		actions.execute("set_owner:each.stash:mine", {})
+		actions.execute("set_owner:each.stash:mine.player", {})
 		check("the seat that is up takes it", predicate.owner_of(c) == "one",
 			tostring(predicate.owner_of(c)))
-		actions.execute("set_owner:each.stash:two", {})
-		check("and a seat can be named outright", predicate.owner_of(c) == "two",
-			tostring(predicate.owner_of(c)))
+		-- Whose is named the way every other action names it: a scope, resolved
+		-- to a card, and the seat is whose that card is. There is no second
+		-- vocabulary here any more, so "the other player" says what it says
+		-- everywhere else.
+		actions.execute("set_owner:each.stash:enemy.player", {})
+		check("and the other seat is named the ordinary way",
+			predicate.owner_of(c) == "two", tostring(predicate.owner_of(c)))
 	end)
 end
 

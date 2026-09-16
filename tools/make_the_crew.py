@@ -458,11 +458,11 @@ def build():
             "play_card": {
                 "tooltip": "Follow the led suit if you hold it. Rockets beat every colour.",
                 "play": {"needs": ["suit@self == led@plan"],
-                         "action": ["set_owner:self:mine", "move_to:trick"]},
+                         "action": ["set_owner:self:mine.player", "move_to:trick"]},
             },
             # Taking a task is one act; which card it wants is the tag it shares
             # with that card, and nothing about picking it up depends on which.
-            "task": {"play": {"action": ["set_owner:self:mine", "move_to:tasks"]}},
+            "task": {"play": {"action": ["set_owner:self:mine.player", "move_to:tasks"]}},
             # Never clicked: the trick is not tagged "activate", so this is
             # reachable only through activate_zone, which is ungated.
             "in_trick": {"abilities": in_trick()},

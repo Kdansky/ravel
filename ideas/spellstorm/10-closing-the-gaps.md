@@ -467,8 +467,8 @@ the blocker the empty-pile note claimed. And `mine.discard.ash` names a zone
 |---|---|---|---|
 | 1 | C3, D2, D3 | small each | one card or three apiece |
 | 2 | B2 rest — **a budget an aura can spend** | small | *Dodge!*, and every "prevent the next N damage" in any game |
-| 3 | **`set_owner:<scope>:enemy`** | tiny | the obvious missing third spelling beside `mine` and `none`; Lava Bat flips priority for two lines instead |
-| 4 | **a prompt an offer can carry** | small | what a question means is one string for the whole game today, so it has to live on the cards in it |
+| 3 | **a prompt an offer can carry** | small | what a question means is one string for the whole game today, so it has to live on the cards in it |
+| — | ~~`set_owner:<scope>:enemy`~~ | | **done**, and as a deletion rather than an addition: the argument takes an ordinary scope now, so there is no second vocabulary for whose a card is |
 | — | A1, A2, A3, C2, F2, E, D1, G1, G2, C1, D4, **B1** | ~~various~~ | **done.** The Ultimates, the offer queue, the copy, the journal, the potion loop, the doubled gains, May's download, Oren's four, the weather, the five that were not gaps, the random discards, Riot's silence, the tag unions, the narrowed offers, Obsidian's free Ultimate, Croh's *Accursed* and both of Bunny's stitches |
 
 **B1 is closed but for *Glittering Dust*,** which stays where it was: rewriting

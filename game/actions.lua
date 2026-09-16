@@ -903,29 +903,44 @@ HANDLERS["move"] = function(p, ctx)
 	end
 end
 
--- set_owner:<scope>:<who>  — hand those cards to a seat, or to nobody.
+-- set_owner:<scope>:<whose>  — hand those cards to whoever the second scope
+-- belongs to, or to nobody.
 --
 -- Whose a card is is decided once, when it is dealt, and then it *stays* decided
 -- — so the only way it changes is a rule that says so out loud. Mind control is
--- "set_owner:target:mine"; a discard pile that anybody may take from is
+-- "set_owner:target:mine.player"; a discard pile that anybody may take from is
 -- "set_owner:target:none", said by the pile as things land in it rather than by
 -- every card that might be thrown there.
+--
+-- **Whose is said the way every other action says it.** This took a vocabulary
+-- of its own for a while — "mine", or a seat's key, and nothing else — so
+-- "give it to the other player" could not be written at all, while
+-- set_active_seat and set_priority had been naming a seat with an ordinary scope
+-- the whole time. One question, one spelling: the scope resolves to a card and
+-- the seat is whose that card is, so "mine.player", "opponent" and
+-- "enemy.player" all say what they say everywhere else.
+--
+-- "none" stays a word of its own, because it is not a seat. An empty scope means
+-- *skip* everywhere in this file, so nobody could be named by one.
 --
 -- Seats are numbered 1..N and nobody is 0, which is why "none" needs no separate
 -- storage: tags.owner_of reads the number and finds no seat at 0. Unset is a
 -- third thing and means "never had one", and it stays that way — a card that
 -- was never anybody's is not the same as one taken away from somebody.
 HANDLERS["set_owner"] = function(p, ctx)
-	local sc  = predicate.parse_scope(p[2] or "")
-	local who = p[3] or "none"
+	local sc    = predicate.parse_scope(p[2] or "")
+	local whose = p[3] or "none"
 	if not sc then return end
-	local G = declaration.G
-	local i
-	if who == "none" then i = 0
-	elseif who == "mine" then i = (G.seat_index or {})[zones.active_seat()]
-	else i = (G.seat_index or {})[who] end
+	local G, i = declaration.G, nil
+	if whose == "none" then
+		i = 0
+	else
+		local wsc = predicate.parse_scope(whose)
+		local of  = wsc and predicate.entities_in_scope(wsc.name, ctx, wsc.owner, wsc.quant)[1]
+		i = of and (G.seat_index or {})[predicate.seat_of(of)]
+	end
 	if not i then
-		content_error("set_owner: '" .. tostring(who) .. "' is not a seat")
+		content_error("set_owner: '" .. tostring(whose) .. "' names nobody")
 		return
 	end
 	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
@@ -1717,7 +1732,7 @@ local SPEC = {
 	activate_zone     = "zone order? step?",
 	move              = "scope zone n? pos?",
 	take              = "scope zone n? pos?",
-	set_owner         = "scope seat",
+	set_owner         = "scope owner",
 	options           = "any optional?",
 	show              = "scope optional?",
 	reveal            = "card",

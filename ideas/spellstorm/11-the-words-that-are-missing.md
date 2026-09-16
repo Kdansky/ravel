@@ -194,11 +194,15 @@ the branch is which came back. Two things make it work, and neither is new:
   the minted card reads the number written onto it a step earlier, so the choice
   says what it is worth instead of making the player count Fire icons.
 
-**Two small gaps this turned up, neither blocking.** `set_owner` says `mine` or
-`none` and has no word for the other seat, so Lava Bat's give direction flips
-priority for two lines — the idiom the empty piles already use, and it works, but
-`enemy` is the obvious missing spelling. And **the prompt above an offer cannot be
-written per question**: `render.lua:1890` prints the overlay phase's `label`
+**One small gap this turned up, and one that is now closed.** `set_owner` had a
+vocabulary of its own — `mine`, `none`, or a seat's key — while `set_active_seat`
+and `set_priority` had been naming a seat with an ordinary scope the whole time.
+One question, two spellings, and the smaller one could not say "the other player"
+at all. It takes a scope now, so Lava Bat's give direction is
+`set_owner:target:opponent` and `none` is the only literal left, because nobody is
+not a seat and an empty scope means *skip* rather than *clear*.
+
+What is still open: **the prompt above an offer cannot be written per question**: `render.lua:1890` prints the overlay phase's `label`
 through `label.fill`, and `draw_zone` prints the offer zone's — but both are one
 string for every question in the game, and no action can write either. So what a
 choice means has to live on the cards in it, which is where this game has always

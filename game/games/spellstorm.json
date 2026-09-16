@@ -3453,7 +3453,7 @@
         "needs": ["count:fire@enemy.discard >= 1"]
       },
       "chosen": {
-        "action": ["set_owner:target:mine", "move:target:mine.discard"],
+        "action": ["set_owner:target:mine.player", "move:target:mine.discard"],
         "where": ["not_tagged:wizard_spell@target"]
       }
     },
@@ -3468,12 +3468,7 @@
         "needs": ["count:fire@mine.discard >= 1"]
       },
       "chosen": {
-        "action": [
-          "set_priority:enemy.player",
-          "set_owner:target:mine",
-          "move:target:mine.discard",
-          "clear_priority"
-        ],
+        "action": ["set_owner:target:opponent", "move:target:enemy.discard"],
         "where": ["not_tagged:wizard_spell@target"]
       }
     },
