@@ -199,17 +199,15 @@ states that grant them. What each still rounds off is below.
   new tag, no new cards. `chosen.where` carries both halves of "an empty space,
   while she has tokens left", neither of which is a property of the card alone.
   Each space now prints what it does, because a choice between eight has to.
-- **Oren is exact but for one corner.** *I Think I Just Drank Gasoline* doubles
+- **Oren is exact.** *I Think I Just Drank Gasoline* doubles
   the next potion — the one card in the game that reaches forward to the next,
   which it does with a flag it sets and the next potion spends. *Dragon Elixir*
   resolves the top Dragon where it lies rather than gaining it. *Potion Gun*
   reads which Element the given card matched, by counting the pick in the offer
   it is still lying in, and will not give away a Wizard Spell Card.
-  *Unstable Formula* offers all six ways to pour one beaker into another — but a
-  beaker holding less than 2 cannot pour 2, and **an offered card's own `needs`
-  is not read** (below), so that rule is an ability on the entry instead: the
-  pour is offered, and picking it spends the choice and does nothing. The card
-  says so on its face.
+  *Unstable Formula* offers all six ways to pour one beaker into another, and a
+  beaker holding less than 2 cannot pour 2 — each pour's own `needs` says so, so
+  it is offered greyed out rather than taken for nothing.
 - **~~Omar's Shuriken~~** — done, and it was never a gap. "Resolution order is the
   Initiative Tracker and nothing else" was the claim, and it was wrong about the
   engine: the duel's order is `highest:<stat>`, and nothing said the stat had to
@@ -286,29 +284,19 @@ states that grant them. What each still rounds off is below.
   Power is a declared verb, `power_up`, and every wizard card carries the
   `power_track` aura, whose `instead` lands the tokens and walks the track. Losing
   Power stays a plain `stat_damage`, since nothing happens when the track goes down.
-- **The Unplayable Hand rule is a button, not automatic.** When your hand is
-  nothing but ICE, ASH and CURSE, press *Unplayable hand* on the board: it
-  discards them with their effects, takes 1 damage, and draws 4. The button asks
-  first — it was a free mulligan for 1 damage until it did. "A card without a tag"
-  is a computed tag, `playable` from `not_tagged:junk@self`, so the rule is
-  `count@mine.hand >= 1` and `count:playable@mine.hand <= 0`. What is
-  left is that nobody presses it for you.
-- **Card counts are per design, not per print run.** The Spellstorm Deck holds one
-  of each non-basic spell; the real box has duplicates whose counts the print
-  files do not record. Starting decks are exact: 2 Magic Dart, 2 Block, 2 Power
-  Gem, plus your two Wizard Spell Cards. **The weather deck is exact too**, since
-  that one the source does record: eight Calm and sixteen standard, with Crystal
-  Flurries, Energy Wave, Ionic Atmosphere, Magnetic Warp and Soothing Rain twice
-  each. A battle draws four, so how often a design comes round is the whole of
-  what those counts are for.
+- **~~Card counts are per design, not per print run~~** — they are the print run.
+  The print files do record it: every non-basic spell has one file, the three
+  basics eight each (two per player, four players) and ICE, ASH and CURSE six
+  each. 63 spell cards in the box is 24 starting cards and a Spellstorm Deck of
+  39, which is one of each — what the game has. Weather is exact too: eight Calm
+  and sixteen standard, with Crystal Flurries, Energy Wave, Ionic Atmosphere,
+  Magnetic Warp and Soothing Rain twice each.
 
 ## Modes not implemented
 
-**Two players only.** Robot Boy (solo and co-op), Two on Two and Free for All are
-out. Robot Boy needs a scripted opponent — a deck that plays itself, Blast Tokens
-standing in for a hand, and Tier-scaled riders on every card — which is a second
-game's worth of machinery on top of this one. His cards are all transcribed in
-`04-robot-boy.md` if it is ever wanted.
+**1v1 only, by choice.** Robot Boy (solo and co-op), Two on Two and Free for All
+are out. If they come, each is a game file that includes this one rather than a
+fork of it. Robot Boy's cards are transcribed in `04-robot-boy.md`.
 
 ## Engine words this game wanted and did not find
 
