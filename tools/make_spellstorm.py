@@ -42,9 +42,26 @@ DRAW  = "draw_from:mine.deck:mine.hand:1"
 # thing that happens, as against a number going up. Every heal in the box goes
 # through this verb, including the one Bunny hands his opponent.
 HEAL  = lambda n: "heal:health@mine.player:%d" % n
-DMG   = lambda n: "stat_damage:health@opponent:%d" % n
-SELF_DMG = lambda n: "stat_damage:health@mine.player:%d" % n
+# **Damage is three moments, and each one is a different sentence.**
+#
+# `hit` is a blow from across the table: declaring it is the whole of announcing
+# it, so Omar's Dodge! answers `hit` and every card that deals one is answerable
+# without writing a word on any of them. `hurt` is damage you do to yourself,
+# which is a cost and not an attack -- nothing answers it, which is what keeps
+# Dodge! from being revealed because the other player poked themselves.
+#
+# `wound` is what arrives once anything standing in front of it has taken its
+# bite. Dodge! replaces the blow with a wound of the same size and the shifts that
+# shrink it are about the wound: one verb would find the same rule again on the
+# way down and the blow would never land.
+DMG   = lambda n: "hit:health@opponent:%d" % n
+SELF_DMG = lambda n: "hurt:health@mine.player:%d" % n
 SHARD = lambda n: "stat_gain:shards@mine.player:%d" % n
+# What a blow Dodge! has soaked does instead of landing: a wound of the same size,
+# which the shifts are about, and the budget down by the size of the blow --
+# stat_damage stops at the floor, so a blow bigger than what is left uses up the
+# rest and no more.
+SOAK  = ["wound:health@mine.player:amount", "stat_damage:guard@mine.traps:amount"]
 
 # Initiative is one tracker, so taking it is two writes and there is no way to
 # say it as one. Both spellings exist because both directions appear on cards.
@@ -697,28 +714,40 @@ def choice_templates():
 
 def trap_templates():
     """Omar's Traps: a card held face down that answers a moment of its own."""
-    def trap(key, name, tooltip, element, action):
+    def trap(key, name, tooltip, to, whose, needs, action):
         return {
             "key": key, "text": name, "asset": "auto", "tags": ["trap"],
             "tooltip": tooltip,
-            "card_stats": {"sprung": 0},
+            "card_stats": {"sprung": 0, "guard": 0},
             # A Trap is revealed *by its holder*, after the trigger, or not at
-            # all -- so it is a reaction and not a rule about countering. `in`
+            # all -- so it is a reaction and not a rule about the moment. `in`
             # names the zone it answers from, which is what makes a Trap that
             # has been swapped back onto its pile inert without saying so.
             "reactions": [{
-                "to": "countered", "whose": "mine", "in": "traps",
-                "needs": ["sprung@self <= 0", "count:%s@mine.battle >= 1" % element],
+                "to": to, "whose": whose, "in": "traps",
+                "needs": ["sprung@self <= 0"] + list(needs),
                 "action": ["stat_set:sprung@self:1"] + list(action)}],
         }
 
+    def counter_trap(key, name, tooltip, element, action):
+        return trap(key, name, tooltip, "countered", "mine",
+                    ["count:%s@mine.battle >= 1" % element], action)
+
     return [
-        trap("trap_mud", "Mud Trap",
-             "Reveal when you counter with a Fire card: deal 1 damage, gain 1 mana and gain Initiative.",
-             FIRE, [DMG(1), MANA] + GAIN_INIT),
-        trap("trap_ice", "Ice Bomb",
-             "Reveal when you counter with a Water card: give an ICE, gain 1 mana, and you may cast your Ultimate.",
-             WATER, GIVE("ice") + [MANA, "emit:resolving"]),
+        counter_trap("trap_mud", "Mud Trap",
+                     "Reveal when you counter with a Fire card: deal 1 damage, gain 1 mana and gain Initiative.",
+                     FIRE, [DMG(1), MANA] + GAIN_INIT),
+        counter_trap("trap_ice", "Ice Bomb",
+                     "Reveal when you counter with a Water card: give an ICE, gain 1 mana, and you may cast your Ultimate.",
+                     WATER, GIVE("ice") + [MANA, "emit:resolving"]),
+        # The budget is written on the Trap itself, because the Trap is where a
+        # player can see it and because it goes when the Trap does. `whose` is
+        # what says "an opponent is dealing damage to you": the announcement is
+        # somebody else's, and every blow aimed at the other seat is aimed at
+        # this one.
+        trap("trap_dodge", "Dodge!",
+             "Reveal when an opponent deals damage to you: the first 2 points of damage you take this round are negated.",
+             "hit", "enemy", [], ["stat_set:guard@self:2"]),
     ]
 
 
@@ -798,7 +827,7 @@ WIZARDS = [
                     tooltip="Discard your hand without triggering any discard effects. Deal 1 damage per Earth card discarded. Draw 2 cards.",
                     flavour='"Destroying the Omni-Gem was only the first step in our struggle against colonial oppression."',
                     comment="The two moves are one discard, and the detour is the whole of \"without triggering any discard effects\". An On Discard fires on a card going from a hand to a discard; leaving a hand for the quiet is not that, and leaving the quiet for a discard is not either. The cards are there for the length of one step and this is the only card in the box that needs it.",
-                    cast=["stat_damage:health@opponent:count:earth@mine.hand",
+                    cast=["hit:health@opponent:count:earth@mine.hand",
                           "move:mine.hand:quiet", "move:quiet:mine.discard", DRAW, DRAW]),
            ]),
 
@@ -857,7 +886,7 @@ WIZARDS = [
                     tooltip="Gain 2 mana. Deal damage equal to your number of DOOM Tokens. If the CURSE pile is empty, gain a DOOM Token.",
                     flavour="Long ago, Croh Vosh was betrayed and killed at Dragon Bridge by his longtime ally, Salutaire Ruupart.",
                     cast=[MANA, MANA,
-                          "stat_damage:health@opponent:sum:doom@mine.player"],
+                          "hit:health@opponent:sum:doom@mine.player"],
                     cast2=("count:junk@curse_pile <= 0",
                            ["stat_gain:doom@mine.player:1"])),
                card("croh_undertow", "Undertow", WATER, kind="wizard_spell", ult=True,
@@ -876,12 +905,17 @@ WIZARDS = [
            # coming off is not among the ones offered -- which is the whole of
            # "you can't play the same Trap twice in a row", said by the order
            # rather than by a rule remembering what was last armed.
+           # The Trap going back to the pile takes its unspent Dodge with it
+           # unless somebody says otherwise, and a Trap re-armed with a budget
+           # already on it would soak before it was ever revealed.
            ult_chosen=["stat_set:sprung@mine.traps:0",
+                       "stat_set:guard@mine.traps:0",
                        "move:mine.traps:trap_pile",
                        "move:target:mine.traps"],
            start=["create:trap_pile:trap_mud:1",
-                  "create:trap_pile:trap_ice:1"],
-           simplified="Dodge! is not implemented -- negating the first 2 points of damage is a budget that has to be spent as it is used, and nothing can spend what an aura reads",
+                  "create:trap_pile:trap_ice:1",
+                  "create:trap_pile:trap_dodge:1"],
+           keywords=["dodging"],
            blurb="A ninja and wanted eco-terrorist. Low health, but he acts first in every matchup and Shuriken always resolves before anything else.",
            spells=[
                card("omar_beetle", "Beetle Buster", FIRE, kind="wizard_spell", ult=True,
@@ -1386,7 +1420,7 @@ def rules_templates():
     out.append(rules_card(
         "r_ruby_burn", "Ruby: the flame",
         "Ruby: taking the flame deals 1 damage for each Fire card among the three.",
-        [ability("ruby_pick", ["stat_damage:health@opponent:sum:counted@options"],
+        [ability("ruby_pick", ["hit:health@opponent:sum:counted@options"],
                  when=["count:burn@options >= 1"])]))
     out.append(rules_card(
         "r_ruby_void", "Ruby: the card",
@@ -1946,6 +1980,9 @@ def phases():
                      # An unspent pass does not keep. It is offered while the
                      # card that gave it is resolving and goes out with the round.
                      "each_seat:stat_set:ult_free@mine.player:0",
+                     # Dodge! negates the first 2 points *this round*, so what is
+                     # left of it goes out with the round the way the pass does.
+                     "each_seat:stat_set:guard@mine.traps:0",
                      "each_seat:activate_zone:rules:by_column:tier_up",
                      "each_seat:activate_zone:rules:by_column:tier_up",
                      "each_seat:activate_zone:rules:by_column:tier_gem"],
@@ -2149,6 +2186,8 @@ def build():
             # A Trap that has been revealed. It stays where it lies and does
             # nothing more until the Ultimate swaps it out.
             {"key": "sprung", "min": 0, "max": 1, "tags": ["hidden"]},
+            # What is left of Omar's Dodge!, written on the Trap that set it.
+            {"key": "guard", "min": 0, "max": 2, "tags": ["hidden"]},
             # What a card standing for a choice is worth, written onto it before
             # the question opens so that the card can say the number out loud.
             {"key": "counted", "min": 0, "max": 9, "tags": ["hidden"]},
@@ -2170,7 +2209,13 @@ def build():
             "earth_essence": {"needs": ["tagged:earth@self", "tagged:essence@self"]},
         },
         "verbs": [{"key": "heal", "does": "stat_gain",
-                   "tooltip": "Healing. Named as a moment of its own so that a rule can answer it - the engine's own stat_gain is unwatchable on purpose."}],
+                   "tooltip": "Healing. Named as a moment of its own so that a rule can answer it - the engine's own stat_gain is unwatchable on purpose."},
+                  {"key": "hit", "does": "stat_damage",
+                   "tooltip": "A blow from across the table. Declared, so it announces itself and a Trap can answer it."},
+                  {"key": "hurt", "does": "stat_damage",
+                   "tooltip": "Damage you do to yourself. A cost rather than an attack, so nothing answers it."},
+                  {"key": "wound", "does": "stat_damage",
+                   "tooltip": "Damage as it arrives, once anything standing in front of it has taken its bite."}],
         "styles": {
             "ember": {"color": [0.62, 0.20, 0.16], "hide": ["title"]},
             "tide":  {"color": [0.16, 0.36, 0.58], "hide": ["title"]},
@@ -2226,6 +2271,34 @@ def build():
                 "adjusts": [{"key": "curse", "verb": "heal", "stat": "health",
                              "covers": "mine.player",
                              "instead": GIVE("curse")}]},
+            # Omar's Dodge!, printed on Omar's card and reading the budget off
+            # the Trap that set it.
+            #
+            # **"The first 2 points" is two points, each said once.** `by` takes a
+            # number and not a measure, so a budget of two is two shifts of one,
+            # and each asks whether that much of it is still there. Three would be
+            # three lines; nothing in the box says three.
+            #
+            # **And it is spent as it is used.** The hit does not land: a wound of
+            # the same size lands in its place, which is what the two shifts are
+            # about, and the budget goes down by the size of the blow. stat_damage
+            # stops at the floor, so a hit bigger than what is left uses up the
+            # rest and no more -- which is the whole of "the first 2 points",
+            # across as many blows as the round holds.
+            "dodging": {
+                "adjusts": [
+                    {"key": "soak_one", "verb": "wound", "stat": "health",
+                     "covers": "mine.player", "needs": ["guard@mine.traps >= 1"], "by": -1},
+                    {"key": "soak_two", "verb": "wound", "stat": "health",
+                     "covers": "mine.player", "needs": ["guard@mine.traps >= 2"], "by": -1},
+                    {"key": "soak", "verb": "hit", "stat": "health",
+                     "covers": "mine.player", "needs": ["guard@mine.traps >= 1"],
+                     "instead": SOAK},
+                    # Damage you take is damage you take, whoever dealt it, so the
+                    # same replacement answers the blow you do to yourself.
+                    {"key": "soak_self", "verb": "hurt", "stat": "health",
+                     "covers": "mine.player", "needs": ["guard@mine.traps >= 1"],
+                     "instead": SOAK}]},
         },
         "zones": zones(),
         "phases": phases(),

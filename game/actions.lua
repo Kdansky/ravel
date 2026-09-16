@@ -1742,6 +1742,7 @@ local SPEC = {
 	set_priority      = "scope",
 	clear_priority    = "",
 	emit              = "any action?",
+	land              = "action",
 	counterspell      = "",
 	redirect          = "scope scope",
 	each_seat         = "action",
@@ -1765,6 +1766,40 @@ function M.spec(op)
 end
 
 
+-- The held half of a declared verb: the same action again, with the
+-- announcement already made. The engine writes it and nothing else does — a game
+-- file that says it is naming an op the validator refuses.
+--
+-- It exists because the announcement belongs to the *action*. `emit` can hold
+-- what somebody wrote after it; a verb that announces itself has to hold itself,
+-- and a second spelling is the only place to put "and now it happens".
+HANDLERS["land"] = function(p, ctx)
+	local rest = {}
+	for i = 2, #p do rest[i - 1] = p[i] end
+	local vd = declaration.G.verb_defs[rest[1]]
+	local h  = HANDLERS[vd and vd.does or rest[1]]
+	if h then h(rest, ctx) end
+end
+
+-- **A game's verb is a moment, and naming it is the whole of saying it out
+-- loud.** A verb the game declared announces itself wherever it is performed, so
+-- anything holding a reaction to it may answer before the change stands — and the
+-- change waits behind that window, because an action list runs to completion and
+-- there is no pausing one.
+--
+-- **On the verb, not on the cards that perform it.** Written the other way round
+-- — an `emit` beside every blow — a new kind of defence reopens every card that
+-- could ever be defended against, and the next raw stat change somebody writes by
+-- hand is silently unanswerable. A game names damage once and every card that
+-- deals it is answerable for free.
+--
+-- Engine verbs stay silent, which is the rest of the rule: a game says which of
+-- its moments are moments by naming them, and the bookkeeping written with the
+-- same action — a budget spent, a counter reset — is not one of them.
+--
+-- Nothing answers this verb, or the game has no stack: `emit` returns false and
+-- the change runs now, exactly as if it had never been named. A declared verb in
+-- a game with no reactions costs one table lookup.
 function M.execute(str, ctx)
 	local p  = parse(str)
 	-- A verb the game named runs the engine verb it stands for, and keeps its
@@ -1772,11 +1807,15 @@ function M.execute(str, ctx)
 	-- was poison and not a sword, when both are a stat_damage to hp.
 	local vd = declaration.G.verb_defs[p[1]]
 	local h  = HANDLERS[vd and vd.does or p[1]]
-	if h then
-		h(p, ctx)
-	else
+	if not h then
 		content_error("Unknown action: " .. str)
+		return
 	end
+	local subject = ctx and ctx.card_id and { ctx.card_id } or {}
+	if vd and M.on_emit and M.on_emit(p[1], subject, { "land:" .. str }, ctx and ctx.card_id, ctx) then
+		return
+	end
+	h(p, ctx)
 end
 
 -- **A list does not run in the background of its own question.** `show:` and

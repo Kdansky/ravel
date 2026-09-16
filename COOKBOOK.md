@@ -179,6 +179,55 @@ Both run `stat_damage`; the aura names one of them. That is the whole mechanism 
 `@source` is who is doing it — the one thing no other scope names. `@self` is the card holding
 the aura, `@target` the card being hit.
 
+### The next 2 points of damage you take are negated.
+
+```json
+"verbs": [{ "key": "hit", "does": "stat_damage" },
+          { "key": "wound", "does": "stat_damage" }],
+"adjusts": [
+  { "key": "soak_one", "verb": "wound", "stat": "hp", "covers": "self",
+    "needs": ["guard@self >= 1"], "by": -1 },
+  { "key": "soak_two", "verb": "wound", "stat": "hp", "covers": "self",
+    "needs": ["guard@self >= 2"], "by": -1 },
+  { "key": "soak", "verb": "hit", "stat": "hp", "covers": "self",
+    "needs": ["guard@self >= 1"],
+    "instead": ["wound:hp@self:amount", "stat_damage:guard@self:amount"] }]
+```
+
+A shield that is **spent as it is used** is the one thing `by` alone cannot do: it is read more
+than once per change, so it must not have a side effect, and `by` takes a number rather than a
+measure anyway. So a budget of two is two shifts of one, each asking whether that much of it is
+still there — three would be three lines.
+
+The spending is the `instead`: the hit does not land, a **wound** of the same size lands in its
+place, and the budget goes down by the size of the blow. `stat_damage` stops at the floor, so a
+blow bigger than what is left uses up the rest and no more.
+
+**Two verbs, and that is the point.** The shifts are about the wound. A hit that re-dealt itself
+as a hit would find this same rule on the way down and never arrive at all — and a declared verb
+announces itself, so it would reopen the window as well.
+
+### You may reveal this when an opponent deals damage to you.
+
+```json
+"verbs": [{ "key": "hit", "does": "stat_damage" }],
+"action": ["hit:hp@opponent:2"],
+"reactions": [{ "to": "hit", "whose": "enemy", "in": "traps",
+                "action": ["stat_set:guard@self:2"] }]
+```
+
+**Declaring a verb is the whole of announcing it.** A card that performs one announces it wherever
+it is performed and the change waits behind the window, so a shield revealed in answer is up
+before the blow arrives. Write the announcement on the verb and a new kind of defence never has to
+reopen the cards it defends against — nothing on the attacking card says a word.
+
+`whose: "enemy"` is "an *opponent* is dealing damage to you": the announcement is somebody else's.
+Damage a card does to its own side is a cost rather than an attack, so it gets a verb of its own
+that nothing answers.
+
+Nothing answers the verb, or the game has no `stack` zone: the change runs now, so a declared verb
+in a game with no reactions costs one table lookup.
+
 ### You may resolve a different one of the revealed cards.
 
 ```json

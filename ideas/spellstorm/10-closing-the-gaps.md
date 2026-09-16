@@ -172,12 +172,29 @@ the same shape as the Ultimate answering `resolving`. *Ice Bomb* announces
 `resolving` of its own, and the Ultimate answers it from inside the window the
 counter opened, which is a reaction window nested in a reaction window and works.
 
-*Dodge!* is the one left, and this entry had the hard half wrong: see `11` §2. The
-trigger is two lines in the generator (`emit` takes a held action, so a hit can
-announce itself and then land). What is missing is a budget an aura can **spend**
-as it is used.
+***Dodge!* is done too, and this entry had the hard half wrong twice over.** The
+trigger is a declared verb: damage is `hit`, declaring a verb is the whole of
+announcing it, and the change waits behind the window an answer opens — so
+`"to": "hit"` on the Trap is the trigger and nothing on any attacking card says a
+word. `whose: "enemy"` is "an opponent is dealing damage to *you*"; damage a card
+does to itself is `hurt`, a cost rather than an attack, which nothing answers.
 
-**Size:** what is left is small once the shape is chosen; the choice is the work.
+And the budget wanted no word either. `by` cannot be a measure and must not have a
+side effect, so "the first 2 points" is **two shifts of one**, each asking whether
+that much of it is still there; and the spending is an `instead` that replaces the
+hit with a **wound** of the same size and takes the blow's size off the budget —
+`stat_damage` stops at the floor, so a blow bigger than what is left uses up the
+rest and no more. Two verbs rather than one because a hit that re-dealt itself as a
+hit would find the same rule on the way down and never arrive.
+
+**The engine changed, and for the general reason rather than for this card.** It was
+built first with the announcement on each caller — `emit:damaging:hit:...` on every
+attacking card — which works and is the wrong shape: a new kind of defence reopens
+every card that could ever be defended against. A verb a game declares announces
+itself now, so a game names damage once and every card that deals it is answerable
+for free; `emit` keeps the moments that are not stat changes. Two smaller
+corrections rode along — the validator was reading auras after it had asked which
+verbs anything performed, and a declared verb now counts as emitted. See `11` §2.
 
 ---
 
@@ -493,8 +510,8 @@ the blocker the empty-pile note claimed. And `mine.discard.ash` names a zone
 | | Item | Size | Why here |
 |---|---|---|---|
 | 1 | C3, D2, D3 | small each | one card or three apiece |
-| 2 | B2 rest — **a budget an aura can spend** | small | *Dodge!*, and every "prevent the next N damage" in any game |
-| 3 | **a prompt an offer can carry** | small | what a question means is one string for the whole game today, so it has to live on the cards in it |
+| 2 | **a prompt an offer can carry** | small | what a question means is one string for the whole game today, so it has to live on the cards in it |
+| — | ~~B2 rest — a budget an aura can spend~~ | | **done, and not needed.** Two `by: -1` shifts are a budget of two, and an `instead` spends what the blow used. The only engine line was a validator reading the auras too late |
 | — | ~~`set_owner:<scope>:enemy`~~ | | **done**, and as a deletion rather than an addition: the argument takes an ordinary scope now, so there is no second vocabulary for whose a card is |
 | — | A1, A2, A3, C2, F2, E, D1, G1, G2, C1, D4, **B1** | ~~various~~ | **done.** The Ultimates, the offer queue, the copy, the journal, the potion loop, the doubled gains, May's download, Oren's four, the weather, the five that were not gaps, the random discards, Riot's silence, the tag unions, the narrowed offers, Obsidian's free Ultimate, Croh's *Accursed* and both of Bunny's stitches |
 

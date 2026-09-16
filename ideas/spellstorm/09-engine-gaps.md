@@ -138,9 +138,9 @@ and a phase's own action list are the only automatic hooks.
 
 | Component | Wizard | Why |
 |---|---|---|
-| 1 of 3 **Trap** cards | Omar Evans | *Mud Trap* and *Ice Bomb* are **done**: they trigger on countering, which was already a rules card, so one `emit:countered` made each an ordinary reaction answering from a face-down per-seat zone. *Dodge!* is left, and not for the reason this table gave — see `11` §2. Its trigger is two lines; what is missing is a budget an aura can spend as it is used. |
+| ~~1 of 3 **Trap** cards~~ | Omar Evans | **Done.** All three. *Mud Trap* and *Ice Bomb* trigger on countering, which was already a rules card, so one `emit:countered` made each an ordinary reaction answering from a face-down per-seat zone. *Dodge!* is the same two lines with `damaging` in place of `countered`, and its budget is two `by: -1` shifts and an `instead` that spends what it used — see `11` §2. |
 
-Traps are the only one left. The **Chemistry Board** is three stats and the
+Nothing on this list is left. The **Chemistry Board** is three stats and the
 potions are paid out of them; the **Potion Deck**'s push-your-luck is a phase the
 Ultimate pushes, drawing until you stop or a third TOXIC stops you; the
 **Research Journal**'s eight spaces all fire, three of them asking a question in

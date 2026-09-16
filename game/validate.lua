@@ -1335,7 +1335,11 @@ function M.check(G)
 	-- The verbs anything in this game announces. "play" is the engine's own, raised
 	-- whenever a card is put up to be answered; the rest are collected below, from
 	-- what cards and tags emit and from every emit: action walked.
+	-- Every verb the game declared, because declaring one is what makes it a
+	-- moment: a card performing it announces it, so a reaction may answer "hit"
+	-- without anybody writing an "emit" beside every blow that deals one.
 	local emitted_verbs = { play = true }
+	for _, key in ipairs(G.verb_list) do emitted_verbs[key] = true end
 	for _, defs in ipairs({ G.card_defs, tag_defs, G.phase_by_key }) do
 		for _, def in pairs(defs or {}) do
 			for _, verbs in pairs(type(def) == "table" and def.emits or {}) do
@@ -3441,40 +3445,6 @@ function M.check(G)
 			reacting[#reacting + 1] = { where = rw, to = r.to }
 		end
 	end
-	-- A reaction to a verb nothing raises can never fire, and looks exactly like
-	-- **A game's own word for a moment, and the aura that watches for it.** Both
-	-- halves are written in different places and nothing else holds them
-	-- together, which is the same typo the reaction cross-check below catches
-	-- and is caught the same way.
-	-- "target" is the act of aiming rather than an action: a verb standing for
-	-- it is named by a target spec and watched by an aura that changes what
-	-- pointing costs, which is resist. It has no action string to be found in,
-	-- so check_target notes it used instead of check_action.
-	local ADJUSTABLE = { stat_damage = true, stat_gain = true, target = true }
-	for _, key in ipairs(G.verb_list) do
-		local vd    = G.verb_defs[key]
-		local where = "verb '" .. tostring(key) .. "'"
-		if type(vd) ~= "table" then
-			warn('%s: should be written like { "key": "poison", "does": "stat_damage" }', where)
-			vd = {}
-		else
-			check_fields(where, vd, VERB_FIELDS)
-		end
-		if actions.spec(key) then
-			warn("%s: the engine already has an action by that name — a game's word for a moment has "
-				.. "to be its own, or which one an action meant would be a lookup", where)
-		elseif vd.does == nil then
-			warn('%s: needs a "does" saying which action carries it, like "stat_damage"', where)
-		elseif not ADJUSTABLE[vd.does] then
-			warn("%s: stands for '%s', which is not a verb an aura may watch%s — a named moment is one "
-				.. "something can answer, and only %s can be adjusted so far", where, tostring(vd.does),
-				suggest(vd.does, ADJUSTABLE), "stat_damage, stat_gain and target")
-		elseif not used_verbs[key] then
-			warn("%s: is declared but no action performs it — a moment nothing reaches is a word "
-				.. "the file has to keep in step for nothing", where)
-		end
-	end
-
 	for tag, td in pairs(tag_defs) do
 		for i, ad in ipairs(type(td) == "table" and type(td.adjusts) == "table" and td.adjusts or {}) do
 			local where = ("tag '%s' adjusts %d ('%s')"):format(tostring(tag), i, tostring(ad.key))
@@ -3539,6 +3509,46 @@ function M.check(G)
 		end
 	end
 
+	-- **A game's own word for a moment, and the aura that watches for it.** Both
+	-- halves are written in different places and nothing else holds them
+	-- together, which is the same typo the reaction cross-check below catches
+	-- and is caught the same way.
+	-- "target" is the act of aiming rather than an action: a verb standing for
+	-- it is named by a target spec and watched by an aura that changes what
+	-- pointing costs, which is resist. It has no action string to be found in,
+	-- so check_target notes it used instead of check_action.
+	--
+	-- **After the auras, because an aura is somewhere a verb is performed.** What
+	-- happens in a change's place is an action list like any other, and Omar's
+	-- Dodge! is the case: the only thing that deals a `wound` is the `instead`
+	-- that replaces the hit. Asked before the loop above had read them, a verb
+	-- used once and only there read as a verb nothing used.
+	local ADJUSTABLE = { stat_damage = true, stat_gain = true, target = true }
+	for _, key in ipairs(G.verb_list) do
+		local vd    = G.verb_defs[key]
+		local where = "verb '" .. tostring(key) .. "'"
+		if type(vd) ~= "table" then
+			warn('%s: should be written like { "key": "poison", "does": "stat_damage" }', where)
+			vd = {}
+		else
+			check_fields(where, vd, VERB_FIELDS)
+		end
+		if actions.spec(key) then
+			warn("%s: the engine already has an action by that name — a game's word for a moment has "
+				.. "to be its own, or which one an action meant would be a lookup", where)
+		elseif vd.does == nil then
+			warn('%s: needs a "does" saying which action carries it, like "stat_damage"', where)
+		elseif not ADJUSTABLE[vd.does] then
+			warn("%s: stands for '%s', which is not a verb an aura may watch%s — a named moment is one "
+				.. "something can answer, and only %s can be adjusted so far", where, tostring(vd.does),
+				suggest(vd.does, ADJUSTABLE), "stat_damage, stat_gain and target")
+		elseif not used_verbs[key] then
+			warn("%s: is declared but no action performs it — a moment nothing reaches is a word "
+				.. "the file has to keep in step for nothing", where)
+		end
+	end
+
+	-- A reaction to a verb nothing raises can never fire, and looks exactly like
 	-- one that works. This is the whole of the typo: the two halves of an event
 	-- are written in different files and nothing else holds them together.
 	for _, r in ipairs(reacting) do

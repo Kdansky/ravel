@@ -84,51 +84,101 @@ not done.
 
 ---
 
-## 2. A budget an aura can spend — Omar's *Dodge!*
+## 2. ~~A budget an aura can spend~~ — **not needed**
 
 **Omar Evans, Trap — Dodge!** *"You may reveal this when an opponent is dealing
 damage to you. The first 2 points of damage you take this round are negated."*
 
-**Two of the three traps are done, and neither needed a word.** *Mud Trap* and
-*Ice Bomb* trigger on **countering**, which was already a rules card firing in the
-showdown. One `emit:countered` on it and each trap is an ordinary reaction with
-`in: "traps"` — the same shape as the Ultimate answering `resolving`. The counter's
-own draw is the emit's *held* action, because an action list runs to completion and
-a draw written beside the announcement would land before anyone had answered it.
-The face-down half was shipped too: a per-seat zone with `visibility: "owner"` **is**
-a card placed and unreadable, which is what `commit` already was. *Ice Bomb* even
-announces `resolving` of its own, and the Ultimate answers it from inside the
-window the counter opened.
+**This page was wrong about both halves.** It said first that the trigger had
+nowhere to live, then corrected itself to say the trigger was easy and the budget
+was the word. The budget was not a word either.
 
-**This page was wrong about which half was hard.** It said the trigger had nowhere
-to live, because nothing in the damage path speaks. That is true of the engine and
-beside the point — a game makes its own moments, and `emit` takes a held action, so
-`emit:damaging:stat_damage:health@opponent:2` announces the hit and lets it land
-afterwards. Every damage in the box comes out of two lambdas in the generator, so
-that trigger is two lines and no engine word at all.
+**The trigger.** Nothing in the engine's damage path speaks, which is true and
+beside the point: a game makes its own moments. Damage is a declared verb, and
+declaring one is now the whole of announcing it —
 
-**What is actually missing is the effect.** "The first 2 points of damage you take
-this round are negated" is a budget that is *spent as it is used*, and three words
-come close and fail the same way:
+```python
+DMG = lambda n: "hit:health@opponent:%d" % n
+SELF_DMG = lambda n: "hurt:health@mine.player:%d" % n
+```
 
-- **`adjusts.by`** can reduce by a measure — `"by": "-min:dodge@mine.player"` — but
-  cannot spend the counter it read, and `by` is read more than once per change, so
-  a read with a side effect would be a disaster.
-- **`adjusts.instead`** can cancel and re-deal, but the remainder is
-  `amount - dodge`, and the amount grammar has multiplication and nothing else. No
-  subtraction; `min:` is a minimum over a subject's bearers, not of two numbers.
-  Dealing `amount` and healing `dodge` back is wrong twice over — it overheals when
-  the hit is smaller than the budget, and healing is a declared moment now, so it
-  would hand Croh a CURSE.
-- **`counterspell`** in the reaction negates the *whole* hit, which is right only
-  when it is two points or fewer.
+```json
+"reactions": [{"to": "hit", "whose": "enemy", "in": "traps", ...}]
+```
 
-So the word is either arithmetic in the amount grammar, or a way for an `adjusts` to
-spend what it read. The second is smaller, and it is what every *prevent the next N
-damage* shield in any game wants — which is the decision this entry always meant,
-mislabelled as being about the trigger.
+— and the change waits behind the window, which is what puts the shield up
+*before* the blow arrives. `whose: "enemy"` is "an **opponent** is dealing damage
+to you"; damage a card does to its own side is a cost rather than an attack, so it
+has a verb of its own that nothing answers and Dodge! cannot be revealed because
+the other player poked themselves.
 
-**Size:** small once the shape is chosen; the choice is the work.
+**This was built the wrong way round first, and the first way is worth recording.**
+The announcement rode on each caller — `emit:damaging:hit:health@opponent:1` on
+every attacking card. It worked, and it was wrong: a new kind of defence would
+reopen every card that could ever be defended against, and the next raw
+`stat_damage` written by hand would be silently unanswerable. Three such lines
+already existed and had to be found and rewritten. The announcement belongs to the
+verb.
+
+**The budget.** Three words were said to come close and fail, and two of the three
+readings were right about the word and wrong about the sentence.
+
+`by` really cannot spend what it reads — it is read more than once per change, so
+a read with a side effect would be a disaster — and it takes a number rather than
+a measure. But "the first 2 points" does not need a measure. It is **two points**,
+and a point is a shift of one:
+
+```json
+{"key": "soak_one", "verb": "wound", "stat": "health", "covers": "mine.player",
+ "needs": ["guard@mine.traps >= 1"], "by": -1},
+{"key": "soak_two", "verb": "wound", "stat": "health", "covers": "mine.player",
+ "needs": ["guard@mine.traps >= 2"], "by": -1},
+{"key": "soak", "verb": "hit", "stat": "health", "covers": "mine.player",
+ "needs": ["guard@mine.traps >= 1"],
+ "instead": ["wound:health@mine.player:amount",
+             "stat_damage:guard@mine.traps:amount"]}
+```
+
+Each shift asks whether that much of the budget is still there. Three would be
+three lines, and nothing in the box says three.
+
+And the spending is the `instead`, which this page had looked at and dismissed for
+wanting `amount - guard`. It wants no subtraction. The hit does not land; a
+**wound** of the same size lands in its place, which is what the two shifts are
+about, and the budget goes down by the size of the *blow* — `stat_damage` stops at
+the floor, so a blow bigger than what is left uses up the rest and no more. That is
+"the first 2 points", across as many blows as the round holds, with no arithmetic
+anywhere.
+
+**Two verbs, and that is the load-bearing part.** `hit` is what a card deals;
+`wound` is what arrives once anything standing in front of it has taken its bite.
+One verb would not do: a hit that re-dealt itself as a hit would find this same
+rule on the way down and never arrive.
+
+The budget lives on the Trap, as a card stat, because that is where a player can
+see it and because it goes when the Trap does — the Ultimate zeroes it on the way
+back to the pile, and the round takes what is left, the way an unspent free
+Ultimate goes out with the round.
+
+**What the engine gained, and it is one sentence rather than a field.** A verb a
+game declares now announces itself wherever it is performed, and the change waits
+behind the window an answer opens. `emit` keeps its job for moments that are not
+stat changes — `countered`, `resolving`, `round_over` — and the held half of a
+declared verb is written by the engine as `land:<action>`, which no game file says.
+
+Two smaller corrections came with it. `validate` asked "is this declared verb
+performed anywhere?" before it had read the tags, so `wound` — performed only
+inside an `instead` — read as a verb nothing used; an aura is somewhere a verb is
+performed, and the check moved below the tag loop. And a reaction may now answer a
+declared verb without anybody writing an `emit` for it, so every declared verb
+counts as emitted.
+
+**What it still cannot say.** The announcement carries the acting card, not the
+card being changed — so a reaction can ask *whose blow this is* and not *who it
+lands on*. Spellstorm needs only the first, and says the second with a second verb.
+A game wanting "whenever a creature is damaged" would need the change's subject on
+the record, and would have to decide whether a verb aimed at four cards is one
+moment or four.
 
 ---
 

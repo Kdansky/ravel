@@ -4590,6 +4590,21 @@ and `spill` about with plain `stat_damage`, and none of it can ever be
 intercepted, because nothing is able to name it. A game says which of its
 moments are moments by giving them words; everything else stays plumbing.
 
+**And a declared verb announces itself.** Naming a moment is the whole of saying
+it out loud: a card that performs one raises it wherever it is performed, so a
+reaction may answer `"to": "damage"` and the change waits behind that window
+until it closes. Nothing writes an `emit` beside it — put the announcement on the
+verb and a new kind of defence never has to reopen the cards it defends against.
+Nothing answers the verb, or the game has no `stack` zone: the change runs now, so
+a declared verb in a game without reactions costs one table lookup. `emit` is
+still the word for a moment that is not a stat change — a counter, a crash, the
+end of a round.
+
+Which means a verb is a **meaning**, and two meanings that share a mechanism want
+two of them: damage from across the table and damage a card does to itself are one
+`stat_damage` and two verbs, so a shield can answer the first without being
+revealed by the second.
+
 The fields:
 
 - **`verb`** — a key from `verbs`.
@@ -5056,6 +5071,7 @@ what a player reads.
 | `destroy:<scope>[:<n>]` | **The cards die.** Each one moves into its grave, so its `leaves` fires, anything watching the announcement answers, and the card is still there afterwards to be counted or raised. The scope and the count read exactly as `purge`'s. **Which grave is asked of five places, narrowest first:** the card's own `grave`, the tags it wears, the zone it is standing in, a `status: "grave"` zone belonging to the *dying card's* seat, and a shared one. That the seat is the dying card's and not the active one is the whole point — `move:target:mine.discard` puts somebody else's unit in your discard, and every game with a graveyard was writing the owner out by hand. A card with nowhere to die is reported rather than quietly removed |
 | `purge:<scope>[:<n>]` / `purge:self` | Remove cards from play entirely. A bare zone key is a scope, so `purge:hand` is unchanged; `purge:each.enemy.creature` is a board wipe that spares your own. A count takes that many rather than all of them, in the ordinary amount grammar (`purge:mine.pile:sum:crashed@enemy.player`), and takes the earliest unless the scope says `random.`. **A component goes back in its box.** If any `status: "supply"` zone stocks the card's kind, the shelf's `stock` goes up by one instead of the card leaving the game — the owner's own box first, anybody's otherwise. So a finite bank is never named at the site that trashes a gem, and never has to be paid back by hand. Nothing stocks it: it stops existing, which is what happens to everything that is not a component. **Nothing is triggered by it**: a purged card lands in no zone, so there is no `into` for a `leaves` to name, and its stats are cleared, so a rule asked to run afterwards has nothing left to read. That is what the verb is *for* — removing something nobody may ask about. If you want a removal answered, give it a zone and `move` it there |
 | `emit:<verb>[:<action>]` | Announce that something happened, so anybody holding a reaction to that verb may answer it first. What follows the verb is the part that **waits**. Nothing answers it, or the game has no `stack` zone: it runs now. See *Reactions* |
+| `land:<action>` | **Written by the engine, never in a game file.** The held half of a declared verb: the same action again, with its announcement already made. A verb a game declares announces itself wherever it is performed, and this is what runs once the window closes |
 | `counterspell` | Written in a reaction: the event it answers does not happen. **It names no zone** — the stack holds records, not cards, so nothing moved and there is nothing to put back |
 | `redirect:<announcement>:<who>` | What was announced is aimed at somebody else. The effect is untouched; only the aim moves, which is the difference between taking a spell for one of your own and countering it. The first scope names the record — `answered` inside a reaction — and the second the new aim. **Legal by the announcement's own rule**, judged against the board as it stands, so a spell cannot be laundered onto something it could never have chosen; an illegal aim changes nothing and says so |
 | `set_priority:<scope>` / `clear_priority` | Whoever the scope names may act right now, without the turn moving. The response window does this for itself; write it only for an out-of-turn moment of your own |

@@ -2393,10 +2393,11 @@ end
 -- > Deal 1 damage. `[MANA]`, gain `[INIT]`.
 --
 -- The note said a trap was unreachable because "an opponent is dealing damage to
--- you" is not a moment the engine announces. True of *Dodge!*, and not of these
--- two: they trigger on **countering**, which is already a rules card that fires
--- in the showdown. One `emit:countered` there and a trap is an ordinary
--- reaction — the same shape as the Ultimate answering `resolving`.
+-- you" is not a moment the engine announces. Nothing announced it because nothing
+-- had said it out loud: these two trigger on **countering**, already a rules card
+-- firing in the showdown, and one `emit:countered` there makes a trap an ordinary
+-- reaction — the same shape as the Ultimate answering `resolving`. *Dodge!* below
+-- is the same two lines with `damaging` in place of `countered`.
 --
 -- The draw is the emit's *held* action, not the line beside it: an action list
 -- runs to completion, so a draw written after the announcement would land before
@@ -2490,6 +2491,98 @@ function M.test_spellstorm_the_ultimate_swaps_the_trap_that_is_armed(check)
 		entity.get(ice.zone_id).key == "trap_pile", entity.get(ice.zone_id).key)
 	check("and is no longer spent, so it may be laid again later",
 		ice.stats.sprung == 0, ice.stats.sprung)
+end
+
+
+-- **Dodge!** *"You may reveal this when an opponent is dealing damage to you. The
+-- first 2 points of damage you take this round are negated."*
+--
+-- Both halves were filed as missing and neither was. Damage is a moment as soon
+-- as the game says so, and every blow in the box comes out of one lambda — so
+-- `emit:damaging` announces it and *holds* the landing, which is what puts the
+-- shield up before the hit arrives rather than after it.
+function M.test_spellstorm_dodge_answers_a_blow_aimed_at_you(check)
+	opening(3, "omar", "eve")
+	local dodge = find("trap_dodge")
+	zones.move_card(dodge.id, zone_of("traps", "seat_one").id)
+
+	become("seat_two")
+	local them = stage_battle("seat_two", "fireball2")
+	local me = seat_card("seat_one")
+	local hp = me.stats.health
+	actions.execute("activate_zone:mine.battle:by_column:cast", { card_id = them.id })
+
+	become("seat_one")
+	check("the blow announced itself", #flow.usable_reactions() == 1,
+		#flow.usable_reactions())
+	check("and has not landed yet", me.stats.health == hp, me.stats.health)
+
+	flow.react(dodge.id, 1, {})
+	check("the two points it stopped were the blow it was revealed against",
+		me.stats.health == hp, me.stats.health)
+	check("and they were spent stopping it", dodge.stats.guard == 0, dodge.stats.guard)
+	check("the trap is spent where it lies",
+		dodge.stats.sprung == 1 and entity.get(dodge.zone_id).key == "traps",
+		entity.get(dodge.zone_id).key)
+end
+
+-- The budget, which is the half this really turned on. `by` takes a number and
+-- not a measure, so "the first 2 points" is two shifts of one, each asking
+-- whether that much is still there — and the spending is `stat_damage` on the
+-- budget itself, which stops at the floor, so a blow bigger than what is left
+-- uses up the rest and no more.
+--
+-- Two verbs, because one would not do: the hit is replaced by a *wound* of the
+-- same size, and the shifts are about the wound. A hit that re-dealt itself as a
+-- hit would find this same rule on the way down and never arrive.
+function M.test_spellstorm_dodge_is_spent_as_it_is_used(check)
+	opening(3, "omar", "eve")
+	local dodge = find("trap_dodge")
+	zones.move_card(dodge.id, zone_of("traps", "seat_one").id)
+	dodge.stats.guard = 2
+	-- Already revealed, so no window opens and what is left is the aura alone.
+	dodge.stats.sprung = 1
+
+	become("seat_two")
+	local me = seat_card("seat_one")
+	local hp = me.stats.health
+
+	actions.execute("hit:health@opponent:1", {})
+	check("one point off two is stopped whole", me.stats.health == hp, me.stats.health)
+	check("and one point of it is gone", dodge.stats.guard == 1, dodge.stats.guard)
+
+	actions.execute("hit:health@opponent:3", {})
+	check("three against the last point lands two", me.stats.health == hp - 2,
+		me.stats.health)
+	check("and takes the rest of the shield and no more", dodge.stats.guard == 0,
+		dodge.stats.guard)
+
+	actions.execute("hit:health@opponent:2", {})
+	check("with nothing left it is an ordinary blow", me.stats.health == hp - 4,
+		me.stats.health)
+end
+
+-- *This round*: what is left of the shield goes out with the round, the way
+-- Obsidian's unspent pass does. And the Trap takes nothing back to the pile — a
+-- Trap re-armed with a budget still on it would soak before it was ever revealed.
+function M.test_spellstorm_dodge_does_not_keep_past_the_round(check)
+	opening(3, "omar", "eve")
+	local dodge = find("trap_dodge")
+	zones.move_card(dodge.id, zone_of("traps", "seat_one").id)
+	dodge.stats.guard = 2
+
+	actions.execute("each_seat:stat_set:guard@mine.traps:0", {})
+	check("the round took what was left", dodge.stats.guard == 0, dodge.stats.guard)
+
+	dodge.stats.guard = 2
+	dodge.stats.sprung = 1
+	become("seat_one")
+	local omar = find("wiz_omar")
+	actions.execute("show:trap_pile", { card_id = omar.id })
+	flow.play_card(find("trap_mud", "options").id, {})
+	check("the swapped-out trap went back clean",
+		dodge.stats.guard == 0 and dodge.stats.sprung == 0,
+		dodge.stats.guard .. "/" .. dodge.stats.sprung)
 end
 
 

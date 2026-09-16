@@ -160,6 +160,7 @@
     { "key": "tier_req", "min": 0, "max": 9, "tags": ["hidden"] },
     { "key": "researched", "min": 0, "max": 1, "tags": ["hidden"] },
     { "key": "sprung", "min": 0, "max": 1, "tags": ["hidden"] },
+    { "key": "guard", "min": 0, "max": 2, "tags": ["hidden"] },
     { "key": "counted", "min": 0, "max": 9, "tags": ["hidden"] }
   ],
   "computed_tags": {
@@ -172,6 +173,21 @@
       "key": "heal",
       "does": "stat_gain",
       "tooltip": "Healing. Named as a moment of its own so that a rule can answer it - the engine's own stat_gain is unwatchable on purpose."
+    },
+    {
+      "key": "hit",
+      "does": "stat_damage",
+      "tooltip": "A blow from across the table. Declared, so it announces itself and a Trap can answer it."
+    },
+    {
+      "key": "hurt",
+      "does": "stat_damage",
+      "tooltip": "Damage you do to yourself. A cost rather than an attack, so nothing answers it."
+    },
+    {
+      "key": "wound",
+      "does": "stat_damage",
+      "tooltip": "Damage as it arrives, once anything standing in front of it has taken its bite."
     }
   ],
   "styles": {
@@ -226,6 +242,42 @@
             "activate_zone:rules:by_column:dry_give_curse",
             "draw_from:curse_pile:enemy.discard:1"
           ]
+        }
+      ]
+    },
+    "dodging": {
+      "adjusts": [
+        {
+          "key": "soak_one",
+          "verb": "wound",
+          "stat": "health",
+          "covers": "mine.player",
+          "needs": ["guard@mine.traps >= 1"],
+          "by": -1
+        },
+        {
+          "key": "soak_two",
+          "verb": "wound",
+          "stat": "health",
+          "covers": "mine.player",
+          "needs": ["guard@mine.traps >= 2"],
+          "by": -1
+        },
+        {
+          "key": "soak",
+          "verb": "hit",
+          "stat": "health",
+          "covers": "mine.player",
+          "needs": ["guard@mine.traps >= 1"],
+          "instead": ["wound:health@mine.player:amount", "stat_damage:guard@mine.traps:amount"]
+        },
+        {
+          "key": "soak_self",
+          "verb": "hurt",
+          "stat": "health",
+          "covers": "mine.player",
+          "needs": ["guard@mine.traps >= 1"],
+          "instead": ["wound:health@mine.player:amount", "stat_damage:guard@mine.traps:amount"]
         }
       ]
     }
@@ -697,6 +749,7 @@
       "actions": [
         "each_seat:destroy:mine.battle",
         "each_seat:stat_set:ult_free@mine.player:0",
+        "each_seat:stat_set:guard@mine.traps:0",
         "each_seat:activate_zone:rules:by_column:tier_up",
         "each_seat:activate_zone:rules:by_column:tier_up",
         "each_seat:activate_zone:rules:by_column:tier_gem"
@@ -758,7 +811,7 @@
           "key": "cast2",
           "text": "Resolve",
           "needs": ["initiative@mine.player >= 1"],
-          "action": ["stat_damage:health@opponent:1"]
+          "action": ["hit:health@opponent:1"]
         }
       ]
     },
@@ -812,7 +865,7 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["stat_damage:health@opponent:1", "move_to:void"]
+          "action": ["hit:health@opponent:1", "move_to:void"]
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud.fire:optional"] }
       ],
@@ -877,7 +930,7 @@
           "key": "cast",
           "text": "Resolve",
           "action": [
-            "stat_damage:health@opponent:1",
+            "hit:health@opponent:1",
             "activate_zone:rules:by_column:dry_take_ash",
             "draw_from:ash_pile:mine.discard:1"
           ]
@@ -887,7 +940,7 @@
           "text": "Resolve",
           "needs": ["initiative@mine.player >= 1"],
           "action": [
-            "stat_damage:health@opponent:2",
+            "hit:health@opponent:2",
             "stat_set:initiative@mine.player:0",
             "stat_set:initiative@opponent:1"
           ]
@@ -903,12 +956,12 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 3 },
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["stat_damage:health@opponent:2"] },
+        { "key": "cast", "text": "Resolve", "action": ["hit:health@opponent:2"] },
         {
           "key": "cast2",
           "text": "Resolve",
           "needs": ["initiative@mine.player >= 1"],
-          "action": ["stat_damage:health@opponent:2"]
+          "action": ["hit:health@opponent:2"]
         }
       ]
     },
@@ -921,7 +974,7 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["stat_damage:health@opponent:1"] },
+        { "key": "cast", "text": "Resolve", "action": ["hit:health@opponent:1"] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.fire:optional"] }
       ],
       "chosen": { "action": ["copy:target:activate", "destroy:target"] }
@@ -945,7 +998,7 @@
           ]
         }
       ],
-      "leaves": { "from": "hand", "into": "discard", "action": ["stat_damage:health@mine.player:1"] }
+      "leaves": { "from": "hand", "into": "discard", "action": ["hurt:health@mine.player:1"] }
     },
     {
       "key": "lantern",
@@ -969,7 +1022,7 @@
             "move_to:void",
             "activate_zone:rules:by_column:dry_take_curse",
             "draw_from:curse_pile:mine.discard:1",
-            "stat_damage:health@mine.player:1"
+            "hurt:health@mine.player:1"
           ]
         }
       ]
@@ -1014,7 +1067,7 @@
       "leaves": {
         "from": "hand",
         "into": "discard",
-        "action": ["stat_damage:health@mine.player:1", "stat_gain:mana@mine.player:1"]
+        "action": ["hurt:health@mine.player:1", "stat_gain:mana@mine.player:1"]
       },
       "chosen": {
         "action": [
@@ -1035,7 +1088,7 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["stat_damage:health@mine.player:1"] },
+        { "key": "cast", "text": "Resolve", "action": ["hurt:health@mine.player:1"] },
         {
           "key": "cast2",
           "text": "Resolve",
@@ -1068,7 +1121,7 @@
           "key": "cast2",
           "text": "Resolve",
           "needs": ["initiative@mine.player >= 1"],
-          "action": ["stat_damage:health@opponent:2", "options:rf_back:optional"]
+          "action": ["hit:health@opponent:2", "options:rf_back:optional"]
         }
       ]
     },
@@ -1118,7 +1171,7 @@
             "destroy:random.enemy.hand",
             "stat_set:initiative@mine.player:1",
             "stat_set:initiative@opponent:0",
-            "stat_damage:health@opponent:1"
+            "hit:health@opponent:1"
           ]
         }
       ]
@@ -1170,7 +1223,7 @@
           "text": "Resolve",
           "needs": ["initiative@mine.player >= 1"],
           "action": [
-            "stat_damage:health@opponent:3",
+            "hit:health@opponent:3",
             "stat_set:initiative@mine.player:0",
             "stat_set:initiative@opponent:1",
             "move_to:enemy.discard"
@@ -1323,7 +1376,7 @@
           "key": "cast2",
           "text": "Resolve",
           "needs": ["count:fire@enemy.battle >= 1"],
-          "action": ["stat_damage:health@opponent:2"]
+          "action": ["hit:health@opponent:2"]
         }
       ]
     },
@@ -1471,7 +1524,7 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["stat_gain:mana@mine.player:1", "stat_damage:health@mine.player:1"]
+          "action": ["stat_gain:mana@mine.player:1", "hurt:health@mine.player:1"]
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.held:optional"] }
       ],
@@ -1514,10 +1567,10 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["stat_damage:health@mine.player:1"] },
+        { "key": "cast", "text": "Resolve", "action": ["hurt:health@mine.player:1"] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
       ],
-      "leaves": { "from": "hand", "into": "discard", "action": ["stat_damage:health@mine.player:1"] },
+      "leaves": { "from": "hand", "into": "discard", "action": ["hurt:health@mine.player:1"] },
       "chosen": {
         "action": ["move:target:void", "copy:target:activate", "draw_from:spellstorm_deck:storm_cloud:1"]
       }
@@ -1721,7 +1774,7 @@
       "tooltip": "This can't be played. On discard: take *1 damage*.\n\n_\"Curses!\" - H.M.T. Holliganger, Distinguished Professor at the Azura Academy School of Archaeology_",
       "card_stats": { "tier_req": 1 },
       "abilities": [{ "key": "cast", "text": "Resolve", "action": [] }],
-      "leaves": { "from": "hand", "into": "discard", "action": ["stat_damage:health@mine.player:1"] }
+      "leaves": { "from": "hand", "into": "discard", "action": ["hurt:health@mine.player:1"] }
     },
     {
       "key": "firedragon",
@@ -1736,7 +1789,7 @@
           "key": "cast",
           "text": "Resolve",
           "action": [
-            "stat_damage:health@opponent:4",
+            "hit:health@opponent:4",
             "stat_gain:mana@mine.player:1",
             "stat_gain:mana@mine.player:1"
           ]
@@ -1802,7 +1855,7 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["stat_damage:health@opponent:3", "stat_gain:shards@mine.player:1"]
+          "action": ["hit:health@opponent:3", "stat_gain:shards@mine.player:1"]
         }
       ]
     },
@@ -1819,7 +1872,7 @@
           "key": "cast",
           "text": "Resolve",
           "action": [
-            "stat_damage:health@opponent:2",
+            "hit:health@opponent:2",
             "stat_gain:shards@mine.player:1",
             "activate_zone:rules:by_column:dry_give_ash",
             "draw_from:ash_pile:enemy.discard:1"
@@ -1849,14 +1902,14 @@
           "in": "wizard",
           "needs": ["ult_free@mine.player <= 0"],
           "cost": { "mana@mine.player": 6 },
-          "action": ["stat_damage:health@opponent:2", "stat_gain:mana@mine.player:1"]
+          "action": ["hit:health@opponent:2", "stat_gain:mana@mine.player:1"]
         },
         {
           "to": "resolving",
           "whose": "mine",
           "in": "wizard",
           "cost": { "ult_free@mine.player": 1 },
-          "action": ["stat_damage:health@opponent:2", "stat_gain:mana@mine.player:1"]
+          "action": ["hit:health@opponent:2", "stat_gain:mana@mine.player:1"]
         }
       ]
     },
@@ -1922,7 +1975,7 @@
           "action": [
             "stat_gain:mana@mine.player:1",
             "stat_gain:power@mine.player:1",
-            "stat_damage:health@opponent:1",
+            "hit:health@opponent:1",
             "activate_zone:rules:by_column:dry_take_ash",
             "draw_from:ash_pile:mine.discard:1"
           ]
@@ -1931,7 +1984,7 @@
           "key": "cast2",
           "text": "Resolve",
           "needs": ["initiative@mine.player >= 1"],
-          "action": ["stat_damage:health@opponent:1"]
+          "action": ["hit:health@opponent:1"]
         }
       ]
     },
@@ -2028,7 +2081,7 @@
           "key": "cast",
           "text": "Resolve",
           "action": [
-            "stat_damage:health@opponent:count:earth@mine.hand",
+            "hit:health@opponent:count:earth@mine.hand",
             "move:mine.hand:quiet",
             "move:quiet:mine.discard",
             "draw_from:mine.deck:mine.hand:1",
@@ -2200,7 +2253,7 @@
           "action": [
             "stat_gain:mana@mine.player:1",
             "stat_gain:mana@mine.player:1",
-            "stat_damage:health@opponent:sum:doom@mine.player"
+            "hit:health@opponent:sum:doom@mine.player"
           ]
         },
         {
@@ -2237,8 +2290,8 @@
       "key": "wiz_omar",
       "text": "Omar Evans",
       "asset": "ss_omar.jpg",
-      "tags": ["wizard_card", "omar"],
-      "tooltip": "Ninja and Eco-Terrorist. A ninja and wanted eco-terrorist. Low health, but he acts first in every matchup and Shuriken always resolves before anything else.\n\n*Ultimate* (*4 mana*) - Hidden Movement: Return a card from your discard to your hand, or *draw a card*. Then arm a Trap, face down, replacing whatever was armed.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 10*, *Initiative rating 1*.\n\n_[Simplified: Dodge! is not implemented -- negating the first 2 points of damage is a budget that has to be spent as it is used, and nothing can spend what an aura reads]_",
+      "tags": ["wizard_card", "omar", "dodging"],
+      "tooltip": "Ninja and Eco-Terrorist. A ninja and wanted eco-terrorist. Low health, but he acts first in every matchup and Shuriken always resolves before anything else.\n\n*Ultimate* (*4 mana*) - Hidden Movement: Return a card from your discard to your hand, or *draw a card*. Then arm a Trap, face down, replacing whatever was armed.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 10*, *Initiative rating 1*.",
       "reactions": [
         {
           "to": "resolving",
@@ -2257,7 +2310,12 @@
         }
       ],
       "chosen": {
-        "action": ["stat_set:sprung@mine.traps:0", "move:mine.traps:trap_pile", "move:target:mine.traps"]
+        "action": [
+          "stat_set:sprung@mine.traps:0",
+          "stat_set:guard@mine.traps:0",
+          "move:mine.traps:trap_pile",
+          "move:target:mine.traps"
+        ]
       }
     },
     {
@@ -2276,6 +2334,7 @@
           "create:mine.deck:omar_shuriken:1",
           "create:trap_pile:trap_mud:1",
           "create:trap_pile:trap_ice:1",
+          "create:trap_pile:trap_dodge:1",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "purge:roster.omar"
@@ -2294,7 +2353,7 @@
         { "key": "cast", "text": "Resolve", "action": [] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.fire:optional"] }
       ],
-      "chosen": { "action": ["destroy:target", "stat_damage:health@opponent:2"] }
+      "chosen": { "action": ["destroy:target", "hit:health@opponent:2"] }
     },
     {
       "key": "omar_shuriken",
@@ -2483,7 +2542,7 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["stat_damage:health@opponent:1"] },
+        { "key": "cast", "text": "Resolve", "action": ["hit:health@opponent:1"] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
       ],
       "chosen": {
@@ -2615,11 +2674,7 @@
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
       ],
       "chosen": {
-        "action": [
-          "activate_zone:rules:by_column:starshot",
-          "destroy:target",
-          "stat_damage:health@opponent:1"
-        ]
+        "action": ["activate_zone:rules:by_column:starshot", "destroy:target", "hit:health@opponent:1"]
       }
     },
     {
@@ -2855,7 +2910,7 @@
           "key": "wx2",
           "text": "Weather",
           "needs": ["health@mine.player >= 9"],
-          "action": ["stat_damage:health@mine.player:1"]
+          "action": ["hurt:health@mine.player:1"]
         }
       ]
     },
@@ -2996,7 +3051,7 @@
         {
           "key": "sip",
           "needs": ["fire_el@mine.player >= 1", "initiative@mine.player >= 1"],
-          "action": ["stat_damage:fire_el@mine.player:1", "stat_damage:health@opponent:1"]
+          "action": ["stat_damage:fire_el@mine.player:1", "hit:health@opponent:1"]
         },
         {
           "key": "sip2",
@@ -3014,7 +3069,7 @@
             "doubled@mine.player >= 1",
             "initiative@mine.player >= 1"
           ],
-          "action": ["stat_damage:health@opponent:1", "stat_set:doubled@mine.player:0"]
+          "action": ["hit:health@opponent:1", "stat_set:doubled@mine.player:0"]
         },
         {
           "key": "again2",
@@ -3092,7 +3147,7 @@
           "needs": ["fire_el@mine.player >= 3"],
           "action": [
             "stat_damage:fire_el@mine.player:3",
-            "stat_damage:health@opponent:1",
+            "hit:health@opponent:1",
             "stat_gain:fire_el@mine.player:1",
             "stat_gain:earth_el@mine.player:1",
             "stat_gain:water_el@mine.player:1"
@@ -3102,7 +3157,7 @@
           "key": "again",
           "needs": ["fire_el@mine.player >= 3", "doubled@mine.player >= 1"],
           "action": [
-            "stat_damage:health@opponent:1",
+            "hit:health@opponent:1",
             "stat_gain:fire_el@mine.player:1",
             "stat_gain:earth_el@mine.player:1",
             "stat_gain:water_el@mine.player:1",
@@ -3171,7 +3226,7 @@
           "needs": ["earth_el@mine.player >= 2"],
           "action": [
             "stat_damage:earth_el@mine.player:2",
-            "stat_damage:health@mine.player:1",
+            "hurt:health@mine.player:1",
             "stat_set:doubled@mine.player:1"
           ]
         }
@@ -3521,7 +3576,7 @@
       "asset": "auto",
       "tags": ["trap"],
       "tooltip": "Reveal when you counter with a *Fire* card: deal *1 damage*, gain *1 mana* and gain *Initiative*.",
-      "card_stats": { "sprung": 0 },
+      "card_stats": { "sprung": 0, "guard": 0 },
       "reactions": [
         {
           "to": "countered",
@@ -3530,7 +3585,7 @@
           "needs": ["sprung@self <= 0", "count:fire@mine.battle >= 1"],
           "action": [
             "stat_set:sprung@self:1",
-            "stat_damage:health@opponent:1",
+            "hit:health@opponent:1",
             "stat_gain:mana@mine.player:1",
             "stat_set:initiative@mine.player:1",
             "stat_set:initiative@opponent:0"
@@ -3544,7 +3599,7 @@
       "asset": "auto",
       "tags": ["trap"],
       "tooltip": "Reveal when you counter with a *Water* card: give an *ICE*, gain *1 mana*, and you may cast your *Ultimate*.",
-      "card_stats": { "sprung": 0 },
+      "card_stats": { "sprung": 0, "guard": 0 },
       "reactions": [
         {
           "to": "countered",
@@ -3558,6 +3613,23 @@
             "stat_gain:mana@mine.player:1",
             "emit:resolving"
           ]
+        }
+      ]
+    },
+    {
+      "key": "trap_dodge",
+      "text": "Dodge!",
+      "asset": "auto",
+      "tags": ["trap"],
+      "tooltip": "Reveal when an opponent deals damage to you: the first 2 points of damage you take this round are negated.",
+      "card_stats": { "sprung": 0, "guard": 0 },
+      "reactions": [
+        {
+          "to": "hit",
+          "whose": "enemy",
+          "in": "traps",
+          "needs": ["sprung@self <= 0"],
+          "action": ["stat_set:sprung@self:1", "stat_set:guard@self:2"]
         }
       ]
     },
@@ -3627,7 +3699,7 @@
         {
           "key": "ruby_pick",
           "needs": ["count:burn@options >= 1"],
-          "action": ["stat_damage:health@opponent:sum:counted@options"]
+          "action": ["hit:health@opponent:sum:counted@options"]
         }
       ]
     },
@@ -3724,12 +3796,12 @@
         {
           "key": "dry_take_curse",
           "needs": ["count:junk@curse_pile <= 0"],
-          "action": ["stat_damage:health@mine.player:1", "show:mine.held.curse"]
+          "action": ["hurt:health@mine.player:1", "show:mine.held.curse"]
         },
         {
           "key": "dry_give_curse",
           "needs": ["count:junk@curse_pile <= 0"],
-          "action": ["stat_damage:health@opponent:1", "set_priority:enemy.player", "show:mine.held.curse"]
+          "action": ["hit:health@opponent:1", "set_priority:enemy.player", "show:mine.held.curse"]
         }
       ],
       "chosen": { "action": ["move:target:curse_pile"] }
@@ -3769,7 +3841,7 @@
         {
           "key": "dry_dragon",
           "needs": ["count:dragon@dragon_deck <= 0"],
-          "action": ["stat_damage:health@opponent:2", "stat_gain:shards@mine.player:2"]
+          "action": ["hit:health@opponent:2", "stat_gain:shards@mine.player:2"]
         }
       ]
     },
@@ -3978,7 +4050,7 @@
         {
           "key": "starshot",
           "needs": ["sum:tier_req@options == 2"],
-          "action": ["stat_damage:health@opponent:1"]
+          "action": ["hit:health@opponent:1"]
         }
       ]
     },
@@ -4134,11 +4206,7 @@
       "abilities": [
         {
           "phases": ["play_card"],
-          "action": [
-            "destroy:mine.hand",
-            "stat_damage:health@mine.player:1",
-            "draw_from:mine.deck:mine.hand:4"
-          ]
+          "action": ["destroy:mine.hand", "hurt:health@mine.player:1", "draw_from:mine.deck:mine.hand:4"]
         }
       ]
     },
