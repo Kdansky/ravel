@@ -208,9 +208,10 @@ would have needed a branch beside it, and the format has no branch. `%` binds as
 
 **And it is not a parity word, so it is not one case.** Every other round, every
 third gem, a cost that repeats — none of which anyone had to argue for, because
-they come with the operator rather than beside it. `/` did not come with it:
-nothing in the box asks how many times a number went in, and a quotient would be
-the first value here that is not a whole one.
+they come with the operator rather than beside it. `/` was left out on the claim
+that nothing in the box asks how many times a number went in — and the Power Track
+does, one Tier per six Power. It is there now, rounding down, so a quotient is a
+whole number like everything else.
 
 **What it cost the engine.** One entry in `ARITH`, one word in the product loop,
 and a guard making a remainder of nothing nothing rather than a number that is not

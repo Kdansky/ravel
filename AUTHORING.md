@@ -296,8 +296,8 @@ wrong:
   player is made to play.
 - **Continuous effects / auras** — "all your beasts have +1 while this is in
   play". Model it as a stat change applied once, or leave it out.
-- **Arithmetic beyond a product** — amounts multiply, but there is no division,
-  no subtraction inside one amount, and no parentheses. Distribute it into
+- **Arithmetic inside an amount** — an action's amount is one number or one
+  product; anything more is a `computes` entry (`+ - * / %` and brackets), or
   separate actions, as the scoring row above does. Subtraction *between*
   actions is free and clamps at the stat's floor, which is `max(0, a - b)` and
   further than it looks (see *Actions*); a clamp anywhere but at the floor —
@@ -3552,20 +3552,22 @@ a move rule. A **computed tag** may not, and neither may a **phase's** `actions`
 — both are asked without anyone acting, so there is no rule to have listed the
 names. A number those two need is a stat.
 
-`value` is an arithmetic expression over numbers and subjects, with `+ - * %`,
-parentheses, and the precedence every reader already has: `*` and `%` bind
+`value` is an arithmetic expression over numbers and subjects, with `+ - * / %`,
+parentheses, and the precedence every reader already has: `*`, `/` and `%` bind
 tighter than `+` and `-`, and all of them associate left. **Spaces around a
 binary operator** are what tell one from a hyphen inside a name and a minus sign
 on a literal, so `hp - 1` is a subtraction and `-1` is a number.
 
-**`%` is the remainder, and there is no `/` beside it.** What is left over is a
-question games ask — every other round, every third gem, an odd number of health
-— and how many times it went in is one none of them has asked. It is also the
-place where a condition stops needing a branch: `health@mine.player % 2 * 2` is
+**`/` is how many times it went in, and `%` is what is left over.** Both round
+down, so a stat still holds a whole number: `power@mine.player / 6` is one Tier
+per six Power, and `(0 - 7) / 2` is -4, the partner of `(0 - 7) % 2` being 1.
+The remainder is a question games ask — every other round, every third gem, an
+odd number of health. It is also the place where a condition stops needing a
+branch: `health@mine.player % 2 * 2` is
 two mana at an odd number of health and none at an even one, said as the amount
 rather than as a rule about the amount. A remainder of nothing is nothing, since
 the right-hand side is read off the board and no author can promise it is never
-zero.
+zero; a quotient of nothing is nothing for the same reason.
 
 ```json
 "computes": [

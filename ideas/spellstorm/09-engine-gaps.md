@@ -332,11 +332,11 @@ What follows is the index.
    true of *Void Traveler* since it was written and nobody had noticed. Said in
    the other order it works, and that is the whole fix here, but a card whose
    follow-on **must** come after would have nowhere to put it.
-4. ~~**No parity, modulo or division.**~~ **Modulo, and still no division.** A
+4. ~~**No parity, modulo or division.**~~ **Both, now.** A
    compute's `value` takes `%` beside `+ - *`, so Derby's Ultimate is
    `health@mine.player % 2 * 2` — and it turned out to want no condition at all,
-   because the remainder *is* the rule. Division has no customer in the box, and
-   would be the first operator here whose answer is not a whole number.
+   because the remainder *is* the rule. `/` came later and rounds down, so a
+   quotient is a whole number like everything else.
 5. **An offer cannot be narrowed by a condition on the offered cards** the way a
    `target` spec can with `where`. `chosen.where` exists and gates what may be
    *taken*, but the cards still all show, and it cannot be written per-offer.

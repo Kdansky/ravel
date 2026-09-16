@@ -337,10 +337,11 @@ function M.test_conditions_a_compute_is_an_arithmetic_expression(check)
 	check("and a single term is an expression too",
 		one ~= nil and table.concat(one.terms, ",") == "sum:power@self")
 
-	check("all four operators are known",
+	check("all five operators are known",
 		predicate.value("6 + 2", {}) == 8
 		and predicate.value("6 - 2", {}) == 4
 		and predicate.value("6 * 2", {}) == 12
+		and predicate.value("7 / 2", {}) == 3
 		and predicate.value("7 % 2", {}) == 1)
 
 	-- The one every reader has from school, which is the whole argument for
@@ -365,6 +366,16 @@ function M.test_conditions_a_compute_is_an_arithmetic_expression(check)
 	-- one is never zero. Nothing left over rather than a number that is not one.
 	check("a remainder of nothing is nothing", predicate.value("7 % 0", {}) == 0,
 		predicate.value("7 % 0", {}))
+	check("and so is a quotient", predicate.value("7 / 0", {}) == 0, predicate.value("7 / 0", {}))
+
+	-- One Tier per six Power: how many times it went in, never a fraction.
+	check("divide rounds down", predicate.value("13 / 6", {}) == 2, predicate.value("13 / 6", {}))
+	check("and binds as times does, left to right", predicate.value("12 / 2 * 3 + 1", {}) == 19,
+		predicate.value("12 / 2 * 3 + 1", {}))
+	-- Floored like Lua's own %, so quotient and remainder always put the number back together.
+	check("a negative quotient rounds down too, and the remainder agrees",
+		predicate.value("(0 - 7) / 2", {}) == -4 and predicate.value("(0 - 7) % 2", {}) == 1,
+		predicate.value("(0 - 7) / 2", {}))
 
 	local _, err = predicate.parse_value("hp - ")
 	check("an operator with nothing after it says so",

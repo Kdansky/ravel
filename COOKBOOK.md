@@ -145,7 +145,7 @@ listed it.
                 "action": ["stat_gain:mana@mine.player:yardstick_mana"] }]
 ```
 
-`%` is the remainder, and there is no `/` beside it. **Write the condition as the amount and
+`%` is the remainder; `/` beside it rounds down. **Write the condition as the amount and
 the card needs no condition**: a gain of nothing is a gain of nothing, so the even case needs
 no second rule. `%` binds as `*` does, so this is `(health % 2) * 2`. Every other round and
 every third gem are the same sentence. A remainder of nothing is nothing, not an error.
