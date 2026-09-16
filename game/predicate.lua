@@ -776,9 +776,9 @@ function M.total(subject, ctx)
 	return sum
 end
 
--- A `computes` entry's `from`: an arithmetic expression over numbers and
--- subjects, with `+ - *`, parentheses, and the usual precedence — `*` binds
--- tighter than `+` and `-`, and both associate left.
+-- A `computes` entry's `value`: an arithmetic expression over numbers and
+-- subjects, with `+ - * %`, parentheses, and the usual precedence — `*` and `%`
+-- bind tighter than `+` and `-`, and all of them associate left.
 --
 -- **It held one operator and no parentheses**, on the reasoning that with one
 -- there is no precedence to remember and with two there is a rule a reader has
@@ -798,6 +798,16 @@ end
 -- from a hyphen inside a name and a minus sign on a literal, so `hp - 1` is a
 -- subtraction and `-1` is a number. The same discipline a condition keeps.
 --
+-- **`%` without `/`, which is not an oversight.** What is left over is a question
+-- games ask — every other round, every third gem, an odd number of health — and
+-- how many times it went in is one none of them has asked. Division would also be
+-- the first operator here whose answer is not a whole number, and a stat holds
+-- whole numbers. So the remainder is a word and the quotient is not.
+--
+-- A remainder of nothing is nothing rather than a crash: the operands are read
+-- off the board and an author cannot promise the right one is never zero, which
+-- is the same reason every measurement above is coerced before it is compared.
+--
 -- Pure grammar, so it parses without a game loaded and the validator reads one
 -- at authoring time. The result carries the tree and, beside it, the terms in
 -- the order they were written: every caller that checked "is each side a number
@@ -806,6 +816,7 @@ local ARITH = {
 	["+"] = function(a, b) return a + b end,
 	["-"] = function(a, b) return a - b end,
 	["*"] = function(a, b) return a * b end,
+	["%"] = function(a, b) return b ~= 0 and a % b or 0 end,
 }
 
 local split = {}
@@ -855,10 +866,11 @@ local function parse_expr(tk, i)
 	local function product(k)
 		local l, nk, e = factor(k)
 		if not l then return nil, nk, e end
-		while tk[nk] == "*" do
+		while tk[nk] == "*" or tk[nk] == "%" do
+			local op = tk[nk]
 			local r, rk, re = factor(nk + 1)
 			if not r then return nil, rk, re end
-			l, nk = { op = "*", l = l, r = r }, rk
+			l, nk = { op = op, l = l, r = r }, rk
 		end
 		return l, nk
 	end

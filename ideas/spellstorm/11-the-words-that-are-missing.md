@@ -182,24 +182,54 @@ moment or four.
 
 ---
 
-## 3. Parity — Derby's Ultimate
+## 3. ~~Parity~~ — one operator, and it needed no condition — **done**
 
 **Derby Pocket, ULTIMATE (6) — Flaming Yardstick.** *"Deal 2 damage. If you have
 an odd number of health, `[MANA]` `[MANA]`."*
 
-**What is built.** `[DMG(2), MANA]` — two damage and one mana, always.
+**What this page proposed.** `odd` and `even` as condition operators, so
+`health@mine.player is odd` would read as the card does.
 
-**What is missing.** There is no parity, modulo or division anywhere in the
-condition grammar, so "an odd number of health" has no expression at all. Not a
-narrow miss: there is no arithmetic to get close with.
+**What it is.** A remainder in the compute grammar, which is smaller and says
+more:
 
-**The shape.** One comparison, not an expression language — `odd` and `even` as
-condition operators, so `health@mine.player is odd` reads as the card does. That
-covers the only case in this box and does not reopen what
-[17](../17-conditions-as-expressions.md) closed on purpose. Division has no
-customer here at all.
+```json
+"computes": [{"key": "yardstick_mana", "value": "health@mine.player % 2 * 2"}]
+```
 
-**Size:** small. Do not generalise it.
+```python
+ult_action=[DMG(2), "stat_gain:mana@mine.player:yardstick_mana"]
+```
+
+**There is no condition on the card, and that is the point.** A gain of nothing is
+a gain of nothing, so the even case needs no second rule — where an `odd` operator
+would have needed a branch beside it, and the format has no branch. `%` binds as
+`*` does, so this is `(health % 2) * 2` by the precedence every reader has.
+
+**And it is not a parity word, so it is not one case.** Every other round, every
+third gem, a cost that repeats — none of which anyone had to argue for, because
+they come with the operator rather than beside it. `/` did not come with it:
+nothing in the box asks how many times a number went in, and a quotient would be
+the first value here that is not a whole one.
+
+**What it cost the engine.** One entry in `ARITH`, one word in the product loop,
+and a guard making a remainder of nothing nothing rather than a number that is not
+one — the operands are read off the board, and no author can promise the right one
+is never zero.
+
+**A second thing was wrong, and this is what found it.** A reaction's `compute`
+was bound when the reaction was *offered* and not when it fired: `flow.M.react`
+built a bare ctx and pushed the record without the bindings, so a name a reaction
+computed read as nothing in its own action list. AUTHORING had promised
+otherwise — "worked out just before it is judged **and again before it runs**" —
+and no card had asked until this one. Fixed by binding once in `M.react` and
+sending `let` up with the record, which is the road `emit` already used.
+
+**And it printed a rule nobody wrote.** Obsidian costs 1 health for a free
+Ultimate; Derby starts at 13. Taking the free cast flips him to even and his
+Ultimate earns nothing — the pass costs the two mana it would have paid. That
+falls out of two cards that never mention each other, which is the argument for
+saying the rule once in the number rather than in a condition on the card.
 
 ---
 

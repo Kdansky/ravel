@@ -130,9 +130,25 @@ The key still names what cards spend; `subject` only changes what the row *reads
                 "action": ["stat_gain:spill@self:overkill"] }]
 ```
 
-`from` is one term, or two with one of `+ - *` and spaces around it. No parentheses. A compute
-may name an earlier compute if the ability lists that one first. A **computed tag** and a
-**phase's actions** may not name one at all — nobody is acting, so nobody listed it.
+`value` is arithmetic over numbers and subjects with `+ - * %` and parentheses, spaces around
+every operator. A compute may name an earlier compute if the ability lists that one first. A
+**computed tag** and a **phase's actions** may not name one at all — nobody is acting, so nobody
+listed it.
+
+---
+
+### If you have an odd number of health, gain 2 mana.
+
+```json
+"computes": [{ "key": "yardstick_mana", "value": "health@mine.player % 2 * 2" }],
+"abilities": [{ "compute": ["yardstick_mana"],
+                "action": ["stat_gain:mana@mine.player:yardstick_mana"] }]
+```
+
+`%` is the remainder, and there is no `/` beside it. **Write the condition as the amount and
+the card needs no condition**: a gain of nothing is a gain of nothing, so the even case needs
+no second rule. `%` binds as `*` does, so this is `(health % 2) * 2`. Every other round and
+every third gem are the same sentence. A remainder of nothing is nothing, not an error.
 
 ---
 

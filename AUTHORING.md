@@ -3552,11 +3552,20 @@ a move rule. A **computed tag** may not, and neither may a **phase's** `actions`
 — both are asked without anyone acting, so there is no rule to have listed the
 names. A number those two need is a stat.
 
-`from` is an arithmetic expression over numbers and subjects, with `+ - *`,
-parentheses, and the precedence every reader already has: `*` binds tighter than
-`+` and `-`, and both associate left. **Spaces around a binary operator** are
-what tell one from a hyphen inside a name and a minus sign on a literal, so
-`hp - 1` is a subtraction and `-1` is a number.
+`value` is an arithmetic expression over numbers and subjects, with `+ - * %`,
+parentheses, and the precedence every reader already has: `*` and `%` bind
+tighter than `+` and `-`, and all of them associate left. **Spaces around a
+binary operator** are what tell one from a hyphen inside a name and a minus sign
+on a literal, so `hp - 1` is a subtraction and `-1` is a number.
+
+**`%` is the remainder, and there is no `/` beside it.** What is left over is a
+question games ask — every other round, every third gem, an odd number of health
+— and how many times it went in is one none of them has asked. It is also the
+place where a condition stops needing a branch: `health@mine.player % 2 * 2` is
+two mana at an odd number of health and none at an even one, said as the amount
+rather than as a rule about the amount. A remainder of nothing is nothing, since
+the right-hand side is read off the board and no author can promise it is never
+zero.
 
 ```json
 "computes": [

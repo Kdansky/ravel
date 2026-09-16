@@ -2489,16 +2489,23 @@ function M.react(card_id, index, targets, payment)
 	local r = cards.reactions(c)[index or 1]
 	if not r or not reactions.answers_seat(r, seat, top.re_actor) then return false end
 	if not reactions.matches(r, c, top.re_subject, true, top.re_targets) then return false end
-	if not M.can_afford(r.cost, { card_id = card_id }) then return false end
+	-- Worked out here and sent up with the record, because a reaction's answer
+	-- waits: the window it was given closes before the action runs, and a number
+	-- about the board is a number about the board *as it was answered*. Derby's
+	-- Ultimate is the case -- two mana at an odd number of health -- and reading
+	-- it at the bottom of the stack would be reading it after the blow.
+	local ctx = predicate.bind(r.compute, { card_id = card_id, targets = targets or {} })
+	if not M.can_afford(r.cost, ctx) then return false end
 	-- A payment arrives beside the targets and is checked like them: an
 	-- interface collected it, but a script, the network or an engine seat may
 	-- have, and flow is the one gate all four come through.
-	if not M.payment_legal(r.cost, { card_id = card_id }, payment) then return false end
+	if not M.payment_legal(r.cost, ctx, payment) then return false end
 	checkpoint()
-	pay(r.cost, { card_id = card_id }, payment)
+	pay(r.cost, ctx, payment)
 	log.add(((cards.def(c) or {}).text or c.def_key) .. " in response")
 	local rec = push_event { verb = "play", action = r.action, subject = { card_id },
-		event = top.re_subject, targets = targets, source = card_id, spent = r.spent }
+		event = top.re_subject, targets = targets, source = card_id, spent = r.spent,
+		let = ctx.let }
 	if rec then rec.re_answering = top.id end
 	top.re_answered[#top.re_answered + 1] = card_id
 	M.settle()

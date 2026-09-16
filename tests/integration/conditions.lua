@@ -322,7 +322,7 @@ function M.test_conditions_the_smallest_of_nothing_is_absent(check)
 	end)
 end
 
--- A compute's `from`: arithmetic over numbers and subjects, with + - *,
+-- A compute's `value`: arithmetic over numbers and subjects, with + - * %,
 -- parentheses and the precedence every reader already has. Pure — a string in,
 -- a tree out — so it is checked without a game loaded, as parse_condition is.
 -- It held one operator and no brackets, and fifteen of Codex's twenty-five
@@ -337,10 +337,11 @@ function M.test_conditions_a_compute_is_an_arithmetic_expression(check)
 	check("and a single term is an expression too",
 		one ~= nil and table.concat(one.terms, ",") == "sum:power@self")
 
-	check("all three operators are known",
+	check("all four operators are known",
 		predicate.value("6 + 2", {}) == 8
 		and predicate.value("6 - 2", {}) == 4
-		and predicate.value("6 * 2", {}) == 12)
+		and predicate.value("6 * 2", {}) == 12
+		and predicate.value("7 % 2", {}) == 1)
 
 	-- The one every reader has from school, which is the whole argument for
 	-- allowing brackets at all: there is no second rule to be taught.
@@ -352,6 +353,18 @@ function M.test_conditions_a_compute_is_an_arithmetic_expression(check)
 		predicate.value("10 - 3 - 2", {}) == 5, predicate.value("10 - 3 - 2", {}))
 	check("and nests", predicate.value("((1 + 2) * (3 + 4))", {}) == 21,
 		predicate.value("((1 + 2) * (3 + 4))", {}))
+
+	-- The remainder sits beside times, so this is (7 % 2) * 2 -- which is the
+	-- whole of Derby's Ultimate: two mana at an odd number of health and none at
+	-- an even one, said as the amount rather than as a rule about the amount.
+	check("the remainder binds as times does", predicate.value("7 % 2 * 2", {}) == 2,
+		predicate.value("7 % 2 * 2", {}))
+	check("and an even number leaves nothing", predicate.value("8 % 2 * 2", {}) == 0,
+		predicate.value("8 % 2 * 2", {}))
+	-- Both operands are read off the board, so no author can promise the right
+	-- one is never zero. Nothing left over rather than a number that is not one.
+	check("a remainder of nothing is nothing", predicate.value("7 % 0", {}) == 0,
+		predicate.value("7 % 0", {}))
 
 	local _, err = predicate.parse_value("hp - ")
 	check("an operator with nothing after it says so",

@@ -599,12 +599,49 @@ function M.test_spellstorm_an_ultimate_answers_a_card_that_carries_the_icon(chec
 	-- never has to do.
 	phase.pop()
 	flow.settle()
-	-- Six for the Ultimate and one back from it: Derby deals 2 and gains 1.
-	check("the Ultimate was paid for and fired", seat_card("seat_one").stats.mana == 4,
+	-- Six for the Ultimate and two back from it: Derby deals 2, and thirteen
+	-- health is an odd number, which is what the second mana is for.
+	check("the Ultimate was paid for and fired", seat_card("seat_one").stats.mana == 5,
 		tostring(seat_card("seat_one").stats.mana))
 	check("and it hit", seat_card("seat_two").stats.health == hurt - 2,
 		("%d, was %d"):format(seat_card("seat_two").stats.health, hurt))
 	check("with nothing left waiting", flow.pending_event() == nil)
+end
+
+
+-- **Derby Pocket, ULTIMATE (6) -- Flaming Yardstick.** *"Deal 2 damage. If you
+-- have an odd number of health, `[MANA]` `[MANA]`."*
+--
+-- **The number is the condition, so the card has no condition.** A remainder
+-- says "an odd number of health" as an amount -- `health@mine.player % 2 * 2` --
+-- and a gain of nothing is a gain of nothing, so the even case needs no second
+-- rule and no branch the format does not have.
+--
+-- Worked out when the wizard answers rather than when the record resolves. That
+-- is not a detail here: an Ultimate waits behind its own window, and the blow it
+-- deals is not the only thing that could change a number in the meantime.
+function M.test_spellstorm_derbys_ultimate_pays_at_an_odd_number_of_health(check)
+	local function ultimate(health)
+		opening(7, "derby", "eve")
+		seat_card("seat_one").stats.initiative = 1
+		seat_card("seat_two").stats.initiative = 0
+		seat_card("seat_one").stats.mana = 9
+		seat_card("seat_one").stats.health = health
+		stage_battle("seat_one", "magicdart")
+
+		phase.push("duel")
+		flow.settle()
+		local a = flow.usable_reactions()
+		flow.react(a[1].card, a[1].index, {})
+		phase.pop()
+		flow.settle()
+		return seat_card("seat_one").stats.mana - 3
+	end
+
+	check("an odd number of health is two mana", ultimate(11) == 2, ultimate(11))
+	check("and one more health is none", ultimate(12) == 0, ultimate(12))
+	check("one health is odd, which the smallest number often is not",
+		ultimate(1) == 2, ultimate(1))
 end
 
 
@@ -1800,8 +1837,12 @@ function M.test_spellstorm_obsidian_pays_for_an_ultimate_that_mana_could_not(che
 	flow.settle()
 	check("the Ultimate fired", seat_card("seat_two").stats.health == hurt - 2,
 		("%d, was %d"):format(seat_card("seat_two").stats.health, hurt))
-	check("and cost no mana -- the 2 it gave back is all that moved",
-		seat_card("seat_one").stats.mana == 2, tostring(seat_card("seat_one").stats.mana))
+	-- And it gives nothing back, because Obsidian's own bite is what made it
+	-- give nothing: thirteen health less one is even, and Derby's Ultimate pays
+	-- two mana only at an odd number. The free cast costs the mana it would have
+	-- earned, which is a price the card never says out loud.
+	check("and cost no mana, and earned none either",
+		seat_card("seat_one").stats.mana == 1, tostring(seat_card("seat_one").stats.mana))
 	check("the pass is spent", seat_card("seat_one").stats.ult_free == 0)
 end
 

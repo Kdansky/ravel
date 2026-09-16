@@ -777,7 +777,7 @@ def swap_templates():
 def wizard(key, name, epithet, elements, health, rating, ult_cost, ult_name,
            ult_tooltip, ult_action, spells, start=(), ult_chosen=None,
            ult_chosen_where=None, passive=None, keywords=(), max_health=None,
-           simplified=None, blurb=""):
+           simplified=None, blurb="", ult_compute=()):
     return dict(key=key, name=name, epithet=epithet, elements=elements,
                 health=health, rating=rating, ult_cost=ult_cost,
                 ult_name=ult_name, ult_tooltip=ult_tooltip,
@@ -785,15 +785,16 @@ def wizard(key, name, epithet, elements, health, rating, ult_cost, ult_name,
                 ult_chosen_where=ult_chosen_where,
                 passive=passive, keywords=list(keywords), spells=spells,
                 max_health=max_health or health,
-                start=list(start), simplified=simplified, blurb=blurb)
+                start=list(start), simplified=simplified, blurb=blurb,
+                ult_compute=list(ult_compute))
 
 
 WIZARDS = [
     wizard("derby", "Derby Pocket", "Infernal Intern", "Fire, Earth", 13, 3, 6,
            "Flaming Yardstick",
-           "Deal 2 damage and gain 1 mana.",
-           [DMG(2), MANA],
-           simplified="the printed Ultimate gives 2 mana only at an odd number of health; there is no parity test, so it always gives 1",
+           "Deal 2 damage. If you have an odd number of health, gain 2 mana.",
+           [DMG(2), "stat_gain:mana@mine.player:yardstick_mana"],
+           ult_compute=["yardstick_mana"],
            blurb="An ex-Business Demon intern who loves to encourage others. Strong early, and gains power passively. A good all-rounder.",
            start=["move:storm_cloud.earth_essence:mine.discard", REFILL_CLOUD],
            spells=[
@@ -1324,11 +1325,15 @@ def wizard_templates(w):
            "needs": ["ult_free@mine.player <= 0"],
            "cost": {"mana@mine.player": w["ult_cost"]},
            "action": list(w["ult_action"])}
+    if w["ult_compute"]:
+        ult["compute"] = list(w["ult_compute"])
     # The same Ultimate, owed differently: Obsidian hands out a one-shot pass and
     # this is what spends it.
     ult_free = {"to": "resolving", "whose": "mine", "in": "wizard",
                 "cost": {"ult_free@mine.player": 1},
                 "action": list(w["ult_action"])}
+    if w["ult_compute"]:
+        ult_free["compute"] = list(w["ult_compute"])
     char = {
         "key": "wiz_" + w["key"], "text": w["name"], "asset": WIZ_ART[w["key"]],
         "tags": ["wizard_card", w["key"]] + w["keywords"],
@@ -2208,6 +2213,12 @@ def build():
             # already means and. Derby's opening takes the real card off the shelf.
             "earth_essence": {"needs": ["tagged:earth@self", "tagged:essence@self"]},
         },
+        # **The number is the condition, so there is no condition.** Derby's
+        # Ultimate gives two mana at an odd number of health and none at an even
+        # one; a remainder says that as an amount, and nothing in the card has to
+        # ask a question. `%` binds as `*` does, so this is (health % 2) * 2.
+        "computes": [{"key": "yardstick_mana", "value": "health@mine.player % 2 * 2",
+                      "tooltip": "Two mana at an odd number of health, none at an even one."}],
         "verbs": [{"key": "heal", "does": "stat_gain",
                    "tooltip": "Healing. Named as a moment of its own so that a rule can answer it - the engine's own stat_gain is unwatchable on purpose."},
                   {"key": "hit", "does": "stat_damage",

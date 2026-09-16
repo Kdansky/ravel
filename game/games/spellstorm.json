@@ -168,6 +168,13 @@
     "curse_or_ice": { "any_of": ["curse", "ice"] },
     "earth_essence": { "needs": ["tagged:earth@self", "tagged:essence@self"] }
   },
+  "computes": [
+    {
+      "key": "yardstick_mana",
+      "value": "health@mine.player % 2 * 2",
+      "tooltip": "Two mana at an odd number of health, none at an even one."
+    }
+  ],
   "verbs": [
     {
       "key": "heal",
@@ -1894,7 +1901,7 @@
       "text": "Derby Pocket",
       "asset": "ss_derby.jpg",
       "tags": ["wizard_card", "derby"],
-      "tooltip": "Infernal Intern. An ex-Business Demon intern who loves to encourage others. Strong early, and gains power passively. A good all-rounder.\n\n*Ultimate* (*6 mana*) - Flaming Yardstick: Deal *2 damage* and gain *1 mana*.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 13*, *Initiative rating 3*.\n\n_[Simplified: the printed Ultimate gives 2 mana only at an odd number of health; there is no parity test, so it always gives 1]_",
+      "tooltip": "Infernal Intern. An ex-Business Demon intern who loves to encourage others. Strong early, and gains power passively. A good all-rounder.\n\n*Ultimate* (*6 mana*) - Flaming Yardstick: Deal *2 damage*. If you have an odd number of health, gain *2 mana*.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 13*, *Initiative rating 3*.",
       "reactions": [
         {
           "to": "resolving",
@@ -1902,14 +1909,16 @@
           "in": "wizard",
           "needs": ["ult_free@mine.player <= 0"],
           "cost": { "mana@mine.player": 6 },
-          "action": ["hit:health@opponent:2", "stat_gain:mana@mine.player:1"]
+          "action": ["hit:health@opponent:2", "stat_gain:mana@mine.player:yardstick_mana"],
+          "compute": ["yardstick_mana"]
         },
         {
           "to": "resolving",
           "whose": "mine",
           "in": "wizard",
           "cost": { "ult_free@mine.player": 1 },
-          "action": ["hit:health@opponent:2", "stat_gain:mana@mine.player:1"]
+          "action": ["hit:health@opponent:2", "stat_gain:mana@mine.player:yardstick_mana"],
+          "compute": ["yardstick_mana"]
         }
       ]
     },
