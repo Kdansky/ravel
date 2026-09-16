@@ -354,13 +354,32 @@ The `[ULT]` icon's phase runs before a card resolves, so a pass granted *by* the
 resolution cannot be spent in it — Obsidian announces `resolving` itself, from
 the same step that grants the pass.
 
-### D5. Omar's Shuriken "ALWAYS goes first"
+### D5. ~~Omar's Shuriken "ALWAYS goes first"~~ — **done, and no word was needed**
 
-**Proposal — a card-level initiative override read by `set_active_seat:has_init`.**
-Or leave it: taking Initiative is close, and the difference shows in maybe one
-game in twenty.
+**The proposal was a card-level initiative override read by
+`set_active_seat:has_init`.** It was aimed at the wrong thing. The duel is a turn
+group, and a turn group already takes its order off a stat — `order:
+"highest:<stat>"`, settled once when the group is entered. Nothing said the stat
+had to be Initiative.
 
-**Size:** small, low value.
+It is `highest:lead` now. `lead` is set at the **reveal**, which is the one moment
+that is both after what was played is known and before the group that reads it is
+entered:
+
+```json
+"each_seat:stat_set:lead@mine.player:sum:initiative@mine.player",
+"each_seat:activate_zone:rules:by_column:first_strike"
+```
+
+and the exception is a rules card, where a player can read it: `stat_gain:lead:9`
+when `count:first_strike@mine.battle >= 1`. One number holds the ordinary rule and
+the card that breaks it, because nine is more than the Tracker can ever be worth.
+
+**"It does not resolve" needed nothing either.** Going first is what takes the
+opponent's card out of the battle spot before the seat that played it is up, so
+the zone its resolution walks is empty. The second half — *"`[DRAW]` OR chosen
+opponent discards their revealed card and they `[DRAW]`"* — is `options:` with two
+minted cards, the idiom this game already uses for Hidden Movement and DOOOOOOOOOM!.
 
 ---
 

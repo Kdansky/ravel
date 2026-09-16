@@ -1610,6 +1610,25 @@ here.
   "phases": ["upkeep", "main", "cleanup"] }
 ```
 
+### SPECIAL: this card ALWAYS goes first.
+
+```json
+{ "key": "reveal", "type": "automatic",
+  "actions": ["each_seat:move:mine.commit:mine.battle",
+              "each_seat:stat_set:lead@mine.player:sum:initiative@mine.player",
+              "each_seat:activate_zone:rules:by_column:first_strike"],
+  "next": [{ "then": "duel" }] },
+{ "key": "duel", "type": "turn", "seat": "each", "order": "highest:lead",
+  "phases": ["resolve"] }
+```
+
+**A card that changes the turn order is a stat, not a rule.** The order is settled once, when
+the group is entered, so the stat is written in the step *before* it — here the reveal, which
+is the first moment what was played is known. One number holds both the ordinary order and the
+card that breaks it, as long as the exception outweighs anything the ordinary rule can be
+worth. The exception itself is an ability with a `when`: `stat_gain:lead@mine.player:9` under
+`count:first_strike@mine.battle >= 1`.
+
 ### Go somewhere else if a condition holds.
 
 ```json

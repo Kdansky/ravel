@@ -494,9 +494,12 @@ revealed cards across both seats and `others.` is the pool with the asking card
 taken out of it, so the card cannot offer itself and nothing has to name which
 card is meant.
 
-One that really does need something, and is cheap to state: **Omar's Shuriken**
-("this card ALWAYS goes first") wants a card-level override read by
-`set_active_seat:has_init`.
+**Omar's Shuriken is done too, and this page was wrong about it.** "This card
+ALWAYS goes first" was said to want a card-level override read by
+`set_active_seat:has_init`. It wanted no word: the duel is a turn group, a turn
+group orders itself by `highest:<stat>`, and the stat is the game's to choose. It
+is `highest:lead` now, written at the reveal — after what was played is known, and
+before the group that reads it is entered.
 
 **And one thing the checking turned up**: a second question asked from inside a
 `copy:` is swept, exactly as entry 8 describes — Wind Dragon loses its second

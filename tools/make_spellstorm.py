@@ -647,6 +647,15 @@ def choice_templates():
         # your discard, OR draw". The choice is per token, so the Ultimate asks
         # it as many times as he has tokens -- four rules cards, one per token,
         # each gated on holding that many.
+        # Omar's Shuriken: "[DRAW] OR chosen opponent discards their revealed card
+        # (it does not resolve) and they [DRAW]". Not optional -- the printed card
+        # offers two things and neither of them is nothing.
+        entry("shuriken_draw", "Draw a card", "Draw a card.", [DRAW]),
+        entry("shuriken_strike", "Knock their card out",
+              "Your opponent discards their revealed card without resolving it, and draws.",
+              ["destroy:enemy.battle", "draw_from:enemy.deck:enemy.hand:1"],
+              needs=["count:spell@enemy.battle >= 1"]),
+
         entry("croh_take", "Take a card back",
               "Return a card of your choice from your discard to your hand.",
               ["show:mine.discard:optional"],
@@ -925,10 +934,20 @@ WIZARDS = [
                     cast=[OFFER_HAND_OF(FIRE)],
                     chosen=["destroy:target", DMG(2)]),
                card("omar_shuriken", "Shuriken", WATER, kind="wizard_spell", ult=True,
-                    tooltip="Gain Initiative and draw a card.",
+                    tags=["first_strike"],
+                    tooltip="SPECIAL: this card ALWAYS goes first. Gain Initiative."
+                            " Draw a card OR your opponent discards their revealed card"
+                            " (it does not resolve) and they draw.",
                     flavour='"..."',
-                    simplified='the printed card ALWAYS resolves first and can discard the opponent\'s revealed card; resolution order is set by Initiative alone, so it takes Initiative instead',
-                    cast=GAIN_INIT + [DRAW]),
+                    comment="\"ALWAYS goes first\" is the order the duel is taken in, and the"
+                            " duel already takes an order off a stat -- so it is a second stat"
+                            " rather than a second rule. `lead` is written at the reveal, when"
+                            " what was played is known and before the group that reads it is"
+                            " entered, and the Shuriken outweighs the Tracker by more than the"
+                            " Tracker can ever be worth. \"It does not resolve\" needs no word"
+                            " at all: going first is what takes the card out of the battle"
+                            " before the seat that played it is up.",
+                    cast=GAIN_INIT + ["options:shuriken_draw,shuriken_strike"]),
            ]),
 
     wizard("bunny", "Bunny Wizard", "Healer of Bunny Island", "Water, Earth", 8, 2, 5,
@@ -1500,6 +1519,16 @@ def rules_templates():
         [ability("dry_dragon", [DMG(2), SHARD(2)],
                  when=["count:dragon@dragon_deck <= 0"])]))
 
+    # "SPECIAL: this card ALWAYS goes first." The duel is ordered by `lead`, which
+    # the reveal sets to the Initiative Tracker; this is the one thing that beats
+    # it, and it is a rules card because a rules card is where this game keeps its
+    # ifs and because a player can read it there.
+    out.append(rules_card(
+        "r_first_strike", "Going first",
+        "A revealed Shuriken resolves before anything else, whoever holds the Initiative Tracker.",
+        [ability("first_strike", ["stat_gain:lead@mine.player:9"],
+                 when=["count:first_strike@mine.battle >= 1"])]))
+
     # Who begins with the Initiative Tracker: the lower Initiative rating.
     out.append(rules_card(
         "r_first", "Initiative rating",
@@ -1949,8 +1978,13 @@ def phases():
 
         # This move is the reveal, and it has to come before anything that reads
         # the two cards against each other: countering asks about `enemy.battle`.
+        # The order the duel is taken in is settled here, because here is where
+        # what was played is known and the group that reads it has not been
+        # entered yet.
         {"key": "showdown", "type": "automatic",
          "actions": ["each_seat:move:mine.commit:mine.battle",
+                     "each_seat:stat_set:lead@mine.player:sum:initiative@mine.player",
+                     "each_seat:activate_zone:rules:by_column:first_strike",
                      "each_seat:activate_zone:rules:by_column:check",
                      "each_seat:activate_zone:weather_now:by_column:wy"],
          "next": [{"then": "duel"}]},
@@ -1964,7 +1998,7 @@ def phases():
         # An action list has no cursor -- whatever follows an ask runs before the
         # answer arrives -- so the ask is the last thing this phase does, and the
         # resolution waits behind it. A phase is the engine's word for "and then".
-        {"key": "duel", "type": "turn", "seat": "each", "order": "highest:initiative",
+        {"key": "duel", "type": "turn", "seat": "each", "order": "highest:lead",
          "phases": ["ult", "resolve"], "next": [{"then": "aftermath"}]},
         {"key": "ult", "type": "automatic",
          "actions": ["activate_zone:mine.battle:by_column:ult_call"]},
@@ -2168,6 +2202,11 @@ def build():
             {"key": "ice_pen", "min": 0, "max": 99, "tags": ["hidden"],
              "on": ["player"], "start": 0},
             {"key": "init_rating", "min": 0, "max": 99, "tags": ["hidden"],
+             "on": ["player"], "start": 0},
+            # Which seat resolves first. The Initiative Tracker is worth one and
+            # a revealed Shuriken is worth more than the Tracker can ever be, so
+            # one number holds both the ordinary rule and the card that breaks it.
+            {"key": "lead", "min": 0, "max": 99, "tags": ["hidden"],
              "on": ["player"], "start": 0},
             {"key": "picked", "min": 0, "max": 9, "tags": ["hidden"],
              "on": ["player"], "start": 0},

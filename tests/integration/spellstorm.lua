@@ -475,6 +475,71 @@ function M.test_spellstorm_a_played_card_is_face_down_until_the_showdown(check)
 		tostring(#zone_of("commit", one).cards))
 end
 
+-- **Omar's Shuriken (Water).** *"**SPECIAL: this card ALWAYS goes first.** Gain
+-- `[INIT]`. `[DRAW]` OR chosen opponent discards their revealed card (it does not
+-- resolve) and they `[DRAW]`. `[ULT]`."*
+--
+-- **The duel already takes its order off a stat, so the card is a second stat and
+-- not a second rule.** `lead` is written at the reveal -- where what was played is
+-- known and the group that reads it has not been entered yet -- and a revealed
+-- Shuriken outweighs the Tracker by more than the Tracker can ever be worth.
+function M.test_spellstorm_shuriken_goes_first_whoever_holds_the_tracker(check)
+	local function resolves_first(played)
+		opening(3, "omar", "eve")
+		-- The Tracker is the *other* seat's, which is the whole of the question.
+		seat_card("seat_one").stats.initiative = 0
+		seat_card("seat_two").stats.initiative = 1
+		stage_battle("seat_one", played)
+		stage_battle("seat_two", "magicdart")
+		actions.execute("each_seat:stat_set:lead@mine.player:sum:initiative@mine.player", {})
+		actions.execute("each_seat:activate_zone:rules:by_column:first_strike", {})
+		phase.push("duel")
+		-- The group picks its order on entry; handing the seat over is the next
+		-- step the flow takes, which is what settling runs.
+		flow.settle()
+		return zones.active_seat()
+	end
+
+	check("the Tracker says who resolves first",
+		resolves_first("magicdart") == "seat_two", resolves_first("magicdart"))
+	check("and a revealed Shuriken goes first without it",
+		resolves_first("omar_shuriken") == "seat_one", resolves_first("omar_shuriken"))
+end
+
+-- The other half of the card, and the half that needed nothing at all: **"it does
+-- not resolve" is what going first already means.** Shuriken takes the card out of
+-- the battle spot, and the seat that played it is not up yet -- so when it is, the
+-- zone its resolution walks has nothing in it.
+function M.test_spellstorm_shuriken_knocks_a_card_out_before_it_resolves(check)
+	opening(3, "omar", "eve")
+	local shuriken = stage_battle("seat_one", "omar_shuriken")
+	local theirs = stage_battle("seat_two", "fireball2")
+	local me = seat_card("seat_one")
+	local hp, cards = me.stats.health, #hand_of("seat_two").cards
+
+	become("seat_one")
+	-- The ask is split out of the cast and run last, which is what keeps every
+	-- rider on the card from reading a hand that has been lent to a question.
+	actions.execute("activate_zone:mine.battle:by_column:cast_ask", { card_id = shuriken.id })
+	check("the card offers its two branches, and neither of them is nothing",
+		phase.current().key == "options" and #zones.find("options").cards == 2,
+		phase.current().key .. " " .. #zones.find("options").cards)
+
+	for _, id in ipairs(zones.find("options").cards) do
+		if entity.get(id).def_key == "shuriken_strike" then flow.play_card(id, {}) end
+	end
+	check("their revealed card is in their discard",
+		entity.get(theirs.zone_id).key == "discard",
+		entity.get(theirs.zone_id).key)
+	check("and they drew for it", #hand_of("seat_two").cards == cards + 1,
+		#hand_of("seat_two").cards)
+
+	-- Their resolve step, run against a battle spot the Shuriken emptied.
+	become("seat_two")
+	actions.execute("activate_zone:mine.battle:by_column:cast", {})
+	check("and the fireball never went off", me.stats.health == hp, me.stats.health)
+end
+
 function M.test_spellstorm_a_battle_is_four_rounds_then_a_regroup(check)
 	opening(7, "derby", "eve")
 	-- Play the first playable card each time it is asked, take the first thing

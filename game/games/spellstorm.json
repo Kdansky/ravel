@@ -144,6 +144,7 @@
       "on": ["player"],
       "start": 0
     },
+    { "key": "lead", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
     { "key": "picked", "min": 0, "max": 9, "tags": ["hidden"], "on": ["player"], "start": 0 },
     { "key": "took", "min": 0, "max": 9, "tags": ["hidden"], "on": ["player"], "start": 0 },
     { "key": "toxic", "min": 0, "max": 9, "tags": ["hidden"], "on": ["player"], "start": 0 },
@@ -713,6 +714,8 @@
       "type": "automatic",
       "actions": [
         "each_seat:move:mine.commit:mine.battle",
+        "each_seat:stat_set:lead@mine.player:sum:initiative@mine.player",
+        "each_seat:activate_zone:rules:by_column:first_strike",
         "each_seat:activate_zone:rules:by_column:check",
         "each_seat:activate_zone:weather_now:by_column:wy"
       ],
@@ -722,7 +725,7 @@
       "key": "duel",
       "type": "turn",
       "seat": "each",
-      "order": "highest:initiative",
+      "order": "highest:lead",
       "phases": ["ult", "resolve"],
       "next": [{ "then": "aftermath" }]
     },
@@ -2368,19 +2371,21 @@
       "key": "omar_shuriken",
       "text": "Shuriken",
       "asset": "ss_omar_shuriken.jpg",
-      "tags": ["water", "tide", "spell", "wizard_spell", "no_void", "ult"],
-      "tooltip": "Gain *Initiative* and *draw a card*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"...\"_\n\n_[Simplified: the printed card ALWAYS resolves first and can discard the opponent's revealed card; resolution order is set by Initiative alone, so it takes Initiative instead]_",
+      "tags": ["water", "tide", "spell", "first_strike", "wizard_spell", "no_void", "ult"],
+      "tooltip": "SPECIAL: this card ALWAYS goes first. Gain *Initiative*. *Draw a card* OR your opponent discards their revealed card (it does not resolve) and they draw.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"...\"_",
+      "comment": "\"ALWAYS goes first\" is the order the duel is taken in, and the duel already takes an order off a stat -- so it is a second stat rather than a second rule. `lead` is written at the reveal, when what was played is known and before the group that reads it is entered, and the Shuriken outweighs the Tracker by more than the Tracker can ever be worth. \"It does not resolve\" needs no word at all: going first is what takes the card out of the battle before the seat that played it is up.",
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
           "text": "Resolve",
-          "action": [
-            "stat_set:initiative@mine.player:1",
-            "stat_set:initiative@opponent:0",
-            "draw_from:mine.deck:mine.hand:1"
-          ]
+          "action": ["stat_set:initiative@mine.player:1", "stat_set:initiative@opponent:0"]
+        },
+        {
+          "key": "cast_ask",
+          "text": "Resolve",
+          "action": ["options:shuriken_draw,shuriken_strike"]
         }
       ]
     },
@@ -3464,6 +3469,25 @@
       "play": { "action": ["draw_from:mine.deck:mine.hand:1"] }
     },
     {
+      "key": "shuriken_draw",
+      "text": "Draw a card",
+      "tags": ["immutable"],
+      "asset": "auto",
+      "tooltip": "*Draw a card*.",
+      "play": { "action": ["draw_from:mine.deck:mine.hand:1"] }
+    },
+    {
+      "key": "shuriken_strike",
+      "text": "Knock their card out",
+      "tags": ["immutable"],
+      "asset": "auto",
+      "tooltip": "Your opponent discards their revealed card without resolving it, and draws.",
+      "play": {
+        "action": ["destroy:enemy.battle", "draw_from:enemy.deck:enemy.hand:1"],
+        "needs": ["count:spell@enemy.battle >= 1"]
+      }
+    },
+    {
       "key": "croh_take",
       "text": "Take a card back",
       "tags": ["immutable"],
@@ -3851,6 +3875,20 @@
           "key": "dry_dragon",
           "needs": ["count:dragon@dragon_deck <= 0"],
           "action": ["hit:health@opponent:2", "stat_gain:shards@mine.player:2"]
+        }
+      ]
+    },
+    {
+      "key": "r_first_strike",
+      "text": "Going first",
+      "tags": ["immutable"],
+      "tooltip": "A revealed Shuriken resolves before anything else, whoever holds the *Initiative* Tracker.",
+      "asset": "auto",
+      "abilities": [
+        {
+          "key": "first_strike",
+          "needs": ["count:first_strike@mine.battle >= 1"],
+          "action": ["stat_gain:lead@mine.player:9"]
         }
       ]
     },
@@ -4303,6 +4341,7 @@
       { "card": "r_dry_curse", "zone": "rules" },
       { "card": "r_dry_ice", "zone": "rules" },
       { "card": "r_dry_dragon", "zone": "rules" },
+      { "card": "r_first_strike", "zone": "rules" },
       { "card": "r_first", "zone": "rules" },
       { "card": "r_journal_1", "zone": "rules" },
       { "card": "r_journal_2", "zone": "rules" },

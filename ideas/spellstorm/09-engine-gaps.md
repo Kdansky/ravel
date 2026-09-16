@@ -210,8 +210,10 @@ states that grant them. What each still rounds off is below.
   is not read** (below), so that rule is an ability on the entry instead: the
   pour is offered, and picking it spends the choice and does nothing. The card
   says so on its face.
-- **Omar's Shuriken** takes Initiative instead of "this card ALWAYS goes first".
-  Resolution order is the Initiative Tracker and nothing else, which is close.
+- **~~Omar's Shuriken~~** — done, and it was never a gap. "Resolution order is the
+  Initiative Tracker and nothing else" was the claim, and it was wrong about the
+  engine: the duel's order is `highest:<stat>`, and nothing said the stat had to
+  be Initiative. It is `highest:lead` now, written at the reveal.
 - **~~Five cards that understated their own code~~** — done. Mana Font and Deep
   Gems said "a card in the Storm Cloud" and were already `storm_cloud.water`;
   *Ultimate* and Spirit Crystal said "a card from your hand" and were already
