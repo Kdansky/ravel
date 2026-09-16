@@ -171,6 +171,48 @@ function M.test_net_invite(check)
 	check("an invite is accepted", net.accept(invite))
 	check("both players start from the identical state", net.fingerprint() == started)
 	check("garbage is not an invite", not net.accept("RAVEL1I:nonsense"))
+	net.take_role(nil)
+	net.claim_seat(nil)
+end
+
+-- Both screens used to open as "any seat", so each could move for both sides
+-- and show both hands. Whoever invites is the first player, whoever answers the
+-- second, unless they already picked.
+function M.test_net_the_host_is_player_one(check)
+	net.begin("lost_cities.json", 7)
+	local invite = net.invite(7)
+	local seats = net.seats()
+	check("the fixture has two seats", #seats == 2)
+
+	net.take_role("host")
+	check("the host sits in the first seat", net.seat == seats[1])
+
+	net.claim_seat(nil)
+	check("an invite is accepted", net.accept(invite))
+	check("and whoever accepts it sits in the second", net.seat == seats[2])
+
+	-- Peer to peer: the guest connects from wherever it was, and its game only
+	-- arrives with the host's first state.
+	local state = net.export(true)
+	net.begin("castle.json", 1)
+	net.claim_seat(nil)
+	net.take_role("guest")
+	check("a game with one seat seats nobody", net.seat == nil)
+	check("the host's state lands", net.import(state))
+	check("and the guest sits down in it, second", net.seat == seats[2])
+
+	net.claim_seat(nil)
+	net.import(state)
+	check("a guest who stood up stays standing", net.seat == nil)
+
+	net.take_role("host")
+	net.claim_seat(seats[2])
+	net.take_role("host")
+	check("a seat already picked in this game is kept", net.seat == seats[2])
+
+	net.unlink()
+	check("leaving forgets the role", net.role == nil)
+	net.claim_seat(nil)
 end
 
 function M.test_net_three_hashes(check)

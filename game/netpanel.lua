@@ -302,6 +302,7 @@ HANDLERS["p2p"] = function()
 		return
 	end
 	if not netlink.rtc_start("host") then M.note("this browser has no WebRTC"); return end
+	net.take_role("host")
 	pending_role, awaiting = "host", nil
 	M.note("building an invite…")
 end
@@ -315,6 +316,7 @@ HANDLERS["paste"] = function()
 		if not netlink.rtc_start("guest", net.unwrap_sdp(text)) then
 			M.note("this browser has no WebRTC")
 		else
+			net.take_role("guest")
 			pending_role = "guest"
 			M.note("answering…")
 		end

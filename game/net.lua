@@ -421,6 +421,34 @@ local function unpack_msg(text)
 	return out
 end
 
+---------------------------------------------------------------- seats
+
+-- The game the seat below was claimed in; see may_act.
+local claimed_in = nil
+
+-- **Whoever invites is the first player, and whoever answers is the second.**
+-- Without it both screens opened as "any seat": each could move for both sides,
+-- and each showed both hands. Once per game, and never over a seat somebody
+-- already picked in it, so standing up with "any" stays stood up.
+--
+-- A guest's game arrives after the connection does, so a guest is seated when a
+-- state lands rather than when it joins; which is why this is asked again there.
+M.role = nil   -- "host" or "guest", for the length of one link
+local seated_in = nil
+
+local function sit()
+	local seats = M.seats()
+	if not M.role or #seats < 2 or seated_in == declaration.filename then return end
+	seated_in = declaration.filename
+	if claimed_in == declaration.filename then return end
+	M.claim_seat(seats[M.role == "host" and 1 or 2])
+end
+
+function M.take_role(role)
+	M.role, seated_in = role, nil
+	sit()
+end
+
 ---------------------------------------------------------------- applying
 
 -- Content that arrived over a wire is untrusted in exactly the way invariant 5
@@ -560,6 +588,7 @@ function M.apply_full(snap)
 	check_landing(snap)
 	if not M.divergent then M.desync = nil end   -- a whole state is the cure
 	baseline, baseline_hash = M.snapshot(), M.state_hash()
+	sit()
 	if M.on_apply then M.on_apply(snap) end
 	return true
 end
@@ -634,8 +663,6 @@ end
 -- latch left standing would hand every later click the permission it granted.
 local unattended = false
 
--- The game the seat below was claimed in; see may_act.
-local claimed_in = nil
 
 function M.unattended(fn)
 	local prev = unattended
@@ -707,7 +734,7 @@ end
 function M.unlink()
 	if link and link.close then pcall(link.close) end
 	link, baseline, baseline_hash = nil, nil, nil
-	M.last_heard = nil
+	M.last_heard, M.role, seated_in = nil, nil, nil
 	say("offline")
 end
 
@@ -925,7 +952,9 @@ end
 function M.accept(text)
 	local file, seed = tostring(text or ""):match(M.PROTOCOL .. "I:([^:]+):(-?%d+)")
 	if not file then return false, "not an invite" end
-	return M.begin(file, tonumber(seed))
+	local ok, err = M.begin(file, tonumber(seed))
+	if ok then M.take_role("guest") end
+	return ok, err
 end
 
 ---------------------------------------------------------------- manual mode

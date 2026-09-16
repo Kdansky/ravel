@@ -457,6 +457,7 @@ local function net_command(rest)
 		seed = tonumber(seed) or os.time() % 100000
 		local ok, err = net.begin(file or "lost_cities.json", seed)
 		if ok then
+			net.take_role("host")
 			print("send this to your opponent:")
 			print("  " .. net.invite(seed))
 		else
