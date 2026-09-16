@@ -617,4 +617,41 @@ do
 	frame(0.016)
 end
 
+-- A slam from a wide rect into a small cell. The overshoot once reached the size
+-- too, and anything shrinking past elevenfold went through zero width mid-flight
+-- -- a Spellstorm refill after a networked turn did, and crashed the browser build
+-- on the scissor. Size now eases straight to its target: only the landing squash
+-- takes it below, and by a tenth.
+do
+	anim.clear()
+	anim.move(-1, { x = 96, y = 150, w = 768, h = 238 }, { x = 200, y = 10, w = 60, h = 95 }, "slam")
+	for _ = 1, 40 do
+		anim.update(0.01)
+		local v = anim.visual_place(-1)
+		assert(not v or v.w >= 56 and v.h >= 85, ("a slam shrank past its target: %sx%s"):format(v and v.w, v and v.h))
+	end
+	anim.clear()
+end
+
+-- Where a Spellstorm refill goes wrong in the first place. Taking from the Storm
+-- Cloud lends its cards to the offscreen offer and hands them back, so their
+-- origin is `options`; a networked state arrives with every place blank, and the
+-- card then flew out of a zone nobody sees. Nowhere seen is nowhere to fly from.
+do
+	local net = require("net")
+	flow.init("spellstorm.json", 4)
+	render.rescale()
+	for _ = 1, 4 do frame(0.016) end
+	local cloud = zones.find("storm_cloud").cards[1]
+	assert(cloud, "expected a card in the Storm Cloud")
+	entity.get(cloud).origin_zone_id = zones.find_id("options")
+	assert(net.apply_full(net.snapshot()))
+	anim.clear()
+	stage.enter()
+	render.sync_places()
+	stage.leave()
+	assert(not anim.visual_place(cloud), "a card handed back by an offer flew out of the offscreen offer zone")
+	frame(0.016)
+end
+
 print("render smoke ok: " .. frames .. " frames drawn, " .. drawn .. " placeholders")

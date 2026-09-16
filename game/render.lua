@@ -1993,6 +1993,10 @@ function M.sync_places()
 					-- the zone the way a move does, so the stack is read back off
 					-- it and a gem flies off its own pile rather than the shelf.
 					local origin = entity.get(c.origin_zone_id)
+					-- An offscreen zone was never where the eye was. A Storm Cloud
+					-- card handed back by a closed offer would otherwise fly out
+					-- of the offer overlay's rect after every networked sync.
+					if origin and origin.display == "offscreen" then origin = nil end
 					local shelf = origin and origin.status == "supply" and zones.supply_of(c.def_key)
 					from = shelf and shelf.place or (origin or {}).place
 				end

@@ -38,8 +38,11 @@ local function interp(t)
 	end
 	local e   = t.kind == "slam" and ease_out_back(p) or ease_out(p)
 	local arc = math.sin(math.pi * p)   -- rises mid-flight, lands at 0
-	local w   = t.fw + (t.tw - t.fw) * e
-	local h   = t.fh + (t.th - t.fh) * e
+	-- The overshoot is for where the card lands, never for its size: a card
+	-- shrinking more than elevenfold would overshoot through zero width.
+	local s   = ease_out(p)
+	local w   = t.fw + (t.tw - t.fw) * s
+	local h   = t.fh + (t.th - t.fh) * s
 	local gw  = w * (1 + t.pop * arc)
 	local gh  = h * (1 + t.pop * arc)
 	return {
@@ -129,6 +132,11 @@ function M.visual_place(id, rest)
 		local k = p < 0.35 and (p / 0.35) or math.max(0, 1 - (p - 0.35) / 0.65)
 		out.x = out.x + b.dx * k
 		out.y = out.y + b.dy * k
+	end
+	-- Last line of defence: LÖVE throws on a negative scissor, so a slip in any
+	-- curve above would take the whole game down over one frame of one card.
+	if out then
+		out.w, out.h = math.max(1, out.w), math.max(1, out.h)
 	end
 	return out
 end
