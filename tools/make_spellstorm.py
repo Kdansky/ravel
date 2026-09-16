@@ -548,7 +548,6 @@ WEATHER = [
             wx=[DRAW]),
     weather("glitteringdust", "Glittering Dust",
             "Draw 2 cards. Earth cards do nothing when resolved but heal 2.",
-            simplified="the replacement of every Earth card's effect is a continuous effect the engine has no way to express; this only draws",
             wx=[DRAW, DRAW]),
     weather("ionicatmosphere", "Ionic Atmosphere",
             "Draw 2 cards and gain 1 mana. Tier II and III players lose 2 Power Tokens.",
@@ -1519,6 +1518,29 @@ def rules_templates():
         [ability("dry_dragon", [DMG(2), SHARD(2)],
                  when=["count:dragon@dragon_deck <= 0"])]))
 
+    # **Glittering Dust: "[EARTH] cards do nothing when resolved but Heal 2."**
+    #
+    # "Does nothing when resolved" is said by not being there to do it. The step
+    # runs at the top of each seat's resolution, and what it takes out is what the
+    # four cast columns under it would otherwise have walked -- so the effect is
+    # skipped without a word on any Earth card, which is the whole point: a
+    # weather card that rewrote every Earth card would want rewriting every time
+    # one was printed.
+    #
+    # The card goes where the round would have sent it anyway, by the same verb
+    # the round-end sweep uses. It goes one step early, and nothing between here
+    # and there reads a battle spot.
+    #
+    # **The Ultimate icon still fires**, because the [ULT] window is a phase of
+    # its own and runs before this one. The card says the Earth card's *effect*
+    # is replaced, and casting your Ultimate here is not that.
+    out.append(rules_card(
+        "r_dust", "Glittering Dust",
+        "While Glittering Dust is the weather, Earth cards do nothing when resolved but heal 2.",
+        [ability("dust", [HEAL(2), "destroy:mine.battle.earth"],
+                 when=["card:glitteringdust@weather_now >= 1",
+                       "count:earth@mine.battle >= 1"])]))
+
     # "SPECIAL: this card ALWAYS goes first." The duel is ordered by `lead`, which
     # the reveal sets to the Initiative Tracker; this is the one thing that beats
     # it, and it is a rules card because a rules card is where this game keeps its
@@ -1881,7 +1903,8 @@ def zones():
 
 
 # Every step the resolve phases walk, in the order a round runs them.
-RESOLVE = ["activate_zone:mine.battle:by_column:cast",
+RESOLVE = ["activate_zone:rules:by_column:dust",
+           "activate_zone:mine.battle:by_column:cast",
            "activate_zone:mine.battle:by_column:cast2",
            "activate_zone:mine.battle:by_column:cast3",
            "activate_zone:mine.battle:by_column:cast_ask"]

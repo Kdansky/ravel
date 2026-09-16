@@ -433,22 +433,42 @@ one thing on this page that is architecture rather than a word.
 
 ---
 
-## 10. Replacing what another card does — *Glittering Dust*
+## 10. ~~Replacing what another card does~~ — *Glittering Dust* — **done**
 
 **Glittering Dust (Weather).** *"`[DRAW]` `[DRAW]`. `[EARTH]` cards do nothing
 when resolved but Heal 2."*
 
-**What is built.** The two draws. The card carries a `[Simplified: …]` note
-saying the rest is not there.
+**What this page said.** That rewriting what another card's whole action list does
+needs a real replacement layer, that one weather card is not worth an effects
+engine, and that it was listed so nobody proposed `adjusts.instead` as the fix.
 
-**What is missing.** Rewriting what another card's whole action list *does* is
-not a stat hook, and nothing short of a real replacement layer covers it —
-`adjusts.instead` is about one stat change, and this is about every effect on a
-whole element of card, for one round.
+**The first sentence was the mistake.** Nothing has to rewrite the action list.
+A card does nothing when resolved by **not being in the spot the resolution
+walks**:
 
-**Recommendation: leave it.** One weather card is not worth an effects engine,
-and the note on the card is honest. Listed so that nobody proposes
-`adjusts.instead` as the fix for it.
+```json
+{ "key": "dust", "needs": ["card:glitteringdust@weather_now >= 1",
+                           "count:earth@mine.battle >= 1"],
+  "action": ["heal:health@mine.player:2", "destroy:mine.battle.earth"] }
+```
+
+on a rules card, at the top of every resolution and ahead of the four cast
+columns. Nothing on any Earth card, which is the test: a weather card that rewrote
+every Earth card would want rewriting every time one was printed.
+
+**What made it small is the board, not the engine.** A battle spot holds one card
+and the game resolves by walking a zone, so "skip this card's effect" is a question
+about what is *in* the zone — which the format has always been able to ask. The
+card goes where the round's own sweep would have sent it, by the same verb, one
+step early, and nothing between here and there reads a battle spot.
+
+**What is still true.** There is no way to gate an ability from outside the card
+carrying it. A tag can shift a number (`buffs`) and interfere with a change
+(`adjusts`), but nothing says "an ability on a card wearing this tag does not
+run". A game resolving from a stack, or one where the silenced card had to keep
+standing where it was, would still want that word. This one did not, and the
+right reading of that is that the shape of the board decides it — not the card
+text, which looks identical either way.
 
 ---
 

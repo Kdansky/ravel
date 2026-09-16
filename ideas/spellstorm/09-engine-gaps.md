@@ -267,10 +267,11 @@ states that grant them. What each still rounds off is below.
   setup puts it on the shelf, so the opening takes the real card and the shelf
   refills behind it. "(Do not trigger its discard effect)" comes free: On Discard
   is a `leaves` answering a hand, and this card never was in one.
-- **Glittering Dust only draws.** "Earth cards do nothing when resolved but heal
-  2" replaces every card of an Element for the round, which is a continuous
-  effect. It is the last weather card that does not do what it says; *Energy
-  Wave* and *Soothing Rain*, which used to keep it company, both work now.
+- **~~Glittering Dust only draws.~~** — done. "Replaces every card of an Element
+  for the round" is what it looked like from the card; what it needed was for the
+  Earth card **not to be there** when the cast columns walk the battle spot. One
+  rules card at the top of the resolution, and no Earth card knows about it.
+  Every weather card now does what it says.
 - **A mirror match has no Initiative Tracker to start with.** "At all times
   exactly one player holds" it, and the lower Initiative rating takes it at the
   start — but two of the same wizard have the same rating, so nobody took it and

@@ -738,6 +738,7 @@
       "key": "resolve",
       "type": "automatic",
       "actions": [
+        "activate_zone:rules:by_column:dust",
         "activate_zone:mine.battle:by_column:cast",
         "activate_zone:mine.battle:by_column:cast2",
         "activate_zone:mine.battle:by_column:cast3",
@@ -2875,7 +2876,7 @@
       "text": "Glittering Dust",
       "tags": ["weather", "storm"],
       "asset": "ss_glitteringdust.jpg",
-      "tooltip": "Draw *2 cards*. *Earth* cards do nothing when resolved but *heal 2*.\n\n_[Simplified: the replacement of every Earth card's effect is a continuous effect the engine has no way to express; this only draws]_",
+      "tooltip": "Draw *2 cards*. *Earth* cards do nothing when resolved but *heal 2*.",
       "abilities": [
         {
           "key": "wx",
@@ -3879,6 +3880,20 @@
       ]
     },
     {
+      "key": "r_dust",
+      "text": "Glittering Dust",
+      "tags": ["immutable"],
+      "tooltip": "While Glittering Dust is the weather, *Earth* cards do nothing when resolved but *heal 2*.",
+      "asset": "auto",
+      "abilities": [
+        {
+          "key": "dust",
+          "needs": ["card:glitteringdust@weather_now >= 1", "count:earth@mine.battle >= 1"],
+          "action": ["heal:health@mine.player:2", "destroy:mine.battle.earth"]
+        }
+      ]
+    },
+    {
       "key": "r_first_strike",
       "text": "Going first",
       "tags": ["immutable"],
@@ -4341,6 +4356,7 @@
       { "card": "r_dry_curse", "zone": "rules" },
       { "card": "r_dry_ice", "zone": "rules" },
       { "card": "r_dry_dragon", "zone": "rules" },
+      { "card": "r_dust", "zone": "rules" },
       { "card": "r_first_strike", "zone": "rules" },
       { "card": "r_first", "zone": "rules" },
       { "card": "r_journal_1", "zone": "rules" },

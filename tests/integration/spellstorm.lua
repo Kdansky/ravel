@@ -540,6 +540,45 @@ function M.test_spellstorm_shuriken_knocks_a_card_out_before_it_resolves(check)
 	check("and the fireball never went off", me.stats.health == hp, me.stats.health)
 end
 
+-- **Glittering Dust (Weather).** *"`[DRAW]` `[DRAW]`. `[EARTH]` cards do nothing
+-- when resolved but Heal 2."*
+--
+-- **"Does nothing when resolved" is said by not being there to do it.** The step
+-- runs at the top of every resolution, ahead of the four cast columns, and takes
+-- the Earth card where the round would have sent it anyway. Nothing is written on
+-- any Earth card, which is the whole point: a weather card that rewrote every
+-- Earth card would want rewriting every time one was printed.
+function M.test_spellstorm_glittering_dust_replaces_what_an_earth_card_does(check)
+	local function resolve(weather_key, played)
+		opening(5, "derby", "eve")
+		local card = stage_battle("seat_one", played)
+		actions.execute("move:weather_now:weather_discard", {})
+		zones.move_card(find(weather_key).id, zones.find("weather_now").id)
+		become("seat_one")
+		local me = seat_card("seat_one")
+		me.stats.health = 8
+		local power = me.stats.power
+		actions.execute("activate_zone:rules:by_column:dust", {})
+		actions.execute("activate_zone:mine.battle:by_column:cast", {})
+		return me.stats.health, me.stats.power - power, entity.get(card.zone_id).key
+	end
+
+	local hp, gained, where = resolve("gemlightomen", "powergem")
+	check("under any other weather the gem powers up", gained == 1, gained)
+	check("and it is still standing in the battle spot", where == "battle", where)
+	check("and nobody healed", hp == 8, hp)
+
+	hp, gained, where = resolve("glitteringdust", "powergem")
+	check("under the Dust it heals 2 instead", hp == 10, hp)
+	check("and does nothing", gained == 0, gained)
+	check("because it is not there to do it", where == "discard", where)
+
+	-- Only Earth. The Dust names an element, and a Fire card is a Fire card.
+	hp, gained, where = resolve("glitteringdust", "fireball2")
+	check("a card of another element resolves as it always did",
+		where == "battle" and hp == 8, where .. " " .. hp)
+end
+
 function M.test_spellstorm_a_battle_is_four_rounds_then_a_regroup(check)
 	opening(7, "derby", "eve")
 	-- Play the first playable card each time it is asked, take the first thing

@@ -1610,6 +1610,27 @@ here.
   "phases": ["upkeep", "main", "cleanup"] }
 ```
 
+### While this is out, EARTH cards do nothing when they resolve but heal 2.
+
+```json
+{ "key": "dust", "needs": ["card:glitteringdust@weather >= 1", "count:earth@mine.battle >= 1"],
+  "action": ["heal:health@mine.player:2", "destroy:mine.battle.earth"] }
+```
+
+```json
+{ "key": "resolve", "type": "automatic",
+  "actions": ["activate_zone:rules:by_column:dust",
+              "activate_zone:mine.battle:by_column:cast"] }
+```
+
+**A card does nothing when it resolves by not being in the spot the resolution walks.** Put
+the rule on a rules card ahead of the cast columns, and nothing is written on any of the cards
+it silences — which is the test: a rule that rewrote every Earth card would want rewriting
+every time one was printed. Send the card where the turn would have sent it anyway, by the same
+verb. There is no way to gate an ability from *outside* the card carrying it, so this works
+because the game resolves by walking a zone; one resolving from a stack would need a real
+replacement layer.
+
 ### SPECIAL: this card ALWAYS goes first.
 
 ```json

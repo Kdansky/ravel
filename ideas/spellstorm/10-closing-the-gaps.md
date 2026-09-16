@@ -150,13 +150,30 @@ already 10; it was 8, like everybody's, because the seat's boost was worked out
 from printed health and nothing made him the exception. A ceiling of his own is
 one number in the roster.
 
-*Glittering Dust* is the harder half: rewriting what another card's whole action
-list does is not a stat hook, and nothing short of a real replacement layer
-covers it. **Left alone deliberately** — one weather card is not worth an
-effects engine.
+*Glittering Dust* was called the harder half — "rewriting what another card's
+whole action list does is not a stat hook, and nothing short of a real
+replacement layer covers it". **It is done, and it wanted no layer.** A card does
+nothing when resolved by not being in the spot the resolution walks:
 
-**Size:** `instead` is small. The wasted-heal scope is small. Glittering Dust is
-large and not recommended.
+```json
+{ "key": "dust", "needs": ["card:glitteringdust@weather_now >= 1",
+                           "count:earth@mine.battle >= 1"],
+  "action": ["heal:health@mine.player:2", "destroy:mine.battle.earth"] }
+```
+
+on a rules card, run at the top of every resolution and ahead of the four cast
+columns. Nothing is written on any Earth card, which is the test that matters: a
+weather card that rewrote every Earth card would want rewriting every time one was
+printed.
+
+**What made it small is the board and not the engine.** A battle spot holds one
+card, and the game already resolves by walking a zone — so "skip this card's
+effect" is a question about what is in the zone, which the format has always been
+able to ask. A game that resolved from a stack, or one where the card had to keep
+standing where it was, would still want the layer.
+
+**Size:** `instead` is small. The wasted-heal scope is small. Glittering Dust was
+two lines.
 
 ### B2. Omar's Traps (09, components table) — two of three done
 
@@ -534,12 +551,12 @@ the blocker the empty-pile note claimed. And `mine.discard.ash` names a zone
 | — | ~~`set_owner:<scope>:enemy`~~ | | **done**, and as a deletion rather than an addition: the argument takes an ordinary scope now, so there is no second vocabulary for whose a card is |
 | — | A1, A2, A3, C2, F2, E, D1, G1, G2, C1, D4, **B1** | ~~various~~ | **done.** The Ultimates, the offer queue, the copy, the journal, the potion loop, the doubled gains, May's download, Oren's four, the weather, the five that were not gaps, the random discards, Riot's silence, the tag unions, the narrowed offers, Obsidian's free Ultimate, Croh's *Accursed* and both of Bunny's stitches |
 
-**B1 is closed but for *Glittering Dust*,** which stays where it was: rewriting
-what another card's whole action list does is not a stat hook, and one weather
-card is not worth an effects engine.
+**B1 is closed, *Glittering Dust* included** — and that last one was called large
+and not recommended right up until somebody wrote it, which took two lines and no
+engine change.
 
-**Three entries came off this list without anybody closing them**, which is twice
-this document has had to say so. An offered entry's own `needs` was read all
+**Four entries came off this list without anybody closing them**, which is three
+times this document has had to say so. An offered entry's own `needs` was read all
 along (`flow.lua:112`, and `AUTHORING.md` under *An answer may have a price*);
 Leap's "hand or discard" was buildable the moment `held` became a word both zones
 wear; and Derby's opening was a draw of nought cards from before `create:` and
@@ -547,4 +564,4 @@ before a tag could name one card. **A gap list has to be re-read against the
 engine, not kept** — a sentence the format could not carry outlives the reason
 for it, and the comment in the generator goes on asserting the old limit long
 after somebody lifted it.
-| — | B1's Glittering Dust, C4, F1, F5 | large or niche | **not recommended**, and each says why above |
+| — | C4, F1, F5 | large or niche | **not recommended**, and each says why above |
