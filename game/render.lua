@@ -1578,7 +1578,9 @@ end
 -- clicked for, so it is stated and given a way out.
 --
 -- The top, because the bottom bar belongs to targeting and a reaction that aims
--- at something raises one while this is still up.
+-- at something raises one while this is still up — unless the game says where
+-- its questions go (`prompt`), since the corner is somebody's wizard in a game
+-- that fills the board, and the middle of the table is where the eye already is.
 local function draw_react_hint()
 	local top = flow.pending_event()
 	if not top then return end
@@ -1592,17 +1594,42 @@ local function draw_react_hint()
 	end
 	local msg = table.concat(names, ", ") .. ": " .. top.re_verb
 		.. "   —   " .. tostring(label.seat_text(zones.active_seat())) .. " to answer"
+	-- Pass is the answering seat's to press. Across a network the other screen
+	-- is watching a seat of its own, and a button there is one that only ever
+	-- says "not your turn".
+	local me = zones.watching()
+	local pw = (not me or me == zones.active_seat()) and mf:getWidth("Pass") + 20 * S or 0
 	-- As wide as it needs and no wider. A full-width bar would lie across the
 	-- stat row in the far corner, which is exactly what a player weighing whether
 	-- to answer is reading.
-	local pw = mf:getWidth("Pass") + 20 * S
 	local bw = math.min(W, mf:getWidth(msg) + pw + 32 * S)
 	love.graphics.push("all")
+	local at = (declaration.G.prompt or {}).pos
+	if type(at) == "table" and #at == 4 then
+		local H = love.graphics.getHeight()
+		local board = W / (1 + zones.MENU_W)
+		local x, y, w, h = at[1] * board, at[2] * H, (at[3] - at[1]) * board, (at[4] - at[2]) * H
+		local pad, bh = 8 * S, bar_h - 6 * S
+		local _, lines = mf:getWrap(msg, w - pad * 2)
+		local need = #lines * mf:getHeight() + pad * 2 + (pw > 0 and bh + pad or 0)
+		-- A long name grows the box downward rather than spilling out of it.
+		h = math.max(h, need)
+		love.graphics.setColor(0.00, 0.00, 0.00, 0.82)
+		love.graphics.rectangle("fill", x, y, w, h, 5 * S, 5 * S)
+		love.graphics.setColor(1.00, 0.88, 0.55)
+		local ty = y + (h - need) / 2 + pad
+		printf(msg, x + pad, ty, w - pad * 2, "center")
+		if pw > 0 then
+			draw_button("pass", "Pass", x + (w - pw) / 2, ty + #lines * mf:getHeight() + pad, pw, bh)
+		end
+		love.graphics.pop()
+		return
+	end
 	love.graphics.setColor(0.00, 0.00, 0.00, 0.82)
 	love.graphics.rectangle("fill", 0, 0, bw, bar_h)
 	love.graphics.setColor(1.00, 0.88, 0.55)
 	print_at(msg, 12 * S, 7 * S)
-	draw_button("pass", "Pass", bw - pw - 8 * S, 3 * S, pw, bar_h - 6 * S)
+	if pw > 0 then draw_button("pass", "Pass", bw - pw - 8 * S, 3 * S, pw, bar_h - 6 * S) end
 	love.graphics.pop()
 end
 

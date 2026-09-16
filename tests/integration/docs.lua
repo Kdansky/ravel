@@ -372,7 +372,9 @@ local function readings(frag)
 		add("sections", function(found)
 			for sec, body in pairs(frag) do
 				local t = validate.FIELDS[sec] or validate.SHAPES[sec]
-				if sec == "setup" then
+				if sec == "prompt" then
+					walk("prompt", body, validate.SHAPES.prompt, found)
+				elseif sec == "setup" then
 					walk("setup", body, validate.SHAPES.setup, found)
 					for i, e in ipairs(type(body) == "table" and body.place or {}) do
 						walk("setup.place[" .. i .. "]", e, validate.SHAPES.place, found)

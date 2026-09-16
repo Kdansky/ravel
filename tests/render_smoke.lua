@@ -656,4 +656,74 @@ do
 	frame(0.016)
 end
 
+-- A window open for one seat, drawn on both screens. The bar says who is to
+-- answer on both; Pass is only on the screen of the seat that can press it, or
+-- the other player is handed a button that only ever says "not your turn".
+do
+	local net = require("net")
+	local path = "game/games/tmp_react_bar.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+  "title": "React Bar",
+  "players": [{ "card": "one" }, { "card": "two" }],
+  "zones": [
+    { "key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat",
+      "pos": [[0.20, 0.80, 0.50, 0.95], [0.20, 0.25, 0.50, 0.40]] },
+    { "key": "table", "layout": "stack", "copies": "per_seat",
+      "pos": [[0.60, 0.80, 0.70, 0.95], [0.60, 0.25, 0.70, 0.40]] },
+    { "key": "stack", "layout": "stack", "tags": ["stack"], "pos": [0.55, 0.45, 0.70, 0.65] }
+  ],
+  "phases": [{ "key": "act", "type": "player_input", "next": [{ "then": "act" }] }],
+  "tags": { "loud": { "emits": { "play": "shout" } } },
+  "cards": [
+    { "key": "one", "text": "One", "tags": ["seat_one"] },
+    { "key": "two", "text": "Two", "tags": ["seat_two"] },
+    { "key": "horn", "text": "Horn", "tags": ["loud"], "play": { "spent": "mine.table" } },
+    { "key": "envy", "text": "Envy", "reactions": [{ "to": "shout", "action": [], "spent": "mine.table" }] }
+  ],
+  "setup": { "place": [
+    { "card": "one", "owner": "one", "zone": "table" },
+    { "card": "two", "owner": "two", "zone": "table" }
+  ] }
+}]==])
+	f:close()
+	flow.init("tmp_react_bar.json", 3)
+	os.remove(path)
+	render.rescale()
+	local function hand_of(seat)
+		for _, z in ipairs(zones.all_with_key("hand")) do if z.seat == seat then return z end end
+	end
+	local horn = zones.add(hand_of("one"), "horn")
+	zones.add(hand_of("two"), "envy")
+	flow.play_card(horn.id, {})
+	assert(flow.pending_event() and zones.active_seat() == "two", "expected a window open for seat two")
+
+	local function pass_shown()
+		frame(0.016)
+		for x = 0, 960, 4 do
+			if render.hit_button(x, 12) == "pass" then return true end
+		end
+		return false
+	end
+	net.claim_seat("two")
+	assert(pass_shown(), "the answering seat is offered Pass")
+	net.claim_seat("one")
+	assert(not pass_shown(), "the seat that is waiting is not")
+	net.claim_seat(nil)
+	assert(pass_shown(), "and hot-seat, with nobody watching, is")
+
+	-- A game that says where its questions go gets them there, and not also in
+	-- the corner. The board is 960 / 1.1 wide, so 0.4-0.6 is x 349-524.
+	require("declaration").G.prompt = { pos = { 0.4, 0.4, 0.6, 0.6 } }
+	assert(not pass_shown(), "a placed prompt leaves the top bar alone")
+	frame(0.016)
+	local inside = false
+	for x = 349, 524, 4 do
+		for y = 216, 400, 4 do
+			if render.hit_button(x, y) == "pass" then inside = true end
+		end
+	end
+	assert(inside, "and Pass is drawn inside the rect the game gave it")
+end
+
 print("render smoke ok: " .. frames .. " frames drawn, " .. drawn .. " placeholders")

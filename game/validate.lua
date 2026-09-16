@@ -379,7 +379,7 @@ M.FIELDS = {
 -- The shapes above, reachable for the same reason M.FIELDS is: a set nobody can
 -- ask about is a set no document can be held to.
 M.SHAPES = { setup = SETUP_FIELDS, place = PLACE_FIELDS, move_rule = MOVE_RULE_FIELDS,
-	player = PLAYER_FIELDS }
+	player = PLAYER_FIELDS, prompt = { pos = true } }
 
 -- Fields declaration.parse adds to a def after reading it. They are legal on an
 -- entry the engine hands around and are not things an author ever writes, so
@@ -3269,6 +3269,19 @@ function M.check(G)
 		check_list(where, cond["then"])
 		if cond["then"] == nil then
 			warn("%s: has no 'then' — nothing happens when it fires", where)
+		end
+	end
+
+	-- Prompt.
+	if G.prompt then
+		check_fields("prompt", G.prompt, M.SHAPES.prompt)
+		check_numbers("prompt", "pos", G.prompt.pos, 4)
+		local p = G.prompt.pos
+		if type(p) == "table" and #p == 4 and type(p[1]) == "number" and type(p[2]) == "number"
+			and type(p[3]) == "number" and type(p[4]) == "number" then
+			if p[3] <= p[1] or p[4] <= p[2] or p[1] < 0 or p[2] < 0 or p[3] > 1 or p[4] > 1 then
+				warn("prompt: pos is [left, top, right, bottom] inside 0 to 1, right of left and below top")
+			end
 		end
 	end
 

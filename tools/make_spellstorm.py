@@ -2408,6 +2408,10 @@ def build():
         "phases": phases(),
         "cards": cards,
         "effects": {"spark": {"base": "sparkle"}},
+        # A window is asked of the table, and the table's middle column has a gap
+        # between the VOID and the Ash pile that nothing else wants. The top-left
+        # corner, where it went otherwise, is the far wizard's.
+        "prompt": {"pos": [0.745, 0.405, 0.86, 0.595]},
         "end_conditions": [
             {"when": "max:shards@anyone.player >= 8", "then": ["reveal:end_shards"]},
             {"when": "min:health@anyone.player <= 0", "then": ["reveal:end_dead"]},

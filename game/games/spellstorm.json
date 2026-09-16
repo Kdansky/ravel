@@ -4420,6 +4420,7 @@
     }
   ],
   "effects": { "spark": { "base": "sparkle" } },
+  "prompt": { "pos": [0.745, 0.405, 0.86, 0.595] },
   "end_conditions": [
     { "when": "max:shards@anyone.player >= 8", "then": ["reveal:end_shards"] },
     { "when": "min:health@anyone.player <= 0", "then": ["reveal:end_dead"] }

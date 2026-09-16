@@ -787,6 +787,7 @@ file to check what may appear where.
 | `end_conditions` | Outcome checks, first match wins, once per game |
 | `players` | Who is playing, in seat order (see *Players*) |
 | `setup` | How the game begins: `place` lays out whatever starts on the table (see *Setup*) |
+| `prompt` | Where the engine asks the table a question — what was announced, who is to answer, and Pass: `{ "pos": [left, top, right, bottom] }`. Left out, a bar across the top-left corner |
 | `comment` | A note to whoever reads the file. Legal here and on anything with named fields; read by nothing (see below) |
 
 ##### One game out of several files

@@ -11,7 +11,7 @@ M.TEMPLATE_FIELDS = {
 	"tag_defs", "effect_defs", "pattern_defs", "asset_defs", "raw_assets", "parse_problems",
 	"compute_defs", "compute_list", "react_index", "buff_index",
 	"verb_defs", "verb_list", "adjust_index",
-	"style_defs", "dynamic_styles", "seat_index",
+	"style_defs", "dynamic_styles", "seat_index", "prompt",
 }
 
 -- A card is written as a list of moments, and read as a flat def.
@@ -501,7 +501,7 @@ local KNOWN_SECTIONS = {
 	title = true, seed = true, stats = true, computed_tags = true, computes = true,
 	cards = true, zones = true, phases = true,
 	end_conditions = true, setup = true, tags = true, effects = true, players = true, verbs = true,
-	patterns = true, assets = true, styles = true,
+	patterns = true, assets = true, styles = true, prompt = true,
 	include = true, replaces = true,
 }
 M.KNOWN_SECTIONS = KNOWN_SECTIONS
@@ -833,6 +833,8 @@ function M.parse(filename)
 		pattern_defs   = {},       -- named direction sets, for movement and neighbourhood
 		asset_defs     = {},       -- named pictures: name -> { src, max }
 		effect_defs    = parsed.effects or {},  -- named effects on the fx base vocabulary
+		-- Where the engine asks its questions, when the game says: { pos = rect }.
+		prompt         = type(parsed.prompt) == "table" and parsed.prompt or nil,
 		-- A number worked out where it is used rather than stored on anything.
 		-- Declared like a stat because that is what it is, minus the storing: a
 		-- key, what it is made of, and prose saying what it means.
@@ -846,6 +848,9 @@ function M.parse(filename)
 	}
 	local pp = G.parse_problems
 	for _, p in ipairs(include_problems) do pp[#pp + 1] = p end
+	if parsed.prompt ~= nil and G.prompt == nil then
+		pp[#pp + 1] = 'prompt: should be written like { "pos": [0.4, 0.4, 0.6, 0.6] }'
+	end
 	local function entries(list, what)
 		if list == nil then return {} end
 		-- A JSON object decodes to a table too: non-list shapes have keys

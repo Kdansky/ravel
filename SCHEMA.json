@@ -423,6 +423,9 @@
       "tooltip": "what this tag means, in one place. Two readings, and both are live: a tag a *zone* hands out through \"applies\" describes what lying there lets a card do, and a tag a *card* carries is a keyword — the game says once what Tough does and every card with the tag inherits the sentence, in the hover panel and in the detail overlay. A card's own tooltip is shown as well, because they describe different things."
     }
   },
+  "prompt": {
+    "pos": "[left, top, right, bottom] as fractions of the board, the same rect a zone writes: where the engine asks the table a question it did not click for — what has been announced, who is to answer, and Pass for the seat that may. Left out, the question is a bar across the top-left corner, which a game filling its board edge to edge has already given to something. The message wraps inside the rect and a long one grows it downward. The game says where and never what: the wording and the button are the engine's."
+  },
   "effects": {
     "<your effect name>": {
       "base": "one of damage, bleed, power_up, sparkle, stars, heal, smoke, explosion",
