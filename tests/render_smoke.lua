@@ -646,6 +646,8 @@ do
 	assert(cloud, "expected a card in the Storm Cloud")
 	entity.get(cloud).origin_zone_id = zones.find_id("options")
 	assert(net.apply_full(net.snapshot()))
+	-- A state keeps the rects this screen drew, so be a screen that never drew it.
+	entity.get(cloud).place = { x = 0, y = 0, w = 0, h = 0 }
 	anim.clear()
 	stage.enter()
 	render.sync_places()

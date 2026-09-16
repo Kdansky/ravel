@@ -52,7 +52,8 @@ local M = {}
 
 M.PROTOCOL  = "RAVEL1"
 M.seat      = nil   -- the seat this client may play as; nil = play any seat
-M.on_apply  = nil   -- hook(snap) — presentation clears its caches after remote state lands
+M.on_apply  = nil   -- hook(snap, run) — remote state landed; run is { before, beats } when the sender's click came with it
+M.beats     = nil   -- hook() — the steps this client recorded since last asked, to send with a move
 M.on_status = nil   -- hook(text) — connection news worth showing a human
 
 -- Set when the two sides stop agreeing, and left set until a whole state fixes
@@ -231,14 +232,16 @@ local function diff_ents(old, new)
 		local o, d = old[i], nil
 		if not o then
 			d = {}
-			for k, v in pairs(e) do d[k] = v end
+			for k, v in pairs(e) do if k ~= "place" then d[k] = v end end
 		else
 			local gone = nil
+			-- A place is a rect on one screen. States never carry one, but a
+			-- recorded beat is a live snapshot and does.
 			for k, v in pairs(e) do
-				if not same(v, o[k]) then d = d or {}; d[k] = v end
+				if k ~= "place" and not same(v, o[k]) then d = d or {}; d[k] = v end
 			end
 			for k in pairs(o) do
-				if e[k] == nil then gone = gone or {}; gone[#gone + 1] = k end
+				if e[k] == nil and k ~= "place" then gone = gone or {}; gone[#gone + 1] = k end
 			end
 			if gone then d = d or {}; table.sort(gone); d["-"] = gone end
 		end
@@ -255,6 +258,34 @@ local function diff_log(old, new)
 	local add = {}
 	for i = n + 1, #new do add[#add + 1] = new[i] end
 	return { keep = n, add = add }
+end
+
+-- The other half of diff_ents, in place. Undo shortens the array; nothing else does.
+local function patch_ents(ents, diff, count)
+	for k, d in pairs(diff or {}) do
+		local i = tonumber(k)
+		if i and i >= 1 and type(d) == "table" then
+			local e = ents[i] or {}
+			for f, v in pairs(d) do if f ~= "-" then e[f] = v end end
+			for _, f in ipairs(type(d["-"]) == "table" and d["-"] or {}) do e[f] = nil end
+			ents[i] = e
+		end
+	end
+	for i = #ents, (tonumber(count) or #ents) + 1, -1 do ents[i] = nil end
+end
+
+-- **A move travels with the run that made it.** The sender recorded its click a
+-- beat at a time (stage.lua), and each beat is a state; sent as the difference
+-- from the beat before, the far side can rebuild every one and play the turn
+-- instead of having it land at once. Only a picture: the delta's own state is
+-- still what is applied and hashed, so a beat can look wrong and never desync.
+local function make_beats(from, steps)
+	local out, prev = {}, from.ents
+	for _, st in ipairs(steps or {}) do
+		out[#out + 1] = { what = st.what, id = st.id, data = st.data, count = #st.ents, ents = diff_ents(prev, st.ents) }
+		prev = st.ents
+	end
+	return #out > 0 and out or nil
 end
 
 local function make_delta(from, to)
@@ -423,11 +454,17 @@ local function restore(snap, ents)
 	-- caller's snapshot would become the live state and drift as the game is
 	-- played. Applying a state must never consume the thing it was given.
 	ents = table_ext.deep_copy(ents)
-	for _, e in ipairs(ents) do
+	local old = entity.registry()
+	for i, e in ipairs(ents) do
 		if type(e) ~= "table" then return false, "malformed entity list" end
-		-- Hit-testing reads place before the renderer's first sync, and a
-		-- freshly created entity carries exactly this rect.
-		e.place = { x = 0, y = 0, w = 0, h = 0 }
+		-- Rects are this screen's, and it already has them. Blanked, every card
+		-- on the table took off from its last zone at once whenever a state
+		-- arrived; kept, the ones that stayed put stay put and the ones that
+		-- moved fly from where they were drawn. Hit-testing reads place before
+		-- the renderer's first sync, and a card this screen never drew carries
+		-- what a freshly created one does.
+		local o = old[i]
+		e.place = (o and o.def_key == e.def_key and o.place) or { x = 0, y = 0, w = 0, h = 0 }
 	end
 
 	entity.restore(ents)
@@ -527,6 +564,31 @@ function M.apply_full(snap)
 	return true
 end
 
+-- The sender's beats, as the states they were, starting from the one this move
+-- follows. Untrusted like the rest of the message, but only ever drawn: anything
+-- malformed ends the run there, and the move still lands.
+local MAX_BEATS = 40
+
+local function rebuild(before, beats)
+	local out, cur = {}, before
+	for i, b in ipairs(beats) do
+		if i > MAX_BEATS or type(b) ~= "table" or type(b.ents) ~= "table" or type(b.what) ~= "string" then break end
+		cur = table_ext.deep_copy(cur)
+		patch_ents(cur, b.ents, b.count)
+		local ok = true
+		for _, e in ipairs(cur) do
+			if type(e) ~= "table" then ok = false; break end
+			e.place = e.place or { x = 0, y = 0, w = 0, h = 0 }
+		end
+		if not ok then break end
+		out[i] = { what = b.what, id = tonumber(b.id), data = type(b.data) == "table" and b.data or nil, ents = cur }
+	end
+	-- The move's first state is the one it follows, rebuilt the same way, so the
+	-- beats and the board they start from agree about what a rect is.
+	for _, e in ipairs(before) do e.place = e.place or { x = 0, y = 0, w = 0, h = 0 } end
+	return #out > 0 and { before = before, beats = out } or nil
+end
+
 function M.apply_delta(patch)
 	if type(patch) ~= "table" then return false, "nothing to apply" end
 	local ok, err = same_game(patch)
@@ -547,17 +609,8 @@ function M.apply_delta(patch)
 	end
 
 	local ents = here.ents
-	for k, d in pairs(patch.ents or {}) do
-		local i = tonumber(k)
-		if i and i >= 1 and type(d) == "table" then
-			local e = ents[i] or {}
-			for f, v in pairs(d) do if f ~= "-" then e[f] = v end end
-			for _, f in ipairs(type(d["-"]) == "table" and d["-"] or {}) do e[f] = nil end
-			ents[i] = e
-		end
-	end
-	-- Undo shortens the array; nothing else does.
-	for i = #ents, (tonumber(patch.count) or #ents) + 1, -1 do ents[i] = nil end
+	local before = type(patch.beats) == "table" and table_ext.deep_copy(ents)
+	patch_ents(ents, patch.ents, patch.count)
 
 	ok, err = restore(patch, ents)
 	if not ok then return false, err end
@@ -569,7 +622,7 @@ function M.apply_delta(patch)
 	end
 	check_landing(patch)
 	baseline, baseline_hash = M.snapshot(), M.state_hash()
-	if M.on_apply then M.on_apply(patch) end
+	if M.on_apply then M.on_apply(patch, before and rebuild(before, patch.beats) or nil) end
 	return true
 end
 
@@ -684,14 +737,17 @@ end
 function M.publish(force_full)
 	if not link then return false end
 	seq = seq + 1
-	local text = M.compose(force_full)
+	local text = M.compose(force_full, M.beats and M.beats())
 	return transmit(text)
 end
 
 -- Builds the next message and moves the baseline forward. Shared by publish and
 -- export, because a string pasted into Discord and a string pushed down a data
 -- channel are the same string.
-function M.compose(force_full)
+--
+-- `steps` is the run behind the move, and only a live link sends one: a pasted
+-- message has to fit a chat window.
+function M.compose(force_full, steps)
 	local cur  = M.snapshot()
 	local to   = M.fingerprint(cur)
 	local from = baseline_hash
@@ -700,7 +756,9 @@ function M.compose(force_full)
 	-- decoded: a whole state sets the receiver up from scratch, so it reads
 	-- "init"; a delta is one turn, so it reads "t3p1".
 	if usable_baseline(cur) and not force_full and not pending_full and not M.divergent then
-		text = pack("D", envelope(make_delta(baseline, cur), from, to), M.marker())
+		local delta = make_delta(baseline, cur)
+		delta.beats = make_beats(baseline, steps)
+		text = pack("D", envelope(delta, from, to), M.marker())
 	else
 		text = pack("F", envelope(as_message(cur), from, to), "init")
 	end

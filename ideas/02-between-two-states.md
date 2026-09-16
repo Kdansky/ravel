@@ -60,14 +60,14 @@ until the step that removes it, which is the honest half; an exit — a fade, a
 flight to the discard — needs somewhere to go, which is
 [28](28-a-zone-by-its-parts.md)'s question about where a destroyed card lands.
 
-**A state from the network is not played at all.** `stage.arm`/`seal` wrap only
-local input and the bot (`main.lua`); `net.apply_delta` and `apply_full` restore
-entities and nothing records a beat, and `net.on_apply` has no subscriber. So the
-waiting player sees the opponent's whole turn land at once — no flights, floats or
-bursts. The recording hooks (`zones.on_change`, `actions.on_stat_change`) fire
-only while rules run, and a patch runs none. Either the receiving side replays the
-sender's action (desync risk, and the reason deltas exist), or the sender ships
-its recorded run's states with the delta and the receiver plays them — which is
-what a beat already is. [Assumption: the second; costs bandwidth per click and
-needs the hidden-hand filtering the delta already gets.] Raised by
+**A move from the network is played — shipped.** The sender's recorded run
+travels with the delta as beats, each the difference from the one before, and the
+receiver rebuilds the states and hands them to `stage.replay`
+([ARCHITECTURE](../ARCHITECTURE.md)'s presentation section). Two things fell out
+on the way. `net.restore` used to blank every rect, so each arriving state flew
+every card out of its last zone at once — the Storm Cloud refill crash of
+`9a76e23` — and now keeps the rects this screen drew. And a beat's floats and
+bursts were closures holding the sender's pixels; they are facts now, drawn by
+`stage.look` when the beat plays. What still lands at once: a whole state (no
+agreed starting point to rebuild from) and a pasted move (kept small). Raised by
 [39](39-spellstorm-at-the-table.md).

@@ -251,9 +251,21 @@ cost is one deep copy of the registry per step, capped at forty — about 10 ms 
 a maximal run on the largest game in the corpus, spent on the click frame.
 
 **Outside those brackets a step plays the instant it is recorded**, which is the
-whole of what keeps this honest: a state that arrived over the network, an undo
-and a game being loaded have no order to replay, because the moves that made them
-were not made here. They animate the difference, exactly as before.
+whole of what keeps this honest: an undo, a game being loaded and a whole state
+from the network have no order to replay, because the moves that made them were
+not made here. They animate the difference, exactly as before. A card keeps the
+rect this screen drew it at across an applied state, so the difference is what
+moved and nothing else.
+
+**A move from the network brings its run.** A published delta carries the
+sender's recorded steps as `beats`, each the difference from the one before;
+`net` rebuilds them from the state the move follows and `stage.replay` plays
+them as a local run. They are only a picture: the delta's own state is what is
+applied and hashed, so a malformed beat ends the playback and never the game. A
+beat says what it shows as facts (`stage.look`: which stat, by how much, which
+effect) rather than a closure, and reads its rects when it plays, because the
+sender's screen is another size. A pasted message goes without, to stay small
+enough for a chat window; on a link the beats cost about a hundred bytes a move.
 
 The hooks are nil unless `main` sets them, so headless has nothing to discard.
 

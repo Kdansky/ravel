@@ -26,11 +26,11 @@
 -- unless main.lua sets them — so headless has nothing to discard. The branches
 -- never fire and the rules run at the speed they always did.
 --
--- **Outside a click a step plays the moment it is recorded.** A state that
--- arrived over the network, an undo, a game being loaded: none of them have an
--- order, because the moves that made them were not made in this process. That is
--- not a gap to be filled in later. It is the answer `render.sync_places` already
--- gives, which is to animate the difference rather than the journey.
+-- **Outside a click a step plays the moment it is recorded.** An undo, a game
+-- being loaded, a whole state from the network: none of them have an order, and
+-- `render.sync_places` animates the difference rather than the journey. A move
+-- from the network is the exception, because the sender recorded its run and sent
+-- it along: `replay` plays that the way a local click plays.
 
 local entity = require("entity")
 
@@ -48,6 +48,7 @@ local GAP = { move = 0.10, add = 0.10, purge = 0.10, stat = 0.14, effect = 0.10 
 local MAX_STEPS = 40
 
 local steps, queue = {}, {}
+local shipped = 0            -- how many of `steps` net has already been handed
 local armed = false
 local before                 -- the state the click started from
 local presented, live        -- what is on screen, and what the rules are using
@@ -56,9 +57,21 @@ local clock, rate = 0, 1
 -- `play` is what a step looks like, for the steps that have a look of their own.
 -- A move has none: the state it lands in puts the card somewhere else, and the
 -- layout the renderer asks for on the next frame is the flight.
+--
+-- `look` is the same thing told as facts — which stat, by how much, which effect
+-- — for a step that has to survive the wire, where a closure cannot go. main.lua
+-- supplies it, and reads its rects when the step plays rather than when it was
+-- recorded, which is also the only moment a screen of another size has them.
+M.look = nil   -- hook(what, id, data)
+
+local function show(what, id, play, data)
+	if play then play()
+	elseif data and M.look then M.look(what, id, data) end
+end
+
 local function fire(s)
 	presented = s.ents or presented
-	if s.play then s.play() end
+	show(s.what, s.id, s.play, s.data)
 end
 
 -- Everything still waiting, now. How a run ends, and what is owed to a click
@@ -70,34 +83,57 @@ local function drain()
 	clock, rate = 0, 1
 end
 
-function M.record(what, id, play)
+function M.record(what, id, play, data)
 	if not armed or #steps >= MAX_STEPS then
-		if play then play() end
+		show(what, id, play, data)
 		return
 	end
 	-- After the change, so the state a step carries is the one it produced.
-	steps[#steps + 1] = { what = what, id = id, play = play, ents = entity.snapshot() }
+	steps[#steps + 1] = { what = what, id = id, play = play, data = data, ents = entity.snapshot() }
+end
+
+-- What has been recorded since the last ask, for a run that is also being sent
+-- to another machine. Once each: a click that publishes twice must not send its
+-- first half again.
+function M.recorded()
+	local out = {}
+	for i = shipped + 1, #steps do out[#out + 1] = steps[i] end
+	shipped = #steps
+	return out
+end
+
+local function enqueue(list)
+	local at = 0
+	for _, s in ipairs(list) do
+		s.at = at
+		at = at + (GAP[s.what] or 0)
+		queue[#queue + 1] = s
+	end
 end
 
 -- Whatever the rules do between these two is one run.
 function M.arm()
 	if #queue > 0 then drain() end
-	steps, armed = {}, true
+	steps, shipped, armed = {}, 0, true
 	before = entity.snapshot()
 end
 
 function M.seal()
 	armed = false
-	local at = 0
-	for _, s in ipairs(steps) do
-		s.at = at
-		at = at + (GAP[s.what] or 0)
-		queue[#queue + 1] = s
-	end
+	enqueue(steps)
 	-- A run with nothing in it is not a run, and presenting the state the click
 	-- started from would hold the board a frame behind for no reason.
 	presented = #queue > 0 and before or nil
 	steps, before = {}, nil
+end
+
+-- A run somebody else clicked: the states their beats were, rebuilt by net from
+-- the one both sides shared, and played exactly as a local run is. The live
+-- registry already holds where it ended.
+function M.replay(from, beats)
+	if #queue > 0 then drain() end
+	enqueue(beats)
+	presented = #queue > 0 and from or nil
 end
 
 function M.update(dt)
@@ -155,7 +191,7 @@ end
 function M.clear()
 	M.leave()
 	drain()
-	steps, armed = {}, false
+	steps, shipped, armed = {}, 0, false
 end
 
 return M

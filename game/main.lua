@@ -348,47 +348,66 @@ function love.load()
 	-- A card losing health also takes a small damage burst, and whoever did it
 	-- leans into them — a number changing across the board says nothing about
 	-- where it came from, and that is most of what there is to follow.
-	actions.on_stat_change = function(e, key, delta, ctx)
-		local txt = (delta > 0 and "+" or "") .. delta .. " " .. key
-		local col = delta > 0 and { 0.45, 0.95, 0.50 } or { 1.00, 0.45, 0.35 }
-		if e.kind == "card" and e.place and e.place.w > 0 then
-			-- Read the rects now: by the time the beat comes round the rules have
-			-- long finished and either card may have been sent home.
-			local cx, cy = e.place.x + e.place.w * 0.5, e.place.y + e.place.h * 0.5
-			local top    = e.place.y
-			local actor  = ctx and ctx.card_id and entity.get(ctx.card_id)
-			local ax, ay
-			if actor and actor.id ~= e.id and actor.place and actor.place.w > 0 then
-				ax, ay = actor.place.x + actor.place.w * 0.5, actor.place.y + actor.place.h * 0.5
-			end
-			stage.record("stat", e.id, function()
-				fx.float(cx, top, txt, col)
-				-- Any number going down on a card takes a knock. Which stats
-				-- *hurt* is the game's business and naming them here was the
-				-- engine learning one game's word for health.
-				if delta < 0 then
-					fx.play({ base = "damage", size = 0.7 }, cx, cy)
-				end
-				if ax then anim.bump(actor.id, cx - ax, cy - ay) end
-			end)
-		else
-			local x, y = render.stat_pos(key)
-			stage.record("stat", e.id, function() fx.float(x, y, txt, col) end)
+	--
+	-- Told as facts and drawn when the beat plays, not when the rules got there:
+	-- a beat from the network was recorded on a screen of another size, and the
+	-- live cards carry whatever rect was last drawn, even one since sent home.
+	local function center(e)
+		if e and e.kind == "card" and e.place and e.place.w > 0 then
+			return e.place.x + e.place.w * 0.5, e.place.y + e.place.h * 0.5
 		end
+	end
+	stage.look = function(what, id, data)
+		local e = id and entity.get(id)
+		if what == "stat" then
+			local delta = tonumber(data.delta)
+			if not delta then return end
+			local key = tostring(data.key)
+			local txt = (delta > 0 and "+" or "") .. delta .. " " .. key
+			local col = delta > 0 and { 0.45, 0.95, 0.50 } or { 1.00, 0.45, 0.35 }
+			local cx, cy = center(e)
+			if not cx then
+				local x, y = render.stat_pos(key)
+				if x then fx.float(x, y, txt, col) end
+				return
+			end
+			fx.float(cx, e.place.y, txt, col)
+			-- Any number going down on a card takes a knock. Which stats *hurt*
+			-- is the game's business and naming them here was the engine
+			-- learning one game's word for health.
+			if delta < 0 then
+				fx.play({ base = "damage", size = 0.7 }, cx, cy)
+			end
+			local actor = tonumber(data.actor) and entity.get(tonumber(data.actor))
+			local ax, ay = center(actor)
+			if ax and actor.id ~= e.id then anim.bump(actor.id, cx - ax, cy - ay) end
+		elseif what == "effect" then
+			local def = declaration.G.effect_defs[tostring(data.effect)]
+			if not def then return end
+			local x, y = center(e)
+			if not x then
+				x, y = love.graphics.getWidth() * 0.5, love.graphics.getHeight() * 0.5
+			end
+			fx.play(def, x, y)
+		end
+	end
+
+	actions.on_stat_change = function(e, key, delta, ctx)
+		stage.record("stat", e.id, nil, { key = key, delta = delta, actor = ctx and ctx.card_id })
 	end
 
 	-- Named card effects land on the acting card (or mid-screen without one).
 	actions.on_effect = function(name, ctx)
-		local def = declaration.G.effect_defs[name]
-		if not def then return end
+		if not declaration.G.effect_defs[name] then return end
 		local e = ctx and ctx.card_id and entity.get(ctx.card_id)
-		local x, y
-		if e and e.place and e.place.w > 0 then
-			x, y = e.place.x + e.place.w * 0.5, e.place.y + e.place.h * 0.5
-		else
-			x, y = love.graphics.getWidth() * 0.5, love.graphics.getHeight() * 0.5
-		end
-		stage.record("effect", e and e.id, function() fx.play(def, x, y) end)
+		stage.record("effect", e and e.id, nil, { effect = name })
+	end
+
+	-- A move from the other side comes with the run that made it, and is watched
+	-- the way a local click is; a run this side made goes out with its move.
+	net.beats = stage.recorded
+	net.on_apply = function(_, run)
+		if run then stage.replay(run.before, run.beats) end
 	end
 	if os.getenv("RAVEL_DEBUG") then debugserver.start() end
 	flow.default_seed = tonumber(os.getenv("RAVEL_SEED") or "")

@@ -455,6 +455,70 @@ end
 -- so only ever asserted that the block had tidied up after itself; now that a
 -- test is a unit, it can say the thing that actually matters — that a game can
 -- be put back to solitaire from any state the others might leave.
+-- The opponent's turn used to land in one frame: the sender watched its click
+-- a beat at a time and the receiver got only where it ended. The run now travels
+-- with the move, and the receiver plays it.
+function M.test_net_a_move_arrives_as_the_run_that_made_it(check)
+	local stage = require("stage")
+	local a, b = netlink.loopback()
+	net.begin("lost_cities.json", 7)
+	dismiss_mode()
+	local shared = net.export(true)
+	net.link(a)
+	zones.on_change = function(what, id) stage.record(what, id) end
+	net.beats = stage.recorded
+
+	local cid, targets = first_playable()
+	local from = entity.get(cid).zone_id
+	stage.arm()
+	flow.play_card(cid, targets)
+	stage.seal()
+	local sent = b.recv()
+	local moved, landed = net.fingerprint(), entity.get(cid).zone_id
+	check("the move went out", type(sent) == "string")
+	check("and was a move, not the game", from ~= landed)
+
+	net.unlink()
+	stage.clear()
+	local run
+	net.on_apply = function(_, r)
+		run = r
+		if r then stage.replay(r.before, r.beats) end
+	end
+	check("rewind to the shared state", net.import(shared))
+	check("a whole state has no run to play", run == nil and not stage.busy())
+	local ok, err = net.import(sent)
+	check("the move applies", ok, err)
+	check("and lands exactly where the sender is", net.fingerprint() == moved)
+	check("with the run that made it", run and #run.beats > 0)
+
+	local function shown()
+		stage.enter()
+		local z = entity.get(cid).zone_id
+		stage.leave()
+		return z
+	end
+	check("the card is still where the sender's click found it", shown() == from)
+	check("while the rules already have it moved", entity.get(cid).zone_id == landed)
+	for _ = 1, 100 do stage.update(0.05) end
+	check("and once played, the board is the live one", not stage.busy() and shown() == landed)
+
+	-- A paste has to fit a chat window, so it goes without.
+	net.import(shared)
+	run = "unset"
+	stage.arm()
+	flow.play_card(cid, targets)
+	stage.seal()
+	local pasted = net.export()
+	stage.clear()
+	net.import(shared)
+	check("a pasted move applies", net.import(pasted))
+	check("and carries no run", run == nil)
+
+	zones.on_change, net.beats, net.on_apply = nil, nil, nil
+	stage.clear()
+end
+
 function M.test_net_leaves_nothing_behind(check)
 	local a = netlink.loopback()
 	net.begin("lost_cities.json", 7)
