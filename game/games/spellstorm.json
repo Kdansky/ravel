@@ -193,6 +193,11 @@
       "tooltip": "Damage you do to yourself. A cost rather than an attack, so nothing answers it."
     },
     {
+      "key": "power_up",
+      "does": "stat_gain",
+      "tooltip": "Gaining Power Tokens. Declared so the Power Track can raise your Tier the moment the sixth lands."
+    },
+    {
       "key": "wound",
       "does": "stat_damage",
       "tooltip": "Damage as it arrives, once anything standing in front of it has taken its bite."
@@ -236,6 +241,21 @@
           "covers": "mine.player",
           "needs": ["health@mine.player >= 10"],
           "instead": ["draw_from:mine.deck:mine.hand:amount"]
+        }
+      ]
+    },
+    "power_track": {
+      "adjusts": [
+        {
+          "key": "track",
+          "verb": "power_up",
+          "stat": "power",
+          "covers": "mine.player",
+          "instead": [
+            "stat_gain:power@mine.player:amount",
+            "activate_zone:rules:by_column:tier_up",
+            "activate_zone:rules:by_column:tier_gem"
+          ]
         }
       ]
     },
@@ -760,10 +780,7 @@
       "actions": [
         "each_seat:destroy:mine.battle",
         "each_seat:stat_set:ult_free@mine.player:0",
-        "each_seat:stat_set:guard@mine.traps:0",
-        "each_seat:activate_zone:rules:by_column:tier_up",
-        "each_seat:activate_zone:rules:by_column:tier_up",
-        "each_seat:activate_zone:rules:by_column:tier_gem"
+        "each_seat:stat_set:guard@mine.traps:0"
       ],
       "next": [
         { "when": "battle_round@plan >= 4", "then": "regroup" },
@@ -855,10 +872,10 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["stat_gain:power@mine.player:1"] },
+        { "key": "cast", "text": "Resolve", "action": ["power_up:power@mine.player:1"] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
       ],
-      "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
+      "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:1"] },
       "chosen": {
         "action": ["move:target:mine.discard", "draw_from:spellstorm_deck:storm_cloud:1"],
         "where": ["tier@mine.player >= tier_req@target"]
@@ -918,11 +935,11 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["stat_gain:power@mine.player:1", "move_to:void"]
+          "action": ["power_up:power@mine.player:1", "move_to:void"]
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud.earth:optional"] }
       ],
-      "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
+      "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:1"] },
       "chosen": {
         "action": ["move:target:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
         "where": ["tier_req@target <= 2"]
@@ -1510,14 +1527,14 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["stat_gain:power@mine.player:1"] },
+        { "key": "cast", "text": "Resolve", "action": ["power_up:power@mine.player:1"] },
         {
           "key": "cast_ask",
           "text": "Resolve",
           "action": ["show:storm_cloud", "show:storm_cloud"]
         }
       ],
-      "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
+      "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:1"] },
       "chosen": {
         "action": ["move:target:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
         "where": ["tier@mine.player >= tier_req@target"]
@@ -1557,16 +1574,16 @@
           "text": "Resolve",
           "needs": ["count:spell@mine.hand >= 3"],
           "action": [
-            "stat_gain:power@mine.player:1",
-            "stat_gain:power@mine.player:1",
-            "stat_gain:power@mine.player:1",
+            "power_up:power@mine.player:1",
+            "power_up:power@mine.player:1",
+            "power_up:power@mine.player:1",
             "show:mine.hand",
             "show:mine.hand",
             "show:mine.hand"
           ]
         }
       ],
-      "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
+      "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:1"] },
       "chosen": { "action": ["move:target:mine.discard"] }
     },
     {
@@ -1600,8 +1617,8 @@
           "text": "Resolve",
           "action": [
             "draw_from:mine.deck:mine.hand:1",
-            "stat_gain:power@mine.player:1",
-            "stat_gain:power@mine.player:1",
+            "power_up:power@mine.player:1",
+            "power_up:power@mine.player:1",
             "stat_gain:mana@mine.player:1",
             "stat_gain:mana@mine.player:1"
           ]
@@ -1611,7 +1628,7 @@
       "leaves": {
         "from": "hand",
         "into": "discard",
-        "action": ["stat_gain:power@mine.player:1", "stat_gain:power@mine.player:1"]
+        "action": ["power_up:power@mine.player:1", "power_up:power@mine.player:1"]
       },
       "chosen": {
         "action": ["move:target:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
@@ -1638,7 +1655,7 @@
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
       ],
-      "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
+      "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:1"] },
       "chosen": {
         "action": ["move:target:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
         "where": ["tier@mine.player >= tier_req@target"]
@@ -1660,9 +1677,9 @@
           "action": ["show:mine.hand:optional", "show:mine.hand:optional"]
         }
       ],
-      "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
+      "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:1"] },
       "chosen": {
-        "action": ["move:target:void", "stat_gain:power@mine.player:1"],
+        "action": ["move:target:void", "power_up:power@mine.player:1"],
         "where": ["not_tagged:no_void@target"]
       }
     },
@@ -1678,7 +1695,7 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["stat_gain:power@mine.player:1", "draw_from:mine.deck:sifting:2"]
+          "action": ["power_up:power@mine.player:1", "draw_from:mine.deck:sifting:2"]
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:sifting"] }
       ],
@@ -1696,7 +1713,7 @@
         { "key": "cast", "text": "Resolve", "action": ["draw_from:mine.deck:mine.hand:1"] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.earth:optional"] }
       ],
-      "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
+      "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:1"] },
       "chosen": { "action": ["copy:target:activate", "destroy:target"] }
     },
     {
@@ -1711,20 +1728,20 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["stat_gain:power@mine.player:1", "stat_gain:power@mine.player:1"]
+          "action": ["power_up:power@mine.player:1", "power_up:power@mine.player:1"]
         },
         {
           "key": "cast2",
           "text": "Resolve",
           "needs": ["count:water@battle >= 1"],
-          "action": ["stat_gain:power@mine.player:1"]
+          "action": ["power_up:power@mine.player:1"]
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
       ],
       "leaves": {
         "from": "hand",
         "into": "discard",
-        "action": ["stat_gain:power@mine.player:1", "stat_gain:power@mine.player:1"]
+        "action": ["power_up:power@mine.player:1", "power_up:power@mine.player:1"]
       },
       "chosen": {
         "action": ["move:target:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
@@ -1743,14 +1760,14 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["stat_gain:power@mine.player:1", "stat_gain:power@mine.player:1"]
+          "action": ["power_up:power@mine.player:1", "power_up:power@mine.player:1"]
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
       ],
       "leaves": {
         "from": "hand",
         "into": "discard",
-        "action": ["stat_gain:power@mine.player:1", "stat_gain:power@mine.player:1"]
+        "action": ["power_up:power@mine.player:1", "power_up:power@mine.player:1"]
       },
       "chosen": {
         "action": ["move:target:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
@@ -1904,7 +1921,7 @@
       "key": "wiz_derby",
       "text": "Derby Pocket",
       "asset": "ss_derby.jpg",
-      "tags": ["wizard_card", "derby"],
+      "tags": ["wizard_card", "power_track", "derby"],
       "tooltip": "Infernal Intern. An ex-Business Demon intern who loves to encourage others. Strong early, and gains power passively. A good all-rounder.\n\n*Ultimate* (*6 mana*) - Flaming Yardstick: Deal *2 damage*. If you have an odd number of health, gain *2 mana*.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 13*, *Initiative rating 3*.",
       "reactions": [
         {
@@ -1960,7 +1977,7 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["stat_gain:power@mine.player:1", "stat_gain:power@mine.player:1"]
+          "action": ["power_up:power@mine.player:1", "power_up:power@mine.player:1"]
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
       ],
@@ -1987,7 +2004,7 @@
           "text": "Resolve",
           "action": [
             "stat_gain:mana@mine.player:1",
-            "stat_gain:power@mine.player:1",
+            "power_up:power@mine.player:1",
             "hit:health@opponent:1",
             "activate_zone:rules:by_column:dry_take_ash",
             "draw_from:ash_pile:mine.discard:1"
@@ -2005,7 +2022,7 @@
       "key": "wiz_eve",
       "text": "Eve Williams",
       "asset": "ss_eve.jpg",
-      "tags": ["wizard_card", "eve"],
+      "tags": ["wizard_card", "power_track", "eve"],
       "tooltip": "Radical Activist. A radical activist who loves to blow things up. Aggressive, and can really mess up her opponent's deck.\n\n*Ultimate* (*5 mana*) - Doom Bauble: Draw *2 cards*. You may move a *CURSE* or an *ICE* from your hand or discard to your opponent's discard.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 14*, *Initiative rating 5*.",
       "reactions": [
         {
@@ -2107,7 +2124,7 @@
       "key": "wiz_abra",
       "text": "Abragail",
       "asset": "ss_abra.jpg",
-      "tags": ["wizard_card", "abra"],
+      "tags": ["wizard_card", "power_track", "abra"],
       "tooltip": "Professor of Magical Chemistry. A professor at Azura Academy who levels up her magic as the game goes on. Great for players who like to plan.\n\n*Ultimate* (*4 mana*) - Level Up!: Put one of your six *Research Tokens* on any empty space of your journal. Every researched space fires at the start of each battle.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 16*, *Initiative rating 7*.",
       "reactions": [
         {
@@ -2190,7 +2207,7 @@
           "key": "cast",
           "text": "Resolve",
           "action": [
-            "stat_gain:power@mine.player:sum:tier@mine.player",
+            "power_up:power@mine.player:sum:tier@mine.player",
             "activate_zone:rules:by_column:curric_void"
           ]
         },
@@ -2205,7 +2222,7 @@
       "key": "wiz_croh",
       "text": "Croh Vosh",
       "asset": "ss_croh.jpg",
-      "tags": ["wizard_card", "croh", "accursed"],
+      "tags": ["wizard_card", "power_track", "croh", "accursed"],
       "tooltip": "Undead Lich. An undead Lich back from a thousand-year slumber. Enormous health, but he cannot heal -- healing becomes a *CURSE* for his opponent instead.\n\n*Ultimate* (*6 mana*) - DOOOOOOOOOM!: For each *DOOM Token* you have, take a card of your choice from your discard or draw one. If you have none, gain a *DOOM Token*.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 20*, *Initiative rating 8*.",
       "reactions": [
         {
@@ -2303,7 +2320,7 @@
       "key": "wiz_omar",
       "text": "Omar Evans",
       "asset": "ss_omar.jpg",
-      "tags": ["wizard_card", "omar", "dodging"],
+      "tags": ["wizard_card", "power_track", "omar", "dodging"],
       "tooltip": "Ninja and Eco-Terrorist. A ninja and wanted eco-terrorist. Low health, but he acts first in every matchup and Shuriken always resolves before anything else.\n\n*Ultimate* (*4 mana*) - Hidden Movement: Return a card from your discard to your hand, or *draw a card*. Then arm a Trap, face down, replacing whatever was armed.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 10*, *Initiative rating 1*.",
       "reactions": [
         {
@@ -2394,7 +2411,7 @@
       "key": "wiz_bunny",
       "text": "Bunny Wizard",
       "asset": "ss_bunny.jpg",
-      "tags": ["wizard_card", "bunny", "overhealing"],
+      "tags": ["wizard_card", "power_track", "bunny", "overhealing"],
       "tooltip": "Healer of Bunny Island. A stuffie from Bunny Island who heals fast and often helps his opponent along the way. He is the only wizard who can heal past his starting health, and what will not fit he draws instead. A good choice if you like to play nice.\n\n*Ultimate* (*5 mana*) - Cast a Magic Trick!: Reveal a non-Wizard card from your hand, resolve it twice and *VOID* it. All players *heal 1*.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 8*, *Initiative rating 2*.",
       "reactions": [
         {
@@ -2455,13 +2472,13 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["stat_gain:power@mine.player:1", "stat_gain:mana@mine.player:1"]
+          "action": ["power_up:power@mine.player:1", "stat_gain:mana@mine.player:1"]
         },
         {
           "key": "cast2",
           "text": "Resolve",
           "needs": ["tier@opponent <= 1"],
-          "action": ["stat_gain:power@opponent:1"]
+          "action": ["power_up:power@opponent:1"]
         },
         {
           "key": "cast_ask",
@@ -2493,7 +2510,7 @@
       "key": "wiz_oren",
       "text": "Oren Bark",
       "asset": "ss_oren.jpg",
-      "tags": ["wizard_card", "oren"],
+      "tags": ["wizard_card", "power_track", "oren"],
       "tooltip": "Magical Chemistry Student. A chemistry student who loves danger and whose experiments keep exploding. A good character for players who like to gamble.\n\n*Ultimate* (*5 mana*) - Bottoms up, I guess!: Reshuffle your Potion Deck, then draw potions one at a time for as long as you dare. A third TOXIC ends it and gives you an *ASH*, a *CURSE* and an *ICE*. Your Elements reset to 3 afterwards.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 16*, *Initiative rating 6*.",
       "reactions": [
         {
@@ -2582,7 +2599,7 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["stat_gain:power@mine.player:1", "stat_gain:mana@mine.player:1"]
+          "action": ["power_up:power@mine.player:1", "stat_gain:mana@mine.player:1"]
         },
         {
           "key": "cast2",
@@ -2603,7 +2620,7 @@
       "key": "wiz_may",
       "text": "May Danaris",
       "asset": "ss_may.jpg",
-      "tags": ["wizard_card", "may"],
+      "tags": ["wizard_card", "power_track", "may"],
       "tooltip": "Hacker. A hacker who used to work for Central Intelligence. She can play cards from the *VOID*, and is good for players who like to feel like they're cheating.\n\n*Ultimate* (*6 mana*) - Void Traveler: Gain *3 Energy* Tokens. You may resolve a non-Wizard card from your hand or any card in the *VOID*, then put it on the bottom of the *Spellstorm Deck*.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 12*, *Initiative rating 4*.",
       "reactions": [
         {
@@ -2705,7 +2722,7 @@
           "action": [
             "draw_from:mine.deck:mine.hand:1",
             "stat_gain:mana@mine.player:1",
-            "stat_gain:power@mine.player:1"
+            "power_up:power@mine.player:1"
           ]
         }
       ]
@@ -2758,7 +2775,7 @@
           "key": "wy",
           "text": "Weather",
           "needs": ["count:earth@mine.battle >= 1"],
-          "action": ["stat_gain:power@mine.player:1"]
+          "action": ["power_up:power@mine.player:1"]
         }
       ]
     },
@@ -2774,7 +2791,7 @@
           "text": "Weather",
           "action": [
             "draw_from:mine.deck:mine.hand:1",
-            "stat_gain:power@mine.player:1",
+            "power_up:power@mine.player:1",
             "destroy:random.mine.hand"
           ]
         }
@@ -2864,9 +2881,9 @@
           "text": "Weather",
           "needs": ["tier@mine.player <= 1"],
           "action": [
-            "stat_gain:power@mine.player:1",
-            "stat_gain:power@mine.player:1",
-            "stat_gain:power@mine.player:1"
+            "power_up:power@mine.player:1",
+            "power_up:power@mine.player:1",
+            "power_up:power@mine.player:1"
           ]
         }
       ]
@@ -2984,8 +3001,8 @@
           "action": [
             "draw_from:mine.deck:mine.hand:1",
             "draw_from:mine.deck:mine.hand:1",
-            "stat_gain:power@mine.player:1",
-            "stat_gain:power@mine.player:1"
+            "power_up:power@mine.player:1",
+            "power_up:power@mine.player:1"
           ]
         }
       ]
@@ -3123,7 +3140,7 @@
           "needs": ["fire_el@mine.player >= 2"],
           "action": [
             "stat_damage:fire_el@mine.player:2",
-            "stat_gain:power@mine.player:1",
+            "power_up:power@mine.player:1",
             "stat_gain:mana@mine.player:1",
             "stat_gain:mana@mine.player:1"
           ]
@@ -3132,7 +3149,7 @@
           "key": "again",
           "needs": ["fire_el@mine.player >= 2", "doubled@mine.player >= 1"],
           "action": [
-            "stat_gain:power@mine.player:1",
+            "power_up:power@mine.player:1",
             "stat_gain:mana@mine.player:1",
             "stat_gain:mana@mine.player:1",
             "stat_set:doubled@mine.player:0"
@@ -3203,7 +3220,7 @@
           "needs": ["earth_el@mine.player >= 1"],
           "action": [
             "stat_damage:earth_el@mine.player:1",
-            "stat_gain:power@mine.player:1",
+            "power_up:power@mine.player:1",
             "activate_zone:rules:by_column:dry_give_ash",
             "draw_from:ash_pile:enemy.discard:1"
           ]
@@ -3212,7 +3229,7 @@
           "key": "again",
           "needs": ["earth_el@mine.player >= 1", "doubled@mine.player >= 1"],
           "action": [
-            "stat_gain:power@mine.player:1",
+            "power_up:power@mine.player:1",
             "activate_zone:rules:by_column:dry_give_ash",
             "draw_from:ash_pile:enemy.discard:1",
             "stat_set:doubled@mine.player:0"
@@ -3343,7 +3360,7 @@
           "action": [
             "stat_damage:water_el@mine.player:3",
             "draw_from:mine.deck:mine.hand:1",
-            "stat_gain:power@mine.player:1"
+            "power_up:power@mine.player:1"
           ]
         },
         {
@@ -3351,7 +3368,7 @@
           "needs": ["water_el@mine.player >= 3", "doubled@mine.player >= 1"],
           "action": [
             "draw_from:mine.deck:mine.hand:1",
-            "stat_gain:power@mine.player:1",
+            "power_up:power@mine.player:1",
             "stat_set:doubled@mine.player:0"
           ]
         }
@@ -3582,7 +3599,7 @@
       "play": {
         "action": [
           "stat_damage:energy@mine.player:1",
-          "stat_gain:power@mine.player:1",
+          "power_up:power@mine.player:1",
           "activate_zone:rules:by_column:breach"
         ],
         "needs": ["energy@mine.player >= 1"]
@@ -3597,8 +3614,8 @@
       "play": {
         "action": [
           "stat_damage:energy@mine.player:2",
-          "stat_gain:power@mine.player:1",
-          "stat_gain:power@mine.player:1",
+          "power_up:power@mine.player:1",
+          "power_up:power@mine.player:1",
           "activate_zone:rules:by_column:breach"
         ],
         "needs": ["energy@mine.player >= 2"]
@@ -3781,7 +3798,7 @@
       "key": "r_tier",
       "text": "The Power Track",
       "tags": ["immutable"],
-      "tooltip": "Six *Power Tokens* fill the track. Filling it raises your *Tier* by one and returns the six; at *Tier III* a filled track gains you a Dragon instead. Checked between rounds.",
+      "tooltip": "Six *Power Tokens* fill the track. Filling it raises your *Tier* by one and returns the six; at *Tier III* a filled track gains you a Dragon instead.",
       "asset": "auto",
       "abilities": [
         {
@@ -3998,7 +4015,7 @@
         {
           "key": "bstart",
           "needs": ["count:abra@mine.wizard >= 1", "researched@self >= 1"],
-          "action": ["stat_gain:power@mine.player:1"]
+          "action": ["power_up:power@mine.player:1"]
         }
       ],
       "card_stats": { "researched": 0 }
@@ -4032,7 +4049,7 @@
         {
           "key": "bstart",
           "needs": ["count:abra@mine.wizard >= 1", "researched@self >= 1"],
-          "action": ["stat_gain:power@mine.player:1"]
+          "action": ["power_up:power@mine.player:1"]
         }
       ],
       "card_stats": { "researched": 0 }
@@ -4218,7 +4235,7 @@
         {
           "key": "bstart",
           "needs": ["count:abra@mine.wizard >= 1"],
-          "action": ["stat_gain:power@mine.player:1"]
+          "action": ["power_up:power@mine.player:1"]
         }
       ]
     },

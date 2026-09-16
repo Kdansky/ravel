@@ -284,9 +284,11 @@ states that grant them. What each still rounds off is below.
   ASH or CURSE goes back on the pile is the engine's pick rather than yours,
   because a battle-start sweep runs for both seats and an offer is one at a time.
   The Dragon pile's rule has no VOID in it and is exact.
-- **The Tier check runs between rounds**, not the instant a sixth Power Token
-  lands. Overflow is kept (the track subtracts six rather than resetting), so
-  nothing is lost — it just arrives a moment late.
+- **~~The Tier check runs between rounds~~** — done. It was not only late: a card
+  that powers up and then gains judged the gain against the old Tier. Gaining
+  Power is a declared verb, `power_up`, and every wizard card carries the
+  `power_track` aura, whose `instead` lands the tokens and walks the track. Losing
+  Power stays a plain `stat_damage`, since nothing happens when the track goes down.
 - **The Unplayable Hand rule is a button, not automatic.** When your hand is
   nothing but ICE, ASH and CURSE, press *Unplayable hand* on the board: it
   discards them with their effects, takes 1 damage, and draws 4. The engine has

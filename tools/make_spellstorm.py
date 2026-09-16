@@ -34,7 +34,11 @@ import guard
 # ---------------------------------------------------------------------------
 
 MANA  = "stat_gain:mana@mine.player:1"
-POWER = "stat_gain:power@mine.player:1"
+# **Gaining Power is a moment**, so the Power Track can answer it the instant a
+# token lands rather than between rounds, when a [GAIN] later on the same card
+# had already been judged against the old Tier. Losing Power is not: nothing
+# happens when the track goes down.
+POWER = "power_up:power@mine.player:1"
 DRAW  = "draw_from:mine.deck:mine.hand:1"
 # **Healing is a moment with a name**, and the only one this game declares. The
 # engine's own stat_gain is deliberately unwatchable, so a rule that answers
@@ -877,7 +881,7 @@ WIZARDS = [
                card("abra_newcurriciulum", "New Curriculum", EARTH, kind="wizard_spell", ult=True,
                     tooltip="Power up once per Tier you have reached. You may VOID up to 2 cards in the Storm Cloud, and you may gain one at or below your Tier.",
                     flavour='"Can\'t believe the *garbage* I\'m asked to teach sometimes!"',
-                    cast=["stat_gain:power@mine.player:sum:tier@mine.player",
+                    cast=["power_up:power@mine.player:sum:tier@mine.player",
                           "activate_zone:rules:by_column:curric_void", OFFER_CLOUD],
                     chosen=TAKE_TO_HAND, chosen_where=GAIN_TIER),
            ]),
@@ -967,7 +971,7 @@ WIZARDS = [
                     flavour='"Bunny is wondering if it would be okay to hold your hand." - Bunny\'s Handler',
                     cast=[POWER, MANA, "show:others.battle.earth:optional"],
                     cast2=("tier@opponent <= 1",
-                           ["stat_gain:power@opponent:1"]),
+                           ["power_up:power@opponent:1"]),
                     chosen=["copy:target:activate"]),
                card("bunny_snowday", "Snow Day", WATER, kind="wizard_spell", ult=True,
                     tooltip="Heal 2. Give an ICE to your opponent if they have none in their discard.",
@@ -1354,7 +1358,7 @@ def wizard_templates(w):
         ult_free["compute"] = list(w["ult_compute"])
     char = {
         "key": "wiz_" + w["key"], "text": w["name"], "asset": WIZ_ART[w["key"]],
-        "tags": ["wizard_card", w["key"]] + w["keywords"],
+        "tags": ["wizard_card", "power_track", w["key"]] + w["keywords"],
         "tooltip": tip("%s. %s\n\nUltimate (%d mana) - %s: %s\n\nCast it while one of your own cards"
                        " carrying the Ultimate icon resolves.\n\nStarting health %d, Initiative rating %d."
                        % (w["epithet"], w["blurb"], w["ult_cost"], w["ult_name"],
@@ -1464,11 +1468,11 @@ def rules_templates():
                  when=["blast@mine.player == blast@opponent"])]))
 
     # The Power Track. Six tokens fill it; the seventh is a Tier, and at Tier III
-    # a filled track is a Dragon instead. Checked between rounds rather than the
-    # instant the sixth token lands, which is the one place this drifts.
+    # a filled track is a Dragon instead. Walked by the power_track aura each time
+    # Power is gained.
     out.append(rules_card(
         "r_tier", "The Power Track",
-        "Six Power Tokens fill the track. Filling it raises your Tier by one and returns the six; at Tier III a filled track gains you a Dragon instead. Checked between rounds.",
+        "Six Power Tokens fill the track. Filling it raises your Tier by one and returns the six; at Tier III a filled track gains you a Dragon instead.",
         [ability("tier_up", ["stat_damage:power@mine.player:6",
                              "stat_gain:tier@mine.player:1"],
                  when=["power@mine.player >= 6", "tier@mine.player <= 2"]),
@@ -2044,10 +2048,7 @@ def phases():
                      "each_seat:stat_set:ult_free@mine.player:0",
                      # Dodge! negates the first 2 points *this round*, so what is
                      # left of it goes out with the round the way the pass does.
-                     "each_seat:stat_set:guard@mine.traps:0",
-                     "each_seat:activate_zone:rules:by_column:tier_up",
-                     "each_seat:activate_zone:rules:by_column:tier_up",
-                     "each_seat:activate_zone:rules:by_column:tier_gem"],
+                     "each_seat:stat_set:guard@mine.traps:0"],
          "next": [{"when": "battle_round@plan >= 4", "then": "regroup"},
                   {"then": "weather", "ends_round": True}]},
 
@@ -2287,6 +2288,8 @@ def build():
                    "tooltip": "A blow from across the table. Declared, so it announces itself and a Trap can answer it."},
                   {"key": "hurt", "does": "stat_damage",
                    "tooltip": "Damage you do to yourself. A cost rather than an attack, so nothing answers it."},
+                  {"key": "power_up", "does": "stat_gain",
+                   "tooltip": "Gaining Power Tokens. Declared so the Power Track can raise your Tier the moment the sixth lands."},
                   {"key": "wound", "does": "stat_damage",
                    "tooltip": "Damage as it arrives, once anything standing in front of it has taken its bite."}],
         "styles": {
@@ -2340,6 +2343,15 @@ def build():
                              "covers": "mine.player",
                              "needs": ["health@mine.player >= 10"],
                              "instead": ["draw_from:mine.deck:mine.hand:amount"]}]},
+            # The Power Track, on every wizard because an aura is read off a card in
+            # play and the wizard is the one each seat has. The gain lands, then the
+            # track is checked, so a Tier is never a round behind the tokens.
+            "power_track": {
+                "adjusts": [{"key": "track", "verb": "power_up", "stat": "power",
+                             "covers": "mine.player",
+                             "instead": ["stat_gain:power@mine.player:amount",
+                                         "activate_zone:rules:by_column:tier_up",
+                                         "activate_zone:rules:by_column:tier_gem"]}]},
             "accursed": {
                 "adjusts": [{"key": "curse", "verb": "heal", "stat": "health",
                              "covers": "mine.player",

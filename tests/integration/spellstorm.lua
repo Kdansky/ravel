@@ -383,6 +383,35 @@ function M.test_spellstorm_the_power_track_becomes_a_tier(check)
 end
 
 
+-- The track is checked the moment Power lands, not between rounds. It was a
+-- sweep at the end of the round, so a card that powers up and then gains judged
+-- the gain against the Tier you had before the sixth token.
+function M.test_spellstorm_the_track_moves_as_the_token_lands(check)
+	opening(5, "derby", "eve")
+	become("seat_one")
+	local one, two = seat_card("seat_one"), seat_card("seat_two")
+
+	actions.execute("stat_set:power@mine.player:5", {})
+	actions.execute("power_up:power@mine.player:1", {})
+	check("the sixth token is a Tier at once", one.stats.tier == 2 and one.stats.power == 0,
+		one.stats.tier .. "/" .. one.stats.power)
+
+	-- Buddy System powers the opponent up, and the Tier is theirs.
+	actions.execute("stat_set:power@opponent:4", {})
+	actions.execute("power_up:power@opponent:3", {})
+	check("Power given across the table fills that seat's track",
+		two.stats.tier == 2 and two.stats.power == 1, two.stats.tier .. "/" .. two.stats.power)
+	check("and not the giver's", one.stats.tier == 2 and one.stats.power == 0)
+
+	actions.execute("stat_set:tier@mine.player:3", {})
+	actions.execute("stat_set:power@mine.player:5", {})
+	local before = #hand_of("seat_one").cards
+	actions.execute("power_up:power@mine.player:1", {})
+	check("at Tier III the sixth token is a Dragon at once",
+		#hand_of("seat_one").cards == before + 1 and one.stats.tier == 3,
+		tostring(#hand_of("seat_one").cards - before))
+end
+
 function M.test_spellstorm_the_shelf_is_gated_by_tier(check)
 	opening(5, "derby", "eve")
 	actions.execute("set_active_seat:seat_one", {})
