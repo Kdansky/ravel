@@ -720,10 +720,23 @@ local function badge_text(key, v)
 	return (def and def.number == false) and "" or tostring(v)
 end
 
-local function badge_size(key, txt)
-	local sf  = get_small_font()
-	local ind = stat_icon(key) ~= "none" and sf:getHeight() or 0
-	return ind + sf:getWidth(txt) + 8 * S, ind
+local function badge_size(key, txt, f)
+	local ind = stat_icon(key) ~= "none" and f:getHeight() or 0
+	return ind + f:getWidth(txt) + 8 * S, ind
+end
+
+-- A badge is part of the card face, so it is sized to the card and not to the
+-- window: a seat card with nothing else on it has room for numbers read across a
+-- table, and a chip in a fan has room for none. A column shares what the title
+-- leaves of the card's height and a row takes an eighth of it; a column's share
+-- is never more than a fifth, so one badge is not a poster. Never smaller than
+-- the small font, and capped, so a card blown up to fill the screen does not shout.
+local function badge_font(pl, look, n)
+	local titled = not (look.hide or EMPTY_HIDE).title
+	local room   = pl.h - (titled and M.main_font():getHeight() or 0)
+	local share  = look.badge_run == "down" and room / math.max(n, 5) or pl.h / 8
+	-- A line is the font's height and the gap under it; a font is ~1.2 of its size.
+	return font_at(math.min(math.max((share - 3 * S) / 1.2, 8, 8 * S), 20 * S))
 end
 
 -- The badges a card actually shows: the style's list, less any zero it asked to
@@ -874,19 +887,20 @@ local function draw_card_face(pl, card_e, show_text, vis)
 		local stats = card_e.stats
 		local down  = look.badge_run == "down"
 		local keys  = badge_keys(look, card_e)
+		local bf    = badge_font(pl, look, #keys)
 		local row_w, col_h = 0, 0
 		for i, key in ipairs(keys) do
-			local w = badge_size(key, badge_text(key, shown_stat(card_e, key)))
+			local w = badge_size(key, badge_text(key, shown_stat(card_e, key)), bf)
 			if down then
 				row_w = math.max(row_w, w)
-				col_h = col_h + get_small_font():getHeight() + 3 * S
+				col_h = col_h + bf:getHeight() + 3 * S
 			else
 				row_w = row_w + w + (i > 1 and 2 * S or 0)
 			end
 		end
 		if #keys == 0 and stats and stats.hp then
 			local hp = shown_stat(card_e, "hp")
-			row_w = badge_size("hp", hp .. "/" .. (tags.stat_max(card_e, "hp") or hp))
+			row_w = badge_size("hp", hp .. "/" .. (tags.stat_max(card_e, "hp") or hp), bf)
 		end
 		local badge_w = down and 0 or row_w
 
@@ -1043,11 +1057,10 @@ local function draw_card_face(pl, card_e, show_text, vis)
 end
 
 -- One number in a dark pill, with its icon. Returns the width it took.
-local function draw_badge(key, txt, x, y, colour)
-	local sf = get_small_font()
-	love.graphics.setFont(sf)
-	local fh = sf:getHeight()
-	local w, ind = badge_size(key, txt)
+local function draw_badge(key, txt, x, y, colour, f)
+	love.graphics.setFont(f)
+	local fh = f:getHeight()
+	local w, ind = badge_size(key, txt, f)
 	love.graphics.setColor(0, 0, 0, 0.65)
 	love.graphics.rectangle("fill", x - 1, y - 1, w, fh + 2, 2 * S, 2 * S)
 	local icon, tint = stat_icon(key)
@@ -1086,7 +1099,9 @@ local function draw_card_stats_overlay(pl, card_e, by)
 	local badges = type(look.badges) == "table" and look.badges or nil
 
 	love.graphics.push("all")
-	local fh = get_small_font():getHeight()
+	local keys = badge_keys(look, card_e)
+	local bf   = badge_font(pl, look, #keys)
+	local fh   = bf:getHeight()
 	by = by or (pl.y + pl.h - fh - 3 * S)
 	if badges then
 		-- A column starts at the top, where a bottom-anchored row would run off
@@ -1094,8 +1109,8 @@ local function draw_card_stats_overlay(pl, card_e, by)
 		-- of the two reaches it.
 		local down = look.badge_run == "down"
 		local x, y = pl.x + 2 * S, down and (pl.y + 3 * S) or by
-		for _, key in ipairs(badge_keys(look, card_e)) do
-			local w = draw_badge(key, badge_text(key, shown_stat(card_e, key)), x, y, { 1, 1, 1 })
+		for _, key in ipairs(keys) do
+			local w = draw_badge(key, badge_text(key, shown_stat(card_e, key)), x, y, { 1, 1, 1 }, bf)
 			if down then y = y + fh + 3 * S else x = x + w + 2 * S end
 		end
 	elseif stats.hp then
@@ -1105,7 +1120,7 @@ local function draw_card_stats_overlay(pl, card_e, by)
 		local colour = ratio > 0.6 and { 0.25, 0.95, 0.35 }
 			or ratio > 0.3 and { 1.00, 0.82, 0.15 }
 			or { 1.00, 0.28, 0.15 }
-		draw_badge("hp", hp .. "/" .. hp_max, pl.x + 2 * S, by, colour)
+		draw_badge("hp", hp .. "/" .. hp_max, pl.x + 2 * S, by, colour, bf)
 	end
 	love.graphics.pop()
 end

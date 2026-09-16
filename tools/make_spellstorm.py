@@ -1370,6 +1370,9 @@ def wizard_templates(w):
                           w["ult_tooltip"], w["health"], w["rating"]),
                        simplified=w["simplified"]),
         "reactions": [ult, ult_free] + ([w["passive"]] if w["passive"] else []),
+        # Printed on the card so a player reads what their mana is for. Both this
+        # and the cost above come from `ult_cost`, and nothing changes either.
+        "card_stats": {"ult_cost": w["ult_cost"]},
     }
     if w["ult_chosen"]:
         char["chosen"] = {"action": list(w["ult_chosen"])}
@@ -1744,7 +1747,7 @@ def zones():
         # own name is what the chair took.
         {"key": "wizard", "label": "{owner}", "status": "board", "layout": "grid", "grid": [2, 1],
          "copies": "per_seat", "use": "abilities",
-         "pos": [P(0.005, 0.795, 0.195, 0.995), P(0.005, 0.005, 0.195, 0.205)]},
+         "pos": [P(0.005, 0.685, 0.195, 0.995), P(0.005, 0.005, 0.195, 0.315)]},
         # Named so the box stays on screen when the hand is empty -- which it is
         # across `regroup` and both gain steps, and whenever somebody plays their
         # last card. An unlabelled empty zone draws nothing at all (render.lua).
@@ -1835,18 +1838,19 @@ def zones():
 
         {"key": "weather_now", "label": "Weather", "layout": "stack",
          "tooltip": "This round's weather. Only the current card is active.",
-         "pos": P(0.005, 0.215, 0.195, 0.470)},
+         "pos": P(0.005, 0.325, 0.195, 0.520)},
         {"key": "weather_calm", "label": "Calm", "layout": "stack",
          "visibility": "secret", "tags": ["shuffle"], "refill_from": "weather_main",
          "tooltip": "The eight Calm Before the Storm cards sit on top of the Weather Deck, so the first battles are gentle. When they run out the sixteen standard cards are shuffled in.",
-         "pos": P(0.005, 0.490, 0.098, 0.630),
+         "pos": P(0.005, 0.530, 0.098, 0.675),
          "contents": deck_of(True)},
         {"key": "weather_main", "label": "Storm", "layout": "stack",
          "visibility": "secret", "tags": ["shuffle"],
-         "pos": P(0.102, 0.490, 0.195, 0.630),
+         "pos": P(0.102, 0.530, 0.195, 0.675),
          "contents": deck_of(False)},
-        {"key": "weather_discard", "layout": "stack", "use": "none",
-         "pos": P(0.005, 0.650, 0.195, 0.785)},
+        # On the Weather's own rect, behind it: last round's card shows only while
+        # no weather is up, which gave the wizards the column's height.
+        {"key": "weather_discard", "layout": "stack", "use": "none", "pos": "weather_now"},
 
         {"key": "ice_pile", "use": "abilities", "label": "Ice", "layout": "stack",
          "applies": ["takeable"], "contents": ["ice:6"],
@@ -2226,6 +2230,9 @@ def build():
              "min": 0, "max": 6, "subject": "water_el@mine.player",
              "on": ["player"], "start": 0, "display": "nonzero"},
 
+            # What the Ultimate costs, badged on the character card.
+            {"key": "ult_cost", "label": "Ultimate", "icon": "orb", "color": "magenta", "min": 0, "max": 40},
+
             # Working numbers. Hidden, floored at zero -- the floor is what makes
             # the Blast Score subtraction clamp instead of going negative.
             {"key": "blast", "min": 0, "max": 99, "display": "offscreen",
@@ -2306,10 +2313,13 @@ def build():
             "tide":  {"color": [0.16, 0.36, 0.58], "hide": ["title"]},
             "loam":  {"color": [0.45, 0.34, 0.14], "hide": ["title"]},
             "storm": {"color": [0.18, 0.36, 0.32], "hide": ["title"]},
-            "wizard_card": {"color": [0.24, 0.16, 0.34], "hide": ["title"]},
+            "wizard_card": {"color": [0.24, 0.16, 0.34], "hide": ["title"], "badges": ["ult_cost"]},
             "chooser": {"color": [0.24, 0.16, 0.34], "hide": ["title"]},
             "potion": {"color": [0.32, 0.42, 0.18], "hide": ["title"]},
-            "chair": {"color": [0.13, 0.15, 0.22]},
+            # The numbers a player plays by, on the blank face of their own
+            # seat. Zeros stay off so Initiative is an arrow only its holder wears.
+            "chair": {"color": [0.13, 0.15, 0.22], "badge_run": "down", "hide": ["zero_badges"],
+                      "badges": ["health", "mana", "tier", "power", "shards", "initiative"]},
         },
         "tags": {
             # What a card on a shelf does: it comes to your hand, if your Tier

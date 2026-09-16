@@ -3083,6 +3083,13 @@ the exact words stay in the tooltip:
 zero, and a stat a card never declares is simply absent — an absent stat draws
 nothing, which is what makes one style serve forty different chips.
 
+**A badge is sized to its card, not to the window.** A column shares what the
+title leaves of the card's height, a fifth at most; a row takes an eighth. Never
+smaller than the small font, never larger than a ceiling. So a chip in a fan
+reads as it always did, and a seat card with nothing else on its face carries
+numbers big enough to read across the table — **to make badges bigger, give the
+card a bigger box.** There is no size field.
+
 **`number: false` is a badge that is the shape alone.** Some facts have no
 quantity: a banner meaning *this is an attack*, a shield meaning *this has a
 reaction half*. The 1 that would carry it is noise. It is the mirror of

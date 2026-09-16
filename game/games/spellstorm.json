@@ -144,6 +144,14 @@
       "display": "nonzero"
     },
     {
+      "key": "ult_cost",
+      "label": "Ultimate",
+      "icon": "orb",
+      "color": "magenta",
+      "min": 0,
+      "max": 40
+    },
+    {
       "key": "blast",
       "min": 0,
       "max": 99,
@@ -253,10 +261,15 @@
     "tide": { "color": [0.16, 0.36, 0.58], "hide": ["title"] },
     "loam": { "color": [0.45, 0.34, 0.14], "hide": ["title"] },
     "storm": { "color": [0.18, 0.36, 0.32], "hide": ["title"] },
-    "wizard_card": { "color": [0.24, 0.16, 0.34], "hide": ["title"] },
+    "wizard_card": { "color": [0.24, 0.16, 0.34], "hide": ["title"], "badges": ["ult_cost"] },
     "chooser": { "color": [0.24, 0.16, 0.34], "hide": ["title"] },
     "potion": { "color": [0.32, 0.42, 0.18], "hide": ["title"] },
-    "chair": { "color": [0.13, 0.15, 0.22] }
+    "chair": {
+      "color": [0.13, 0.15, 0.22],
+      "badge_run": "down",
+      "hide": ["zero_badges"],
+      "badges": ["health", "mana", "tier", "power", "shards", "initiative"]
+    }
   },
   "tags": {
     "takeable": {
@@ -364,7 +377,7 @@
       "grid": [2, 1],
       "copies": "per_seat",
       "use": "abilities",
-      "pos": [[0.005, 0.795, 0.195, 0.995], [0.005, 0.005, 0.195, 0.205]]
+      "pos": [[0.005, 0.685, 0.195, 0.995], [0.005, 0.005, 0.195, 0.315]]
     },
     {
       "key": "hand",
@@ -512,7 +525,7 @@
       "label": "Weather",
       "layout": "stack",
       "tooltip": "This round's weather. Only the current card is active.",
-      "pos": [0.005, 0.215, 0.195, 0.47]
+      "pos": [0.005, 0.325, 0.195, 0.52]
     },
     {
       "key": "weather_calm",
@@ -522,7 +535,7 @@
       "tags": ["shuffle"],
       "refill_from": "weather_main",
       "tooltip": "The eight Calm Before the Storm cards sit on top of the *Weather Deck*, so the first battles are gentle. When they run out the sixteen standard cards are shuffled in.",
-      "pos": [0.005, 0.49, 0.098, 0.63],
+      "pos": [0.005, 0.53, 0.098, 0.675],
       "contents": [
         "nice_breeze",
         "crystalflurries:2",
@@ -539,7 +552,7 @@
       "layout": "stack",
       "visibility": "secret",
       "tags": ["shuffle"],
-      "pos": [0.102, 0.49, 0.195, 0.63],
+      "pos": [0.102, 0.53, 0.195, 0.675],
       "contents": [
         "burningblizzard",
         "energywave:2",
@@ -555,12 +568,7 @@
         "wildcolorwinds"
       ]
     },
-    {
-      "key": "weather_discard",
-      "layout": "stack",
-      "use": "none",
-      "pos": [0.005, 0.65, 0.195, 0.785]
-    },
+    { "key": "weather_discard", "layout": "stack", "use": "none", "pos": "weather_now" },
     {
       "key": "ice_pile",
       "use": "abilities",
@@ -1994,7 +2002,8 @@
           "action": ["hit:health@opponent:2", "stat_gain:mana@mine.player:yardstick_mana"],
           "compute": ["yardstick_mana"]
         }
-      ]
+      ],
+      "card_stats": { "ult_cost": 6 }
     },
     {
       "key": "pick_derby",
@@ -2102,6 +2111,7 @@
           ]
         }
       ],
+      "card_stats": { "ult_cost": 5 },
       "chosen": { "action": ["move:target:enemy.discard"] }
     },
     {
@@ -2196,6 +2206,7 @@
           "action": ["show:rules.jspace:optional"]
         }
       ],
+      "card_stats": { "ult_cost": 4 },
       "chosen": {
         "action": ["stat_set:researched@target:1", "stat_gain:research@mine.player:1"],
         "where": ["researched@target <= 0", "research@mine.player <= 5"]
@@ -2299,7 +2310,8 @@
             "activate_zone:rules:by_column:croh_doom"
           ]
         }
-      ]
+      ],
+      "card_stats": { "ult_cost": 6 }
     },
     {
       "key": "pick_croh",
@@ -2392,6 +2404,7 @@
           "action": ["options:omar_recall,omar_draw:optional", "show:trap_pile"]
         }
       ],
+      "card_stats": { "ult_cost": 4 },
       "chosen": {
         "action": [
           "stat_set:sprung@mine.traps:0",
@@ -2483,6 +2496,7 @@
           "action": ["show:mine.hand:optional"]
         }
       ],
+      "card_stats": { "ult_cost": 5 },
       "chosen": {
         "action": [
           "copy:target:activate:2",
@@ -2591,7 +2605,8 @@
             "push_phase:potion"
           ]
         }
-      ]
+      ],
+      "card_stats": { "ult_cost": 5 }
     },
     {
       "key": "pick_oren",
@@ -2699,7 +2714,8 @@
           "needs": ["tier_req@enemy.battle == 2"],
           "action": ["copy:enemy.battle:activate"]
         }
-      ]
+      ],
+      "card_stats": { "ult_cost": 6 }
     },
     {
       "key": "pick_may",
