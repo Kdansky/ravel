@@ -2001,7 +2001,9 @@ end
 -- kick off a tween from the old rect.
 function M.sync_places()
 	for z in entity.each("zone") do
-		local places = card_places(z)
+		-- A zone nobody sees has a rect above the window, and a card laid out there on its way through flew off the
+		-- top. It keeps where it was last seen, so it leaves from there. An offer's overlay draws it, so it is laid out.
+		local places = (z.display ~= "offscreen" or z.status == "offer") and card_places(z) or {}
 		local zt     = z.layout
 		local kind   = zt == "grid" and "slam"
 			or zt == "stack" and "drop" or "glide"
