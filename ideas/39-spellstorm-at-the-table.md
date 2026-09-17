@@ -47,3 +47,26 @@ Appended to [02](02-between-two-states.md), whose mechanism it is. Weather, dama
 and every other beat are recorded only for a click made **at this screen**; a
 state arriving over the network is applied whole. [Assumption: at least one of the
 three notes above came from a networked game.]
+
+## Gap 5 — a [GAIN] bought off the shelf — built 2026-09-17
+
+Asked for: no offer overlay for a gain, buy in place as Splendor does, and no rule
+changed. Engine-free, in `tools/make_spellstorm.py`: a gain writes `gain_owed` and
+`gain_kind` and pushes a `gaining*` step; the shelf's one `take` ability routes by
+kind through an offscreen `gained` zone, which is also where Coffee Run reads the
+card. Mana Font, Meteorite, New Curriculum's VOIDs and Abragail's Water resolve
+are not gains and stay offers.
+
+What it cost to find:
+- **One `take`, not one per kind.** The engine keeps every `merge: "this"` ability,
+  but the validator calls two on one zone a contradiction and does not look at
+  `phases`. A report worth making if a second game wants per-phase shop answers.
+- **A push is refused while an offer is open.** New Curriculum's gain is written
+  behind its two VOID asks on the rule card, so it is parked with their tail.
+- **Stacked steps know nothing about seats.** Falling Star pushes two in one sweep;
+  each step's entry hands priority to whoever is owed, Initiative first.
+- **An empty offer never opened**, so a step with nothing takeable passes on entry
+  — which is also what keeps Amber's MUST honest with an empty shelf.
+
+Left: how the step looks — the label and a "Don't gain" button in the menu column.
+Not yet seen in a real game.

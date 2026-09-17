@@ -55,11 +55,24 @@ local function opening(seed, one, two)
 		end
 		assert(picked, "no such wizard in the offer: " .. name)
 	end
-	-- The weather may ask before anybody plays: Falling Star offers the Storm
-	-- Cloud to each seat in turn, and those offers are waiting when the round
-	-- opens. A test that wants the start of play declines them; the one that is
-	-- about Falling Star drives it itself.
-	while phase.current().key == "options" and flow.dismiss_offer() do end
+	-- The weather may ask before anybody plays: Falling Star has each seat gain in
+	-- turn, and those steps are waiting when the round opens. A test that wants the
+	-- start of play passes on them; the one that is about Falling Star drives it
+	-- itself.
+	while true do
+		local key = phase.current().key
+		if key == "options" and flow.dismiss_offer() then
+		elseif key:find("^gaining") and zones.find("menu") then
+			local pass
+			for _, id in ipairs(zones.find("menu").cards) do
+				if entity.get(id).def_key == "btn_no_gain" then pass = id end
+			end
+			if not pass then break end
+			flow.activate(pass)
+		else
+			break
+		end
+	end
 end
 
 -- Put one named card into a seat's battle spot, whatever it was holding.
@@ -79,6 +92,33 @@ local function stage_battle(seat, def_key)
 end
 
 local function hand_of(seat) return zone_of("hand", seat) end
+
+-- What a gain step lets its player click, on the shelf where the cards lie.
+local function takeable()
+	local out = {}
+	for _, id in ipairs(zones.find("storm_cloud").cards) do
+		if flow.can_activate(id) then out[#out + 1] = entity.get(id).def_key end
+	end
+	table.sort(out)
+	return table.concat(out, ",")
+end
+
+local function take_first()
+	for _, id in ipairs({ unpack(zones.find("storm_cloud").cards) }) do
+		if flow.can_activate(id) then
+			flow.activate(id)
+			flow.settle()
+			return id
+		end
+	end
+end
+
+local function passes_on_gain()
+	for _, id in ipairs(zones.find("menu").cards) do
+		if entity.get(id).def_key == "btn_no_gain" then return true end
+	end
+	return false
+end
 
 -- Put a named seat up. The seat cards carry no tag naming themselves, so there
 -- is nothing for set_active_seat to point at; handing over until the right one
@@ -1127,12 +1167,13 @@ function M.test_spellstorm_an_offer_of_nothing_does_not_open(check)
 	local flame = stage_battle(one, "flame")
 	actions.execute("activate_zone:mine.battle:by_column:cast_ask",
 		{ card_id = flame.id, targets = {} })
-	check("no Fire card, no question", phase.current().key ~= "options", phase.current().key)
+	flow.settle()
+	check("no Fire card, no question", not phase.current().key:find("^gaining") and phase.current().key ~= "options",
+		phase.current().key)
 end
 
--- The Tier limit is the half a scope cannot say. Fire Essence offers the Fire
--- cards on the shelf and lets you take one at Tier I or II, so a Tier III card
--- comes up -- you can see what is there -- and cannot be clicked.
+-- Fire Essence lets you take a Fire card at Tier I or II off the shelf, so a Tier
+-- III one and a Water one both stay where they are, unclickable.
 function M.test_spellstorm_the_tier_limit_gates_the_take(check)
 	opening(5, "derby", "eve")
 	local one = zones.active_seat()
@@ -1144,17 +1185,9 @@ function M.test_spellstorm_the_tier_limit_gates_the_take(check)
 	for _, key in ipairs({ "fireball", "fireball2", "block" }) do zones.add(shelf, key) end
 	actions.execute("activate_zone:mine.battle:by_column:cast_ask",
 		{ card_id = essence.id, targets = {} })
-	local shown, pickable = {}, {}
-	for _, id in ipairs(zones.find("options").cards) do
-		local key = entity.get(id).def_key
-		shown[#shown + 1] = key
-		if flow.can_play(id) then pickable[#pickable + 1] = key end
-	end
-	table.sort(shown)
-	check("both Fire cards come up, and the Water one does not",
-		table.concat(shown, ",") == "fireball,fireball2", table.concat(shown, ","))
-	check("but only the Tier I one may be taken",
-		table.concat(pickable, ",") == "fireball", table.concat(pickable, ","))
+	flow.settle()
+	check("a gain step opens, and no offer", phase.current().key == "gaining_fire", phase.current().key)
+	check("only the Tier I Fire card may be taken", takeable() == "fireball", takeable())
 end
 
 
@@ -1246,9 +1279,7 @@ end
 
 
 -- The plain [GAIN] icon, whose limit is your own Tier rather than a number the
--- card prints -- which is exactly why it is a `chosen.where` and not a narrower
--- scope. No tag on the card being looked at could say whether it is at or below
--- somebody's Tier, because it is not a fact about that card.
+-- card prints.
 function M.test_spellstorm_a_gain_is_limited_to_your_own_tier(check)
 	opening(5, "derby", "eve")
 	local one = zones.active_seat()
@@ -1260,26 +1291,14 @@ function M.test_spellstorm_a_gain_is_limited_to_your_own_tier(check)
 	seat_card(one).stats.tier = 2
 	actions.execute("activate_zone:mine.battle:by_column:cast_ask",
 		{ card_id = gem.id, targets = {} })
-	local shown, pickable = {}, {}
-	for _, id in ipairs(zones.find("options").cards) do
-		local key = entity.get(id).def_key
-		shown[#shown + 1] = key
-		if flow.can_play(id) then pickable[#pickable + 1] = key end
-	end
-	table.sort(shown)
-	table.sort(pickable)
-	check("the whole shelf comes up -- seeing it is half the decision",
-		table.concat(shown, ",") == "fireball,fireball2,rapidfire", table.concat(shown, ","))
-	check("but only Tier I and II may be taken at Tier II",
-		table.concat(pickable, ",") == "fireball,rapidfire", table.concat(pickable, ","))
+	flow.settle()
+	check("only Tier I and II may be taken at Tier II", takeable() == "fireball,rapidfire", takeable())
+	check("and a may is one that can be passed on", passes_on_gain())
 
 	-- And the gained card goes to hand, which is what the rulebook says a gain
 	-- does unless the card says otherwise. Power Gem is the one that says so.
 	local before = #hand_of(one).cards
-	for _, id in ipairs({ unpack(zones.find("options").cards) }) do
-		if flow.can_play(id) then flow.play_card(id, {}); break end
-	end
-	flow.settle()
+	take_first()
 	check("and it goes to the hand", #hand_of(one).cards == before + 1,
 		("%d, was %d"):format(#hand_of(one).cards, before))
 end
@@ -1457,9 +1476,8 @@ function M.test_spellstorm_energy_wave_opens_an_ultimate_window(check)
 end
 
 
--- Amber is the one [GAIN] in the box that says MUST, and it says it twice. Both
--- halves needed the offer queue: one card asking two questions, and neither of
--- them declinable.
+-- Amber is the one [GAIN] in the box that says MUST, and it says it twice: two
+-- steps, and no way out of either.
 function M.test_spellstorm_amber_gains_twice_and_takes_no_for_an_answer(check)
 	opening(5, "derby", "eve")
 	local one = zones.active_seat()
@@ -1467,13 +1485,12 @@ function M.test_spellstorm_amber_gains_twice_and_takes_no_for_an_answer(check)
 	local held = #hand_of(one).cards
 
 	actions.execute("copy:target:activate", { card_id = amber.id, targets = { amber.id } })
-	check("it asks", phase.current().key == "options", phase.current().key)
-	check("and there is no way out of the question", not flow.can_dismiss())
+	flow.settle()
+	check("it asks", phase.current().key == "gaining_must", phase.current().key)
+	check("and there is no way out of the question", not passes_on_gain())
 	local took = 0
 	for _ = 1, 2 do
-		for _, id in ipairs({ unpack(zones.find("options").cards) }) do
-			if flow.can_play(id) then flow.play_card(id, {}); took = took + 1; break end
-		end
+		if take_first() then took = took + 1 end
 	end
 	check("twice over", took == 2, took)
 	check("and both cards are in hand", #hand_of(one).cards == held + 2,
@@ -1681,12 +1698,10 @@ function M.test_spellstorm_new_curriculum_voids_and_gains_from_one_shelf(check)
 		entity.get(second).zone_id == zones.find("void").id,
 		entity.get(entity.get(second).zone_id).key)
 
+	flow.settle()
 	check("then the gain is asked, and it is a different question",
-		phase.current().key == "options", phase.current().key)
-	local took
-	for _, id in ipairs({ unpack(zones.find("options").cards) }) do
-		if flow.can_play(id) then took = id; flow.play_card(id, {}); break end
-	end
+		phase.current().key == "gaining", phase.current().key)
+	local took = take_first()
 	check("and its answer goes to hand, not the VOID",
 		took and entity.get(took).zone_id == hand_of(one).id,
 		took and entity.get(entity.get(took).zone_id).key)
@@ -1715,11 +1730,9 @@ function M.test_spellstorm_a_declined_void_leaves_the_gain_a_gain(check)
 	check("and the second one too", flow.can_dismiss())
 	flow.dismiss_offer()
 
-	check("the gain is still waiting", phase.current().key == "options", phase.current().key)
-	local took
-	for _, id in ipairs({ unpack(zones.find("options").cards) }) do
-		if flow.can_play(id) then took = id; flow.play_card(id, {}); break end
-	end
+	flow.settle()
+	check("the gain is still waiting", phase.current().key == "gaining", phase.current().key)
+	local took = take_first()
 	check("and it still gains", took and entity.get(took).zone_id == hand_of(one).id,
 		took and entity.get(entity.get(took).zone_id).key)
 	check("with nothing VOIDed on the way", #zones.find("void").cards == voided,
@@ -2399,10 +2412,8 @@ end
 
 
 -- Coffee Run: "`[GAIN]`. If you gained an `[EARTH]` card, gain `[INIT]`." The
--- rider asks about the card just chosen, which is the only card still lying in
--- the offer while a `chosen` list runs -- the reading Potion Gun takes its
--- Element from. Counted before the move, since a card in hand is not in the
--- offer to be counted.
+-- rider asks about the card just taken, which waits in `gained` while the rules
+-- say where it goes.
 function M.test_spellstorm_coffee_run_reads_what_was_gained(check)
 	for _, case in ipairs({ { "twopower", 1 }, { "fireball", 0 } }) do
 		local pick, want = case[1], case[2]
@@ -2418,7 +2429,9 @@ function M.test_spellstorm_coffee_run_reads_what_was_gained(check)
 
 		local cr = stage_battle("seat_one", "derby_coffee")
 		actions.execute("copy:target:activate", { card_id = cr.id, targets = { cr.id } })
-		flow.play_card(find(pick, "options").id, {})
+		flow.settle()
+		flow.activate(find(pick, "storm_cloud").id)
+		flow.settle()
 		check(("gaining %s leaves Initiative at %d"):format(pick, want),
 			seat_card("seat_one").stats.initiative == want,
 			tostring(seat_card("seat_one").stats.initiative))
@@ -3142,5 +3155,95 @@ function M.test_spellstorm_lapis_heals_for_what_you_actually_discarded(check)
 	check("a Water card heals one", me.stats.health == 6, me.stats.health)
 end
 
+
+-- A [GAIN] is bought off the shelf where it lies, as Splendor buys: a step opens,
+-- no offer does. Falling Star has every player gain out of one sweep, which stacks
+-- two steps, and the player with Initiative chooses first.
+function M.test_spellstorm_falling_star_gains_in_initiative_order(check)
+	opening(5, "derby", "eve")
+	seat_card("seat_one").stats.initiative = 0
+	seat_card("seat_two").stats.initiative = 1
+	local now = zones.find("weather_now")
+	for _, id in ipairs({ unpack(now.cards) }) do zones.move_card(id, zones.find_id("weather_discard")) end
+	zones.move_card(find("fallingstar").id, now.id)
+	local held_one, held_two = #hand_of("seat_one").cards, #hand_of("seat_two").cards
+
+	actions.execute("set_active_seat:has_init", {})
+	actions.execute("each_seat:activate_zone:weather_now:by_column:wx", {})
+	flow.settle()
+	check("a gain step opens", phase.current().key == "gaining", phase.current().key)
+	check("for the player with Initiative", zones.active_seat() == "seat_two", zones.active_seat())
+	take_first()
+	check("who takes a card", #hand_of("seat_two").cards == held_two + 2, #hand_of("seat_two").cards)
+	check("then the other player gains", phase.current().key == "gaining" and zones.active_seat() == "seat_one",
+		phase.current().key .. " " .. zones.active_seat())
+	take_first()
+	check("and takes one too", #hand_of("seat_one").cards == held_one + 2, #hand_of("seat_one").cards)
+	check("and the round goes on", not phase.current().key:find("^gaining"), phase.current().key)
+end
+
+-- Power Gem is the one gain that does not go to hand.
+function M.test_spellstorm_power_gem_gains_to_the_discard(check)
+	opening(5, "derby", "eve")
+	local one = zones.active_seat()
+	local gem = stage_battle(one, "powergem")
+	local held, pile = #hand_of(one).cards, #zone_of("discard", one).cards
+	actions.execute("activate_zone:mine.battle:by_column:cast_ask", { card_id = gem.id, targets = {} })
+	flow.settle()
+	check("a step for gaining to the discard", phase.current().key == "gaining_discard", phase.current().key)
+	local took = take_first()
+	check("the card lands in the discard", took and entity.get(took).zone_id == zone_of("discard", one).id,
+		took and entity.get(entity.get(took).zone_id).key)
+	check("not the hand", #hand_of(one).cards == held, #hand_of(one).cards)
+	check("one card more there", #zone_of("discard", one).cards == pile + 1, #zone_of("discard", one).cards)
+end
+
+-- An offer with nothing to pick never opened, and a step with nothing to take
+-- passes by itself -- MUST included, since Amber cannot gain what is not there.
+function M.test_spellstorm_a_gain_with_nothing_to_take_passes(check)
+	for _, key in ipairs({ "twopower", "amber" }) do
+		opening(5, "derby", "eve")
+		local one = zones.active_seat()
+		seat_card(one).stats.tier = 1
+		local shelf = zones.find("storm_cloud")
+		for _, id in ipairs({ unpack(shelf.cards) }) do zones.purge_card(id) end
+		for _, k in ipairs({ "opal", "earthdragon" }) do zones.add(shelf, k) end
+		local card = stage_battle(one, key)
+		actions.execute("activate_zone:mine.battle:by_column:cast_ask", { card_id = card.id, targets = {} })
+		flow.settle()
+		check(key .. ": no step is left waiting", not phase.current().key:find("^gaining"), phase.current().key)
+		check(key .. ": nothing is owed", seat_card(one).stats.gain_owed == 0, seat_card(one).stats.gain_owed)
+		check(key .. ": and no button is left behind", not passes_on_gain())
+	end
+end
+
+-- A may is passed on with a button beside the shelf, and while the step is up the
+-- shelf and that button are all that answer a click.
+function M.test_spellstorm_a_gain_may_be_passed_on(check)
+	opening(5, "derby", "eve")
+	local one = zones.active_seat()
+	local card = stage_battle(one, "twopower")
+	local held = #hand_of(one).cards
+	actions.execute("activate_zone:mine.battle:by_column:cast_ask", { card_id = card.id, targets = {} })
+	flow.settle()
+	local elsewhere = {}
+	for e in entity.each("card") do
+		local z = e.zone_id and entity.get(e.zone_id)
+		if z and z.key ~= "storm_cloud" and z.key ~= "menu" and (flow.can_activate(e.id) or flow.can_play(e.id)) then
+			elsewhere[#elsewhere + 1] = e.def_key .. "@" .. z.key
+		end
+	end
+	check("nothing but the shelf and the menu answers", #elsewhere == 0, table.concat(elsewhere, ","))
+	local pass
+	for _, id in ipairs(zones.find("menu").cards) do
+		if entity.get(id).def_key == "btn_no_gain" then pass = id end
+	end
+	check("the pass is offered", pass ~= nil)
+	flow.activate(pass)
+	flow.settle()
+	check("and passing closes the step", not phase.current().key:find("^gaining"), phase.current().key)
+	check("with nothing gained", #hand_of(one).cards == held, #hand_of(one).cards)
+	check("and the button gone", not passes_on_gain())
+end
 
 return M
