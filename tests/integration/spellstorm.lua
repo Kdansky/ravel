@@ -62,7 +62,7 @@ local function opening(seed, one, two)
 	while true do
 		local key = phase.current().key
 		if key == "options" and flow.dismiss_offer() then
-		elseif key:find("^gaining") and zones.find("menu") then
+		elseif key == "gaining" and zones.find("menu") then
 			local pass
 			for _, id in ipairs(zones.find("menu").cards) do
 				if entity.get(id).def_key == "btn_no_gain" then pass = id end
@@ -1168,7 +1168,7 @@ function M.test_spellstorm_an_offer_of_nothing_does_not_open(check)
 	actions.execute("activate_zone:mine.battle:by_column:cast_ask",
 		{ card_id = flame.id, targets = {} })
 	flow.settle()
-	check("no Fire card, no question", not phase.current().key:find("^gaining") and phase.current().key ~= "options",
+	check("no Fire card, no question", phase.current().key ~= "gaining" and phase.current().key ~= "options",
 		phase.current().key)
 end
 
@@ -1186,7 +1186,7 @@ function M.test_spellstorm_the_tier_limit_gates_the_take(check)
 	actions.execute("activate_zone:mine.battle:by_column:cast_ask",
 		{ card_id = essence.id, targets = {} })
 	flow.settle()
-	check("a gain step opens, and no offer", phase.current().key == "gaining_fire", phase.current().key)
+	check("a gain step opens, and no offer", phase.current().key == "gaining", phase.current().key)
 	check("only the Tier I Fire card may be taken", takeable() == "fireball", takeable())
 end
 
@@ -1486,7 +1486,7 @@ function M.test_spellstorm_amber_gains_twice_and_takes_no_for_an_answer(check)
 
 	actions.execute("copy:target:activate", { card_id = amber.id, targets = { amber.id } })
 	flow.settle()
-	check("it asks", phase.current().key == "gaining_must", phase.current().key)
+	check("it asks", phase.current().key == "gaining", phase.current().key)
 	check("and there is no way out of the question", not passes_on_gain())
 	local took = 0
 	for _ = 1, 2 do
@@ -3179,7 +3179,7 @@ function M.test_spellstorm_falling_star_gains_in_initiative_order(check)
 		phase.current().key .. " " .. zones.active_seat())
 	take_first()
 	check("and takes one too", #hand_of("seat_one").cards == held_one + 2, #hand_of("seat_one").cards)
-	check("and the round goes on", not phase.current().key:find("^gaining"), phase.current().key)
+	check("and the round goes on", phase.current().key ~= "gaining", phase.current().key)
 end
 
 -- Power Gem is the one gain that does not go to hand.
@@ -3190,7 +3190,7 @@ function M.test_spellstorm_power_gem_gains_to_the_discard(check)
 	local held, pile = #hand_of(one).cards, #zone_of("discard", one).cards
 	actions.execute("activate_zone:mine.battle:by_column:cast_ask", { card_id = gem.id, targets = {} })
 	flow.settle()
-	check("a step for gaining to the discard", phase.current().key == "gaining_discard", phase.current().key)
+	check("a gain step opens", phase.current().key == "gaining", phase.current().key)
 	local took = take_first()
 	check("the card lands in the discard", took and entity.get(took).zone_id == zone_of("discard", one).id,
 		took and entity.get(entity.get(took).zone_id).key)
@@ -3211,7 +3211,7 @@ function M.test_spellstorm_a_gain_with_nothing_to_take_passes(check)
 		local card = stage_battle(one, key)
 		actions.execute("activate_zone:mine.battle:by_column:cast_ask", { card_id = card.id, targets = {} })
 		flow.settle()
-		check(key .. ": no step is left waiting", not phase.current().key:find("^gaining"), phase.current().key)
+		check(key .. ": no step is left waiting", phase.current().key ~= "gaining", phase.current().key)
 		check(key .. ": nothing is owed", seat_card(one).stats.gain_owed == 0, seat_card(one).stats.gain_owed)
 		check(key .. ": and no button is left behind", not passes_on_gain())
 	end
@@ -3241,7 +3241,7 @@ function M.test_spellstorm_a_gain_may_be_passed_on(check)
 	check("the pass is offered", pass ~= nil)
 	flow.activate(pass)
 	flow.settle()
-	check("and passing closes the step", not phase.current().key:find("^gaining"), phase.current().key)
+	check("and passing closes the step", phase.current().key ~= "gaining", phase.current().key)
 	check("with nothing gained", #hand_of(one).cards == held, #hand_of(one).cards)
 	check("and the button gone", not passes_on_gain())
 end

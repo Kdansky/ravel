@@ -184,7 +184,6 @@
       "on": ["player"],
       "start": 0
     },
-    { "key": "took", "min": 0, "max": 9, "display": "offscreen", "on": ["player"], "start": 0 },
     {
       "key": "gain_owed",
       "min": 0,
@@ -237,21 +236,14 @@
     "curse_or_ice": { "any_of": ["curse", "ice"] },
     "playable": { "needs": ["not_tagged:junk@self"] },
     "earth_essence": { "needs": ["tagged:earth@self", "tagged:essence@self"] },
-    "take_regroup": { "needs": ["gain_kind@mine.player <= 0", "tier_req@self <= tier@mine.player"] },
+    "take_regroup": { "needs": ["gain_kind@mine.player == 0", "tier_req@self <= tier@mine.player"] },
     "take_tier": {
-      "needs": [
-        "tagged:shelved@self",
-        "gain_kind@mine.player != 0",
-        "gain_kind@mine.player != 3",
-        "gain_kind@mine.player != 4",
-        "gain_kind@mine.player != 5",
-        "tier_req@self <= tier@mine.player"
-      ]
+      "needs": ["tagged:shelved@self", "gain_kind@mine.player >= 4", "tier_req@self <= tier@mine.player"]
     },
     "take_fire": {
       "needs": [
         "tagged:shelved@self",
-        "gain_kind@mine.player == 3",
+        "gain_kind@mine.player == 1",
         "tagged:fire@self",
         "tier_req@self <= 2"
       ]
@@ -259,7 +251,7 @@
     "take_water": {
       "needs": [
         "tagged:shelved@self",
-        "gain_kind@mine.player == 4",
+        "gain_kind@mine.player == 2",
         "tagged:water@self",
         "tier_req@self <= 2"
       ]
@@ -267,7 +259,7 @@
     "take_earth": {
       "needs": [
         "tagged:shelved@self",
-        "gain_kind@mine.player == 5",
+        "gain_kind@mine.player == 3",
         "tagged:earth@self",
         "tier_req@self <= 2"
       ]
@@ -335,16 +327,7 @@
           "key": "take",
           "text": "Gain this card",
           "merge": "this",
-          "phases": [
-            "gain_card",
-            "gaining",
-            "gaining_must",
-            "gaining_discard",
-            "gaining_fire",
-            "gaining_water",
-            "gaining_earth",
-            "gaining_coffee"
-          ],
+          "phases": ["gain_card", "gaining"],
           "needs": ["tagged:takeable_now@self"],
           "action": [
             "move_to:gained",
@@ -922,7 +905,7 @@
         "each_seat:activate_zone:rules:by_column:award_win",
         "each_seat:activate_zone:rules:by_column:award_tie",
         "each_seat:destroy:mine.hand",
-        "each_seat:stat_set:took@mine.player:0",
+        "each_seat:stat_set:gain_owed@mine.player:1",
         "each_seat:stat_set:gain_kind@mine.player:0"
       ],
       "next": [{ "then": "gain" }]
@@ -940,7 +923,7 @@
       "type": "player_input",
       "label": "Gain a card from the Storm Cloud",
       "zone": ["wizard", "menu"],
-      "ends_when": "took@mine.player >= 1"
+      "ends_when": "gain_owed@mine.player <= 0"
     },
     {
       "key": "potion",
@@ -956,78 +939,7 @@
       "actions": [
         "activate_zone:rules:by_column:gain_seat_init",
         "activate_zone:rules:by_column:gain_seat",
-        "create:menu:btn_no_gain:1",
-        "activate_zone:rules:by_column:gain_none"
-      ]
-    },
-    {
-      "key": "gaining_must",
-      "type": "player_input",
-      "label": "Gain a card from the Storm Cloud",
-      "zone": ["menu"],
-      "actions": [
-        "activate_zone:rules:by_column:gain_seat_init",
-        "activate_zone:rules:by_column:gain_seat",
-        "activate_zone:rules:by_column:gain_none"
-      ]
-    },
-    {
-      "key": "gaining_discard",
-      "type": "player_input",
-      "label": "Gain a card from the Storm Cloud to your discard",
-      "zone": ["menu"],
-      "actions": [
-        "activate_zone:rules:by_column:gain_seat_init",
-        "activate_zone:rules:by_column:gain_seat",
-        "create:menu:btn_no_gain:1",
-        "activate_zone:rules:by_column:gain_none"
-      ]
-    },
-    {
-      "key": "gaining_fire",
-      "type": "player_input",
-      "label": "Gain a Tier I or II Fire card",
-      "zone": ["menu"],
-      "actions": [
-        "activate_zone:rules:by_column:gain_seat_init",
-        "activate_zone:rules:by_column:gain_seat",
-        "create:menu:btn_no_gain:1",
-        "activate_zone:rules:by_column:gain_none"
-      ]
-    },
-    {
-      "key": "gaining_water",
-      "type": "player_input",
-      "label": "Gain a Tier I or II Water card",
-      "zone": ["menu"],
-      "actions": [
-        "activate_zone:rules:by_column:gain_seat_init",
-        "activate_zone:rules:by_column:gain_seat",
-        "create:menu:btn_no_gain:1",
-        "activate_zone:rules:by_column:gain_none"
-      ]
-    },
-    {
-      "key": "gaining_earth",
-      "type": "player_input",
-      "label": "Gain a Tier I or II Earth card",
-      "zone": ["menu"],
-      "actions": [
-        "activate_zone:rules:by_column:gain_seat_init",
-        "activate_zone:rules:by_column:gain_seat",
-        "create:menu:btn_no_gain:1",
-        "activate_zone:rules:by_column:gain_none"
-      ]
-    },
-    {
-      "key": "gaining_coffee",
-      "type": "player_input",
-      "label": "Gain a card from the Storm Cloud",
-      "zone": ["menu"],
-      "actions": [
-        "activate_zone:rules:by_column:gain_seat_init",
-        "activate_zone:rules:by_column:gain_seat",
-        "create:menu:btn_no_gain:1",
+        "activate_zone:rules:by_column:gain_may",
         "activate_zone:rules:by_column:gain_none"
       ]
     }
@@ -1084,11 +996,7 @@
         {
           "key": "cast_ask",
           "text": "Resolve",
-          "action": [
-            "stat_gain:gain_owed@mine.player:1",
-            "stat_set:gain_kind@mine.player:2",
-            "push_phase:gaining_discard"
-          ]
+          "action": ["activate_zone:rules:by_column:gain_discard"]
         }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:1"] }
@@ -1110,11 +1018,7 @@
         {
           "key": "cast_ask",
           "text": "Resolve",
-          "action": [
-            "stat_gain:gain_owed@mine.player:1",
-            "stat_set:gain_kind@mine.player:3",
-            "push_phase:gaining_fire"
-          ]
+          "action": ["activate_zone:rules:by_column:gain_fire"]
         }
       ]
     },
@@ -1135,11 +1039,7 @@
         {
           "key": "cast_ask",
           "text": "Resolve",
-          "action": [
-            "stat_gain:gain_owed@mine.player:1",
-            "stat_set:gain_kind@mine.player:4",
-            "push_phase:gaining_water"
-          ]
+          "action": ["activate_zone:rules:by_column:gain_water"]
         }
       ]
     },
@@ -1160,11 +1060,7 @@
         {
           "key": "cast_ask",
           "text": "Resolve",
-          "action": [
-            "stat_gain:gain_owed@mine.player:1",
-            "stat_set:gain_kind@mine.player:5",
-            "push_phase:gaining_earth"
-          ]
+          "action": ["activate_zone:rules:by_column:gain_earth"]
         }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:1"] }
@@ -1759,14 +1655,7 @@
         {
           "key": "cast_ask",
           "text": "Resolve",
-          "action": [
-            "stat_gain:gain_owed@mine.player:1",
-            "stat_set:gain_kind@mine.player:1",
-            "push_phase:gaining_must",
-            "stat_gain:gain_owed@mine.player:1",
-            "stat_set:gain_kind@mine.player:1",
-            "push_phase:gaining_must"
-          ]
+          "action": ["activate_zone:rules:by_column:gain_must", "activate_zone:rules:by_column:gain_must"]
         }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:1"] }
@@ -1857,11 +1746,7 @@
         {
           "key": "cast_ask",
           "text": "Resolve",
-          "action": [
-            "stat_gain:gain_owed@mine.player:1",
-            "stat_set:gain_kind@mine.player:1",
-            "push_phase:gaining"
-          ]
+          "action": ["activate_zone:rules:by_column:gain_tier"]
         }
       ],
       "leaves": {
@@ -1891,11 +1776,7 @@
         {
           "key": "cast_ask",
           "text": "Resolve",
-          "action": [
-            "stat_gain:gain_owed@mine.player:1",
-            "stat_set:gain_kind@mine.player:1",
-            "push_phase:gaining"
-          ]
+          "action": ["activate_zone:rules:by_column:gain_tier"]
         }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:1"] }
@@ -1982,11 +1863,7 @@
         {
           "key": "cast_ask",
           "text": "Resolve",
-          "action": [
-            "stat_gain:gain_owed@mine.player:1",
-            "stat_set:gain_kind@mine.player:1",
-            "push_phase:gaining"
-          ]
+          "action": ["activate_zone:rules:by_column:gain_tier"]
         }
       ],
       "leaves": {
@@ -2012,11 +1889,7 @@
         {
           "key": "cast_ask",
           "text": "Resolve",
-          "action": [
-            "stat_gain:gain_owed@mine.player:1",
-            "stat_set:gain_kind@mine.player:1",
-            "push_phase:gaining"
-          ]
+          "action": ["activate_zone:rules:by_column:gain_tier"]
         }
       ],
       "leaves": {
@@ -2160,14 +2033,7 @@
         {
           "key": "cast_ask",
           "text": "Resolve",
-          "action": [
-            "stat_gain:gain_owed@mine.player:1",
-            "stat_set:gain_kind@mine.player:1",
-            "push_phase:gaining",
-            "stat_gain:gain_owed@mine.player:1",
-            "stat_set:gain_kind@mine.player:1",
-            "push_phase:gaining"
-          ]
+          "action": ["activate_zone:rules:by_column:gain_tier", "activate_zone:rules:by_column:gain_tier"]
         }
       ]
     },
@@ -2237,11 +2103,7 @@
         {
           "key": "cast_ask",
           "text": "Resolve",
-          "action": [
-            "stat_gain:gain_owed@mine.player:1",
-            "stat_set:gain_kind@mine.player:6",
-            "push_phase:gaining_coffee"
-          ]
+          "action": ["activate_zone:rules:by_column:gain_coffee"]
         }
       ]
     },
@@ -3064,12 +2926,7 @@
         {
           "key": "wx",
           "text": "Weather",
-          "action": [
-            "draw_from:mine.deck:mine.hand:1",
-            "stat_gain:gain_owed@mine.player:1",
-            "stat_set:gain_kind@mine.player:1",
-            "push_phase:gaining"
-          ]
+          "action": ["draw_from:mine.deck:mine.hand:1", "activate_zone:rules:by_column:gain_tier"]
         }
       ]
     },
@@ -4288,11 +4145,7 @@
         {
           "key": "jr6",
           "needs": ["count:abra@mine.wizard >= 1", "researched@self >= 1"],
-          "action": [
-            "stat_gain:gain_owed@mine.player:1",
-            "stat_set:gain_kind@mine.player:1",
-            "push_phase:gaining"
-          ]
+          "action": ["activate_zone:rules:by_column:gain_tier"]
         }
       ],
       "card_stats": { "researched": 0 }
@@ -4371,6 +4224,62 @@
       "asset": "auto",
       "abilities": [
         {
+          "key": "gain_fire",
+          "action": [
+            "stat_gain:gain_owed@mine.player:1",
+            "stat_set:gain_kind@mine.player:1",
+            "push_phase:gaining"
+          ]
+        },
+        {
+          "key": "gain_water",
+          "action": [
+            "stat_gain:gain_owed@mine.player:1",
+            "stat_set:gain_kind@mine.player:2",
+            "push_phase:gaining"
+          ]
+        },
+        {
+          "key": "gain_earth",
+          "action": [
+            "stat_gain:gain_owed@mine.player:1",
+            "stat_set:gain_kind@mine.player:3",
+            "push_phase:gaining"
+          ]
+        },
+        {
+          "key": "gain_tier",
+          "action": [
+            "stat_gain:gain_owed@mine.player:1",
+            "stat_set:gain_kind@mine.player:4",
+            "push_phase:gaining"
+          ]
+        },
+        {
+          "key": "gain_discard",
+          "action": [
+            "stat_gain:gain_owed@mine.player:1",
+            "stat_set:gain_kind@mine.player:5",
+            "push_phase:gaining"
+          ]
+        },
+        {
+          "key": "gain_coffee",
+          "action": [
+            "stat_gain:gain_owed@mine.player:1",
+            "stat_set:gain_kind@mine.player:6",
+            "push_phase:gaining"
+          ]
+        },
+        {
+          "key": "gain_must",
+          "action": [
+            "stat_gain:gain_owed@mine.player:1",
+            "stat_set:gain_kind@mine.player:7",
+            "push_phase:gaining"
+          ]
+        },
+        {
           "key": "gain_seat_init",
           "needs": ["count:owes_init >= 1"],
           "action": ["set_priority:owes_init"]
@@ -4379,6 +4288,11 @@
           "key": "gain_seat",
           "needs": ["count:owes_init <= 0"],
           "action": ["set_priority:owes_gain"]
+        },
+        {
+          "key": "gain_may",
+          "needs": ["gain_kind@mine.player != 7"],
+          "action": ["create:menu:btn_no_gain:1"]
         },
         {
           "key": "gain_none",
@@ -4392,22 +4306,22 @@
         },
         {
           "key": "gained_hand",
-          "needs": ["gain_kind@mine.player != 2"],
+          "needs": ["gain_kind@mine.player != 5"],
           "action": ["move:gained:mine.hand"]
         },
         {
           "key": "gained_discard",
-          "needs": ["gain_kind@mine.player == 2"],
+          "needs": ["gain_kind@mine.player == 5"],
           "action": ["move:gained:mine.discard"]
         },
         {
           "key": "gained_took",
-          "needs": ["gain_owed@mine.player <= 0"],
-          "action": ["stat_gain:took@mine.player:1"]
+          "needs": ["gain_kind@mine.player == 0"],
+          "action": ["stat_damage:gain_owed@mine.player:1"]
         },
         {
           "key": "gained_done",
-          "needs": ["gain_owed@mine.player >= 1"],
+          "needs": ["gain_kind@mine.player >= 1"],
           "action": ["stat_damage:gain_owed@mine.player:1", "purge:menu.no_gain", "pop_phase"]
         }
       ]
@@ -4508,9 +4422,7 @@
           "action": [
             "show:storm_cloud:optional",
             "show:storm_cloud:optional",
-            "stat_gain:gain_owed@mine.player:1",
-            "stat_set:gain_kind@mine.player:1",
-            "push_phase:gaining"
+            "activate_zone:rules:by_column:gain_tier"
           ]
         }
       ],
@@ -4625,14 +4537,7 @@
       "tooltip": "Gaining a card is a may. Pass on it.",
       "abilities": [
         {
-          "phases": [
-            "gaining",
-            "gaining_discard",
-            "gaining_fire",
-            "gaining_water",
-            "gaining_earth",
-            "gaining_coffee"
-          ],
+          "phases": ["gaining"],
           "action": ["stat_damage:gain_owed@mine.player:1", "purge:menu.no_gain", "pop_phase"]
         }
       ]

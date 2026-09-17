@@ -51,11 +51,12 @@ three notes above came from a networked game.]
 ## Gap 5 — a [GAIN] bought off the shelf — built 2026-09-17
 
 Asked for: no offer overlay for a gain, buy in place as Splendor does, and no rule
-changed. Engine-free, in `tools/make_spellstorm.py`: a gain writes `gain_owed` and
-`gain_kind` and pushes a `gaining*` step; the shelf's one `take` ability routes by
-kind through an offscreen `gained` zone, which is also where Coffee Run reads the
-card. Mana Font, Meteorite, New Curriculum's VOIDs and Abragail's Water resolve
-are not gains and stay offers.
+changed. Engine-free, in `tools/make_spellstorm.py`: a gain runs one of the
+Gaining rule's `gain_<kind>` abilities, which writes `gain_owed` and `gain_kind`
+and pushes the one `gaining` step; the shelf's single `take` reads the kind and
+routes the card through an offscreen `gained` zone, which is also where Coffee Run
+reads it. The Regroup's gain is the same counter at kind 0. Mana Font, Meteorite,
+New Curriculum's VOIDs and Abragail's Water resolve are not gains and stay offers.
 
 What it cost to find:
 - **One `take`, not one per kind.** The engine keeps every `merge: "this"` ability,

@@ -140,32 +140,21 @@ REFILL_CLOUD = "draw_from:spellstorm_deck:storm_cloud:1"
 # their own ("any Tier I or II"), and Power Gem sends the card to the discard.
 
 # [GAIN] is bought off the shelf where it lies, the way Splendor buys: no offer
-# opens, a step does, and in it the cards you may take are the ones you can click.
-# The step is the kind of gain -- at your Tier to hand, to discard, one element at
-# Tier I or II -- so each rule lives on the take it allows and nothing is a mode
-# to keep in step. `gain_owed` is who is owed one: two seats gaining out of one
+# opens, a `gaining` step does, and in it the cards you may take are the ones you
+# can click. `gain_kind` says what may be taken and where it goes, for the shelf's
+# one take to read: 1-3 an element at Tier I or II, 4 and up at your Tier -- to
+# hand, to the discard, Coffee Run's, and Amber's MUST, which has no way out.
+# 0 is the Regroup's. `gain_owed` is who is owed one: two seats gaining out of one
 # sweep (Falling Star) stack two steps, and each hands itself to the next player
 # owed, Initiative first.
-GAIN_OWE = "stat_gain:gain_owed@mine.player:1"
-GAIN = lambda step="gaining": [GAIN_OWE, "stat_set:gain_kind@mine.player:%d" % GAIN_STEPS[step]["kind"],
-                                "push_phase:" + step]
-# Every step a gain may open, and the `gain_kind` it writes for the one take to
-# read -- a shelf card has one answer to a click, so what may be taken and where it
-# goes are asked of the kind rather than split into answers. 0 is the Regroup's.
-# `must` has no way out, which is Amber's MUST; an empty shelf still ends it, as an
-# empty offer never opened.
-GAIN_STEPS = {
-    "gaining":         {"kind": 1, "label": "Gain a card from the Storm Cloud"},
-    "gaining_must":    {"kind": 1, "label": "Gain a card from the Storm Cloud", "must": True},
-    "gaining_discard": {"kind": 2, "label": "Gain a card from the Storm Cloud to your discard"},
-    "gaining_fire":    {"kind": 3, "label": "Gain a Tier I or II Fire card"},
-    "gaining_water":   {"kind": 4, "label": "Gain a Tier I or II Water card"},
-    "gaining_earth":   {"kind": 5, "label": "Gain a Tier I or II Earth card"},
-    "gaining_coffee":  {"kind": 6, "label": "Gain a card from the Storm Cloud"},
-}
+GAIN_KINDS = {"fire": 1, "water": 2, "earth": 3, "tier": 4, "discard": 5, "coffee": 6, "must": 7}
+GAIN = lambda kind="tier": ["activate_zone:rules:by_column:gain_" + kind]
 # What a take or a pass does after its own part: one fewer owed, the button gone,
 # and the step closed so whatever it interrupted goes on.
 GAIN_DONE = ["stat_damage:gain_owed@mine.player:1", "purge:menu.no_gain", "pop_phase"]
+# The rules a step runs as it opens, and the ones a take runs, in order: r_gain's.
+GAIN_STEP = ["gain_seat_init", "gain_seat", "gain_may", "gain_none"]
+GAINED = ["gained_coffee", "gained_hand", "gained_discard", "gained_took", "gained_done"]
 
 FIRE, WATER, EARTH = "fire", "water", "earth"
 
@@ -202,7 +191,7 @@ BASIC = [
     card("powergem", "Power Gem", EARTH, kind="basic",
          tooltip="Power up. You may gain a card from the Storm Cloud at or below your Tier; if you do, it goes to your discard. On discard: power up.",
          flavour="The golden gems of the Spell Storm take time to develop their power.",
-         cast=[POWER] + GAIN("gaining_discard"),
+         cast=[POWER] + GAIN("discard"),
          disc=[POWER]),
 ]
 
@@ -216,15 +205,15 @@ ESSENCE = [
     card("fireessence", "Fire Essence", FIRE, kind="essence", tier=1,
          tooltip="Deal 1 damage. You may gain any Tier I or II Fire card in the Storm Cloud. VOID this.",
          flavour="Fire Magic is generally associated with destruction.",
-         cast=[DMG(1), "move_to:void"] + GAIN("gaining_fire")),
+         cast=[DMG(1), "move_to:void"] + GAIN("fire")),
     card("wateressence", "Water Essence", WATER, kind="essence", tier=1,
          tooltip="Gain 1 mana. You may gain any Tier I or II Water card in the Storm Cloud. VOID this.",
          flavour="Water Magic is generally associated with healing.",
-         cast=[MANA, "move_to:void"] + GAIN("gaining_water")),
+         cast=[MANA, "move_to:void"] + GAIN("water")),
     card("earthessence", "Earth Essence", EARTH, kind="essence", tier=1,
          tooltip="Power up. You may gain any Tier I or II Earth card in the Storm Cloud. VOID this. On discard: power up.",
          flavour="Earth Magic is generally associated with building.",
-         cast=[POWER, "move_to:void"] + GAIN("gaining_earth"),
+         cast=[POWER, "move_to:void"] + GAIN("earth"),
          disc=[POWER]),
 ]
 
@@ -387,7 +376,7 @@ SPELLS = [
     card("amber", "Amber", EARTH, tier=1,
          tooltip="Power up. You must gain two cards from the Storm Cloud at or below your Tier. On discard: power up.",
          flavour="The Business Demons considered drilling operations at the Spellstorm, but it was deemed too costly.",
-         cast=[POWER] + GAIN("gaining_must") + GAIN("gaining_must"), disc=[POWER]),
+         cast=[POWER] + GAIN("must") + GAIN("must"), disc=[POWER]),
     card("bloodstone", "Bloodstone", EARTH, tier=1,
          tooltip="Gain 1 mana. Take 1 damage. You may VOID a card from your hand or discard. On discard: gain 1 mana.",
          flavour='"It\'s best to leave gems that you find in the wild alone, unless you really know what you\'re doing." - Abragail',
@@ -824,7 +813,7 @@ WIZARDS = [
                card("derby_coffee", "Coffee Run", EARTH, kind="wizard_spell", ult=True,
                     tooltip="Power up twice and you may gain a card from the Storm Cloud at or below your Tier. If you gained an Earth card, gain Initiative.",
                     flavour='"This is gonna be the best coffee run of all time!"',
-                    cast=[POWER, POWER] + GAIN("gaining_coffee")),
+                    cast=[POWER, POWER] + GAIN("coffee")),
                card("derby_reckless", "Reckless Charge", FIRE, kind="wizard_spell", ult=True,
                     tooltip="Gain 1 mana and power up. Deal 1 damage. Gain an ASH. If you have Initiative, deal 1 more damage.",
                     flavour='"I know we can do it if we work together!"',
@@ -1287,7 +1276,7 @@ def spell_template(c):
     # answer arrives. The asks therefore go at the end -- and there may be more
     # than one now, since the offer queue holds the second question until the
     # first is answered. What is not allowed is doing something in between.
-    is_ask = lambda a: a.startswith(("show:", "options:", "push_phase:gaining", "stat_set:gain_kind")) or a == GAIN_OWE
+    is_ask = lambda a: a.startswith(("show:", "options:", "activate_zone:rules:by_column:gain_"))
     asks = [a for a in c["cast"] if is_ask(a)]
     does = [a for a in c["cast"] if a not in asks]
     for col in ("cast", "cast2", "cast3"):
@@ -1624,15 +1613,20 @@ def rules_templates():
     out.append(rules_card(
         "r_gain", "Gaining",
         "Whoever is owed a gain from the Storm Cloud chooses it, the player with Initiative first. With nothing on the shelf they may take, the gain passes.",
-        [ability("gain_seat_init", ["set_priority:owes_init"], when=["count:owes_init >= 1"]),
-         ability("gain_seat", ["set_priority:owes_gain"], when=["count:owes_init <= 0"])]
-        + [ability("gain_none", GAIN_DONE, when=["count:takeable_now@storm_cloud <= 0"]),
-           # Where a taken card goes, read off `gained` while it waits there.
-           ability("gained_coffee", GAIN_INIT, when=["gain_kind@mine.player == 6", "count:earth@gained >= 1"]),
-           ability("gained_hand", ["move:gained:mine.hand"], when=["gain_kind@mine.player != 2"]),
-           ability("gained_discard", ["move:gained:mine.discard"], when=["gain_kind@mine.player == 2"]),
-           ability("gained_took", ["stat_gain:took@mine.player:1"], when=["gain_owed@mine.player <= 0"]),
-           ability("gained_done", GAIN_DONE, when=["gain_owed@mine.player >= 1"])]))
+        [ability("gain_" + kind, ["stat_gain:gain_owed@mine.player:1",
+                                  "stat_set:gain_kind@mine.player:%d" % n, "push_phase:gaining"])
+         for kind, n in GAIN_KINDS.items()]
+        + [ability("gain_seat_init", ["set_priority:owes_init"], when=["count:owes_init >= 1"]),
+         ability("gain_seat", ["set_priority:owes_gain"], when=["count:owes_init <= 0"]),
+         ability("gain_may", ["create:menu:btn_no_gain:1"], when=["gain_kind@mine.player != %d" % GAIN_KINDS["must"]]),
+         ability("gain_none", GAIN_DONE, when=["count:takeable_now@storm_cloud <= 0"]),
+         # Where a taken card goes, read off `gained` while it waits there.
+         ability("gained_coffee", GAIN_INIT, when=["gain_kind@mine.player == %d" % GAIN_KINDS["coffee"],
+                                            "count:earth@gained >= 1"]),
+         ability("gained_hand", ["move:gained:mine.hand"], when=["gain_kind@mine.player != %d" % GAIN_KINDS["discard"]]),
+         ability("gained_discard", ["move:gained:mine.discard"], when=["gain_kind@mine.player == %d" % GAIN_KINDS["discard"]]),
+         ability("gained_took", ["stat_damage:gain_owed@mine.player:1"], when=["gain_kind@mine.player == 0"]),
+         ability("gained_done", GAIN_DONE, when=["gain_kind@mine.player >= 1"])]))
     out.append(rules_card(
         "r_starshot", "Star Shot",
         "May deals 1 more damage if the card she discarded was Tier II.",
@@ -2091,36 +2085,33 @@ def phases():
                      "each_seat:activate_zone:rules:by_column:award_win",
                      "each_seat:activate_zone:rules:by_column:award_tie",
                      "each_seat:destroy:mine.hand",
-                     "each_seat:stat_set:took@mine.player:0",
-                     # The Regroup's own take: from anywhere that hands out `takeable`.
+                     # Everybody is owed the Regroup's gain, which takes from anywhere
+                     # that hands out `takeable`.
+                     "each_seat:stat_set:gain_owed@mine.player:1",
                      "each_seat:stat_set:gain_kind@mine.player:0"],
          "next": [{"then": "gain"}]},
 
-        # The counter is zeroed for everybody by the phase before, because a
-        # group runs its body once per player and a reset inside it would wipe
-        # the first player's answer on the way to asking the second.
+        # The gain is owed to everybody by the phase before, because a group runs
+        # its body once per player and setting it inside would owe the first player
+        # a second one on the way to asking the other.
         {"key": "gain", "type": "turn", "seat": "each", "order": "highest:initiative",
          "phases": ["gain_card"],
          "next": [{"then": "battle_start", "ends_round": True}]},
         {"key": "gain_card", "type": "player_input",
          "label": "Gain a card from the Storm Cloud",
          "zone": ["wizard", "menu"],
-         "ends_when": "took@mine.player >= 1"},
+         "ends_when": "gain_owed@mine.player <= 0"},
         # Oren's Ultimate pushes this over whatever he was doing and the two
         # potion buttons are the only things reachable while it is up. It ends
         # when one of them says so, or when a third TOXIC says so -- so it has no
         # "ends_when" of its own: what ends it is an action, every time.
         {"key": "potion", "type": "player_input", "label": "Bottoms up, I guess!",
          "zone": ["sidecar"]},
-    ] + [
         # A [GAIN], pushed over whatever resolved it: whoever is owed chooses, a
         # "may" puts a way out beside the shelf, and a shelf with nothing to take
         # passes at once.
-        {"key": step, "type": "player_input", "label": g["label"], "zone": ["menu"],
-         "actions": ["activate_zone:rules:by_column:gain_seat_init", "activate_zone:rules:by_column:gain_seat"]
-         + ([] if g.get("must") else ["create:menu:btn_no_gain:1"])
-         + ["activate_zone:rules:by_column:gain_none"]}
-        for step, g in GAIN_STEPS.items()
+        {"key": "gaining", "type": "player_input", "label": "Gain a card from the Storm Cloud", "zone": ["menu"],
+         "actions": ["activate_zone:rules:by_column:" + k for k in GAIN_STEP]},
 
     ]
 
@@ -2189,8 +2180,7 @@ def build():
     cards.append({
         "key": "btn_no_gain", "text": "Don't gain", "asset": "circle:slate", "tags": ["immutable", "no_gain"],
         "tooltip": "Gaining a card is a may. Pass on it.",
-        "abilities": [{"phases": [k for k, g in GAIN_STEPS.items() if not g.get("must")],
-                       "action": list(GAIN_DONE)}]})
+        "abilities": [{"phases": ["gaining"], "action": list(GAIN_DONE)}]})
     cards.append({
         "key": "btn_rules", "text": "The rules",
         "asset": "diamond:slate", "tags": ["immutable"],
@@ -2284,8 +2274,6 @@ def build():
              "on": ["player"], "start": 0},
             {"key": "picked", "min": 0, "max": 9, "display": "offscreen",
              "on": ["player"], "start": 0},
-            {"key": "took", "min": 0, "max": 9, "display": "offscreen",
-             "on": ["player"], "start": 0},
             {"key": "gain_owed", "min": 0, "max": 9, "display": "offscreen",
              "on": ["player"], "start": 0},
             {"key": "gain_kind", "min": 0, "max": 9, "display": "offscreen",
@@ -2334,16 +2322,15 @@ def build():
             # What may be taken, by the kind of gain under way. The Regroup takes
             # from anywhere that hands out `takeable`; a [GAIN] only off the
             # shelf, at or below your Tier, or an Essence's element at I or II.
-            "take_regroup": {"needs": ["gain_kind@mine.player <= 0", "tier_req@self <= tier@mine.player"]},
-            "take_tier": {"needs": ["tagged:shelved@self", "gain_kind@mine.player != 0",
-                                    "gain_kind@mine.player != 3", "gain_kind@mine.player != 4",
-                                    "gain_kind@mine.player != 5", "tier_req@self <= tier@mine.player"]},
-            "take_fire": {"needs": ["tagged:shelved@self", "gain_kind@mine.player == 3",
-                                    "tagged:fire@self", "tier_req@self <= 2"]},
-            "take_water": {"needs": ["tagged:shelved@self", "gain_kind@mine.player == 4",
-                                     "tagged:water@self", "tier_req@self <= 2"]},
-            "take_earth": {"needs": ["tagged:shelved@self", "gain_kind@mine.player == 5",
-                                     "tagged:earth@self", "tier_req@self <= 2"]},
+            "take_regroup": {"needs": ["gain_kind@mine.player == 0", "tier_req@self <= tier@mine.player"]},
+            "take_tier": {"needs": ["tagged:shelved@self", "gain_kind@mine.player >= 4",
+                                    "tier_req@self <= tier@mine.player"]},
+            "take_fire": {"needs": ["tagged:shelved@self", "gain_kind@mine.player == 1", "tagged:fire@self",
+                                    "tier_req@self <= 2"]},
+            "take_water": {"needs": ["tagged:shelved@self", "gain_kind@mine.player == 2", "tagged:water@self",
+                                     "tier_req@self <= 2"]},
+            "take_earth": {"needs": ["tagged:shelved@self", "gain_kind@mine.player == 3", "tagged:earth@self",
+                                     "tier_req@self <= 2"]},
             "takeable_now": {"any_of": ["take_regroup", "take_tier", "take_fire", "take_water", "take_earth"]},
             "owes_gain": {"needs": ["gain_owed@self >= 1"]},
             "owes_init": {"needs": ["gain_owed@self >= 1", "initiative@self >= 1"]},
@@ -2391,13 +2378,11 @@ def build():
                 "tooltip": "Gain this card. You may only take a card at or below your Tier.",
                 "abilities": [{
                     "key": "take", "text": "Gain this card", "merge": "this",
-                    "phases": ["gain_card"] + list(GAIN_STEPS),
+                    "phases": ["gain_card", "gaining"],
                     "needs": ["tagged:takeable_now@self"],
                     # Through `gained`, offscreen, so the rules after it can ask what
                     # was taken and send it where this kind of gain puts it.
-                    "action": ["move_to:gained", REFILL_CLOUD]
-                    + ["activate_zone:rules:by_column:" + k for k in
-                       ("gained_coffee", "gained_hand", "gained_discard", "gained_took", "gained_done")]}]},
+                    "action": ["move_to:gained", REFILL_CLOUD] + ["activate_zone:rules:by_column:" + k for k in GAINED]}]},
             # The [ULT] icon, said once for the twenty-seven cards that carry
             # it. A phase of its own walks the battle spots for this one
             # ability, so only a card wearing the icon announces itself -- and
