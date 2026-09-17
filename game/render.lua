@@ -1893,6 +1893,13 @@ local function draw_detail_overlay()
 	love.graphics.pop()
 end
 
+-- **A question waits for the click that asked it to finish playing.** An overlay is a phase, and the phase stack is not
+-- in the state a run presents, so it opens the moment the rules reach it: its dim went up over flights, bolts and
+-- floats the player had not seen yet.
+function M.overlay_held()
+	return phase.is_overlay() and (stage.busy() or fx.busy())
+end
+
 function M.draw()
 	if not font_main then M.rescale() end
 	love.graphics.clear(unpack(C.bg))
@@ -1916,7 +1923,7 @@ function M.draw()
 	-- still flying into it) on top of the dim.
 	local outcome = flow.outcome()
 	if not outcome then celebrated = false end
-	if phase.is_overlay() then
+	if phase.is_overlay() and not M.overlay_held() then
 		local W, H = love.graphics.getDimensions()
 		love.graphics.push("all")
 		love.graphics.setColor(unpack(C.overlay_dim))

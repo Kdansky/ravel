@@ -40,7 +40,7 @@ local tags        = require("tags")
 -- Mirrors what render draws for an overlay phase, and per_seat resolves to the
 -- seat being asked, so the other player's copy stays untouchable.
 local function open_offer()
-	local cur = phase.is_overlay() and phase.current()
+	local cur = phase.is_overlay() and not render.overlay_held() and phase.current()
 	return cur and zones.find_id(cur.zone or "hand") or nil
 end
 
@@ -450,6 +450,8 @@ function love.keypressed(key)
 		return
 	end
 	if stage.busy() then stage.hurry(); return end
+	-- An offer not drawn yet cannot be answered, and Escape would dismiss it unseen.
+	if render.overlay_held() then return end
 	stage.arm()
 	if key == "escape" then
 		if render.get_detail() then
@@ -504,6 +506,7 @@ function love.mousepressed(x, y, button)
 	-- is a magnifying glass and nothing else.
 	if ctrl_down() then return end
 	if stage.busy() and not system_card_at(x, y) then stage.hurry(); return end
+	if render.overlay_held() and not system_card_at(x, y) then return end
 	if button == 2 then
 		stage.arm()
 		if render.get_detail() then
@@ -539,6 +542,7 @@ function love.mousereleased(x, y, button)
 	press = nil
 	if was_long then return end
 	if stage.busy() and not system_card_at(x, y) then stage.hurry(); return end
+	if render.overlay_held() and not system_card_at(x, y) then return end
 	stage.arm()
 	primary_action(x, y)
 	stage.seal()

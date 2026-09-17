@@ -149,6 +149,12 @@ function M.flight(def)
 	if def.base == "bolt" then return FLIGHT / math.max(0.25, tonumber(def.speed) or 1) end
 end
 
+-- Whether an effect or a number is still being told. Not the rings and sparks of a card landing, which go on under an
+-- open question as its cards arrive, nor confetti, which rains over the ending it celebrates.
+function M.busy()
+	return #motes > 0 or #floats > 0
+end
+
 -- The base-effect vocabulary, for the validator.
 function M.bases()
 	local t = {}

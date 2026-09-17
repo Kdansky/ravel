@@ -729,4 +729,24 @@ do
 	assert(inside, "and Pass is drawn inside the rect the game gave it")
 end
 
+-- A question asked by the click still playing waits for it: the overlay's dim would cover the flight and the float.
+do
+	flow.init("castle.json", 7)
+	render.rescale()
+	local phase = require("phase")
+	stage.arm()
+	fx.play({ base = "bolt" }, 480, 270, 100, 100)
+	eval("stat_damage:hp:1")
+	eval("options:sys_yes,sys_no")
+	stage.seal()
+	assert(phase.is_overlay(), "the rules have already opened the question")
+	assert(render.overlay_held(), "and the screen has not")
+	for _ = 1, 90 do frame(0.033) end
+	assert(not stage.busy() and not fx.busy(), "the click has finished playing")
+	assert(not render.overlay_held(), "so the question is up")
+	fx.impact(480, 270, 1.0)
+	assert(not render.overlay_held(), "and a card landing in the offer does not take it down")
+	flow.close_offer()
+end
+
 print("render smoke ok: " .. frames .. " frames drawn, " .. drawn .. " placeholders")
