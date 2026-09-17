@@ -1285,13 +1285,14 @@ the turn this is. **A name in braces is answered when the string is drawn:**
 { "key": "torch",  "text":  "{stats.fuel} left" }
 ```
 
-Three names are the engine's own, and mean the same wherever they are written:
+Four names are the engine's own:
 
 | | |
 |---|---|
 | `{owner}` | whose the thing wearing the label is, **by name** — the seat card's `text`, not the key the file spells it with. On a `per_seat` zone it is that copy's own seat, which is how two hands facing each other say which is which |
 | `{active}` | whoever is up |
 | `{phase}` | the phase's `label`, or its key where it has none |
+| `{asker.<field>}` | a field of the card that opened the offer — read by the offer zone and by every card dealt or shown into it, so one pair of answers can repeat any question. `{asker}` is `{asker.text}`. Empty when nothing asked, since the one offer zone also serves a roster a phase deals |
 
 **Writing `{phase}` anywhere quiets the corner.** With nothing else saying it,
 the engine prints the current phase's label in the top-right of the window,

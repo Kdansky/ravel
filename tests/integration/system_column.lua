@@ -112,6 +112,13 @@ function M.test_system_the_menu_button_asks_before_leaving(check)
 	check("and the game is still there", declaration.filename == "chess.json", declaration.filename)
 end
 
+-- The answers are shared, so the question has to come from the card asking.
+function M.test_system_yes_repeats_what_the_button_does(check)
+	local yes = ask_menu()
+	local said = require("label").fill(declaration.G.card_defs.sys_yes.tooltip, yes)
+	check("Yes says what Menu does", said == declaration.G.card_defs.sys_menu.tooltip, said)
+end
+
 function M.test_system_yes_loads_the_title_screen(check)
 	local yes = ask_menu()
 	check("Yes may be picked", yes and flow.play_card(yes.id, {}))

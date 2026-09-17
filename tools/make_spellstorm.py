@@ -673,8 +673,8 @@ def choice_templates():
 
         # Rapid Fire's "you may redraw this". A cost is one map settled in full,
         # so a part you may decline is an offer -- of one, with a No button.
-        entry("rf_back", "Take Rapid Fire back",
-              "Return Rapid Fire to your hand.", ["move:target:mine.hand"]),
+        entry("rf_back", "Take {asker.text} back",
+              "Return {asker.text} to your hand.", ["move:target:mine.hand"]),
 
         # May's Void Traveler: "a non-Wizard card from your hand, or any card in
         # the VOID". Only the VOID half was built.
@@ -1872,7 +1872,8 @@ def zones():
 
         # The offer, claimed so a roster of eight wizards has the middle of the
         # screen for one click and no strip of board for the rest of the game.
-        {"key": "options", "layout": "row", "status": "offer",
+        # Named after the card asking, so a question says whose it is.
+        {"key": "options", "label": "{asker.text}", "layout": "row", "status": "offer",
          "display": "offscreen", "pos": P(0.06, 0.28, 0.94, 0.72)},
 
         # Rules that have to run at a named moment live on cards, and cards have

@@ -39,6 +39,7 @@
     {
       "key": "sys_yes",
       "text": "Yes",
+      "tooltip": "{asker.tooltip}",
       "asset": "circle:slate",
       "tags": ["immutable"],
       "comment": "The answer to any button whose play is options:sys_yes,sys_no. A pick is played against the card that asked, so this runs that card's abilities.",
@@ -47,6 +48,7 @@
     {
       "key": "sys_no",
       "text": "No",
+      "tooltip": "Keep playing.",
       "asset": "square:slate",
       "tags": ["immutable"],
       "play": { "action": [] }

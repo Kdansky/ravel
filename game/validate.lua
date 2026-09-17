@@ -1240,7 +1240,7 @@ function M.check(G)
 				local first = name:match("^[^%.]+")
 				if not (label.RESERVED[first] or fields[first] or (LIVE_FIELDS[kind] or {})[first]) then
 					warn("%s: \"%s\" asks for '{%s}', which is neither one of the engine's own "
-						.. "words (owner, active, phase) nor a field a %s has — it will draw as itself",
+						.. "words (owner, active, phase, asker) nor a field a %s has — it will draw as itself",
 						where, field, name, kind)
 				end
 			end

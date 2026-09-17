@@ -1929,7 +1929,7 @@ function M.draw()
 			if cur.label then
 				love.graphics.push("all")
 				love.graphics.setColor(unpack(C.card_text))
-				printf(label.fill(cur.label, cur), 0, oz.place.y - 30 * S, W, "center")
+				printf(label.fill(cur.label, oz), 0, oz.place.y - 30 * S, W, "center")
 				love.graphics.pop()
 			end
 			draw_zone(oz)

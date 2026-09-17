@@ -611,6 +611,7 @@
     },
     {
       "key": "options",
+      "label": "{asker.text}",
       "layout": "row",
       "status": "offer",
       "display": "offscreen",
@@ -3593,10 +3594,10 @@
     },
     {
       "key": "rf_back",
-      "text": "Take Rapid Fire back",
+      "text": "Take {asker.text} back",
       "tags": ["immutable"],
       "asset": "auto",
-      "tooltip": "Return Rapid *Fire* to your hand.",
+      "tooltip": "Return {asker.text} to your hand.",
       "play": { "action": ["move:target:mine.hand"] }
     },
     {

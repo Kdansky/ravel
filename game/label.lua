@@ -27,10 +27,11 @@ local zones       = require("zones")
 
 local M = {}
 
--- The three that are not fields of anything. `owner` is about the thing wearing
--- the label — a per_seat zone drawn twice needs to say which copy this is — and
--- the other two are about the moment, so they answer the same wherever written.
-M.RESERVED = { phase = true, active = true, owner = true }
+-- The names that are not fields of the thing wearing the label. `owner` is about
+-- that thing — a per_seat zone drawn twice needs to say which copy this is — and
+-- `asker` about the card that opened the offer it lies in; the other two are about
+-- the moment, so they answer the same wherever written.
+M.RESERVED = { phase = true, active = true, owner = true, asker = true }
 
 -- Letters, digits, underscore and the dots between them. Anything else inside
 -- braces is prose that happens to have a brace in it, and is left alone.
@@ -78,10 +79,30 @@ local function def_of(e)
 	return nil
 end
 
+-- The card that opened the offer this is part of. The link is on the offer zone,
+-- so a zone reads its own and a card reads its zone's: the question and the
+-- answers dealt into it both reach the card that asked, and the logic stays there.
+local function asker_of(e)
+	if not e then return nil end
+	local z = e.kind == "zone" and e or (e.zone_id and entity.get(e.zone_id))
+	return z and z.asked_by and entity.get(z.asked_by)
+end
+
+local value
+
 -- The live entity first, its definition second. A card's `text` is on the def
 -- and its `stats.health` is on the entity, and an author should not have to
 -- know which — but the entity wins, because the entity is the current answer.
-local function value(name, e)
+function value(name, e)
+	local via = name == "asker" and "text" or name:match("^asker%.(.+)$")
+	if via then
+		local a = asker_of(e)
+		-- No asker is a state, not a typo: the one offer zone serves every question, and
+		-- a roster a phase deals has nobody behind it. The validator catches the typo.
+		if not a then return "" end
+		local v = value(via, a)
+		return type(v) == "string" and M.fill(v, a) or v
+	end
 	if name == "phase" then
 		local cur = phase.current()
 		return cur and (cur.label or cur.key)
