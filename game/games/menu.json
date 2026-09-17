@@ -159,7 +159,7 @@
     {
       "key": "m_join",
       "text": "Join a friend",
-      "tooltip": "Paste an invite someone sent you, or a saved game state. It carries its game with it, so this works even for a game you do not have.",
+      "tooltip": "Paste an invite someone sent you, or a saved game state. It carries its game with it, so this works even for a game you do not have. If a game dropped, have the other player invite you again: you sit back down where you were.",
       "tags": ["token", "immutable"],
       "play": { "action": ["net_join"] }
     },

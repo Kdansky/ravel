@@ -5167,6 +5167,14 @@ Three ways to connect, all of them without a server:
 The browser accepts all four kinds of string in the one box, and works out
 which it is: a state, an invite, a peer-to-peer offer or its answer.
 
+**Whoever invites plays the first seat, and whoever answers the other.** If one
+side crashes, nothing is lost: the other screen holds the whole game. An invite
+works once, so the side still playing invites again, and the side that crashed
+opens *Join a friend* from its menu and pastes it. It sits back down in the seat
+it had, because a guest takes whichever seat the host is not in. The panel says
+so when the connection closes, and it asks twice before the survivor answers an
+invite instead, since answering takes the inviter's game.
+
 ### Offering it from your own game
 
 Networking is something a **card** does, so a game decides whether to mention it

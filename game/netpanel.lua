@@ -14,6 +14,9 @@ local M = {}
 local up, last_status, last_seats = false, nil, nil
 local shown = false
 local linked_at = nil   -- when the current transport was attached
+-- The link was open and has closed. A closed data channel never reopens, and the
+-- survivor holds the whole game, so what it needs is to be told to invite again.
+local dropped, warned = false, false
 
 -- Keystrokes typed into the panel must not also reach the game: LÖVE listens on
 -- the window, and "z" is undo. Stopping propagation at the panel keeps the two
@@ -208,6 +211,12 @@ function M.refresh(force)
 	local trouble = net.desync
 		and ("<b>Out of sync.</b> " .. net.desync .. " Press <b>Resync</b> to ask them for the whole game.")
 		or nil
+	local st = net.linked() and net.status() or ""
+	if st:find("/open") then dropped, warned = false, false
+	elseif st:find("/closed") or st:find("failed/") then dropped = true end
+	local lost = dropped and invitable() and ("<b>The connection is gone.</b> Nothing is lost: this screen has the "
+		.. "whole game. Press <b>Invite over the internet</b> and send them the new text. They open "
+		.. "<b>Join a friend</b> from their menu and paste it, and sit back down where they were.") or nil
 	local lonely = nil
 	if net.linked() and not net.last_heard and linked_at
 		and os.time() - linked_at >= 4 then
@@ -215,7 +224,7 @@ function M.refresh(force)
 			.. "<i>this</i> browser — for a different browser, or another computer, "
 			.. "use <b>Invite over the internet</b>."
 	end
-	set_trouble(trouble or lonely)
+	set_trouble(trouble or lost or lonely)
 end
 
 local HANDLERS = {}
@@ -303,7 +312,7 @@ HANDLERS["p2p"] = function()
 	end
 	if not netlink.rtc_start("host") then M.note("this browser has no WebRTC"); return end
 	net.take_role("host")
-	pending_role, awaiting = "host", nil
+	pending_role, awaiting, dropped = "host", nil, false
 	M.note("building an invite…")
 end
 
@@ -312,7 +321,13 @@ HANDLERS["paste"] = function()
 	if not text or text == "" then M.note("nothing pasted"); return end
 	local kind = net.kind_of(text)
 
-	if kind == "offer" then
+	if kind == "offer" and dropped and invitable() and not warned then
+		-- Answering an invite takes the inviter's game, and after a drop the side
+		-- that asks is often the one that lost it.
+		warned = true
+		M.note("That would replace this game with theirs. If their side crashed, press Invite over the "
+			.. "internet instead and send them that. Press Paste & apply again to take their game anyway.")
+	elseif kind == "offer" then
 		if not netlink.rtc_start("guest", net.unwrap_sdp(text)) then
 			M.note("this browser has no WebRTC")
 		else

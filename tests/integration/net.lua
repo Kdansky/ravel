@@ -193,6 +193,7 @@ function M.test_net_the_host_is_player_one(check)
 
 	-- Peer to peer: the guest connects from wherever it was, and its game only
 	-- arrives with the host's first state.
+	net.claim_seat(seats[1])
 	local state = net.export(true)
 	net.begin("castle.json", 1)
 	net.claim_seat(nil)
@@ -559,6 +560,58 @@ function M.test_net_a_move_arrives_as_the_run_that_made_it(check)
 
 	zones.on_change, net.beats, net.on_apply = nil, nil, nil
 	stage.clear()
+end
+
+-- A crash loses one copy of the game, not the game: the survivor holds all of
+-- it. An invite cannot be reused, so the survivor invites again and the crashed
+-- side joins from its menu — and must sit back down where it was, which is not
+-- the guest's seat when the side that crashed was the one that invited.
+function M.test_net_a_crashed_peer_rejoins_the_game(check)
+	for _, survivor in ipairs({ "host", "guest" }) do
+		local a, b = netlink.loopback()
+		net.begin("lost_cities.json", 7)
+		dismiss_mode()
+		net.take_role(survivor)
+		local seats = net.seats()
+		local mine = net.seat
+		local theirs = mine == seats[1] and seats[2] or seats[1]
+		local at = net.fingerprint()
+
+		net.unlink()
+		net.take_role("host")
+		check(survivor .. " who invites again keeps its seat", net.seat == mine, tostring(net.seat))
+		net.link(a)
+		net.publish(true)
+		local whole = b.recv()
+		a.send(whole)
+
+		-- The other screen, starting over from its menu.
+		net.unlink()
+		flow.init("menu.json")
+		net.claim_seat(nil)
+		net.take_role("guest")
+		net.link(b)
+		net.poll()
+		check("the rejoining side has the " .. survivor .. "'s game", net.fingerprint() == at)
+		check("and sits where it sat before the crash, not where a guest sits",
+			net.seat == theirs, survivor .. " kept " .. mine .. ", rejoiner sat " .. tostring(net.seat))
+
+		-- The two agree on a baseline again, so play goes on in small messages.
+		while a.recv() do end
+		net.unattended(function()
+			local c2, t2 = first_playable()
+			flow.play_card(c2, t2)
+		end)
+		local next_move = a.recv()
+		while a.recv() do end
+		local moved = net.fingerprint()
+		check("its next move is a delta", tostring(next_move):find(":D[jx]:") ~= nil, tostring(next_move):sub(1, 40))
+
+		net.unlink()
+		net.import(whole)
+		check("which lands on the survivor's copy", net.import(next_move) and net.fingerprint() == moved)
+		net.claim_seat(nil)
+	end
 end
 
 function M.test_net_leaves_nothing_behind(check)

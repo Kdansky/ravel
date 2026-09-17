@@ -340,9 +340,14 @@ end
 
 -- The snapshot is shallow-copied before the envelope goes on it, so the table
 -- kept as `baseline` stays a state and never quietly becomes a message.
+--
+-- It also says which seat sent it. That is not game state and is never hashed,
+-- but a guest seated by role alone would take seat two after rejoining a game
+-- whose host had been seat two all along.
 local function as_message(snap)
 	local m = {}
 	for k, v in pairs(snap) do m[k] = v end
+	m.from_seat = M.seat
 	return m
 end
 
@@ -433,15 +438,24 @@ local claimed_in = nil
 --
 -- A guest's game arrives after the connection does, so a guest is seated when a
 -- state lands rather than when it joins; which is why this is asked again there.
+--
+-- A guest takes the seat the host is not in, and the second only when the host
+-- has not said. After a crash the survivor invites again, so the host may be
+-- seat two, and a guest in that seat already would be two screens in one chair.
 M.role = nil   -- "host" or "guest", for the length of one link
 local seated_in = nil
 
-local function sit()
+local function sit(host_seat)
 	local seats = M.seats()
-	if not M.role or #seats < 2 or seated_in == declaration.filename then return end
+	if not M.role or #seats < 2 then return end
+	if M.role == "guest" and host_seat and M.seat == host_seat then seated_in, claimed_in = nil, nil end
+	if seated_in == declaration.filename then return end
 	seated_in = declaration.filename
 	if claimed_in == declaration.filename then return end
-	M.claim_seat(seats[M.role == "host" and 1 or 2])
+	if M.role == "host" then return M.claim_seat(seats[1]) end
+	for _, s in ipairs(seats) do
+		if s ~= (host_seat or seats[1]) then return M.claim_seat(s) end
+	end
 end
 
 function M.take_role(role)
@@ -587,8 +601,9 @@ function M.apply_full(snap)
 	end
 	check_landing(snap)
 	if not M.divergent then M.desync = nil end   -- a whole state is the cure
-	baseline, baseline_hash = M.snapshot(), M.state_hash()
-	sit()
+	-- Both sides hold this state now, so what we send next may be a delta again.
+	baseline, baseline_hash, pending_full = M.snapshot(), M.state_hash(), false
+	sit(type(snap.from_seat) == "string" and snap.from_seat or nil)
 	if M.on_apply then M.on_apply(snap) end
 	return true
 end
