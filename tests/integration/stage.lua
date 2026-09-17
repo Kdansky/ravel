@@ -262,4 +262,47 @@ function M.test_a_cascade_is_not_recorded_for_ever(check)
 	end)
 end
 
+-- A run that deals both hands hands the table back and forth, and each step is a state that says whose turn it was.
+-- Read from there, the hidden hand swapped with every step; the seat that clicked watches the whole run instead.
+function M.test_a_run_is_shown_to_the_seat_that_clicked(check)
+	local path = "game/games/tmp_stage_seats.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+	  "title": "Stage seats",
+	  "players": [{ "card": "one" }, { "card": "two" }],
+	  "zones": [
+	    { "key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat",
+	      "pos": [[0.30, 0.05, 0.95, 0.25], [0.30, 0.70, 0.95, 0.90]] }
+	  ],
+	  "phases": [{ "key": "act", "type": "player_input", "zone": "hand", "next": [{ "then": "act" }] }],
+	  "cards": [{ "key": "one", "text": "One" }, { "key": "two", "text": "Two" }, { "key": "ash", "text": "Ash" }]
+	}]==])
+	f:close()
+	local ok, err = pcall(function()
+		flow.init("tmp_stage_seats.json", 1)
+		local sys = zones.system_card()
+		sys.stats.turn = 1
+		local hand
+		for z in entity.each("zone") do if z.key == "hand" and z.seat == "one" then hand = z end end
+		stage.arm()
+		local c = zones.add(hand, "ash")
+		stage.record("add", c.id)
+		sys.stats.turn = 2
+		stage.record("stat", sys.id)
+		sys.stats.turn = 1
+		stage.record("stat", sys.id)
+		stage.seal()
+		-- Past the deal and onto the step where it is seat two's turn, short of the last.
+		stage.update(0.12)
+		stage.enter()
+		check("the step dealing seat two in is still watched by seat one", zones.system_card().stats.turn == 2
+			and zones.visible(entity.get(c.id)), tostring(zones.system_card().stats.turn))
+		stage.leave()
+		check("and nobody is watched for once the frame is over", zones.shown_to == nil)
+		stage.clear()
+	end)
+	os.remove(path)
+	if not ok then error(err, 0) end
+end
+
 return M

@@ -103,6 +103,11 @@ end
 -- machines watching one game hold different values on purpose.
 M.viewer = nil
 
+-- The seat a run being played back is shown to, in hot-seat where there is no viewer. A state played back says whose
+-- turn it was at that step, and a setup dealing both hands hands the table back and forth, so each step would show a
+-- different hand. Set by stage.lua around a presented frame, and as client-side as `viewer`.
+M.shown_to = nil
+
 -- The claim, once it has been checked against the game actually loaded, and nil
 -- when nobody at this screen is playing. A viewer naming no seat in *this* game
 -- is no viewer at all: claiming a seat and then loading a game that never heard
@@ -490,7 +495,7 @@ function M.visible(c)
 	if not c then return false end
 	local z = c.zone_id and entity.get(c.zone_id)
 	if not z or z.visibility ~= "owner" or not z.seat then return true end
-	return z.seat == (M.watching() or M.active_seat())
+	return z.seat == (M.watching() or M.shown_to or M.active_seat())
 end
 
 -- The order a browser should show a zone's cards in. **A face-down stack's
@@ -526,7 +531,7 @@ end
 -- one of them quietly undoes the other.
 function M.peekable(z)
 	if not z or z.visibility ~= "owner" or not z.seat then return true end
-	return z.seat == (M.watching() or M.active_seat())
+	return z.seat == (M.watching() or M.shown_to or M.active_seat())
 end
 
 function M.move_top(from_id, to_id, where)

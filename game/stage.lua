@@ -33,6 +33,7 @@
 -- it along: `replay` plays that the way a local click plays.
 
 local entity = require("entity")
+local zones = require("zones")
 
 local M = {}
 
@@ -53,6 +54,7 @@ local armed = false
 local before                 -- the state the click started from
 local presented, live        -- what is on screen, and what the rules are using
 local clock, rate = 0, 1
+local seat                   -- who clicked, which is who is watching until the run is over
 
 -- `play` is what a step looks like, for the steps that have a look of their own.
 -- A move has none: the state it lands in puts the card somewhere else, and the
@@ -79,7 +81,7 @@ end
 local function drain()
 	for _, s in ipairs(queue) do fire(s) end
 	queue = {}
-	presented, before = nil, nil
+	presented, before, seat = nil, nil, nil
 	clock, rate = 0, 1
 end
 
@@ -124,6 +126,7 @@ function M.arm()
 	if #queue > 0 then drain() end
 	steps, shipped, armed = {}, 0, true
 	before = entity.snapshot()
+	seat = zones.active_seat()
 end
 
 function M.seal()
@@ -176,6 +179,7 @@ function M.enter()
 	live = entity.registry()
 	carry(live, presented)
 	entity.restore(presented)
+	zones.shown_to = seat
 end
 
 function M.leave()
@@ -183,6 +187,7 @@ function M.leave()
 	carry(presented, live)
 	entity.restore(live)
 	live = nil
+	zones.shown_to = nil
 end
 
 -- A click in the middle of a run is impatience, not a mistake: the run speeds up
