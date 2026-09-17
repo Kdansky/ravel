@@ -1358,11 +1358,11 @@ def wizard_templates(w):
     char = {
         "key": "wiz_" + w["key"], "text": w["name"], "asset": WIZ_ART[w["key"]],
         "tags": ["wizard_card", "power_track", w["key"]] + w["keywords"],
-        "tooltip": tip("%s. %s\n\nUltimate (%d mana) - %s: %s\n\nCast it while one of your own cards"
+        "tooltip": tip("%s.\n\nUltimate (%d mana) - %s: %s\n\nCast it while one of your own cards"
                        " carrying the Ultimate icon resolves.\n\nStarting health %d, Initiative rating %d."
-                       % (w["epithet"], w["blurb"], w["ult_cost"], w["ult_name"],
+                       % (w["epithet"], w["ult_cost"], w["ult_name"],
                           w["ult_tooltip"], w["health"], w["rating"]),
-                       simplified=w["simplified"]),
+                       w["blurb"], w["simplified"]),
         "reactions": [ult, ult_free] + ([w["passive"]] if w["passive"] else []),
         # Printed on the card so a player reads what their mana is for. Both this
         # and the cost above come from `ult_cost`, and nothing changes either.
@@ -1396,9 +1396,9 @@ def wizard_templates(w):
     out.append({
         "key": "pick_" + w["key"], "text": w["name"], "asset": WIZ_ART[w["key"]],
         "tags": ["chooser", "no_undo", w["key"]],
-        "tooltip": "%s (%s). %s\n\nHealth %d, Initiative rating %d, Ultimate %d mana."
-                   % (w["epithet"], w["elements"], w["blurb"], w["health"],
-                      w["rating"], w["ult_cost"]),
+        "tooltip": tip("%s (%s).\n\nHealth %d, Initiative rating %d, Ultimate %d mana."
+                       % (w["epithet"], w["elements"], w["health"], w["rating"], w["ult_cost"]),
+                       w["blurb"]),
         "play": {"action": pick_action},
     })
     return out

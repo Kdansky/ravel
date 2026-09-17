@@ -2042,7 +2042,7 @@
       "text": "Derby Pocket",
       "asset": "ss_derby.jpg",
       "tags": ["wizard_card", "power_track", "derby"],
-      "tooltip": "Infernal Intern. An ex-Business Demon intern who loves to encourage others. Strong early, and gains power passively. A good all-rounder.\n\n*Ultimate* (*6 mana*) - Flaming Yardstick: Deal *2 damage*. If you have an odd number of health, gain *2 mana*.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 13*, *Initiative rating 3*.",
+      "tooltip": "Infernal Intern.\n\n*Ultimate* (*6 mana*) - Flaming Yardstick: Deal *2 damage*. If you have an odd number of health, gain *2 mana*.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 13*, *Initiative rating 3*.\n\n_An ex-Business Demon intern who loves to encourage others. Strong early, and gains power passively. A good all-rounder._",
       "reactions": [
         {
           "to": "resolving",
@@ -2069,7 +2069,7 @@
       "text": "Derby Pocket",
       "asset": "ss_derby.jpg",
       "tags": ["chooser", "no_undo", "derby"],
-      "tooltip": "Infernal Intern (*Fire*, *Earth*). An ex-Business Demon intern who loves to encourage others. Strong early, and gains power passively. A good all-rounder.\n\nHealth 13, *Initiative rating 3*, *Ultimate* *6 mana*.",
+      "tooltip": "Infernal Intern (*Fire*, *Earth*).\n\nHealth 13, *Initiative rating 3*, *Ultimate* *6 mana*.\n\n_An ex-Business Demon intern who loves to encourage others. Strong early, and gains power passively. A good all-rounder._",
       "play": {
         "action": [
           "stat_boost:health@mine.player:12",
@@ -2140,7 +2140,7 @@
       "text": "Eve Williams",
       "asset": "ss_eve.jpg",
       "tags": ["wizard_card", "power_track", "eve"],
-      "tooltip": "Radical Activist. A radical activist who loves to blow things up. Aggressive, and can really mess up her opponent's deck.\n\n*Ultimate* (*5 mana*) - Doom Bauble: Draw *2 cards*. You may move a *CURSE* or an *ICE* from your hand or discard to your opponent's discard.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 14*, *Initiative rating 5*.",
+      "tooltip": "Radical Activist.\n\n*Ultimate* (*5 mana*) - Doom Bauble: Draw *2 cards*. You may move a *CURSE* or an *ICE* from your hand or discard to your opponent's discard.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 14*, *Initiative rating 5*.\n\n_A radical activist who loves to blow things up. Aggressive, and can really mess up her opponent's deck._",
       "reactions": [
         {
           "to": "resolving",
@@ -2174,7 +2174,7 @@
       "text": "Eve Williams",
       "asset": "ss_eve.jpg",
       "tags": ["chooser", "no_undo", "eve"],
-      "tooltip": "Radical Activist (*Fire*, *Water*). A radical activist who loves to blow things up. Aggressive, and can really mess up her opponent's deck.\n\nHealth 14, *Initiative rating 5*, *Ultimate* *5 mana*.",
+      "tooltip": "Radical Activist (*Fire*, *Water*).\n\nHealth 14, *Initiative rating 5*, *Ultimate* *5 mana*.\n\n_A radical activist who loves to blow things up. Aggressive, and can really mess up her opponent's deck._",
       "play": {
         "action": [
           "stat_boost:health@mine.player:13",
@@ -2243,7 +2243,7 @@
       "text": "Abragail",
       "asset": "ss_abra.jpg",
       "tags": ["wizard_card", "power_track", "abra"],
-      "tooltip": "Professor of Magical Chemistry. A professor at Azura Academy who levels up her magic as the game goes on. Great for players who like to plan.\n\n*Ultimate* (*4 mana*) - Level Up!: Put one of your six *Research Tokens* on any empty space of your journal. Every researched space fires at the start of each battle.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 16*, *Initiative rating 7*.",
+      "tooltip": "Professor of Magical Chemistry.\n\n*Ultimate* (*4 mana*) - Level Up!: Put one of your six *Research Tokens* on any empty space of your journal. Every researched space fires at the start of each battle.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 16*, *Initiative rating 7*.\n\n_A professor at Azura Academy who levels up her magic as the game goes on. Great for players who like to plan._",
       "reactions": [
         {
           "to": "resolving",
@@ -2272,7 +2272,7 @@
       "text": "Abragail",
       "asset": "ss_abra.jpg",
       "tags": ["chooser", "no_undo", "abra"],
-      "tooltip": "Professor of Magical Chemistry (*Water*, *Earth*). A professor at Azura Academy who levels up her magic as the game goes on. Great for players who like to plan.\n\nHealth 16, *Initiative rating 7*, *Ultimate* *4 mana*.",
+      "tooltip": "Professor of Magical Chemistry (*Water*, *Earth*).\n\nHealth 16, *Initiative rating 7*, *Ultimate* *4 mana*.\n\n_A professor at Azura Academy who levels up her magic as the game goes on. Great for players who like to plan._",
       "play": {
         "action": [
           "stat_boost:health@mine.player:15",
@@ -2337,7 +2337,7 @@
       "text": "Croh Vosh",
       "asset": "ss_croh.jpg",
       "tags": ["wizard_card", "power_track", "croh", "accursed"],
-      "tooltip": "Undead Lich. An undead Lich back from a thousand-year slumber. Enormous health, but he cannot heal -- healing becomes a *CURSE* for his opponent instead.\n\n*Ultimate* (*6 mana*) - DOOOOOOOOOM!: For each *DOOM Token* you have, take a card of your choice from your discard or draw one. If you have none, gain a *DOOM Token*.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 20*, *Initiative rating 8*.",
+      "tooltip": "Undead Lich.\n\n*Ultimate* (*6 mana*) - DOOOOOOOOOM!: For each *DOOM Token* you have, take a card of your choice from your discard or draw one. If you have none, gain a *DOOM Token*.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 20*, *Initiative rating 8*.\n\n_An undead Lich back from a thousand-year slumber. Enormous health, but he cannot heal -- healing becomes a CURSE for his opponent instead._",
       "reactions": [
         {
           "to": "resolving",
@@ -2368,7 +2368,7 @@
       "text": "Croh Vosh",
       "asset": "ss_croh.jpg",
       "tags": ["chooser", "no_undo", "croh"],
-      "tooltip": "Undead Lich (*Fire*, *Water*). An undead Lich back from a thousand-year slumber. Enormous health, but he cannot heal -- healing becomes a *CURSE* for his opponent instead.\n\nHealth 20, *Initiative rating 8*, *Ultimate* *6 mana*.",
+      "tooltip": "Undead Lich (*Fire*, *Water*).\n\nHealth 20, *Initiative rating 8*, *Ultimate* *6 mana*.\n\n_An undead Lich back from a thousand-year slumber. Enormous health, but he cannot heal -- healing becomes a CURSE for his opponent instead._",
       "play": {
         "action": [
           "stat_boost:health@mine.player:19",
@@ -2436,7 +2436,7 @@
       "text": "Omar Evans",
       "asset": "ss_omar.jpg",
       "tags": ["wizard_card", "power_track", "omar", "dodging"],
-      "tooltip": "Ninja and Eco-Terrorist. A ninja and wanted eco-terrorist. Low health, but he acts first in every matchup and Shuriken always resolves before anything else.\n\n*Ultimate* (*4 mana*) - Hidden Movement: Return a card from your discard to your hand, or *draw a card*. Then arm a Trap, face down, replacing whatever was armed.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 10*, *Initiative rating 1*.",
+      "tooltip": "Ninja and Eco-Terrorist.\n\n*Ultimate* (*4 mana*) - Hidden Movement: Return a card from your discard to your hand, or *draw a card*. Then arm a Trap, face down, replacing whatever was armed.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 10*, *Initiative rating 1*.\n\n_A ninja and wanted eco-terrorist. Low health, but he acts first in every matchup and Shuriken always resolves before anything else._",
       "reactions": [
         {
           "to": "resolving",
@@ -2469,7 +2469,7 @@
       "text": "Omar Evans",
       "asset": "ss_omar.jpg",
       "tags": ["chooser", "no_undo", "omar"],
-      "tooltip": "Ninja and Eco-Terrorist (*Fire*, *Water*). A ninja and wanted eco-terrorist. Low health, but he acts first in every matchup and Shuriken always resolves before anything else.\n\nHealth 10, *Initiative rating 1*, *Ultimate* *4 mana*.",
+      "tooltip": "Ninja and Eco-Terrorist (*Fire*, *Water*).\n\nHealth 10, *Initiative rating 1*, *Ultimate* *4 mana*.\n\n_A ninja and wanted eco-terrorist. Low health, but he acts first in every matchup and Shuriken always resolves before anything else._",
       "play": {
         "action": [
           "stat_boost:health@mine.player:9",
@@ -2528,7 +2528,7 @@
       "text": "Bunny Wizard",
       "asset": "ss_bunny.jpg",
       "tags": ["wizard_card", "power_track", "bunny", "overhealing"],
-      "tooltip": "Healer of Bunny Island. A stuffie from Bunny Island who heals fast and often helps his opponent along the way. He is the only wizard who can heal past his starting health, and what will not fit he draws instead. A good choice if you like to play nice.\n\n*Ultimate* (*5 mana*) - Cast a Magic Trick!: Reveal a non-Wizard card from your hand, resolve it twice and *VOID* it. All players *heal 1*.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 8*, *Initiative rating 2*.",
+      "tooltip": "Healer of Bunny Island.\n\n*Ultimate* (*5 mana*) - Cast a Magic Trick!: Reveal a non-Wizard card from your hand, resolve it twice and *VOID* it. All players *heal 1*.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 8*, *Initiative rating 2*.\n\n_A stuffie from Bunny Island who heals fast and often helps his opponent along the way. He is the only wizard who can heal past his starting health, and what will not fit he draws instead. A good choice if you like to play nice._",
       "reactions": [
         {
           "to": "resolving",
@@ -2562,7 +2562,7 @@
       "text": "Bunny Wizard",
       "asset": "ss_bunny.jpg",
       "tags": ["chooser", "no_undo", "bunny"],
-      "tooltip": "Healer of Bunny Island (*Water*, *Earth*). A stuffie from Bunny Island who heals fast and often helps his opponent along the way. He is the only wizard who can heal past his starting health, and what will not fit he draws instead. A good choice if you like to play nice.\n\nHealth 8, *Initiative rating 2*, *Ultimate* *5 mana*.",
+      "tooltip": "Healer of Bunny Island (*Water*, *Earth*).\n\nHealth 8, *Initiative rating 2*, *Ultimate* *5 mana*.\n\n_A stuffie from Bunny Island who heals fast and often helps his opponent along the way. He is the only wizard who can heal past his starting health, and what will not fit he draws instead. A good choice if you like to play nice._",
       "play": {
         "action": [
           "stat_boost:health@mine.player:9",
@@ -2628,7 +2628,7 @@
       "text": "Oren Bark",
       "asset": "ss_oren.jpg",
       "tags": ["wizard_card", "power_track", "oren"],
-      "tooltip": "Magical Chemistry Student. A chemistry student who loves danger and whose experiments keep exploding. A good character for players who like to gamble.\n\n*Ultimate* (*5 mana*) - Bottoms up, I guess!: Reshuffle your Potion Deck, then draw potions one at a time for as long as you dare. A third TOXIC ends it and gives you an *ASH*, a *CURSE* and an *ICE*. Your Elements reset to 3 afterwards.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 16*, *Initiative rating 6*.",
+      "tooltip": "Magical Chemistry Student.\n\n*Ultimate* (*5 mana*) - Bottoms up, I guess!: Reshuffle your Potion Deck, then draw potions one at a time for as long as you dare. A third TOXIC ends it and gives you an *ASH*, a *CURSE* and an *ICE*. Your Elements reset to 3 afterwards.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 16*, *Initiative rating 6*.\n\n_A chemistry student who loves danger and whose experiments keep exploding. A good character for players who like to gamble._",
       "reactions": [
         {
           "to": "resolving",
@@ -2663,7 +2663,7 @@
       "text": "Oren Bark",
       "asset": "ss_oren.jpg",
       "tags": ["chooser", "no_undo", "oren"],
-      "tooltip": "Magical Chemistry Student (*Fire*, *Earth*). A chemistry student who loves danger and whose experiments keep exploding. A good character for players who like to gamble.\n\nHealth 16, *Initiative rating 6*, *Ultimate* *5 mana*.",
+      "tooltip": "Magical Chemistry Student (*Fire*, *Earth*).\n\nHealth 16, *Initiative rating 6*, *Ultimate* *5 mana*.\n\n_A chemistry student who loves danger and whose experiments keep exploding. A good character for players who like to gamble._",
       "play": {
         "action": [
           "stat_boost:health@mine.player:15",
@@ -2739,7 +2739,7 @@
       "text": "May Danaris",
       "asset": "ss_may.jpg",
       "tags": ["wizard_card", "power_track", "may"],
-      "tooltip": "Hacker. A hacker who used to work for Central Intelligence. She can play cards from the *VOID*, and is good for players who like to feel like they're cheating.\n\n*Ultimate* (*6 mana*) - Void Traveler: Gain *3 Energy* Tokens. You may resolve a non-Wizard card from your hand or any card in the *VOID*, then put it on the bottom of the *Spellstorm Deck*.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 12*, *Initiative rating 4*.",
+      "tooltip": "Hacker.\n\n*Ultimate* (*6 mana*) - Void Traveler: Gain *3 Energy* Tokens. You may resolve a non-Wizard card from your hand or any card in the *VOID*, then put it on the bottom of the *Spellstorm Deck*.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 12*, *Initiative rating 4*.\n\n_A hacker who used to work for Central Intelligence. She can play cards from the VOID, and is good for players who like to feel like they're cheating._",
       "reactions": [
         {
           "to": "resolving",
@@ -2772,7 +2772,7 @@
       "text": "May Danaris",
       "asset": "ss_may.jpg",
       "tags": ["chooser", "no_undo", "may"],
-      "tooltip": "Hacker (*Fire*, *Earth*). A hacker who used to work for Central Intelligence. She can play cards from the *VOID*, and is good for players who like to feel like they're cheating.\n\nHealth 12, *Initiative rating 4*, *Ultimate* *6 mana*.",
+      "tooltip": "Hacker (*Fire*, *Earth*).\n\nHealth 12, *Initiative rating 4*, *Ultimate* *6 mana*.\n\n_A hacker who used to work for Central Intelligence. She can play cards from the VOID, and is good for players who like to feel like they're cheating._",
       "play": {
         "action": [
           "stat_boost:health@mine.player:11",
