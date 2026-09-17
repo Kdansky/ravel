@@ -341,8 +341,18 @@ function love.load()
 		render.set_selected(nil)
 		render.set_detail(nil)
 	end
-	-- Every visible thing the rules do, in the order they did it.
-	zones.on_change = function(what, id) stage.record(what, id) end
+	-- Every visible thing the rules do, in the order they did it. A step nobody can see is still a state, so it is
+	-- recorded, but the board does not wait on it: seven options cleared from a closed question are no time at all.
+	local function drawn(zone_id)
+		local z = zone_id and entity.get(zone_id)
+		return z and zones.shown(z)
+	end
+	zones.on_change = function(what, id)
+		local e = entity.get(id)
+		local was = stage.last(id)
+		local seen = what == "shuffle" and drawn(id) or drawn(e and e.zone_id) or drawn(was and was.zone_id)
+		stage.record(what, id, nil, not seen and { wait = 0 } or nil)
+	end
 
 	-- Stat changes float up from where they happened (card, or the HUD row).
 	-- A card losing health also takes a small damage burst, and whoever did it
@@ -392,7 +402,14 @@ function love.load()
 		end
 	end
 
+	-- A number the game hides says nothing as it changes. It is seen if its row is listed either side of the change —
+	-- a `nonzero` stat appearing or going away is news — or if the card wears it as a badge.
 	actions.on_stat_change = function(e, key, delta, ctx)
+		local v = tags.stat(e, key)
+		local badges = e.kind == "card" and cards.style(e).badges
+		local badged = false
+		for _, b in ipairs(type(badges) == "table" and badges or {}) do badged = badged or b == key end
+		if not (badged or declaration.stat_shown(key, v) or declaration.stat_shown(key, v - delta)) then return end
 		stage.record("stat", e.id, nil, { key = key, delta = delta, actor = ctx and ctx.card_id })
 	end
 

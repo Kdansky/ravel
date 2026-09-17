@@ -92,6 +92,14 @@ function M.record(what, id, play, data)
 	steps[#steps + 1] = { what = what, id = id, play = play, data = data, ents = entity.snapshot() }
 end
 
+-- An entity as the last recorded step left it, for a change that has already taken it from where it was. Nil outside
+-- a run, where nothing waits anyway.
+function M.last(id)
+	local s = steps[#steps]
+	local ents = s and s.ents or before
+	return ents and ents[id]
+end
+
 -- What has been recorded since the last ask, for a run that is also being sent
 -- to another machine. Once each: a click that publishes twice must not send its
 -- first half again.

@@ -126,7 +126,7 @@ BASES.bolt = function(x, y, o)
 	local land = function() M.hit(x, y, color) end
 	if not o.fx then return land() end
 	mote({ shape = "bolt", x = o.fx, y = o.fy, path = { o.fx, o.fy, x, y }, land = land,
-		ang = math.atan2(y - o.fy, x - o.fx), size = 7 * o.size * SCALE, t = 0, life = FLIGHT / o.speed, color = color })
+		ang = math.atan2(y - o.fy, x - o.fx), size = 14 * o.size * SCALE, trail = o.count, t = 0, life = FLIGHT / o.speed, color = color })
 end
 
 -- Play a named-effect definition ({ base, size, speed, count, color }) at a
@@ -267,6 +267,13 @@ function M.update(dt)
 			if m.path then
 				local k, p = (m.t / m.life) ^ 2, m.path
 				m.x, m.y = p[1] + (p[3] - p[1]) * k, p[2] + (p[4] - p[2]) * k
+				-- Sparks shed where it has just been, drifting apart as they fade.
+				for _ = 1, math.max(1, math.floor(3 * m.trail)) do
+					local s = m.size
+					mote({ shape = "dot", x = m.x + (math.random() - 0.5) * s * 0.6, y = m.y + (math.random() - 0.5) * s * 0.6,
+						vx = (math.random() - 0.5) * 40 * SCALE, vy = (math.random() - 0.5) * 40 * SCALE,
+						size = (0.15 + math.random() * 0.2) * s, t = 0, life = 0.25 + math.random() * 0.2, color = m.color })
+				end
 			elseif m.orbit then
 				local o = m.orbit
 				o.a = o.a + o.va * dt
