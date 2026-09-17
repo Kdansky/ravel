@@ -2301,7 +2301,8 @@ def build():
                       "tooltip": "Two mana at an odd number of health, none at an even one."}],
         "verbs": [{"key": "heal", "does": "stat_gain",
                    "tooltip": "Healing. Named as a moment of its own so that a rule can answer it - the engine's own stat_gain is unwatchable on purpose."},
-                  {"key": "hit", "does": "stat_damage",
+                  # The look is on the verb, so every card that deals a blow throws one.
+                  {"key": "hit", "does": "stat_damage", "effect": "blast",
                    "tooltip": "A blow from across the table. Declared, so it announces itself and a Trap can answer it."},
                   {"key": "hurt", "does": "stat_damage",
                    "tooltip": "Damage you do to yourself. A cost rather than an attack, so nothing answers it."},
@@ -2408,7 +2409,7 @@ def build():
         "zones": zones(),
         "phases": phases(),
         "cards": cards,
-        "effects": {"spark": {"base": "sparkle"}},
+        "effects": {"spark": {"base": "sparkle"}, "blast": {"base": "bolt"}},
         # A window is asked of the table, and the table's middle column has a gap
         # between the VOID and the Ash pile that nothing else wants. The top-left
         # corner, where it went otherwise, is the far wizard's.

@@ -238,6 +238,7 @@
     {
       "key": "hit",
       "does": "stat_damage",
+      "effect": "blast",
       "tooltip": "A blow from across the table. Declared, so it announces itself and a Trap can answer it."
     },
     {
@@ -4420,7 +4421,7 @@
       "play": { "action": ["load_game:menu.json"] }
     }
   ],
-  "effects": { "spark": { "base": "sparkle" } },
+  "effects": { "spark": { "base": "sparkle" }, "blast": { "base": "bolt" } },
   "prompt": { "pos": [0.745, 0.405, 0.86, 0.595] },
   "end_conditions": [
     { "when": "max:shards@anyone.player >= 8", "then": ["reveal:end_shards"] },

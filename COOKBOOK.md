@@ -1884,6 +1884,18 @@ error.
 
 Not the same as `secret`, which is a zone you can see and cannot read.
 
+### Every blow throws a bolt at whoever it hits.
+
+```json
+"effects": { "blast": { "base": "bolt", "color": [1.0, 0.3, 0.1] } },
+"verbs": [{ "key": "hit", "does": "stat_damage", "effect": "blast" }]
+```
+
+On the verb, not in the action list: every card that writes `hit:` gets it, and a card written
+later cannot forget it. The bolt flies from the acting card to each card the blow lands on, and
+the number changes when it arrives. It plays before a shield has its say, so a soaked blow still
+arrives. A one-off look for one card is still `effect:<name>` in its actions, on the acting card.
+
 ---
 
 ## Known gaps

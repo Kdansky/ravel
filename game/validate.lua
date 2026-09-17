@@ -112,6 +112,7 @@ M.ICONS = {
 M.EFFECT_BASES = {
 	damage = true, bleed = true, power_up = true, sparkle = true,
 	stars = true, heal = true, smoke = true, explosion = true,
+	bolt = true,
 }
 
 -- Fields the engine reads on each kind of entry (including the derived ones
@@ -251,7 +252,7 @@ local RETIRED       = { activate = true, ends_after = true, zone_empty = true,
 	stat = true, less_than = true, less_than_stat = true, less_than_max = true,
 	at_least = true, equals = true, all_of = true }
 
-local VERB_FIELDS   = { key = true, does = true, tooltip = true }
+local VERB_FIELDS   = { key = true, does = true, tooltip = true, effect = true }
 local ADJUST_FIELDS = { key = true, verb = true, stat = true, covers = true, needs = true, by = true,
 	instead = true }
 -- Stats the engine writes on a card for itself. A game declaring one gets it
@@ -3553,6 +3554,11 @@ function M.check(G)
 			warn("%s: stands for '%s', which is not a verb an aura may watch%s — a named moment is one "
 				.. "something can answer, and only %s can be adjusted so far", where, tostring(vd.does),
 				suggest(vd.does, ADJUSTABLE), "stat_damage, stat_gain and target")
+		elseif vd.effect ~= nil and not (G.effect_defs or {})[vd.effect] then
+			warn("%s: looks like the effect '%s', but the game defines no such effect%s", where,
+				tostring(vd.effect), suggest(vd.effect, G.effect_defs))
+		elseif vd.effect ~= nil and vd.does == "target" then
+			warn("%s: an aim changes nothing, so there is nowhere for its effect '%s' to land", where, tostring(vd.effect))
 		elseif not used_verbs[key] then
 			warn("%s: is declared but no action performs it — a moment nothing reaches is a word "
 				.. "the file has to keep in step for nothing", where)

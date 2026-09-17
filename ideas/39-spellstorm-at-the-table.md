@@ -12,8 +12,6 @@ what is missing is a player being able to follow them without hovering.
   any decrease also takes a `damage` burst while the acting card leans in
   (`main.lua`, `actions.on_stat_change`). Health is on the seat card in `wizard`,
   so Spellstorm's damage already animates — on the screen that made the move.
-- **`effects` + `effect:<name>`** play a named burst, landing on the *acting*
-  card. Spellstorm declares one (`spark`) and never uses it.
 - **Weather is a card flipped into `weather_now`**, a stack at the far left.
 
 ## Gap 1 — the numbers a player plays by — built 2026-09-17
@@ -37,16 +35,11 @@ even locally.] The in-format answer to the second is showing the new card large
 for a beat — the built-in `reveal` overlay, or a `layout: "page"` zone the flip
 passes through. [Assumption: which of the two, unexamined.]
 
-## Gap 3 — damage, seen
+## Gap 3 — damage, seen — built 2026-09-17
 
-> Spellstorm: Animation for damage dealing (Animation field for actions?)
-
-A float and a burst already happen on the seat card (above). Open question for
-the user: is it missing, too small, or not seen on the other screen? If the last,
-it is gap 3. If too small, the existing `effect:` action is the field asked for,
-except that it lands on the acting card and damage wants the *victim* — so the
-word is a scope on `effect:`, [Assumption: `effect:<name>@<scope>`], not a new
-field on actions.
+A verb carries its look: `hit` says `"effect": "blast"`, a bolt from the acting
+card to each card the blow lands on (AUTHORING, *Effects*). Left: whether the
+other verbs — `heal`, `power_up` — want one too, after a look at a real game.
 
 ## Gap 4 — the other screen sees nothing move
 

@@ -106,7 +106,7 @@ local function enqueue(list)
 	local at = 0
 	for _, s in ipairs(list) do
 		s.at = at
-		at = at + (GAP[s.what] or 0)
+		at = at + (s.data and tonumber(s.data.wait) or GAP[s.what] or 0)
 		queue[#queue + 1] = s
 	end
 end

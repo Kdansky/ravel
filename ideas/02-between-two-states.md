@@ -59,15 +59,3 @@ is the shape of a hook that gets deleted by the next person to read them.
 until the step that removes it, which is the honest half; an exit — a fade, a
 flight to the discard — needs somewhere to go, which is
 [28](28-a-zone-by-its-parts.md)'s question about where a destroyed card lands.
-
-**A move from the network is played — shipped.** The sender's recorded run
-travels with the delta as beats, each the difference from the one before, and the
-receiver rebuilds the states and hands them to `stage.replay`
-([ARCHITECTURE](../ARCHITECTURE.md)'s presentation section). Two things fell out
-on the way. `net.restore` used to blank every rect, so each arriving state flew
-every card out of its last zone at once — the Storm Cloud refill crash of
-`9a76e23` — and now keeps the rects this screen drew. And a beat's floats and
-bursts were closures holding the sender's pixels; they are facts now, drawn by
-`stage.look` when the beat plays. What still lands at once: a whole state (no
-agreed starting point to rebuild from) and a pasted move (kept small). Raised by
-[39](39-spellstorm-at-the-table.md).

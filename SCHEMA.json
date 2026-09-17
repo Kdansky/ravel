@@ -43,7 +43,8 @@
     {
       "key": "the game's own name for a moment — \"damage\", \"poison\", \"heal\". It is what actions write and what an aura watches, and it may not be a word the engine already has: one spelling, one meaning.",
       "does": "the engine verb that carries it, \"stat_damage\" or \"stat_gain\". **A mechanism is not a meaning.** Poison and a sword both take hp and armour stops one of them; a plane losing altitude is neither, and an action string has nowhere else for the difference to live. So a game names the moments it means and writes \"poison:hp@target:1\" where it means poison. The point is what it makes impossible: an aura may watch a declared verb and never an engine one, so bookkeeping written with a plain stat_damage — a combat shuffling its own counters about — can never be intercepted, because nothing is able to name it. Being interfered with is something a game opts into, moment by moment. A verb declared and never performed is reported, the same way a reaction answering a verb nothing emits is.",
-      "tooltip": "what the word means, shown wherever a keyword's is — \"armour does not stop poison\", written once in the place the rule lives"
+      "tooltip": "what the word means, shown wherever a keyword's is — \"armour does not stop poison\", written once in the place the rule lives",
+      "effect": "a key from effects, played on every card the verb lands on, whichever card performs it — so a game says once what a blow looks like, and no action list carries it. A bolt flies there from the acting card. Played before an aura answers, since a blow a shield soaks still arrived. Not on a verb that does target: an aim changes nothing and lands nowhere."
     }
   ],
   "computed_tags": {
@@ -428,7 +429,7 @@
   },
   "effects": {
     "<your effect name>": {
-      "base": "one of damage, bleed, power_up, sparkle, stars, heal, smoke, explosion",
+      "base": "one of damage, bleed, power_up, sparkle, stars, heal, smoke, explosion, bolt — which flies from the acting card to where it lands, and bursts there",
       "size": "number multiplying the base size, default 1",
       "speed": "number multiplying the base speed, default 1",
       "count": "number multiplying how many particles, default 1",

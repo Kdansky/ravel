@@ -332,9 +332,12 @@ end
 -- every base effect animates and draws
 flow.init("castle.json", 7)
 render.rescale()
-for _, base in ipairs({ "damage", "bleed", "power_up", "sparkle", "stars", "heal", "smoke", "explosion" }) do
+for _, base in ipairs({ "damage", "bleed", "power_up", "sparkle", "stars", "heal", "smoke", "explosion", "bolt" }) do
 	fx.play({ base = base, size = 1.2, speed = 0.9, count = 1.4, color = { 0.9, 0.6, 0.4 } }, 480, 270)
 end
+-- a bolt flies from where it was dealt, and bursts on arrival
+fx.play({ base = "bolt" }, 480, 270, 100, 100)
+fx.play({ base = "bolt" }, 480, 270)
 for _ = 1, 25 do frame(0.033) end
 
 -- ending banner: defeat page fires the flourish, confetti animates

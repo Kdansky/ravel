@@ -24,7 +24,7 @@ M.on_stat_change = nil   -- optional hook(entity, key, delta, ctx) for visual fe
 -- Not the presentation's any more — stage.lua's queue does the spacing — but a zone still resolves in one instant, so a test
 -- asking which card went first, and on which step of the run, has nothing else to watch.
 M.on_act         = nil
-M.on_effect      = nil   -- optional hook(name, ctx): presentation plays the named effect
+M.on_effect = nil   -- optional hook(name, ctx, at): presentation plays the named effect, on `at` or the acting card
 -- optional hook(): the turn changed hands, so whatever is scoped to a turn ends.
 -- Set by flow, which owns the undo history and may not be required from here.
 M.on_seat_change = nil
@@ -263,6 +263,10 @@ end
 
 local function change_stat(e, key, delta, ctx, verb)
 	if not e or not e.stats then return end
+	-- A verb's look belongs to the verb, so every card performing it gets it. Played before an aura has its say: a
+	-- blow a shield soaks still arrived.
+	local vd = verb and declaration.G.verb_defs[verb]
+	if vd and vd.effect and M.on_effect then M.on_effect(vd.effect, ctx, e) end
 	-- Asked before `adjusted`, and for the same reason it is: an aura speaks about
 	-- the change the action said, not about what another aura has already made of
 	-- it. A change of nothing is nothing to replace.

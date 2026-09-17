@@ -5011,10 +5011,23 @@ and triggers them from any action list with `effect:<name>`:
 Bases: `damage` (slash burst), `bleed` (falling drops), `power_up` (rising
 motes and a ring), `sparkle` (twinkling points), `stars` (orbiting stars),
 `heal` (rising crosses), `smoke` (drifting puffs), `explosion` (debris and a
-shockwave). Parameters `size`, `speed` and `count` are multipliers that
+shockwave), `bolt` (flies from the acting card to where it lands, and
+bursts). Parameters `size`, `speed` and `count` are multipliers that
 default to 1; `color` is `[r, g, b]` and defaults per base. The effect plays
 on the acting card (mid-screen when there is none), is skipped headless, and
 a card losing hp gets a small damage burst automatically.
+
+**A look that belongs to a moment goes on its verb**, so no action list has to
+carry it:
+
+```json
+"verbs": [{ "key": "hit", "does": "stat_damage", "effect": "blast" }]
+```
+
+Every `hit:` then plays `blast` on each card it lands on, a bolt flying there
+from the acting card, and the next beat waits for it to arrive. It plays before
+an aura answers — a blow a shield soaks still arrived. A verb that `does:
+"target"` changes nothing and takes no effect.
 
 ### Actions
 

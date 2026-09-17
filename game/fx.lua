@@ -118,9 +118,21 @@ BASES.explosion = function(x, y, o)
 	end
 end
 
+-- A bolt flies from whoever acted to where it lands, and bursts there. With nowhere to fly from it only bursts.
+local FLIGHT = 0.32
+
+BASES.bolt = function(x, y, o)
+	local color = o.color or { 1.0, 0.55, 0.2 }
+	local land = function() M.hit(x, y, color) end
+	if not o.fx then return land() end
+	mote({ shape = "bolt", x = o.fx, y = o.fy, path = { o.fx, o.fy, x, y }, land = land,
+		ang = math.atan2(y - o.fy, x - o.fx), size = 7 * o.size * SCALE, t = 0, life = FLIGHT / o.speed, color = color })
+end
+
 -- Play a named-effect definition ({ base, size, speed, count, color }) at a
--- point. Unknown bases are ignored — the validator warns about them.
-function M.play(def, x, y)
+-- point, travelling from (fx, fy) when the base is one that travels. Unknown bases are ignored — the validator warns
+-- about them.
+function M.play(def, x, y, fx, fy)
 	local base = BASES[def.base or ""]
 	if not base then return end
 	base(x, y, {
@@ -128,7 +140,13 @@ function M.play(def, x, y)
 		speed = math.max(0.25, tonumber(def.speed) or 1),
 		count = tonumber(def.count) or 1,
 		color = def.color,
+		fx = fx, fy = fy,
 	})
+end
+
+-- How long an effect is on its way before it lands, for the beat after it to wait on.
+function M.flight(def)
+	if def.base == "bolt" then return FLIGHT / math.max(0.25, tonumber(def.speed) or 1) end
 end
 
 -- The base-effect vocabulary, for the validator.
@@ -238,8 +256,12 @@ function M.update(dt)
 		m.t = m.t + dt
 		if m.t >= m.life then
 			table.remove(motes, i)
+			if m.land then m.land() end
 		elseif m.t >= 0 then
-			if m.orbit then
+			if m.path then
+				local k, p = (m.t / m.life) ^ 2, m.path
+				m.x, m.y = p[1] + (p[3] - p[1]) * k, p[2] + (p[4] - p[2]) * k
+			elseif m.orbit then
 				local o = m.orbit
 				o.a = o.a + o.va * dt
 				m.x = o.cx + math.cos(o.a) * o.r
@@ -276,7 +298,8 @@ function M.draw()
 	end
 	for _, m in ipairs(motes) do
 		if m.t >= 0 then
-			local a = math.min(1, (m.life - m.t) / (m.life * 0.45))
+			-- A bolt is at its brightest as it lands.
+			local a = m.path and 1 or math.min(1, (m.life - m.t) / (m.life * 0.45))
 			if m.twinkle then a = a * (0.4 + 0.6 * math.abs(math.sin(m.t * 9 + m.size))) end
 			love.graphics.setColor(m.color[1], m.color[2], m.color[3], a)
 			if m.shape == "dot" then
@@ -307,6 +330,11 @@ function M.draw()
 						m.y + math.sin(th + math.pi / 5) * s * 0.45)
 				end
 				love.graphics.circle("fill", m.x, m.y, s * 0.42)
+			elseif m.shape == "bolt" then
+				local tail = m.size * 4
+				love.graphics.setLineWidth(m.size * 0.5)
+				love.graphics.line(m.x - math.cos(m.ang) * tail, m.y - math.sin(m.ang) * tail, m.x, m.y)
+				love.graphics.circle("fill", m.x, m.y, m.size * 0.6)
 			end
 		end
 	end

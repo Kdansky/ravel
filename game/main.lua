@@ -388,7 +388,7 @@ function love.load()
 			if not x then
 				x, y = love.graphics.getWidth() * 0.5, love.graphics.getHeight() * 0.5
 			end
-			fx.play(def, x, y)
+			fx.play(def, x, y, center(tonumber(data.from) and entity.get(tonumber(data.from))))
 		end
 	end
 
@@ -396,11 +396,15 @@ function love.load()
 		stage.record("stat", e.id, nil, { key = key, delta = delta, actor = ctx and ctx.card_id })
 	end
 
-	-- Named card effects land on the acting card (or mid-screen without one).
-	actions.on_effect = function(name, ctx)
-		if not declaration.G.effect_defs[name] then return end
-		local e = ctx and ctx.card_id and entity.get(ctx.card_id)
-		stage.record("effect", e and e.id, nil, { effect = name })
+	-- Named card effects land where a verb lands, else on the acting card (or mid-screen without one). One that
+	-- travels holds the next beat until it arrives, so the number it brings changes when it gets there.
+	actions.on_effect = function(name, ctx, at)
+		local def = declaration.G.effect_defs[name]
+		if not def then return end
+		local by = ctx and ctx.card_id and entity.get(ctx.card_id)
+		local to = at or by
+		local from = by and to and by.id ~= to.id and by.id or nil
+		stage.record("effect", to and to.id, nil, { effect = name, from = from, wait = from and fx.flight(def) })
 	end
 
 	-- A move from the other side comes with the run that made it, and is watched
