@@ -749,4 +749,23 @@ do
 	flow.close_offer()
 end
 
+-- A step is recorded the moment a card is added, and a stack record is added before its fields are written. The
+-- state that step presents holds a record about nothing, and the bar announcing the window must not read it.
+do
+	flow.init("spellstorm.json", 3)
+	render.rescale()
+	local was = zones.on_change
+	zones.on_change = function(what, id) stage.record(what, id) end
+	stage.arm()
+	local z
+	for e in entity.each("zone") do if e.tags.stack then z = e end end
+	local c = zones.add(z, "event")
+	c.re_action, c.re_verb, c.re_subject, c.re_targets = {}, "hit", {}, {}
+	stage.record("stat", c.id)
+	stage.seal()
+	zones.on_change = was
+	for _ = 1, 10 do frame(0.033) end
+	stage.clear()
+end
+
 print("render smoke ok: " .. frames .. " frames drawn, " .. drawn .. " placeholders")

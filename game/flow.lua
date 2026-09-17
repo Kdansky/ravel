@@ -2411,10 +2411,12 @@ end
 -- because a response window looks like nothing from the outside: the turn has
 -- not moved and the phase has not changed, and the only thing that did is who
 -- may act. nil is every game without a stack and every moment its stack is empty.
+-- A record is added before its fields are written, and the presentation records a step on every add, so a state being
+-- replayed can hold one that is about nothing yet. Not pending until it says what it is.
 function M.pending_event()
 	local z = stack_zone()
-	local top = z and z.cards[#z.cards]
-	return top and entity.get(top)
+	local top = z and entity.get(z.cards[#z.cards])
+	return top and top.re_action and top or nil
 end
 
 -- What the seat holding priority may answer the top of the stack with, as
