@@ -63,6 +63,18 @@ is right — the engine has no text input anywhere.
 | A settings screen as a game file | nothing in the engine *if* settings are choices | a name is free text, and no card can be typed into |
 | Text entry in the engine | `love.textinput`, a focused field, a caret, and a second input surface every overlay must think about | one answer everywhere |
 
+*From `todo.md`, 2026-09-17: "it would be nice if we had rudimentary chat
+functionality with the person that we are connected to."* The note asks for chat
+on its own, without the name, which undoes this file's *ship together or not at
+all*. [Assumption: "rudimentary" means lines of text between two linked peers,
+shown in the netpanel or beside the log, not kept in the snapshot and never in a
+save — a chat line is not game state, for the same reason a name is not.]
+[Assumption: it travels as a new wire kind beside `H` and `Q` in `net.poll`,
+which already has the shape: a message that changes no state and is answered by
+nothing. The label is `chat`; the body is untrusted display text as above.]
+Without a name each line reads *them* / *you*, which a two-seat link makes
+unambiguous.
+
 The honest order is the panel first — nearly free, and it proves whether a name
 is worth having. Building the general text field first is how a settings menu
 becomes the project instead of the feature. **Chat is what should decide the

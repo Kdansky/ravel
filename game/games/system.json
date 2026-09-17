@@ -25,7 +25,9 @@
       "asset": "square:slate",
       "tags": ["immutable"],
       "tooltip": "Back to the title screen. Save first if you want this game back.",
-      "play": { "action": ["load_game:menu.json"] }
+      "comment": "Play asks; the ability is what a Yes runs. Any button that should ask first is written the same way.",
+      "play": { "action": ["options:sys_yes,sys_no"] },
+      "abilities": [{ "action": ["load_game:menu.json"] }]
     },
     {
       "key": "sys_log",
@@ -33,6 +35,21 @@
       "asset": "triangle:slate",
       "tags": ["immutable", "event_log"],
       "tooltip": "Everything that has happened, most recent last."
+    },
+    {
+      "key": "sys_yes",
+      "text": "Yes",
+      "asset": "circle:slate",
+      "tags": ["immutable"],
+      "comment": "The answer to any button whose play is options:sys_yes,sys_no. A pick is played against the card that asked, so this runs that card's abilities.",
+      "play": { "action": ["copy:target:activate"] }
+    },
+    {
+      "key": "sys_no",
+      "text": "No",
+      "asset": "square:slate",
+      "tags": ["immutable"],
+      "play": { "action": [] }
     }
   ]
 }

@@ -108,6 +108,21 @@ wall of fifty-one.] Worth confirming against the screenshot harness before
 building anything: the draft may only look bad because the two draft buttons in
 the same row are 23px squares, which is the gap above and not this one.
 
+## Still open — a Yes that says what it is saying yes to
+
+Menu asks first, in JSON only: `system.json`'s `sys_yes`/`sys_no`, and Yes runs
+the asker's abilities (COOKBOOK, *a button that asks first*). The dialog reads
+**Yes / No** with no question, and the ask was for it to repeat the asking card
+through `{…}`. That cannot be said today: `label.fill` reads the card it is
+drawn on, a dealt entry keeps no link to its asker (only the offer zone's
+`asked_by` does), and `set_name` onto the entry would have to run after the
+`options:` that deals it — which parks until the answer. Needs a word: a
+reserved name beside `{owner}` that reads the offer's asker.
+
+Also unanswered: in a networked game the offer is shared state, asked of the
+seat *to play* rather than the one that clicked, so the opponent could be handed
+your Menu question.
+
 ## Still open — the log says `{name}`
 
 A seat renamed by `set_name` reads correctly on its card, in its tooltip and on

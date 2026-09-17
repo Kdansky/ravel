@@ -1428,6 +1428,19 @@ owner, so the chosen card can act back on whoever asked:
 { "key": "opt_gold", "text": "Gain 2", "play": { "action": ["stat_gain:gold:2"] } }
 ```
 
+### A button that asks "are you sure?" first.
+
+```json
+{ "key": "sys_menu", "text": "Menu",
+  "play": { "action": ["options:sys_yes,sys_no"] },
+  "abilities": [{ "action": ["load_game:menu.json"] }] }
+```
+
+`sys_yes` and `sys_no` come with every game, from `system.json`. A pick is played against the card
+that asked, and Yes is `copy:target:activate`, so it runs the asker's abilities — the play only asks.
+No does nothing, and the rest of the play list would still run after either answer, so nothing
+belongs after the `options:`.
+
 ### One of the choices is only there if you own a Farm.
 
 ```json

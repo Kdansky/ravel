@@ -202,7 +202,7 @@ function M.test_include_sends_the_merged_game_not_the_file(check)
 		check("there is no include left in it", not text:find('"include"', 1, true), text:sub(1, 120))
 		local flat = json.decode(text)
 		check("it carries every card, the system column's included",
-			#flat.cards == 6, #flat.cards)
+			#flat.cards == 8, #flat.cards)
 		check("and it is a game file the engine reads back", flat.title == "Module")
 	end)
 end

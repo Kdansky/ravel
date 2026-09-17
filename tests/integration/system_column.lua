@@ -95,17 +95,36 @@ function M.test_system_the_column_is_traceable_to_the_file_that_wrote_it(check)
 	check("while the game's own cards say nothing", G.came_from["cards.wp"] == nil)
 end
 
--- The column's own buttons act on the click that pressed them. Loading a game
--- and restoring a save are deferred — the action only asks — so a column that
--- ran the action and stopped there left the load sitting in the queue until
--- some later click settled for its own reasons, and the game changed under a
--- player who had given up on the button.
-function M.test_system_the_menu_button_loads_on_the_click_that_pressed_it(check)
+-- Menu asks first: one click used to throw the game away. The question is an
+-- ordinary offer out of system.json, and the answers act on the click that
+-- picks them — loading is deferred, so an answer that only ran its action left
+-- the load in the queue until some later click settled for its own reasons.
+local function ask_menu()
 	flow.init("chess.json", 3)
 	local menu = card_in("menu", "sys_menu")
-	check("the click is the column's own", flow.use_system_card(menu.id))
+	flow.use_system_card(menu.id)
+	return card_in("options", "sys_yes"), card_in("options", "sys_no")
+end
+
+function M.test_system_the_menu_button_asks_before_leaving(check)
+	local yes, no = ask_menu()
+	check("the click opens Yes and No", yes ~= nil and no ~= nil)
+	check("and the game is still there", declaration.filename == "chess.json", declaration.filename)
+end
+
+function M.test_system_yes_loads_the_title_screen(check)
+	local yes = ask_menu()
+	check("Yes may be picked", yes and flow.play_card(yes.id, {}))
 	check("and the title screen is up before it returns", declaration.filename == "menu.json",
 		declaration.filename)
+end
+
+function M.test_system_no_keeps_the_game(check)
+	local _, no = ask_menu()
+	check("No may be picked", no and flow.play_card(no.id, {}))
+	check("the game stays", declaration.filename == "chess.json", declaration.filename)
+	check("and the question is gone", #zones.find("options").cards == 0)
+	check("and asking again asks again", ask_menu() ~= nil)
 end
 
 -- A game may put its own buttons in the column beside the engine's. They are
