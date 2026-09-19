@@ -352,7 +352,7 @@ chosen=["move:options.ice:ice_pile", "move:options.ash:ash_pile",
 It works because the pick is the only card left in the offer while `chosen` runs.
 It reads as a bug.
 
-**What is missing.** `move_target_to:` names one destination. A rule whose
+**What is missing.** `move:target:` names one destination. A rule whose
 destination depends on what the pick *is* has to name the offer zone and move by
 tag instead, which is the same question with a second spelling — the fault
 `<zone>.<tag>` was written to end, left in the one place it missed. The word is

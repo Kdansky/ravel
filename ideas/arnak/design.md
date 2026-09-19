@@ -94,7 +94,7 @@ that one.
 | buying refills the row | the buy compacts both sides towards the staff and deals at `a1` and `g1`. Whichever end did not open refuses its own card, since a cell holds one — so one list serves both halves and nothing asks what was bought |
 | an item costs coins, an artifact costs compasses | one `for_sale` tag, and two price stats: a card costs what it prints, in the currency it prints. `coin_price` on the items, `compass_price` on the artifacts, each drawn with its own icon |
 | a bought card goes to the bottom of your deck | `move:self:mine.bag:bottom` |
-| round cleanup: shuffle the play area and put it under the deck | `each_seat:shuffle:mine.table` then `each_seat:return_to:mine.table:mine.bag:bottom`. Cards bought during the round are already down there, so they are drawn first — which is what the rulebook's parenthesis means |
+| round cleanup: shuffle the play area and put it under the deck | `each_seat:shuffle:mine.table` then `each_seat:move:mine.table:mine.bag:99:bottom`. Cards bought during the round are already down there, so they are drawn first — which is what the rulebook's parenthesis means |
 | research: two tokens, the notebook never above the glass | six row cards, each with a `glass` and a `note` ability. The notebook's is gated `["note@mine.player == n−1", "glass@mine.player >= n"]`, and that second clause is the whole rule |
 | the Lost Temple is the glass's alone | `res_6` has no `note` ability |
 | first to the temple scores most | `activate_zone:rules_temple`, one card, `"when": ["temple_taken@clock == 0"]` |
@@ -231,7 +231,7 @@ for travel* to whoever is up. Puzzle Strike's bank found this first; a market
 row of cards that are also hand cards is the case that makes it unavoidable.
 
 **A grid cell freed and refilled in one action list is safe, and only because
-it is one.** `destroy_self` then `draw_from` works because there is exactly one
+it is one.** `purge:self` then `draw_from` works because there is exactly one
 free cell at that instant. Two markers destroyed and then refilled would land
 in whichever order the grid hands out free slots, which is not a thing the
 format promises.

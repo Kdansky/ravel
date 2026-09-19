@@ -336,7 +336,7 @@ What follows is the index.
    Oren's pours kept the ability workaround anyway, with a comment claiming the
    engine refused what it had stopped refusing. **This is the failure mode a gap
    list has**: a sentence the format could not carry outlives the reason for it.
-6. **A `chosen` action cannot ask what it was handed.** `move_target_to:` names
+6. **A `chosen` action cannot ask what it was handed.** `move:target:` names
    one destination, and a rule whose destination depends on the pick has to name
    the offer zone and move by tag — three lines, two of which find nothing (see
    *Soothing Rain*, and AUTHORING §*Routing the pick by what it is*). The word it

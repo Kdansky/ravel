@@ -23,7 +23,7 @@ Cultist Simulator uses. It needs roughly **one** new subsystem, not five.
 | Dragging a card into a verb slot | Slot targeting (`targeting.lua`, `place_in_slot`) — **exists** |
 | A verb "running" for N seconds | A timer stat decremented on the round wrap — **expressible** |
 | Timer completion producing cards | a `turn` block + a computed tag — **expressible** |
-| Card decay / expiry | Same timer, ending in `destroy_self` — **expressible** |
+| Card decay / expiry | Same timer, ending in `purge:self` — **expressible** |
 | Drawing from a weighted deck | `contents` with counts gives weights by duplication — **exists** |
 | Discovering a recipe you didn't know | The `reveal` overlay — **exists** |
 | **Recipe matching** — which outcome fires for *this* set of cards | **missing** |
@@ -44,8 +44,8 @@ Real time becomes a tick. Concretely:
   with routing (`"next"` tables) picking which recipes are available. `round`
   is already a player stat, so "it is day 14" is free and displayable.
 - **A "wait" button** is a card tagged `token` with
-  `"play": { "action": ["destroy_self", "end_phase"] }`. No engine work — this is exactly
-  the pass-card pattern already used by `draw_and_play` phases.
+  `"play": { "action": ["purge:self", "end_phase"] }`. No engine work — this is
+  exactly the pass-card pattern a `player_input` phase already uses.
 
 So the temporal model needs **no new engine code at all**. That is the pleasant
 surprise here, and worth verifying with a throwaway game file before building
@@ -128,8 +128,8 @@ That is maybe 120 lines. Everything else on this page is content.
 - **Does turn-based CS lose the game?** In CS, timers running out while you
   scramble is the core loop. Turn-based, you always have time to think. Possible
   answer: a per-turn action budget (`plays` already exists and already resets
-  per phase — `"ends_after": 2` on the phase gives you two actions per turn for
-  free). Prototype this early.
+  per phase — `"ends_when": "plays >= 2"` on the phase gives you two actions per
+  turn for free). Prototype this early.
 - **Board size.** CS's table is a free 2D surface; ravel has grid slots. Slots
   are probably *better* for a turn-based version (legible, no lost cards), but
   it changes the feel from "workspace" to "board". Accept it.

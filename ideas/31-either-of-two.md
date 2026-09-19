@@ -9,7 +9,7 @@ holding turned out to be about *kinds*, not conditions: "a CURSE or an ICE from
 your hand or discard" is a question about what a card **is** and where it sits,
 and it never reached a `where` at all — a scope names one tag and one place, so
 the rule had nowhere to start. That is answered, by `computed_tags` learning
-`any_of` and `all_of`: the union has a name, and the name is then an ordinary
+`any_of`: the union has a name, and the name is then an ordinary
 tag everywhere a tag works. See `ideas/spellstorm/10-closing-the-gaps.md` §G2.
 
 **What is left here is the honest remainder**: `or` between *conditions* —

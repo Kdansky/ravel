@@ -33,7 +33,7 @@ the things its research could not confirm; the answer, from somebody who has
 played it, is that **a trashed chip always goes back on its plate, and character
 chips cannot be trashed at all**. Eleven `move_target_to:void` became
 `purge:target` and the eight chips that trash *themselves* became
-`destroy_self` — `destroy` rather than a move into the bank because the engine
+`purge:self` — a removal rather than a move into the bank because the engine
 decides where a thing belongs, which is what makes the two character chips whose
 own text trashes them safe: nothing stocks a character chip, so one is simply out
 of the game. A move would have built it a plate.
@@ -76,7 +76,7 @@ and taking out of the pick one sentence rather than a `fill` that conjures.
 question lives on a rules card in `rules_signature`, the way the piggy bank and
 Spellstorm's *New Curriculum* do, because a card has one `chosen` and these two
 questions mean different things by the answer. Its `chosen` is
-`["copy:target:play", "move_target_to:mine.table"]`: `copy:` runs the chip's
+`["copy:target:play", "move:target:mine.table"]`: `copy:` runs the chip's
 action list and nothing else, which is a play without a cost, and the chip is
 moved by hand because `spent` is the field a real play uses and there is no real
 play here. The ordering falls out of the offer queue with nothing said about it —

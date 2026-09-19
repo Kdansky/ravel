@@ -49,7 +49,7 @@ to *afford* is a `cost`, not this.
 "action": ["stat_set:guard@self:0"]
 ```
 
-### This card's maximum health goes up by 5.
+### Your maximum health goes up by 5.
 
 ```json
 "action": ["stat_boost:health@mine.player:5"]
@@ -130,7 +130,7 @@ The key still names what cards spend; `subject` only changes what the row *reads
                 "action": ["stat_gain:spill@self:overkill"] }]
 ```
 
-`value` is arithmetic over numbers and subjects with `+ - * %` and parentheses, spaces around
+`value` is arithmetic over numbers and subjects with `+ - * / %` and parentheses, spaces around
 every operator. A compute may name an earlier compute if the ability lists that one first. A
 **computed tag** and a **phase's actions** may not name one at all — nobody is acting, so nobody
 listed it.
@@ -449,8 +449,8 @@ Worn like any other tag, worked out on every read, and usable anywhere a tag is.
 "computed_tags": { "elemental": { "any_of": ["fire", "ice"] } }
 ```
 
-`all_of` is the other one. A union with a name is usable as a scope, in `applies`, in a target
-spec — anywhere a tag goes.
+`any_of` is the union; *and* is already what a list of `needs` means, so there is no `all_of`.
+A union with a name is usable as a scope, in `applies`, in a target spec — anywhere a tag goes.
 
 ### Elite units have +1 attack.
 
@@ -1162,7 +1162,7 @@ Trap: splitting a comparison into two conditions makes it an **and**, which is a
 ### This is disabled when a spell or ability aims at it.
 
 ```json
-"receive": { "action": ["stat_set:ready@self:0"] }
+"receive": { "action": ["exhaust:self"] }
 ```
 
 `receive`'s other half. `needs` is whether the aim may be made; `action` is what this card does
@@ -1340,7 +1340,7 @@ idiom for upkeep, arrival and death rules that belong to the *game* rather than 
 ```
 
 `to` is the announcement, `whose` says whose action it answers (`mine`, `enemy`, `anyone`),
-`from` is where the answering card must be lying, and `@event` is the card it is about.
+`in` is where the answering card must be lying, and `@event` is the card it is about.
 
 ### A card that lets you use your Ultimate without paying for it.
 
@@ -1713,7 +1713,7 @@ skipped, because a choice is not a purchase.
 ### End the game when someone's life hits zero.
 
 ```json
-"end_conditions": [{ "when": "life@anyone.player <= 0", "then": "game_over" }]
+"end_conditions": [{ "when": "life@anyone.player <= 0", "then": ["reveal:game_over"] }]
 ```
 
 ---
@@ -1724,10 +1724,14 @@ skipped, because a choice is not a purchase.
 
 ```json
 "patterns": { "line_ortho": { "vectors": [[1,0],[-1,0],[0,1],[0,-1]], "class": ["ray"] } },
-"cards": [{ "key": "rook", "moves": ["line_ortho"] }]
+"cards": [{ "key": "rook", "abilities": [{ "key": "move", "moves": ["line_ortho"] }] }]
 ```
 
-`class` is `step` (one cell), `ray` (until blocked), or `ray:<n>` (at most n).
+`moves` sits on an **ability**, never on the card itself — a piece that moves two ways writes two
+rules in one ability, and a piece with a second, unrelated power writes a second ability.
+
+`class` is `step` (one cell), `ray` (until blocked), `ray:<n>` (at most n), `phasing` (a ray that
+ignores what it passes) or `absolute` (the vectors are squares, not directions).
 
 ### A pawn steps forward onto an empty square and takes diagonally.
 
@@ -1737,8 +1741,9 @@ skipped, because a choice is not a purchase.
           { "patterns": ["pawn_take"], "fill": "enemy" }]
 ```
 
-`fill` is what may be standing on the destination: `empty`, `enemy`, `any`. **The engine has no
-idea what an attack is** — the line between moving and threatening is drawn here.
+`fill` is what may be standing on the destination: `empty` (the default), `enemy`, `open` (either —
+"not blocked by my own") or `any`. **The engine has no idea what an attack is** — the line between
+moving and threatening is drawn here.
 
 ### En passant.
 
@@ -1901,12 +1906,12 @@ arrives. A one-off look for one card is still `effect:<name>` in its actions, on
 ## Known gaps
 
 Effects with **no spelling yet**, so nobody re-derives one. Each has live customers in
-`game/games/codex.json`, and each is written up in `todo.md`:
+`game/games/codex.json`, and each is worked through in `ideas/37-codex.md`:
 
-- **Swift strike** — a blow struck before the exchange. 6 cards.
+- **Swift strike** — a blow struck before the exchange.
 - **A death replaced by something else** — a card that returns, or leaves a token, instead of
-  dying. 5 cards. Hand-written three times as a `rules_death` column.
-- **Transform and back** — becoming another card and returning. 5 cards.
+  dying. Hand-written as a `rules_death` column wherever it is needed.
+- **Sideline** — moving a unit out of the patrol zone, written inline three times already.
 - **A buff measured by a number the card carries** — `"atk": "time@self"`. 3 cards; a counter's
   fixed multiplier is the near miss.
 - **An aim narrowed after it is made** — a flagbearer that redirects what was already pointed

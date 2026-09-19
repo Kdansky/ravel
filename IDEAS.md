@@ -1,3 +1,12 @@
+# The original list
+
+The raw brainstorm the workstreams grew out of, kept because [01](ideas/01-boardgames.md)
+and [04](ideas/04-simulation-games.md) quote it. It is a record of what was wanted at the
+start, not a statement of what is open — most of it has shipped. The plan is
+[ideas/README.md](ideas/README.md); what exists is [ideas/DONE.md](ideas/DONE.md).
+
+---
+
 Boardgames:
 * Can we improve the engine so far that it is possible for us to take any boardgame rule set and just turn it into a json, and then have the board game be simulated?
 * We should write basic rulesets for a couple games and keep adding features until we can do them all, then consolidate. Chess, Checkers, Solitaire? Then do something less abstract, like a numbers-based game by Rainer Knizia? Then go to Magic:TG, or Hearthstone, or some other more complex board game (and ignore timers, we're not doing real time yet).

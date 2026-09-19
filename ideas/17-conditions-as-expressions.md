@@ -131,8 +131,10 @@ then it wants a word rather than a change — the asymmetry is the design.
 - **Costs.** A cost names the stat to subtract and by how much; `mana >= 3` says
   what to check and not what to spend. Inventing a "pay this expression" rule is
   how a cost silently stops being reversible by undo.
-- **`zone_empty`.** A zone with cards nobody can see is still not empty, so
-  `count:card@road == 0` is not the same question.
+- **`zone_empty`.** Kept at the time on the grounds that a zone with cards
+  nobody can see is still not empty. It lost anyway: the subject grammar counts
+  a zone, `count@road == 0` says it, and the reach a zone declares is what
+  answers the objection. The word is gone.
 - **The quantifier.** `hp@each.follower >= 1` still means *of every follower*,
   and that word lives inside the subject. It is the one part of the grammar that
   is not arithmetic-shaped and it must not be lost in translation.

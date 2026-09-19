@@ -1,6 +1,8 @@
 # Ravel — Design Directives
 
-This file captures all architectural and design decisions for the ravel project, as given. Reference this before adding features or changing core systems.
+The decisions the engine is built on, and the reasons they were taken. Read it
+before adding a feature or changing a core system — most of what looks like a
+missing capability is a directive here saying why it is absent.
 
 Companion documents: **`AUTHORING.md`** — how to build a game, with the full reference of fields, actions, tags and conditions. **`ARCHITECTURE.md`** — how the engine is built, its invariants, and how to extend it.
 
@@ -56,7 +58,7 @@ Snapshotting state = copying the array. Undo = push snapshot before each action,
 
 **Who is playing is declared, in a `players` section, one entry per seat in seat order.** It used to be inferred — any card carrying the `player` tag was a seat — which meant "is this a two-player game" was a scan, and a game that wanted an invite card had to know its own seat count without ever stating it. The engine now stamps that tag onto the cards `players` names, so every `@mine.player` scope is unchanged and the word still means what it did.
 
-**A seat is a card too.** Several cards tagged `player` are several seats, named by their own keys; a zone declaring `per_seat` is instanced once per seat, and a card's owner is the seat of the zone it sits in — so ownership needs no per-card controller field and no new state to snapshot. An unqualified zone key means the active seat's copy, because a destination must resolve to exactly one zone even though a *set* may be wide. Whose turn it is is a `turn` stat on the system card, advanced by phases declaring `"seat": "next"`.
+**A seat is a card too.** Several cards tagged `player` are several seats, named by their own keys; a zone declaring `"copies": "per_seat"` is instanced once per seat. A card's owner is its own `owner` stat where it has one — stamped from where setup placed it, and written only by `set_owner` — and otherwise the seat of the zone it sits in, so an ordinary game declares no controller anywhere. An unqualified zone key means the active seat's copy, because a destination must resolve to exactly one zone even though a *set* may be wide. Whose turn it is is a `turn` stat on the system card, advanced by phases declaring `"seat": "next"`.
 
 **There are three entity kinds — `zone`, `slot`, `card` — and the player is a card.** A player has stats, can be looked at, targeted, damaged and destroyed; every one of those already works for cards, and a fourth kind meant re-implementing all of it. When a game names no card for a seat, the engine injects one from that seat's `stats` into a hidden `system` zone, alongside a second injected card holding `round` (which belongs to the game, not to a seat). A game that wants a visible hero simply lists that board card under `players`. This is *when in doubt, decks and cards* applied to the one thing in the engine that wasn't.
 
@@ -86,7 +88,7 @@ Game feel is its own layer, never touched by logic: `anim.lua` gives card moveme
 Presentation rules:
 
 - **Everything scales.** 960×540 is the design size; `render.rescale` derives a UI scale from the window and rebuilds fonts, line widths, badges and effects from it. No fixed pixel text in a proportional layout. Card titles truncate with "..." rather than wrap.
-- **Stats get icons, not just words.** `gold`, `hp`, `defense`, `morale` and `food` map to built-in vector glyphs (anything else gets a diamond) used in the HUD, cost badges and HP badges.
+- **Stats get icons, not just words** — and the game says which. A stat declares an `icon` out of a closed set of *shapes* (`coin`, `heart`, `shield`, `blade`, `orb`, …, plus `none` for a badge that is only a number); anything undeclared draws a diamond. It used to be keyed on the stat's own name, so a stat called `gold` drew a coin and the next game's currency drew a diamond for no reason it could see or change — the engine knowing one game's vocabulary, in the presentation layer.
 - **States never ride on hue alone.** Targeting eligibility is border color plus a pulsing fill plus a corner marker.
 - **Touch works.** The primary action fires on release; a long press inspects (the touch stand-in for right-click); targeting shows on-screen Confirm/Cancel buttons and an Undo button appears whenever undo is available.
 - Card art prompts live in `games/assets/card_art.md` — one neutral-style prompt per card key, designed for the live template reload loop.
@@ -148,13 +150,13 @@ Every numeric slot accepts a number, a measure (`count:<tag>`, `sum:<subject>`, 
 
 ## Conditions Are One Vocabulary
 
-`predicate.lua` evaluates every condition in the engine — phase routing, `end_conditions`, and every `needs` — a card's, a challenge's, a destination's — all share it, and so do costs and the stat arguments of actions. A subject is `[<fn>:]<arg>[@<scope expression>]`: `gold`, `count:farm`, `sum:defense@board`, `hp@each.follower`, `hp@each.enemy.creature`, `hp@self`, `hp@target`. **A condition is one string**: `<subject> <op> <number-or-subject>`, with `>=`, `<=`, `>`, `<`, `==` and `!=`, one comparison per string and no booleans — a list already means *and*, and *or* is two abilities. A `needs`, an `accepts` and a target's `where` take a list of them (`["might >= 8", "count:farm >= 3"]`), which a map keyed by its own subject could not: a range names one subject twice. Routing and `end_conditions` take one under `when`; `zone_empty` stays beside it as the one question the comparison grammar cannot ask. A **cost** is not a condition and keeps its map — a cost is what gets spent.
+`predicate.lua` evaluates every condition in the engine — phase routing, `end_conditions`, and every `needs` — a card's, a challenge's, a destination's — all share it, and so do costs and the stat arguments of actions. A subject is `[<fn>:]<arg>[@<scope expression>]`: `gold`, `count:farm`, `sum:defense@board`, `hp@each.follower`, `hp@each.enemy.creature`, `hp@self`, `hp@target`. **A condition is one string**: `<subject> <op> <number-or-subject>`, with `>=`, `<=`, `>`, `<`, `==` and `!=`, one comparison per string and no booleans — a list already means *and*, and *or* is two abilities. A `needs`, an `accepts` and a target's `where` take a list of them (`["might >= 8", "count:farm >= 3"]`), which a map keyed by its own subject could not: a range names one subject twice. Routing and `end_conditions` take one under `when`; A **cost** is not a condition and keeps its map — a cost is what gets spent.
 
 The part after `@` is a **scope expression**: `[<quant>.][<owner>.]<zone-or-tag>`. The name is always a zone or a tag, never a seat — whose cards is a separate word (`mine` / `enemy` / `anyone`), so ownership composes with everything instead of doubling the vocabulary. A subject with no scope means the player's own cards. `predicate.parse_subject` is the only place the grammar is decided and `predicate.entities_in_scope` the only place a scope becomes entities, so a read, a cost and an effect can never disagree about who they mean.
 
 **An ability may carry a `when`, and it is a rule rather than a permission.** `phases` and `cost` answer *may this player do this*, and a phase walking a zone has already answered them; `when` answers *does this happen*, so `activate_zone` honours it while staying ungated in every other sense. Without it the only way to write an if is multiplying by a stat that is 0 or 1, which is how one Runeterra line reached three `@` and a dozen colons.
 
-**A `computes` entry is a number with a name and no storage.** Declared at the top level like a stat, made of `"<term>"` or `"<term> <op> <term>"` with one of `+ - *`; an ability lists the ones it wants, in the order they depend on each other, and their keys then stand as amounts in its actions and operands in its `when`. **One operator and no parentheses** — the same cap a condition keeps, for the same reason: with one there is no precedence to be taught. n-ary addition is already successive `stat_gain` lines onto one stat, so the thing that had no spelling was subtraction into a value slot. A compute may not share a stat's key: one word, one number.
+**A `computes` entry is a number with a name and no storage.** Declared at the top level like a stat, its `value` an arithmetic expression over subjects and numbers (`+ - * / %`, with brackets and the usual precedence); an ability lists the ones it wants, in the order they depend on each other, and their keys then stand as amounts in its actions and operands in its `needs`. **The expression lives here and nowhere else** — an amount slot and a condition each stay one term, because a name is what makes a long sum readable and a compute is where the name is given. A compute may not share a stat's key: one word, one number.
 
 **A stat nobody carries is absent, not zero.** Every comparison against it fails, `== 0` and `<= n` included — because reading a missing value as zero makes "this rook has never moved" true of a rook captured twenty moves ago, a gate that opens precisely when the thing it guards stops existing. Nil and zero are different values and this vocabulary keeps them so. The measuring forms are the exception, and mean what they say: `count:`/`card:` over nothing is a count of zero, and `sum:`/`max:` are asked of a *pool*, whose empty measure is honestly zero.
 
@@ -222,7 +224,8 @@ The engine places its own first — the system card, an injected player, and any
 A zone declares its starting cards in its own definition, as `"card_key"` or `"card_key:count"` strings:
 
 ```json
-{ "key": "build_deck", "type": "deck", "tags": ["shuffle", "refill_when_empty"],
+{ "key": "build_deck", "layout": "stack", "visibility": "secret",
+  "tags": ["shuffle", "refill_when_empty"],
   "contents": ["watchtower:3", "farm:3", "market:2"] }
 ```
 
@@ -234,9 +237,9 @@ Contents are created (and shuffled, if tagged) when the zone is created, and rec
 
 **A thing an entity either is or isn't is a tag, not a field.** A boolean field is a name that has to be read twice — once for the word, once for the value — and it can only ever be set on the thing that owns the field. `placeholder_art` was the clearest case: a game-level `true`/`false` that could not give six cards generated art among thirty-five photographs. It is the tag `generate_art`, and a card asks for itself.
 
-This is what the tag system is for, and the rule the styles pass already followed from the other side: a *quality* is a tag, a *value* is a field. `ratio` is a number and there are infinitely many, so it is a field; `no_undo`, `generate_art`, `stays_ready`, `per_seat`, `discard_hand` and `hidden` are words a thing carries or does not. Phases and stats grew a `tags` list so they could say so too — everything the format declares now has one.
+This is what the tag system is for, and the rule the styles pass already followed from the other side: a *quality* is a tag, a *value* is a field. `ratio` is a number and there are infinitely many, so it is a field; `no_undo`, `generate_art`, `shuffle`, `optional` and `discard_hand` are words a thing carries or does not. Phases and stats grew a `tags` list so they could say so too — everything the format declares now has one.
 
-**A tag is carried or it is not, so there is no "false" to write**, and an opt-out needs its own word: a `draw_and_play` phase discards its hand by default and says `keep_hand` when it should not.
+**A tag is carried or it is not, so there is no "false" to write**, and an opt-in needs its own word rather than an opt-out: a `player_input` phase keeps its unplayed hand unless it carries `discard_hand`.
 
 **One exception, and it is a real one.** A routing entry's `ends_round` stays a boolean, because a routing entry is not a *thing* — it has no key, no identity and nothing to tag. It is a property of a transition, and the rule above needs an entity to attach to. Moving it up to the phase would narrow what a game can say: a phase that self-loops for a repeated draft must be able to end the round on the way out and not on the way round, which is exactly why `ends_round` is declared per route rather than inferred.
 
@@ -244,7 +247,7 @@ This is what the tag system is for, and the rule the styles pass already followe
 
 ## Reserved Tags
 
-**Eighteen words are the engine's, and a game may not redefine them.** `validate.lua`'s `ENGINE_TAGS` is the single list — what each word attaches to and what it does — and `SCHEMA.json`, AUTHORING's table and the validator all read it rather than restating it. Four half-lists is how this started, and a word two of them disagreed about was reported as a typo or silently ignored, both of which look like the game being wrong.
+**Some words are the engine's, and a game may not redefine them.** `validate.lua`'s `ENGINE_TAGS` is the single list — what each word attaches to and what it does — and `SCHEMA.json`, AUTHORING's table and the validator all read it rather than restating it. Four half-lists is how this started, and a word two of them disagreed about was reported as a typo or silently ignored, both of which look like the game being wrong.
 
 A style, a tag with behaviour or a computed tag under a reserved name is **an error**: the engine reads the word off the entity, so two meanings would both apply with nothing to say which wins. The cost is accepted rather than argued away — a game cannot name a style `token` to colour everything that is — and it buys the guarantee that a word already meaning something cannot quietly be given a second job.
 
@@ -252,16 +255,11 @@ A style, a tag with behaviour or a computed tag under a reserved name is **an er
 
 ---
 
-## Zone / Deck Behaviour: Tags
+## A Zone's Shape and Its Rules
 
-Zones declare behaviour through an open-ended string tag set. The engine checks for known tags; unknown tags are ignored (forward-compatible).
-
-| Tag | Effect |
-|---|---|
-| `shuffle` | Shuffled when contents are created (setup and refill) |
-| `refill_when_empty` | Recreates `contents` when the zone empties |
-
-Decks are finite by default; drawing removes the card.
+Decks are finite by default; drawing removes the card. `shuffle` and
+`refill_when_empty` are the two tags that say otherwise, and AUTHORING's table
+is where they are written down.
 
 **A zone's shape and its rules are separate fields, not one word.** `type` used
 to answer seven questions at once — where the cards are drawn, who may read
@@ -289,7 +287,7 @@ Phases are a stack, not a flat list. Current phase = top of stack.
 - `push_phase:key` — push a phase (opens overlay, modal, menu).
 - `pop_phase` — pop current phase (closes overlay, returns to previous).
 
-Phase types: `automatic` (runs `actions`, advances immediately), `player_input`, `draw_and_play` (deals `draw` cards from `deck`; playing one card discards the rest and advances), `overlay`.
+Phase types: `automatic` (runs `actions`, advances immediately), `player_input`, `turn` (a phase whose body is other phases, run once per player with `"seat": "each"`), `overlay`. There used to be a fifth, `draw_and_play`, which was `player_input` that ended after one play and threw the rest of the hand away — two things a phase can now say for itself (`"ends_when": "plays >= 1"` and the `discard_hand` tag), so the bundle went.
 
 **Routing.** A phase may declare a `"next"` table instead of relying on list order: the first entry whose condition holds wins, an entry without a condition always matches, and no match means the phase stays put (the validator flags that shape). Round boundaries are *declared* with `"ends_round": true` on the entry — never inferred from list positions — so self-loops for repeated draft hands don't fire income or ready cards unless asked to. `settle` carries a 64-transition budget: a routing cycle warns and halts instead of hanging.
 
@@ -301,9 +299,9 @@ Phase types: `automatic` (runs `actions`, advances immediately), `player_input`,
 ]
 ```
 
-**Free-play drafts** need no phase type: a `player_input` phase with `deck`, `draw` and a `pass_card` deals a hand you may play freely from; a Done/router token advances via `end_phase`. `pass_card` accepts a single key or an array (e.g. three "travel" routers that each set a destination stat the routing reads). Stale tokens are swept from the hand before each deal, so they never accumulate across phases.
+**Free-play drafts** are an ordinary `player_input` phase with `deck`, `draw` and a `pass_card`: it deals a hand you may play freely from, and a Done/router token advances via `end_phase`. `pass_card` accepts a single key or an array (e.g. three "travel" routers that each set a destination stat the routing reads). Stale tokens are swept from the hand before each deal, so they never accumulate across phases.
 
-A `draw_and_play` phase must declare a `"pass_card"`: that card is created into the hand with every deal, so a forced play always has an out — no hand can deadlock the game. The pass card is an ordinary card tagged `token` (tokens are destroyed instead of discarded when the hand is swept) whose play action is `["destroy_self"]`.
+A phase that *forces* a play must declare a `"pass_card"`: that card is created into the hand with every deal, so a forced play always has an out — no hand can deadlock the game. The pass card is an ordinary card tagged `token` (tokens are destroyed instead of discarded when the hand is swept) whose play action is `["purge:self"]`.
 
 The engine keeps a **round counter** as a `round` stat on the injected system card: it starts at 1 and increments every time the phase list wraps. Because it is a stat, games can display it (declare a `round` stat), gate a challenge on it (`challenge.needs`), or end on it (`end_conditions`) — and undo restores it like everything else. The wrap also **readies** all exhausted cards.
 
@@ -315,16 +313,26 @@ Overlay phases grey out the background and deal `draw` cards from `deck` into `z
 
 A card can fork into specific sub-cards: play it, choose one option, the chosen card lands in your hand, and playing it is a deliberate second step. That second step means option cards can carry their own `cost` — a priced transformation. There is no special engine verb: the options live in an **internal deck** and the choice is an ordinary overlay. When in doubt, everything is decks and cards.
 
-```json
-{ "key": "edicts", "type": "deck", "tags": ["hidden"],
-  "contents": ["festival", "conscription", "tax_levy"] }
+Three declarations: the deck of options, the zone they are offered in, and the
+overlay phase that deals one into the other.
 
-{ "key": "decree", "type": "overlay", "label": "Choose an edict",
-  "deck": "edicts", "zone": "offer", "draw": 3,
-  "zone": "decree_offer" }   // whose zone applies a tag: "play": { "action": ["add_to:hand", "return_to:decree_offer:edicts"] }
+```json
+"zones": [
+  { "key": "edicts", "layout": "stack", "visibility": "secret", "display": "offscreen",
+    "contents": ["festival", "conscription", "tax_levy"] },
+  { "key": "decree_offer", "layout": "row", "display": "offscreen",
+    "pos": [0.2, 0.35, 0.8, 0.65], "applies": ["decree_pick"] }
+],
+"phases": [
+  { "key": "decree", "type": "overlay", "label": "Choose an edict",
+    "deck": "edicts", "zone": "decree_offer", "draw": 3 }
+],
+"tags": {
+  "decree_pick": { "play": { "action": ["move_to:hand", "move:decree_offer:edicts", "shuffle:edicts"] } }
+}
 ```
 
-The parent card is just `"play": { "action": ["move_to:graveyard", "push_phase:decree"] }`, and the offer zone grants what choosing from it means — behaviour belonging to the place, so the option cards need say nothing about being offered. While an overlay is open, all other actions (plays, activations, end conditions) are locked until the choice resolves. `purge:zone` and `destroy_self` remove cards from play entirely — the flat array keeps the husks (IDs stay valid) but they hold no zone and no stats, so nothing renders, targets or counts them; undo restores them.
+The parent card is just `"play": { "action": ["move_to:graveyard", "push_phase:decree"] }`, and the offer zone grants what choosing from it means — behaviour belonging to the place, so the option cards need say nothing about being offered. While an overlay is open, all other actions (plays, activations, end conditions) are locked until the choice resolves. `purge:<scope>` removes cards from play entirely — the flat array keeps the husks (IDs stay valid) but they hold no zone and no stats, so nothing renders, targets or counts them; undo restores them.
 
 ---
 
@@ -344,23 +352,24 @@ many routes out of play as it has ways to kill something. Missing one is a
 trigger that silently does not happen, which is the failure a death trigger is
 least likely to be noticed missing.
 
-**`purge:` fires nothing, and that is what the verb is for.** A destroyed card
-lands in no zone, so there is no `into` to name, and `destroy_card` clears its
-stats, so a rule asked to run afterwards would have nothing left to read. Rather
+**`purge:` fires nothing, and that is what the verb is for.** A purged card
+lands in no zone, so there is no `into` to name, and `zones.purge_card` strips
+it, so a rule asked to run afterwards would have nothing left to read. Rather
 than invent a name for landing nowhere, the format keeps the pair: `purge:`
 removes what nobody may ask about — a token vanishing, a swept husk — and a
-removal that *is* answerable is a move into a zone. Naming a zone has always been
-how a rule reaches something, and this is that rule once more.
+removal that *is* answerable is `destroy:`, which is a move into the card's own
+grave and therefore fires `leaves` like any other move. Naming a zone has always
+been how a rule reaches something, and this is that rule once more.
 
 ## Costs
 
 `"play": { "cost": { "gold": 2 } }` gates playing a card: unaffordable cards render dimmed and don't respond to clicks; the cost is deducted on play. An ability's own `cost` does the same for using it. **Choosing from an overlay costs nothing** — cost, needs and targeting describe playing that card out of a hand later. Affordability reads the same subject the payment spends, so it checks whatever the subject's scope names — the player's own cards by default.
 
-`"needs": { "plays": 1 }` is the non-consuming gate: nothing is spent, the card is simply unplayable (dimmed) until the condition holds. Subjects follow the shared vocabulary, so `"needs": { "count:soldier": 2 }` gates on the board. The engine maintains a `plays` stat on the player card — reset to 0 whenever a phase is freshly entered (not when resumed after an overlay), +1 per card played — which is how "play at least one card per hand" is expressed. Escape hatch: a needs-gated card becomes playable when nothing else in its zone is, so a mandatory play can never soft-lock a hand. `round` and `plays` are reserved engine stats; declare them only to display them.
+`"needs": ["plays >= 1"]` is the non-consuming gate: nothing is spent, the card is simply unplayable (dimmed) until the condition holds. It is a list of ordinary conditions, so `"needs": ["count:soldier >= 2"]` gates on the board. The engine maintains a `plays` stat on the player card — reset to 0 whenever a phase is freshly entered (not when resumed after an overlay), +1 per card played — which is how "play at least one card per hand" is expressed. Escape hatch: a needs-gated card becomes playable when nothing else in its zone is, so a mandatory play can never soft-lock a hand. `round` and `plays` are reserved engine stats; declare them only to display them.
 
-Activating a board card **exhausts** it — greyed out, unusable — until the round wraps and readies every card again. One activation per card per round, as is proper. A card that should stay clickable declares `"exhausts": false`.
+**Being spent is a cost, not a consequence.** An ability usable once a round says `"cost": { "exhaust": 1 }`; one that stays available says nothing. Exhausting it greys it out until the round wraps and readies every card again. This used to be automatic — every activation exhausted its card, and `stays_ready` opted out — which is wrong at both ends: the round-long cooldown is the card's rule rather than the engine's, and once a card may carry several abilities, "activating exhausts it" has no answer to *which* one did.
 
-Exhaustion is a **card behaviour, not a stat**. It is tempting to make readiness an ordinary numeric stat so it falls out of the cost machinery for free, but stats are numbers with magnitudes that can be gained, spent and compared; readiness is binary and belongs to the engine's standard card vocabulary, as it does in most card games. Binary card states stay engine behaviours; do not encode them as 0/1 stats.
+Exhaustion is still a **card behaviour, not a stat**. It is tempting to make readiness an ordinary numeric stat so it falls out of the cost machinery for free, but stats are numbers with magnitudes that can be gained, spent and compared; readiness is binary. Binary card states stay engine behaviours; do not encode them as 0/1 stats.
 
 Cards entering a grid zone without slot targeting take the first free slot automatically — friction-free placement for drafts, precise placement when a `target` spec says so.
 
@@ -372,18 +381,18 @@ Games declare win/lose checks that run after every action:
 
 ```json
 "end_conditions": [
-  { "stat": "hp", "equals": 0,      "then": ["push_phase:defeat"] },
-  { "zone_empty": ["road", "hand"], "then": ["push_phase:victory"] }
+  { "when": "morale == 0",       "then": ["push_phase:defeat"] },
+  { "when": "count@road == 0",   "then": ["push_phase:victory"] }
 ]
 ```
 
-One condition under `when`, or `zone_empty` (all listed zones empty). The first matching condition fires; a game has exactly one outcome. Outcomes wait until any open overlay closes, so a pending choice always resolves first. Victory/defeat screens are just overlay phases dealing a fate card whose `play.action` loads the menu — no special engine mode.
+One condition under `when`, in the vocabulary everything else is written in. The first matching condition fires; a game has exactly one outcome. Outcomes wait until any open overlay closes, so a pending choice always resolves first. Victory/defeat screens are just overlay phases dealing a fate card whose `play.action` loads the menu — no special engine mode.
 
 ---
 
 ## Load-time Validation
 
-`validate.lua` checks every game file as it loads: action ops exist, referenced zones/cards/phases/stats exist, routing targets are real non-overlay phases with reachable entries, comparands are numbers, `count:` tags exist somewhere, reserved stats aren't redefined, `draw_and_play` phases carry a pass card, automatic phases can't cycle unconditionally, and `return_to` never drains a `refill_when_empty` zone (it would refill mid-drain). Problems are printed and written to the event log — content errors warn, they never kill the game. The test suite asserts all shipped games validate clean.
+`validate.lua` checks every game file as it loads: action ops exist, referenced zones/cards/phases/stats exist, routing targets are real non-overlay phases with reachable entries, comparands are numbers, `count:` tags exist somewhere, reserved stats aren't redefined, a phase that forces a play carries a pass card, and automatic phases can't cycle unconditionally. Problems are printed and written to the event log — content errors warn, they never kill the game. The test suite asserts all shipped games validate clean.
 
 ---
 
@@ -445,14 +454,14 @@ A tag definition may carry card behaviour — a home `zone`, a `tooltip`, the `p
 
 ```json
 "tags":  { "takeable": { "abilities": [{ "action": ["move_to:hand", "end_phase"], "phases": ["draw"] }] } }
-"zones": [ { "key": "red_discard", "type": "pile", "applies": ["takeable"] } ]
+"zones": [ { "key": "red_discard", "layout": "stack", "applies": ["takeable"] } ]
 ```
 
 That is the whole of "you may take the top card of a discard pile": the pile says what lying on it means, and no card in the game knows piles exist. Graveyard recursion, a deckbuilder's market row and Klondike's movable runs are the same sentence.
 
 **Where a card is decides what it can do.** The zone answers first and the card's own definition answers where the zone is silent — a creature lying in a graveyard that grants "return to hand" offers that, not the tap ability it had on the board. There is deliberately **no card-wins precedence rule**: an earlier draft had one so a marker card could opt out of an ability its pile handed everybody, and that was a workaround for content the engine no longer needs. A card and its zone defining the same behaviour is an authoring conflict now, reported by the validator rather than silently resolved. Prose is the exception and not a conflict: a card's own tooltip and its zone's describe different acts, so the tooltip shows both.
 
-This is aura-shaped, and gap 5 of `ideas/01-boardgames.md` defers auras for good reason; what keeps this the cheap corner is that the grant is *static*: a fixed list declared on the zone, resolved by one lookup, never recomputed as state moves.
+This is aura-shaped, and it is deliberately the cheap corner of that shape: the grant is *static*, a fixed list declared on the zone, resolved by one lookup and never recomputed as state moves. An aura that watches the board is a different mechanism — `adjusts` over a declared verb — and lives in AUTHORING §5.
 
 ---
 
@@ -500,17 +509,14 @@ State is flat and serializable, so the engine runs headless (`headless.lua` is t
   echo "state"                 | nc 127.0.0.1 5757   # full entity dump as JSON
   ```
 
-  Commands: `state`, `stats`, `play`, `activate`, `pick`, `click`, `eval`, `load`, `undo`, `help`. Cards are addressed by def key, entity ID, or `slot:N`. No-op under love.js (no sockets).
+  Commands: `state`, `stats`, `log`, `play`, `activate`, `pick`, `click`, `react`, `pass`, `pending`, `eval`, `edit`, `dump`, `reload`, `load`, `undo`, `screenshot`, `help`. Cards are addressed by def key, entity ID, or `slot:N`. No-op under love.js (no sockets).
 
 ---
 
 ## Coding Style
 
-- Keep code small and elegant — no Java-style verbosity.
-- Follow the official Lua style guide.
-- Only extract helper functions that are clearly generic with an obvious use-case. Don't extract one-off logic.
-- Comments explain the WHY, not the HOW.
-- Don't overengineer.
+In `CLAUDE.md`, which is the one copy. A second list here is a second thing to
+keep in step, and the rules are about code rather than about the format.
 
 ---
 
@@ -520,6 +526,6 @@ State is flat and serializable, so the engine runs headless (`headless.lua` is t
 - love.js 11.5 (2dengine fork) runs the `.love` in the browser.
 - nginx serves with COOP/COEP headers (required by love.js SharedArrayBuffer).
 - Dev: `docker compose up --build` — watches `game/` and repacks on change.
-- Prod: `docker build` + `docker run -p 8080:8080`.
+- Prod: `docker build` + `docker run -p 8080:8080` (dev maps it to 9009).
 - Tests: `luajit tests/run.lua` (headless, no LÖVE needed).
 - Saved games go in LÖVE's own save directory (`t.identity`), one file per slot. The browser's is IndexedDB-backed and love.js flushes it only at exit, so `save.lua` pushes every write across itself.

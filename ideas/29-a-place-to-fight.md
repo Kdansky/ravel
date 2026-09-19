@@ -116,16 +116,15 @@ zone:
 
 ```
 move_to:origin                   the acting card, home
-move_target_to:origin            the ones the player chose, each to its own
+move:target:origin               the ones the player chose, each to its own
 move:duel:origin                 empty a zone, sending everything back
-return_to:duel:origin            the same, said the other way round
 ```
 
 No new zone field and no new verb — one word, in the place `target` already
 sits. It is engine bookkeeping rather than a game's rule: every card in every
 game came from somewhere, and nothing but the engine can know it.
 
-**A destination and never a source.** `return_to:origin:hand` is refused, and
+**A destination and never a source.** `move:origin:hand` is refused, and
 that refusal is the definition: there is no one zone to drain, because the
 answer is different for every card. That is also the whole reason the word
 earns its place — one line sending a combat zone home sends each card
@@ -183,13 +182,13 @@ blocking step to interleave and a fight begins and ends inside one click:
 clear · rage · attacks · aim · armor · land · venom · tally · spill · kills
 ```
 
-Then `return_to:duel:origin` and the existing `rules_death`. **Sending everyone
+Then `move:duel:origin` and the existing `rules_death`. **Sending everyone
 home before sweeping the dead** is what kept the death rules untouched: a
 scavenger dies standing in its own slot, exactly as it did before, so
 `r_scav` and `r_techie` never learned that combat had moved.
 
 **The cell question answered itself.** The zone is empty before every fight and
-emptied after, so `move_to:duel` then `move_target_to:duel` fill cell 1 and cell
+emptied after, so `move_to:duel` then `move:target:duel` fill cell 1 and cell
 2 in that order, and `by_column` walks them in it. No slot targeting, no named
 cells.
 

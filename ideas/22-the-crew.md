@@ -32,7 +32,7 @@ which no card could name before. Four decisions:
   owner words can never disagree about whose a card is, and a seat card asked
   about itself answers itself rather than nobody.
 - **An owner word means whichever side of the prefix it stands on** — inside it
-  picks the cards, before it it filters the seats that come back. Each word sits
+  picks the cards, before it filters the seats that come back. Each word sits
   beside what it is about, so neither reading has to be remembered.
 - **Each seat answers once** however many cards it owns. A seat counted per card
   would pay a player twice for holding two pieces.

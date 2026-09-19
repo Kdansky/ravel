@@ -96,9 +96,9 @@ cards into a hidden `system` grid zone, the same way it injects the built-in
 
 A subject with no scope resolves to exactly these — every card tagged `player`
 plus the system zone — so a bare read and a bare write land on the same card.
-That is the whole point: `entity.sum_stat` (read everything) and `stat_holder`
-(write to the first holder) used to disagree, and only an unwritten
-one-holder-per-stat invariant kept them in step.
+That is the whole point: reading a stat and writing one used to resolve their
+subjects differently — everything that carries it against the first thing that
+does — and only an unwritten one-holder-per-stat invariant kept them in step.
 
 **Seats are those cards.** Every card tagged `player` is a seat, in
 `G.seat_list` order (file order), named by its own key. A zone def with
@@ -109,13 +109,15 @@ with everything else. One seat is the ordinary case and pays for none of this:
 `active_seat` returns on its first line and every owner word names the same
 cards.
 
-**Ownership** (`tags.owner_of`) is a card's seat *tag* first, and the seat of
-its zone second. The tag wins because a zone's seat is where a thing is and a
-tag is whose it is, and those come apart on a shared board: a chessboard is one
-zone with pieces belonging to two players, and a four-player game can have a
-planet held by player three sitting inside player two's system. Ownership still
-costs no per-card state — a seat is already a card key, so claiming one is a
-tag. Two questions, deliberately separate: `tags.owner_of` is *whose piece is
+**Ownership** (`tags.owner_of`) is a card's own `owner` stat first — an index
+into `G.seat_list`, stamped from where `setup.place` put it and the one thing
+`set_owner` writes — and the seat of its zone second. The card wins because a
+zone's seat is where a thing is and `owner` is whose it is, and those come apart
+on a shared board: a chessboard is one zone with pieces belonging to two
+players, and a four-player game can have a planet held by player three sitting
+inside player two's system. A card lent to an offer answers from
+`borrowed_from`, because the offer belongs to the table and has no seat. Two
+questions, deliberately separate: `tags.owner_of` is *whose piece is
 this* (a seat card is nobody's piece, so a party game tagging four characters
 `player` keeps all four clickable on one turn), and `predicate.seat_of` is *who
 does this card answer for* (a seat card answers with its own key, which is what
@@ -123,7 +125,7 @@ makes `score@mine` find the active seat's stat bag).
 
 **Presentation cache**: `card.place` (pixel rect) lives on entities for
 hit-testing and as the animation target, but it is written by
-`render.sync_places` every frame (plus a fly-from prestamp in `flow.deal`).
+`render.sync_places` every frame (plus a fly-from prestamp in flow's `deal`).
 Treat it as disposable.
 
 ## Invariants (the rules that keep this codebase small)
@@ -214,7 +216,7 @@ love.mousepressed/released (main)          ── hit-test via card.place
       log "Played X", plays+1, pay cost
       actions.run(play action, ctx)         ── mutates entities, maybe phases
       spent? a card still in the offer it was chosen from is destroyed
-      draw_and_play? discard hand (tokens vanish), phase.next
+      discard_hand? sweep the hand (tokens vanish); ends_when met? phase.next
       settle()                              ── routing, rounds, deals, endings
   → next frames: render.sync_places diffs card.place → anim tweens
       anim.on_land → fx.impact; actions.on_stat_change → fx.float
@@ -428,13 +430,14 @@ counting, and the presentation had no origin to fly the card out of — 95 sites
 Puzzle Strike. The validator now names the pair wherever it survives and writes
 the `take` that replaces it.
 
-**And going back in was two statements until `destroy` reclaimed.** The mirror
-of the same fault: a `destroy` that lost the component beside a
-`stat_gain:stock` that paid the box back, and a box that leaks the day one site
-forgets. `zones.destroy_card` — the single choke point `HANDLERS["destroy"]`,
-`destroy_self` and the grid's `on_occupied: "destroy"` all reach — looks the
-card's kind up with `zones.supply_of` and credits the shelf. Nothing stocks it:
-it stops existing, which is the whole of what the function used to do.
+**And going back in was two statements until `purge` reclaimed.** The mirror of
+the same fault: a removal that lost the component beside a `stat_gain:stock`
+that paid the box back, and a box that leaks the day one site forgets.
+`zones.purge_card` — the single choke point `HANDLERS["purge"]` and
+`place_in_slot`'s `on_occupied: "purge"` both reach — looks the card's kind up
+with `zones.supply_of` and credits the shelf before stripping it. It skips a
+shelf reclaiming itself and a card marked `imaginary`, because neither came out
+of the box.
 
 No word was added, because the declaration was already written: a supply's
 shelves *are* its statement of what it stocks, and a shelf exists for a kind the

@@ -32,7 +32,7 @@ reading is a key you hold, not a mode the game is left in.
 **Hold ctrl and point at anything** in the running game — a card, the square
 under it, the zone it lies in — to read the JSON behind it: the template (your
 JSON, plus whatever the parser derived from it — a card with `moves` grew the
-the ability's `target` that makes those moves clickable), the live entity the engine
+ability's `target` that makes those moves clickable), the live entity the engine
 made of it, and the things the engine works out rather than stores anywhere
 (whose piece it is, and *every* tag that is true of it
 right now, including the ones its zone grants and the computed ones that are
@@ -50,7 +50,7 @@ copies it, so a dump can go straight back into the game file.
 | to turn a rulebook into a file | §3, which is a procedure rather than a feature list |
 | a working two-player game | §4, first recipe — it is a whole file, and the suite runs it |
 | "how do I say *X*" | §4, which is a list of those questions |
-| an effect, and the JSON that says it | `COOKBOOK.md` — 141 of them, indexed by the sentence a card would print |
+| an effect, and the JSON that says it | `COOKBOOK.md`, indexed by the sentence a card would print |
 | what a field means | §5, indexed below |
 | every field there is, alphabetically | `SCHEMA.json` |
 
@@ -109,7 +109,8 @@ and a line here names a section that exists:
     { "key": "playing", "type": "player_input", "label": "Playing" }
   ],
   "end_conditions": [{ "when": "hp == 0", "then": ["load_game:menu.json"] }]
-}```
+}
+```
 
 The recipe, in order:
 
@@ -281,27 +282,30 @@ rulebook open alongside.
 
 ### Rules that do not fit — stop and say so
 
-The engine is turn-based, one screen, no hidden information between seats and
-no continuous effects. If the rulebook needs any of the following, it cannot be
-expressed today and guessing will produce a game that looks right and plays
-wrong:
+The engine is turn-based and takes one action at a time. If the rulebook needs
+any of the following, it cannot be expressed today, and guessing will produce a
+game that looks right and plays wrong:
 
 - **Simultaneous or real-time action** — everything is strictly one action at a
   time, in phase order.
 - **Negotiation, trading, bluffing between players** — there is no channel.
-- **Hidden information between seats.** Hot-seat hides nothing: both hands are
-  in the same state on the same screen. Fine at one keyboard, not a secret.
-- **Triggered abilities** — "when a creature dies, …". `turn.action` (each round
-  boundary) is the only automatic hook; anything else has to be a card the
-  player is made to play.
-- **Continuous effects / auras** — "all your beasts have +1 while this is in
-  play". Model it as a stat change applied once, or leave it out.
-- **Arithmetic inside an amount** — an action's amount is one number or one
-  product; anything more is a `computes` entry (`+ - * / %` and brackets), or
-  separate actions, as the scoring row above does. Subtraction *between*
-  actions is free and clamps at the stat's floor, which is `max(0, a - b)` and
-  further than it looks (see *Actions*); a clamp anywhere but at the floor —
-  "never below one" — is genuinely missing.
+- **Hidden information that holds against a determined opponent.** `visibility`
+  hides a hand from the *screen*, which is enough for hot-seat and for an honest
+  game over the network — but both clients hold the whole state, so the
+  protocol hides nothing. See *Trust* in `DESIGN.md`.
+- **Replacement effects** — "if it would die, exile it instead". A reaction
+  answers an event; it cannot rewrite one before it happens.
+- **A card whose announcements cannot be answered**, and **reactions granted by
+  a tag or a zone**: `abilities` come from three places, `reactions` are the
+  card's own only.
+- **A clamp anywhere but at a stat's floor.** Subtraction between actions is
+  free and clamps at `min`, which is `max(0, a - b)` and further than it looks
+  (see *Actions*); "never below one" is genuinely missing.
+
+Triggers and auras used to be on this list and are not: "when a creature dies"
+is `leaves`, "when this arrives" is the zone's `arrives`, anything announced is
+`verbs` plus `reactions`, and "all your beasts have +1" is an `adjusts` entry.
+All four are in §5.
 
 ### Big decks
 
@@ -1437,7 +1441,7 @@ disk cache with no network at all.
 | `emits` | What playing or activating this card **announces**, so a reaction may answer it: `{ "play": "cast" }`. Beside the moments rather than inside them, because a tag granting a `play` block grants it whole — written on a tag, one line makes every spell in the game answerable |
 | `play.spent` | Where the card goes once its play is over, **however it ends** — resolved, or countered before it ever ran. Opt-in; without it the action list is answerable for its own card |
 | `challenge` | **Not a moment — a named test.** `needs` is the condition, `pass` and `fail` the action lists it chooses between, and any action list reaches it by running `resolve_challenge`. That is why it sits beside the moments rather than inside one: kingdom's crises are resolved when *played*, and if they fail they stay on the board to be *activated* later — one challenge, asked from two moments. Written inside `play` it would have to be written twice. One block because the three fields only ever work together. **Its condition sees the card asking it** — `@self` is that card and `@target` whatever it was aimed at — which is how chess's pawn asks "did this move end on my eighth rank" |
-| `receive` | `needs`: whether **this** card may be aimed at, or be the destination of the card being played, with itself as `@self` and the aiming card as `@target` (see *Legality between two cards*). `action`: what this card does about the aim that was made, read the same way round — run once per chosen target, after the cost and **before** the aiming card acts, which is what lets *"dies when a spell aims at it"* leave the spell nothing to land on. `when`: which aims the action answers, since `needs` cannot serve — it refuses the aim outright, where an Illusion is targetable by everything and dies only to some of it. Fires only where a player **pointed**, never where a scope named. A zone takes the same block, where the halves are about a card *arriving* rather than an aim **`when` and `action` read `mine` as the card's own owner**, not as whoever is up — being pointed at is not something the receiver chose to do, so *"your Illusions no longer die when a spell aims at them"* has to be asked from the Illusion's side. `needs` is the exception and keeps the ordinary reading, because it gates whether the aim may be made and is honestly about the aimer: Codex's stealth asks whether **you** have a detector |
+| `receive` | `needs`: whether **this** card may be aimed at, or be the destination of the card being played, with itself as `@self` and the aiming card as `@target` (see *Legality between two cards*). `action`: what this card does about the aim that was made, read the same way round — run once per chosen target, after the cost and **before** the aiming card acts, which is what lets *"dies when a spell aims at it"* leave the spell nothing to land on. `when`: which aims the action answers, since `needs` cannot serve — it refuses the aim outright, where an Illusion is targetable by everything and dies only to some of it. Fires only where a player **pointed**, never where a scope named. A zone takes the same block, where the halves are about a card *arriving* rather than an aim. **`when` and `action` read `mine` as the card's own owner**, not as whoever is up — being pointed at is not something the receiver chose to do, so *"your Illusions no longer die when a spell aims at them"* has to be asked from the Illusion's side. `needs` is the exception and keeps the ordinary reading, because it gates whether the aim may be made and is honestly about the aimer: Codex's stealth asks whether **you** have a detector |
 | `round` | `action`: run at each round boundary while the card is on a grid and not ruined |
 | `leaves` | `action`: run when this card **leaves**, with `@self` as the departing card. `from` says which departure — leaving play by default, out of a `status: board` zone into one that is not; name a zone and it is leaving that zone, which is how "when you discard this" is said. `into` names the zone it landed in, and is what tells death from exile from bounce (see *`leaves` — a card on its way out*) |
 | `chosen` | `action`: run when somebody picks a card out of the offer **this** card opened with `show:`, with the pick as `@target` and this card as `@self`. The reverse of an `options:` offer, where the entry carries the rule and the asker is what it is about — here the entry is somebody else's property and carries nothing of ours |
@@ -2317,7 +2321,7 @@ restores the square too — so each figure lands back in its own place in its
 owner's row rather than in a heap.
 
 **An owner word means whichever side of the prefix it stands on**, as with
-`owner_of`: inside it picks the hosts, before it it filters the riders that come
+`owner_of`: inside it picks the hosts, before it filters the riders that come
 back. `@mine.attached_to.self` is my figures on this card, however many other
 people also have one there.
 
@@ -5303,7 +5307,7 @@ injected only when a game declares no card tagged `player` of its own. The
 that wants a visible hero just tags a board card `player` and gets no injection.
 
 `menu.json` boots the engine. Zone keys `hand` (default deal/pick target),
-`graveyard` (draw_and_play discard), `board` (where a placement with no zone lands) are
+`graveyard` (where a swept hand goes), `board` (where a placement with no zone lands) are
 load-bearing names; `reveal` names both the built-in page zone and overlay
 phase, and `system` the hidden zone holding the engine's own two cards (a game
 may declare any of them to override). The tag `player` marks a seat, and the
