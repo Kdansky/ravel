@@ -2523,6 +2523,15 @@ walking eight rays down four lines.
 flips it for whoever is sitting at the other side. So one pawn template serves
 both colours.
 
+**A pattern read off a card nobody owns is flipped for whoever is *up*.** Only
+the first seat faces forward, so `[[0,1]]` on an ownerless piece means "up the
+board" on one player's turn and "down" on the next. On a board with more than
+two sides — Ghost Stories reads "the tile in front of this ghost" from all four
+edges of one grid — the answer is to name **both** directions and let the one
+that leaves the board name nothing: `[[0,1],[0,-1]]` is the tile in front,
+whichever edge the ghost is standing on, and it cannot be turned round because
+it is already symmetric.
+
 **Absolute patterns** name squares rather than directions, and name them the way
 a player says them. A square belongs to a board rather than to whoever is
 moving, so an absolute pattern names its `zone` (or takes the only board):

@@ -9,13 +9,16 @@
       "contents": [
         "play_lost_cities",
         "play_chess",
+        "play_checkers",
         "play_splendor",
         "play_lor",
         "play_the_crew",
         "play_puzzle_strike",
         "play_arnak",
         "play_codex",
-        "play_spellstorm"
+        "play_spellstorm",
+        "play_grimm",
+        "play_ghost_stories"
       ]
     },
     {
@@ -107,6 +110,30 @@
       "tooltip": "Capture the king. Two players, one device.",
       "play": { "action": ["load_game:chess.json"] },
       "asset": "chequer:8:slate:silver",
+      "tags": ["immutable"]
+    },
+    {
+      "key": "play_checkers",
+      "text": "Checkers",
+      "tooltip": "English draughts. Men step diagonally forward and jump what stands in their way, a man reaching the far row is crowned, and the side with nothing left on the board loses. Captures are not forced here. Two players, one device.",
+      "play": { "action": ["load_game:checkers.json"] },
+      "asset": "chequer:8:brown:sand",
+      "tags": ["immutable"]
+    },
+    {
+      "key": "play_grimm",
+      "text": "The Grimm Forest",
+      "tooltip": "Three of the Three Little Pigs' nieces and nephews race to build three houses. Everybody picks a Location in secret, and whatever lies there is split between the pigs who turn up, rounded down — so going where nobody else went is the whole game. Fables and Friends bend it. Three players, one device.",
+      "play": { "action": ["load_game:grimm.json"] },
+      "asset": "triangle:pink",
+      "tags": ["immutable"]
+    },
+    {
+      "key": "play_ghost_stories",
+      "text": "Ghost Stories",
+      "tooltip": "Four Taoists guard a village of nine tiles against the incarnation of Wu-Feng. Ghosts pile onto the four boards around it, a haunting figure turns a tile over every second turn, and a fourth dark tile loses the game for everybody. Roll three Tao dice, spend tokens to make up the difference, and exorcise the thing in front of you. Cooperative. Four players, one device.",
+      "play": { "action": ["load_game:ghost_stories.json"] },
+      "asset": "square:violet",
       "tags": ["immutable"]
     },
     {

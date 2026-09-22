@@ -1,0 +1,634 @@
+{
+  "title": "The Grimm Forest",
+  "seed": 11,
+  "comment": "Three pigs race to finish three houses. The gather half is why this game is here: everybody commits a Gather card face down, the pigs walk out together, and a Location divides what lies on it by the number of pigs standing there — a compute with a '/' in it, read once before anybody collects, so the second pig does not divide what the first left. The Gather card is where every 'at your Location' rule lives, because it is the only card in the round that knows where its owner went: it writes 'crowd' and 'mates' onto the seat, and a Fable then reads those rather than the board. What the file could not say is on the 'not_implemented' card.",
+  "players": [
+    { "card": "orange" },
+    { "card": "blue" },
+    { "card": "green" }
+  ],
+
+  "styles": {
+    "plate_straw": { "color": [0.85, 0.74, 0.38] },
+    "plate_wood": { "color": [0.47, 0.33, 0.20] },
+    "plate_brick": { "color": [0.66, 0.27, 0.22] },
+    "plate_fable": { "color": [0.30, 0.26, 0.40] },
+    "plate_friend": { "color": [0.24, 0.45, 0.42] },
+    "plate_token": { "color": [0.72, 0.60, 0.24] },
+    "site_row": { "fit": "card", "hide": ["cell_outline"] },
+    "house": { "badges": ["level"] },
+    "ground": { "badges": ["pool"], "hide": ["zero_badges"] },
+    "counter": { "badges": ["stock"] },
+    "piece": { "hide": ["title", "border", "plate"] }
+  },
+
+  "computes": [
+    { "key": "split_straw", "value": "pool@self / count:pig@fields",
+      "tooltip": "What one pig standing in the Fields takes: the pile divided by the pigs, rounded down." },
+    { "key": "split_wood", "value": "pool@self / count:pig@forest",
+      "tooltip": "What one pig standing in the Forest takes." },
+    { "key": "split_brick", "value": "pool@self / count:pig@brickyard",
+      "tooltip": "What one pig standing in the Brickyard takes." },
+    { "key": "my_place", "value": "(seat_no@self - rnd@self) % 3",
+      "tooltip": "Where this seat sits in the order this round. The Starting Player marker passing clockwise is this number going down by one." },
+    { "key": "tally", "value": "(houses@self * 1000) + (hb_brick@self * 100) + (hb_wood@self * 10) + tok_brick@self",
+      "tooltip": "Houses first, then Brick houses, then Wood houses, then the Brick First Builder token — the tie-breakers in the order the rulebook gives them." }
+  ],
+
+  "stats": [
+    { "key": "straw", "label": "Straw", "icon": "leaf", "color": "gold", "min": 0, "max": 99, "on": ["player"], "start": 0 },
+    { "key": "wood", "label": "Wood", "icon": "blade", "color": "brown", "min": 0, "max": 99, "on": ["player"], "start": 0 },
+    { "key": "brick", "label": "Brick", "icon": "shield", "color": "crimson", "min": 0, "max": 99, "on": ["player"], "start": 0 },
+    { "key": "houses", "label": "Houses", "icon": "banner", "color": "sand", "min": 0, "max": 5, "on": ["player"], "start": 0 },
+    { "key": "acts", "label": "Actions", "icon": "arrow", "min": 0, "max": 9, "display": "nonzero", "on": ["player"], "start": 0 },
+
+    { "key": "crowd", "min": 0, "max": 3, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "mates", "min": 0, "max": 2, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "extra_acts", "min": 0, "max": 9, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "dock", "min": 0, "max": 9, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "gathered", "min": 0, "max": 99, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "bully", "min": 0, "max": 1, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "vaulting", "min": 0, "max": 1, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "beanstalk", "min": 0, "max": 1, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "egg", "min": 0, "max": 1, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "searching", "min": 0, "max": 1, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "hb_straw", "min": 0, "max": 5, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "hb_wood", "min": 0, "max": 5, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "hb_brick", "min": 0, "max": 5, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "tok_straw", "min": 0, "max": 1, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "tok_wood", "min": 0, "max": 1, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "tok_brick", "min": 0, "max": 1, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "fin_type", "min": 0, "max": 3, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "seat_no", "min": 0, "max": 2, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "rnd", "min": 0, "max": 99, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "turnpos", "min": 0, "max": 2, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "final", "min": 0, "max": 9999, "display": "offscreen", "on": ["player"], "start": 0 },
+
+    { "key": "pool", "label": "Lying there", "icon": "none", "min": 0, "max": 99, "display": "offscreen", "on": ["location"], "start": 0 },
+    { "key": "share", "min": 0, "max": 99, "display": "offscreen", "on": ["location"], "start": 0 },
+
+    { "key": "level", "label": "Built", "icon": "none", "min": 0, "max": 3, "display": "offscreen", "on": ["house"], "start": 1 },
+    { "key": "stock", "icon": "none", "min": 0, "max": 99, "display": "offscreen" }
+  ],
+
+  "computed_tags": {
+    "wip_straw": { "needs": ["tagged:straw_h@self", "level@self <= 2"] },
+    "wip_wood": { "needs": ["tagged:wood_h@self", "level@self <= 2"] },
+    "wip_brick": { "needs": ["tagged:brick_h@self", "level@self <= 2"] }
+  },
+
+  "tags": {
+    "fable": {
+      "play": {
+        "phases": ["pick_fable"],
+        "action": ["move_to:mine.commit", "purge:mine.fables.pass", "end_phase"]
+      }
+    },
+    "gather": {
+      "play": {
+        "phases": ["pick_gather"],
+        "action": ["move_to:mine.commit"]
+      }
+    }
+  },
+
+  "zones": [
+    { "key": "tools", "label": "Build actions", "layout": "row", "use": "abilities",
+      "tags": ["optional"], "pos": [0.01, 0.31, 0.24, 0.68] },
+
+    { "key": "locations", "label": "The Grimm Forest", "layout": "grid", "grid": [3, 1],
+      "status": "board", "tags": ["site_row"], "pos": [0.26, 0.31, 0.60, 0.47] },
+
+    { "key": "fields", "label": "Fields", "layout": "row", "status": "board",
+      "pos": [0.26, 0.48, 0.371, 0.57] },
+    { "key": "forest", "label": "Forest", "layout": "row", "status": "board",
+      "pos": [0.375, 0.48, 0.486, 0.57] },
+    { "key": "brickyard", "label": "Brickyard", "layout": "row", "status": "board",
+      "pos": [0.490, 0.48, 0.60, 0.57] },
+
+    { "key": "bonuses", "label": "First Builder", "layout": "row", "status": "board",
+      "pos": [0.26, 0.58, 0.60, 0.68] },
+
+    { "key": "fable_deck", "label": "Fables", "layout": "stack", "visibility": "secret",
+      "tags": ["shuffle"], "refill_from": "fable_discard", "pos": [0.62, 0.31, 0.70, 0.49],
+      "contents": ["f_little_helpers:4", "f_powerful_friends:4", "f_mysterious_stranger:4",
+                   "f_spy_network:4", "f_search_the_past:4", "f_hidden_vault:4"],
+      "tooltip": "The Fable deck. One Fable may be played each round, face down beside your Gather card." },
+    { "key": "fable_discard", "label": "Told", "layout": "stack", "pos": [0.72, 0.31, 0.80, 0.49] },
+    { "key": "friend_deck", "label": "Friends", "layout": "stack", "visibility": "secret",
+      "tags": ["shuffle"], "refill_from": "friend_discard", "pos": [0.62, 0.51, 0.70, 0.68],
+      "contents": ["fr_seven_dwarfs:4", "fr_fairy_godmother:4", "fr_rumpelstiltskin:4",
+                   "fr_golden_goose:4", "fr_jack_giant_slayer:4", "fr_the_wood_cutter:4"],
+      "tooltip": "The Friend deck. Building a Walls section draws one, and you may only keep one Friend at a time." },
+    { "key": "friend_discard", "label": "Gone", "layout": "stack", "pos": [0.72, 0.51, 0.80, 0.68] },
+
+    { "key": "box", "label": "Sections", "layout": "grid", "grid": [3, 1], "status": "supply",
+      "tags": ["counter"], "pos": [0.82, 0.31, 0.99, 0.49],
+      "contents": ["sec_straw:5", "sec_wood:5", "sec_brick:5"],
+      "tooltip": "Five houses of each type is all the box holds." },
+
+    { "key": "rules", "layout": "stack", "pos": [0.82, 0.51, 0.99, 0.68] },
+
+    { "key": "seat_box", "layout": "stack", "status": "board", "copies": "per_seat",
+      "pos": [[0.005, 0.695, 0.055, 0.995], [0.005, 0.005, 0.055, 0.145], [0.005, 0.150, 0.055, 0.290]] },
+    { "key": "pen", "layout": "stack", "status": "board", "copies": "per_seat",
+      "pos": [[0.060, 0.695, 0.100, 0.995], [0.060, 0.005, 0.100, 0.145], [0.060, 0.150, 0.100, 0.290]] },
+    { "key": "trophies", "label": "Bonus", "layout": "row", "status": "board", "copies": "per_seat",
+      "pos": [[0.105, 0.695, 0.165, 0.995], [0.105, 0.005, 0.165, 0.145], [0.105, 0.150, 0.165, 0.290]] },
+    { "key": "friend", "label": "{owner}'s friend", "layout": "stack", "status": "board",
+      "use": "abilities", "copies": "per_seat", "tags": ["optional"],
+      "pos": [[0.170, 0.695, 0.245, 0.995], [0.170, 0.005, 0.245, 0.145], [0.170, 0.150, 0.245, 0.290]] },
+    { "key": "sites", "label": "{owner}'s build sites", "layout": "grid", "grid": [5, 1],
+      "status": "board", "use": "abilities", "copies": "per_seat", "tags": ["optional", "site_row"],
+      "pos": [[0.250, 0.695, 0.560, 0.995], [0.250, 0.005, 0.560, 0.145], [0.250, 0.150, 0.560, 0.290]] },
+    { "key": "commit", "label": "Face down", "layout": "row", "visibility": "owner",
+      "copies": "per_seat",
+      "pos": [[0.565, 0.695, 0.655, 0.995], [0.565, 0.005, 0.655, 0.145], [0.565, 0.150, 0.655, 0.290]] },
+    { "key": "plan", "label": "Gather", "layout": "row", "visibility": "owner", "copies": "per_seat",
+      "pos": [[0.660, 0.695, 0.790, 0.995], [0.660, 0.005, 0.790, 0.145], [0.660, 0.150, 0.790, 0.290]] },
+    { "key": "fables", "label": "Fables", "layout": "row", "visibility": "owner", "copies": "per_seat",
+      "pos": [[0.795, 0.695, 0.995, 0.995], [0.795, 0.005, 0.995, 0.145], [0.795, 0.150, 0.995, 0.290]] }
+  ],
+
+  "phases": [
+    { "key": "opening", "type": "automatic", "next": [{ "then": "plan" }] },
+
+    { "key": "plan", "type": "turn", "seat": "each", "order": "lowest:turnpos",
+      "phases": ["pick_gather", "pick_fable"], "next": [{ "then": "walk_out" }] },
+
+    { "key": "pick_gather", "type": "player_input", "zone": "plan",
+      "label": "Choose where to gather — face down",
+      "ends_when": "count@mine.commit >= 1" },
+
+    { "key": "pick_fable", "type": "player_input", "zone": "fables", "pass_card": "no_fable",
+      "label": "Play a Fable with it, or none" },
+
+    { "key": "walk_out", "type": "automatic", "label": "The pigs set out",
+      "actions": ["each_seat:activate_zone:mine.commit:by_column:go",
+                  "each_seat:activate_zone:mine.commit:by_column:crowd"],
+      "next": [{ "then": "boost" }] },
+
+    { "key": "boost", "type": "automatic", "label": "Before collecting",
+      "actions": ["each_seat:activate_zone:mine.friend:by_column:after_reveal",
+                  "each_seat:activate_zone:mine.commit:by_column:pre"],
+      "next": [{ "then": "divide" }] },
+
+    { "key": "divide", "type": "automatic",
+      "actions": ["activate_zone:locations:by_column:divide"],
+      "next": [{ "then": "collect" }] },
+
+    { "key": "collect", "type": "automatic", "label": "Sharing what is there",
+      "actions": ["each_seat:activate_zone:mine.commit:by_column:collect",
+                  "activate_zone:locations:by_column:spend"],
+      "next": [{ "then": "end_gather" }] },
+
+    { "key": "end_gather", "type": "automatic", "label": "End of the Gather phase",
+      "actions": ["each_seat:activate_zone:mine.friend:by_column:end_gather",
+                  "each_seat:activate_zone:mine.commit:by_column:end_gather"],
+      "next": [{ "then": "late_places" }] },
+
+    { "key": "late_places", "type": "automatic",
+      "actions": ["each_seat:activate_zone:mine.commit:by_column:vault",
+                  "each_seat:activate_zone:mine.commit:by_column:bully"],
+      "next": [{ "then": "gather_done" }] },
+
+    { "key": "gather_done", "type": "automatic",
+      "actions": ["activate_zone:locations:by_column:clear",
+                  "each_seat:move:mine.commit.gather:mine.plan",
+                  "each_seat:move:mine.commit.fable:fable_discard"],
+      "next": [{ "then": "build" }] },
+
+    { "key": "build", "type": "turn", "seat": "each", "order": "lowest:turnpos",
+      "phases": ["build_turn"],
+      "next": [{ "when": "max:houses@anyone.player >= 3", "then": "judging" },
+               { "then": "cleanup" }] },
+
+    { "key": "build_turn", "type": "player_input", "zone": ["tools", "sites", "friend"],
+      "label": "Two actions: a Fable, a resource, or build",
+      "actions": ["stat_set:acts@mine.player:2",
+                  "stat_gain:acts@mine.player:sum:extra_acts@mine.player",
+                  "stat_damage:acts@mine.player:sum:dock@mine.player",
+                  "stat_set:extra_acts@mine.player:0",
+                  "stat_set:dock@mine.player:0",
+                  "ready:mine.friend",
+                  "activate_zone:mine.friend:by_column:build_start",
+                  "activate_zone:mine.seat_box:by_column:build_start"],
+      "ends_when": "acts@mine.player == 0" },
+
+    { "key": "cleanup", "type": "automatic", "label": "Clean up",
+      "actions": ["move:anyone.pig:origin",
+                  "activate_zone:locations:by_column:replenish",
+                  "stat_set:gathered@each.anyone.player:0",
+                  "stat_set:crowd@each.anyone.player:0",
+                  "stat_set:mates@each.anyone.player:0",
+                  "stat_set:bully@each.anyone.player:0",
+                  "stat_set:vaulting@each.anyone.player:0",
+                  "stat_set:beanstalk@each.anyone.player:0",
+                  "stat_gain:rnd@each.anyone.player:1",
+                  "each_seat:activate_zone:mine.seat_box:by_column:rotate"],
+      "next": [{ "then": "plan", "ends_round": true }] },
+
+    { "key": "judging", "type": "automatic",
+      "actions": ["each_seat:activate_zone:mine.seat_box:by_column:judge"],
+      "next": [{ "then": "crowning" }] },
+
+    { "key": "crowning", "type": "automatic",
+      "actions": ["each_seat:activate_zone:mine.seat_box:by_column:crown"],
+      "next": [{ "when": ["final@orange_side >= final@blue_side", "final@orange_side >= final@green_side"],
+                 "then": "orange_won" },
+               { "when": "final@blue_side >= final@green_side", "then": "blue_won" },
+               { "then": "green_won" }] },
+
+    { "key": "orange_won", "type": "automatic", "actions": ["reveal:orange_wins"], "next": [{ "then": "over" }] },
+    { "key": "blue_won", "type": "automatic", "actions": ["reveal:blue_wins"], "next": [{ "then": "over" }] },
+    { "key": "green_won", "type": "automatic", "actions": ["reveal:green_wins"], "next": [{ "then": "over" }] },
+
+    { "key": "over", "type": "player_input", "label": "The contest is over", "next": [{ "then": "over" }] }
+  ],
+
+  "end_conditions": [],
+
+  "setup": {
+    "place": [
+      { "card": "orange", "zone": "seat_box" },
+      { "card": "blue", "zone": "seat_box" },
+      { "card": "green", "zone": "seat_box" },
+      { "card": "pig", "zone": "pen" },
+
+      { "card": "fields_board", "zone": "locations", "at": "a1" },
+      { "card": "forest_board", "zone": "locations", "at": "b1" },
+      { "card": "brickyard_board", "zone": "locations", "at": "c1" },
+
+      { "card": "fb_straw", "zone": "bonuses" },
+      { "card": "fb_wood", "zone": "bonuses" },
+      { "card": "fb_brick", "zone": "bonuses" },
+
+      { "card": "g_fields", "zone": "plan" },
+      { "card": "g_forest", "zone": "plan" },
+      { "card": "g_brickyard", "zone": "plan" },
+
+      { "card": "draw_fable", "zone": "tools" },
+      { "card": "gain_straw", "zone": "tools" },
+      { "card": "gain_wood", "zone": "tools" },
+      { "card": "gain_brick", "zone": "tools" },
+      { "card": "start_straw", "zone": "tools" },
+      { "card": "start_wood", "zone": "tools" },
+      { "card": "start_brick", "zone": "tools" },
+
+      { "card": "not_implemented", "zone": "rules" }
+    ]
+  },
+
+  "cards": [
+    { "key": "orange", "text": "Orange", "tags": ["orange_side"], "asset": "circle:orange",
+      "card_stats": { "seat_no": 0, "turnpos": 0 },
+      "abilities": [
+        { "key": "rotate", "compute": ["my_place"], "action": ["stat_set:turnpos@self:my_place"] },
+        { "key": "judge", "compute": ["tally"], "action": ["stat_set:final@self:tally"] },
+        { "key": "crown", "needs": ["final@self >= max:final@anyone.player"], "action": ["stat_gain:won@self:1"] },
+        { "key": "build_start", "needs": ["searching@self >= 1"],
+          "action": ["stat_set:searching@self:0", "show:fable_discard", "show:fable_discard"] }
+      ],
+      "chosen": { "action": ["move:target:mine.fables"] } },
+    { "key": "blue", "text": "Blue", "tags": ["blue_side"], "asset": "circle:blue",
+      "card_stats": { "seat_no": 1, "turnpos": 1 },
+      "abilities": [
+        { "key": "rotate", "compute": ["my_place"], "action": ["stat_set:turnpos@self:my_place"] },
+        { "key": "judge", "compute": ["tally"], "action": ["stat_set:final@self:tally"] },
+        { "key": "crown", "needs": ["final@self >= max:final@anyone.player"], "action": ["stat_gain:won@self:1"] },
+        { "key": "build_start", "needs": ["searching@self >= 1"],
+          "action": ["stat_set:searching@self:0", "show:fable_discard", "show:fable_discard"] }
+      ],
+      "chosen": { "action": ["move:target:mine.fables"] } },
+    { "key": "green", "text": "Green", "tags": ["green_side"], "asset": "circle:green",
+      "card_stats": { "seat_no": 2, "turnpos": 2 },
+      "abilities": [
+        { "key": "rotate", "compute": ["my_place"], "action": ["stat_set:turnpos@self:my_place"] },
+        { "key": "judge", "compute": ["tally"], "action": ["stat_set:final@self:tally"] },
+        { "key": "crown", "needs": ["final@self >= max:final@anyone.player"], "action": ["stat_gain:won@self:1"] },
+        { "key": "build_start", "needs": ["searching@self >= 1"],
+          "action": ["stat_set:searching@self:0", "show:fable_discard", "show:fable_discard"] }
+      ],
+      "chosen": { "action": ["move:target:mine.fables"] } },
+
+    { "key": "pig", "text": "Pig", "tags": ["pig", "piece"], "asset": "triangle:pink",
+      "tooltip": "Your pig. It walks to the Location your Gather card names, and what it finds there is shared with every other pig that walked to the same place." },
+
+    { "key": "fields_board", "text": "Fields", "tags": ["location", "at_fields", "ground", "plate_straw", "immutable"],
+      "card_stats": { "pool": 5 },
+      "tooltip": "*Straw.* Five more is laid down here at the end of every round.",
+      "abilities": [
+        { "key": "divide", "compute": ["split_straw"],
+          "needs": ["count:pig@fields >= 1"],
+          "action": ["stat_set:share@self:split_straw"] },
+        { "key": "spend",
+          "action": ["stat_damage:pool@self:sum:share@self:x:count:pig@fields"] },
+        { "key": "clear", "action": ["stat_set:share@self:0"] },
+        { "key": "replenish", "action": ["stat_gain:pool@self:5"] }
+      ] },
+    { "key": "forest_board", "text": "Forest", "tags": ["location", "at_forest", "ground", "plate_wood", "immutable"],
+      "card_stats": { "pool": 4 },
+      "tooltip": "*Wood.* Four more is laid down here at the end of every round.",
+      "abilities": [
+        { "key": "divide", "compute": ["split_wood"],
+          "needs": ["count:pig@forest >= 1"],
+          "action": ["stat_set:share@self:split_wood"] },
+        { "key": "spend",
+          "action": ["stat_damage:pool@self:sum:share@self:x:count:pig@forest"] },
+        { "key": "clear", "action": ["stat_set:share@self:0"] },
+        { "key": "replenish", "action": ["stat_gain:pool@self:4"] }
+      ] },
+    { "key": "brickyard_board", "text": "Brickyard", "tags": ["location", "at_brickyard", "ground", "plate_brick", "immutable"],
+      "card_stats": { "pool": 3 },
+      "tooltip": "*Brick.* Three more is laid down here at the end of every round.",
+      "abilities": [
+        { "key": "divide", "compute": ["split_brick"],
+          "needs": ["count:pig@brickyard >= 1"],
+          "action": ["stat_set:share@self:split_brick"] },
+        { "key": "spend",
+          "action": ["stat_damage:pool@self:sum:share@self:x:count:pig@brickyard"] },
+        { "key": "clear", "action": ["stat_set:share@self:0"] },
+        { "key": "replenish", "action": ["stat_gain:pool@self:3"] }
+      ] },
+
+    { "key": "g_fields", "text": "Gather Straw", "tags": ["gather", "plate_straw"],
+      "tooltip": "Go to the *Fields*.",
+      "abilities": [
+        { "key": "go", "action": ["move:mine.pig:fields"] },
+        { "key": "crowd", "action": ["stat_set:crowd@mine.player:count:pig@fields",
+                                     "stat_set:mates@mine.player:count:pig@enemy.fields"] },
+        { "key": "pre", "needs": ["beanstalk@mine.player >= 1"],
+          "action": ["stat_gain:pool@at_fields:2"] },
+        { "key": "collect",
+          "action": ["stat_gain:straw@mine.player:sum:share@at_fields",
+                     "stat_gain:gathered@mine.player:sum:share@at_fields"] },
+        { "key": "vault", "needs": ["vaulting@mine.player >= 1"],
+          "action": ["stat_gain:straw@mine.player:2"] },
+        { "key": "bully", "needs": ["bully@mine.player >= 1"],
+          "action": ["stat_gain:dock@each.owner_of.enemy.fields:1"] }
+      ] },
+    { "key": "g_forest", "text": "Gather Wood", "tags": ["gather", "plate_wood"],
+      "tooltip": "Go to the *Forest*.",
+      "abilities": [
+        { "key": "go", "action": ["move:mine.pig:forest"] },
+        { "key": "crowd", "action": ["stat_set:crowd@mine.player:count:pig@forest",
+                                     "stat_set:mates@mine.player:count:pig@enemy.forest"] },
+        { "key": "pre", "needs": ["beanstalk@mine.player >= 1"],
+          "action": ["stat_gain:pool@at_forest:2"] },
+        { "key": "collect",
+          "action": ["stat_gain:wood@mine.player:sum:share@at_forest",
+                     "stat_gain:gathered@mine.player:sum:share@at_forest"] },
+        { "key": "vault", "needs": ["vaulting@mine.player >= 1"],
+          "action": ["stat_gain:wood@mine.player:2"] },
+        { "key": "bully", "needs": ["bully@mine.player >= 1"],
+          "action": ["stat_gain:dock@each.owner_of.enemy.forest:1"] }
+      ] },
+    { "key": "g_brickyard", "text": "Gather Brick", "tags": ["gather", "plate_brick"],
+      "tooltip": "Go to the *Brickyard*.",
+      "abilities": [
+        { "key": "go", "action": ["move:mine.pig:brickyard"] },
+        { "key": "crowd", "action": ["stat_set:crowd@mine.player:count:pig@brickyard",
+                                     "stat_set:mates@mine.player:count:pig@enemy.brickyard"] },
+        { "key": "pre", "needs": ["beanstalk@mine.player >= 1"],
+          "action": ["stat_gain:pool@at_brickyard:2"] },
+        { "key": "collect",
+          "action": ["stat_gain:brick@mine.player:sum:share@at_brickyard",
+                     "stat_gain:gathered@mine.player:sum:share@at_brickyard"] },
+        { "key": "vault", "needs": ["vaulting@mine.player >= 1"],
+          "action": ["stat_gain:brick@mine.player:2"] },
+        { "key": "bully", "needs": ["bully@mine.player >= 1"],
+          "action": ["stat_gain:dock@each.owner_of.enemy.brickyard:1"] }
+      ] },
+
+    { "key": "no_fable", "text": "No Fable", "tags": ["pass", "immutable"],
+      "tooltip": "Keep your Fables and go out with your Gather card alone.",
+      "play": { "phases": ["pick_fable"], "action": ["purge:self", "end_phase"] } },
+
+    { "key": "sec_straw", "text": "Straw sections", "tags": ["sec_straw", "counter", "plate_straw", "immutable"] },
+    { "key": "sec_wood", "text": "Wood sections", "tags": ["sec_wood", "counter", "plate_wood", "immutable"] },
+    { "key": "sec_brick", "text": "Brick sections", "tags": ["sec_brick", "counter", "plate_brick", "immutable"] },
+
+    { "key": "draw_fable", "text": "Draw a Fable", "tags": ["immutable"],
+      "tooltip": "*One action.* Take the top card of the Fable deck.",
+      "abilities": [{ "key": "use", "text": "Draw a Fable", "phases": ["build_turn"],
+        "cost": { "acts@mine.player": 1 },
+        "action": ["draw_from:fable_deck:mine.fables:1"] }] },
+    { "key": "gain_straw", "text": "Take Straw", "tags": ["plate_straw", "immutable"],
+      "tooltip": "*One action.* One Straw from the supply.",
+      "abilities": [{ "key": "use", "text": "Take 1 Straw", "phases": ["build_turn"],
+        "cost": { "acts@mine.player": 1 }, "action": ["stat_gain:straw@mine.player:1"] }] },
+    { "key": "gain_wood", "text": "Take Wood", "tags": ["plate_wood", "immutable"],
+      "tooltip": "*One action.* One Wood from the supply.",
+      "abilities": [{ "key": "use", "text": "Take 1 Wood", "phases": ["build_turn"],
+        "cost": { "acts@mine.player": 1 }, "action": ["stat_gain:wood@mine.player:1"] }] },
+    { "key": "gain_brick", "text": "Take Brick", "tags": ["plate_brick", "immutable"],
+      "tooltip": "*One action.* One Brick from the supply.",
+      "abilities": [{ "key": "use", "text": "Take 1 Brick", "phases": ["build_turn"],
+        "cost": { "acts@mine.player": 1 }, "action": ["stat_gain:brick@mine.player:1"] }] },
+
+    { "key": "start_straw", "text": "Lay a Straw floor", "tags": ["plate_straw", "immutable"],
+      "tooltip": "*One action, 2 Straw.* Start a house on an empty build site. You may not start a second Straw house while one is unfinished.",
+      "abilities": [{ "key": "use", "text": "Lay a Straw floor", "phases": ["build_turn"],
+        "needs": ["count:wip_straw@mine.sites == 0", "count@mine.sites <= 4"],
+        "cost": { "acts@mine.player": 1, "straw@mine.player": 2, "stock@box.sec_straw": 1 },
+        "action": ["create:mine.sites:house_straw:1"] }] },
+    { "key": "start_wood", "text": "Lay a Wood floor", "tags": ["plate_wood", "immutable"],
+      "tooltip": "*One action, 2 Wood.* Start a house on an empty build site. You may not start a second Wood house while one is unfinished.",
+      "abilities": [{ "key": "use", "text": "Lay a Wood floor", "phases": ["build_turn"],
+        "needs": ["count:wip_wood@mine.sites == 0", "count@mine.sites <= 4"],
+        "cost": { "acts@mine.player": 1, "wood@mine.player": 2, "stock@box.sec_wood": 1 },
+        "action": ["create:mine.sites:house_wood:1"] }] },
+    { "key": "start_brick", "text": "Lay a Brick floor", "tags": ["plate_brick", "immutable"],
+      "tooltip": "*One action, 2 Brick.* Start a house on an empty build site. You may not start a second Brick house while one is unfinished.",
+      "abilities": [{ "key": "use", "text": "Lay a Brick floor", "phases": ["build_turn"],
+        "needs": ["count:wip_brick@mine.sites == 0", "count@mine.sites <= 4"],
+        "cost": { "acts@mine.player": 1, "brick@mine.player": 2, "stock@box.sec_brick": 1 },
+        "action": ["create:mine.sites:house_brick:1"] }] },
+
+    { "key": "house_straw", "text": "Straw house", "tags": ["house", "straw_h", "plate_straw"],
+      "tooltip": "Floor, then *Walls* for 4 Straw, then a *Roof* for 6. Walls draw you a Friend; a Roof finishes the house.",
+      "abilities": [
+        { "key": "walls", "text": "Build the walls — 4 Straw", "phases": ["build_turn"],
+          "needs": ["level@self == 1"],
+          "cost": { "acts@mine.player": 1, "straw@mine.player": 4 },
+          "action": ["stat_set:level@self:2", "move:mine.friend:friend_discard",
+                     "draw_from:friend_deck:mine.friend:1"] },
+        { "key": "roof", "text": "Build the roof — 6 Straw", "phases": ["build_turn"],
+          "needs": ["level@self == 2"],
+          "cost": { "acts@mine.player": 1, "straw@mine.player": 6 },
+          "action": ["stat_set:level@self:3", "stat_gain:houses@mine.player:1",
+                     "stat_gain:hb_straw@mine.player:1", "stat_set:fin_type@mine.player:1",
+                     "activate_zone:bonuses:by_column:claim",
+                     "stat_set:fin_type@mine.player:0"] }
+      ] },
+    { "key": "house_wood", "text": "Wood house", "tags": ["house", "wood_h", "plate_wood"],
+      "tooltip": "Floor, then *Walls* for 4 Wood, then a *Roof* for 6. Walls draw you a Friend; a Roof finishes the house.",
+      "abilities": [
+        { "key": "walls", "text": "Build the walls — 4 Wood", "phases": ["build_turn"],
+          "needs": ["level@self == 1"],
+          "cost": { "acts@mine.player": 1, "wood@mine.player": 4 },
+          "action": ["stat_set:level@self:2", "move:mine.friend:friend_discard",
+                     "draw_from:friend_deck:mine.friend:1"] },
+        { "key": "roof", "text": "Build the roof — 6 Wood", "phases": ["build_turn"],
+          "needs": ["level@self == 2"],
+          "cost": { "acts@mine.player": 1, "wood@mine.player": 6 },
+          "action": ["stat_set:level@self:3", "stat_gain:houses@mine.player:1",
+                     "stat_gain:hb_wood@mine.player:1", "stat_set:fin_type@mine.player:2",
+                     "activate_zone:bonuses:by_column:claim",
+                     "stat_set:fin_type@mine.player:0"] }
+      ] },
+    { "key": "house_brick", "text": "Brick house", "tags": ["house", "brick_h", "plate_brick"],
+      "tooltip": "Floor, then *Walls* for 4 Brick, then a *Roof* for 6. Walls draw you a Friend; a Roof finishes the house.",
+      "abilities": [
+        { "key": "walls", "text": "Build the walls — 4 Brick", "phases": ["build_turn"],
+          "needs": ["level@self == 1"],
+          "cost": { "acts@mine.player": 1, "brick@mine.player": 4 },
+          "action": ["stat_set:level@self:2", "move:mine.friend:friend_discard",
+                     "draw_from:friend_deck:mine.friend:1"] },
+        { "key": "roof", "text": "Build the roof — 6 Brick", "phases": ["build_turn"],
+          "needs": ["level@self == 2"],
+          "cost": { "acts@mine.player": 1, "brick@mine.player": 6 },
+          "action": ["stat_set:level@self:3", "stat_gain:houses@mine.player:1",
+                     "stat_gain:hb_brick@mine.player:1", "stat_set:fin_type@mine.player:3",
+                     "activate_zone:bonuses:by_column:claim",
+                     "stat_set:fin_type@mine.player:0"] }
+      ] },
+
+    { "key": "fb_straw", "text": "First in Straw", "tags": ["token", "plate_token"],
+      "tooltip": "The first finished Straw house in the game takes this, and one reward with it.",
+      "abilities": [{ "key": "claim", "needs": ["fin_type@mine.player == 1"],
+        "action": ["set_owner:self:mine.player", "move_to:mine.trophies",
+                   "stat_set:tok_straw@mine.player:1",
+                   "options:fb_resources,fb_fables,fb_friend"] }] },
+    { "key": "fb_wood", "text": "First in Wood", "tags": ["token", "plate_token"],
+      "tooltip": "The first finished Wood house in the game takes this, and one reward with it.",
+      "abilities": [{ "key": "claim", "needs": ["fin_type@mine.player == 2"],
+        "action": ["set_owner:self:mine.player", "move_to:mine.trophies",
+                   "stat_set:tok_wood@mine.player:1",
+                   "options:fb_resources,fb_fables,fb_friend"] }] },
+    { "key": "fb_brick", "text": "First in Brick", "tags": ["token", "plate_token"],
+      "tooltip": "The first finished Brick house in the game takes this, and one reward with it.",
+      "abilities": [{ "key": "claim", "needs": ["fin_type@mine.player == 3"],
+        "action": ["set_owner:self:mine.player", "move_to:mine.trophies",
+                   "stat_set:tok_brick@mine.player:1",
+                   "options:fb_resources,fb_fables,fb_friend"] }] },
+
+    { "key": "fb_resources", "text": "One of each resource",
+      "play": { "action": ["stat_gain:straw@mine.player:1", "stat_gain:wood@mine.player:1",
+                           "stat_gain:brick@mine.player:1"] } },
+    { "key": "fb_fables", "text": "Two Fable cards",
+      "play": { "action": ["draw_from:fable_deck:mine.fables:2"] } },
+    { "key": "fb_friend", "text": "A Friend card",
+      "play": { "action": ["move:mine.friend:friend_discard",
+                           "draw_from:friend_deck:mine.friend:1"] } },
+
+    { "key": "take_straw", "text": "Straw", "tags": ["plate_straw"],
+      "play": { "action": ["stat_gain:straw@mine.player:1"] } },
+    { "key": "take_wood", "text": "Wood", "tags": ["plate_wood"],
+      "play": { "action": ["stat_gain:wood@mine.player:1"] } },
+    { "key": "take_brick", "text": "Brick", "tags": ["plate_brick"],
+      "play": { "action": ["stat_gain:brick@mine.player:1"] } },
+
+    { "key": "swap_wood", "text": "All of it for Wood", "tags": ["plate_wood"],
+      "play": { "action": ["stat_gain:wood@mine.player:sum:straw@mine.player",
+                           "stat_set:straw@mine.player:0"] } },
+    { "key": "swap_brick", "text": "All of it for Brick", "tags": ["plate_brick"],
+      "play": { "action": ["stat_gain:brick@mine.player:sum:straw@mine.player",
+                           "stat_set:straw@mine.player:0"] } },
+
+    { "key": "f_little_helpers", "text": "Little Helpers", "tags": ["fable", "plate_fable"],
+      "tooltip": "*End of Gather Phase:* if you are alone at your Location, gain *2 extra actions* during this round's Build phase.",
+      "abilities": [{ "key": "end_gather",
+        "needs": ["crowd@mine.player == 1"],
+        "action": ["stat_gain:extra_acts@mine.player:2"] }] },
+
+    { "key": "f_powerful_friends", "text": "Powerful Friends", "tags": ["fable", "plate_fable"],
+      "tooltip": "*End of Gather Phase:* each opponent sharing your Location loses *1 action* in the Build phase this round, and you gain *1 action* for each of them.",
+      "abilities": [{ "key": "end_gather",
+        "needs": ["mates@mine.player >= 1"],
+        "action": ["stat_gain:extra_acts@mine.player:sum:mates@mine.player",
+                   "stat_set:bully@mine.player:1"] }] },
+
+    { "key": "f_mysterious_stranger", "text": "Mysterious Stranger", "tags": ["fable", "plate_fable"],
+      "tooltip": "*End of Gather Phase:* if you are alone at your Location, gain a *Friend* card from the deck.",
+      "abilities": [{ "key": "end_gather",
+        "needs": ["crowd@mine.player == 1"],
+        "action": ["move:mine.friend:friend_discard",
+                   "draw_from:friend_deck:mine.friend:1"] }] },
+
+    { "key": "f_spy_network", "text": "Spy Network", "tags": ["fable", "plate_fable"],
+      "tooltip": "*End of Gather Phase:* gain *1 Fable* card for every player at your Location, yourself included.",
+      "abilities": [{ "key": "end_gather",
+        "action": ["draw_from:fable_deck:mine.fables:sum:crowd@mine.player"] }] },
+
+    { "key": "f_search_the_past", "text": "Search the Past", "tags": ["fable", "plate_fable"],
+      "tooltip": "*End of Gather Phase:* if there is at least one opponent at your Location, look through the Fable discard pile and take *2 Fables* of your choice into your hand.",
+      "abilities": [{ "key": "end_gather",
+        "needs": ["mates@mine.player >= 1"],
+        "action": ["stat_set:searching@mine.player:1"] }] },
+
+    { "key": "f_hidden_vault", "text": "Hidden Vault", "tags": ["fable", "plate_fable"],
+      "tooltip": "*End of Gather Phase:* gain *2 resources* of the type produced at your Location.",
+      "abilities": [{ "key": "end_gather",
+        "action": ["stat_set:vaulting@mine.player:1"] }] },
+
+    { "key": "fr_seven_dwarfs", "text": "The Seven Dwarfs", "tags": ["friend_card", "plate_friend"],
+      "tooltip": "_Secret Tunnels._ *End of Gather Phase:* if you are alone at your Location, you may perform *1 additional Build action* on your turn.",
+      "abilities": [{ "key": "end_gather", "phases": ["end_gather"],
+        "needs": ["crowd@mine.player == 1"],
+        "action": ["stat_gain:extra_acts@mine.player:1"] }] },
+
+    { "key": "fr_fairy_godmother", "text": "Fairy Godmother", "tags": ["friend_card", "plate_friend"],
+      "tooltip": "_Magic Wand._ *Special Action:* gain *2 Fable cards*. Once per turn.",
+      "abilities": [{ "key": "wand", "text": "Magic Wand — 2 Fables", "phases": ["build_turn"],
+        "cost": { "acts@mine.player": 1, "exhaust": 1 },
+        "action": ["draw_from:fable_deck:mine.fables:2"] }] },
+
+    { "key": "fr_rumpelstiltskin", "text": "Rumpelstiltskin", "tags": ["friend_card", "plate_friend"],
+      "tooltip": "_Master Craftsman._ *Start of the Build phase:* gain 1 Straw. *Special Action:* discard all of your Straw to take the same amount of Wood or Brick.",
+      "abilities": [
+        { "key": "build_start", "phases": ["build_turn"],
+          "action": ["stat_gain:straw@mine.player:1"] },
+        { "key": "spin", "text": "Spin the straw", "phases": ["build_turn"],
+          "needs": ["straw@mine.player >= 1"],
+          "cost": { "acts@mine.player": 1, "exhaust": 1 },
+          "action": ["options:swap_wood,swap_brick"] }
+      ] },
+
+    { "key": "fr_golden_goose", "text": "The Golden Goose", "tags": ["friend_card", "plate_friend"],
+      "tooltip": "_Golden Eggs._ *End of Gather Phase:* if you are alone at your Location, gain *1 resource* of your choice from the supply.",
+      "abilities": [
+        { "key": "end_gather", "phases": ["end_gather"],
+          "needs": ["crowd@mine.player == 1"],
+          "action": ["stat_set:egg@mine.player:1"] },
+        { "key": "build_start", "phases": ["build_turn"],
+          "needs": ["egg@mine.player >= 1"],
+          "action": ["stat_set:egg@mine.player:0", "options:take_straw,take_wood,take_brick"] }
+      ] },
+
+    { "key": "fr_jack_giant_slayer", "text": "Jack the Giant Slayer", "tags": ["friend_card", "plate_friend"],
+      "tooltip": "_Beanstalk._ *After Gather cards are revealed:* add *2 resources* to your Location, of the type produced there.",
+      "abilities": [{ "key": "after_reveal", "phases": ["boost"],
+        "action": ["stat_set:beanstalk@mine.player:1"] }] },
+
+    { "key": "fr_the_wood_cutter", "text": "The Wood Cutter", "tags": ["friend_card", "plate_friend"],
+      "tooltip": "_Sharpened Axe._ *Special Action:* gain *2 Wood*, and place *2 Wood* onto the Forest.",
+      "abilities": [{ "key": "axe", "text": "Sharpened Axe", "phases": ["build_turn"],
+        "cost": { "acts@mine.player": 1, "exhaust": 1 },
+        "action": ["stat_gain:wood@mine.player:2", "stat_gain:pool@at_forest:2"] }] },
+
+    { "key": "not_implemented", "text": "What is missing", "tags": ["immutable"],
+      "play": { "phases": [] },
+      "tooltip": "The core game is whole: secret Gather cards, sharing a Location, the five build sites, the three sections in order, Friends on Walls, the First Builder Bonus and its three rewards, replenishment, the Starting Player passing, and the sturdiness tie-breakers.\n\nSix Fables and six Friends are in the decks. The rest of the box is not, and each one is out for a reason the format can name:\n\n- *Monsters and Unique Locations* — Wolf, Dragon, Giant, Big Bad Wolf, Bridge Troll, Grandma's House, Lonely Castle, Royal Wedding, Fairy Food. Each is played onto a Location the player names when it is revealed, and acts on that Location a step later. A card resolved by a phase carries no target, and a destination may not be named by a tag, so the card cannot be put where it was sent.\n\n- *Handing something to one named opponent* — the keep-or-give rule on every Friend, and Night at the Tavern, Sleeping Beauty, Thoughtful Gift, Snow White, Share the Wealth, A Friendly Game. A destination is a zone or a card, and there is no way to say \"that player's copy of this zone\".\n\n- *Peeking at, and swapping, face-down cards* — Crystal Ball, Wishing Well, Evil Queen, Curse of Darkness, Roar. Hidden information that holds against a determined opponent is not something this engine offers.\n\n- *Declaring out loud* — Aladdin, Pinocchio. There is no channel to say it on.\n\nAlso left out: the two-player game (Prince Regal and his die) and the four-player game (the Market). This is the three-player game." },
+
+    { "key": "orange_wins", "text": "Orange is Royal Builder",
+      "story": "Three houses stand, and the King has his builder.",
+      "play": { "action": ["load_game:menu.json"] } },
+    { "key": "blue_wins", "text": "Blue is Royal Builder",
+      "story": "Three houses stand, and the King has his builder.",
+      "play": { "action": ["load_game:menu.json"] } },
+    { "key": "green_wins", "text": "Green is Royal Builder",
+      "story": "Three houses stand, and the King has his builder.",
+      "play": { "action": ["load_game:menu.json"] } }
+  ]
+}

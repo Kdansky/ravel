@@ -1211,7 +1211,10 @@ check("a section that isn't a list is explained",
 local function random_playthrough(file, seed)
 	flow.init(file, seed)
 	math.randomseed(seed * 7919)
-	for step = 1, 400 do
+	-- Six hundred rather than four: checkers ends in a chase, and a random one
+	-- takes upwards of four hundred plies to run the last man down. Every other
+	-- game here finishes long before the budget matters.
+	for step = 1, 600 do
 		if declaration.G.title == "Ravel" then return true end
 		local moves = opponent.legal()
 		if #moves == 0 then return false, "no legal moves at step " .. step end
@@ -1229,8 +1232,8 @@ end
 -- games with something to catch: two seats, a stack, a bank, a board.
 for _, file in ipairs({ "demo.json", "castle.json", "kingdom.json",
 	"tower.json", "road.json", "starter_cyoa.json",
-	"chess.json", "splendor.json", "the_crew.json", "arnak.json",
-	"puzzle_strike.json", "lor.json" }) do
+	"chess.json", "checkers.json", "splendor.json", "the_crew.json", "arnak.json",
+	"puzzle_strike.json", "lor.json", "grimm.json" }) do
 	for _, seed in ipairs({ 1, 2, 3 }) do
 		local ok, why = random_playthrough(file, seed)
 		check(file .. " seed " .. seed .. " terminates at the menu", ok)

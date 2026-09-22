@@ -1,0 +1,223 @@
+{
+  "title": "Checkers",
+  "players": [{ "card": "player_red" }, { "card": "player_white" }],
+  "comment": "English draughts. The board layer already had everything the moves need: the jump takes the piece it flies past because a pattern is also a scope and the anchor follows the piece, so 'down_right' read from the square landed on names the victim. What the game had to invent is the chain — a route back to the same seat while a piece is mid-jump, and a button to say the chain is over. 'aims:jump_left' already answers whether another jump is there, measured from the square just landed on, but an action's amount may not read it, so the piece cannot write the answer down. See ideas/01-boardgames.md.",
+  "assets": {
+    "man": { "src": ["circle:crimson:#7a5230", "circle:white:#7a5230"] },
+    "king": { "src": ["star:crimson:#7a5230", "star:white:#7a5230"] }
+  },
+  "styles": {
+    "piece": { "hide": ["title", "border", "plate"] },
+    "draughtboard": { "hide": ["cell_outline"], "fit": "fill", "ratio": "grid", "chequer": ["#7a5230", "#e8d3a9"] }
+  },
+  "patterns": {
+    "up_left": { "vectors": [[-1, 1]] },
+    "up_right": { "vectors": [[1, 1]] },
+    "down_left": { "vectors": [[-1, -1]] },
+    "down_right": { "vectors": [[1, -1]] },
+    "leap_up_left": { "vectors": [[-2, 2]] },
+    "leap_up_right": { "vectors": [[2, 2]] },
+    "leap_down_left": { "vectors": [[-2, -2]] },
+    "leap_down_right": { "vectors": [[2, -2]] }
+  },
+  "zones": [
+    {
+      "key": "board",
+      "layout": "grid",
+      "use": "abilities",
+      "grid": [8, 8],
+      "pos": [0.28, 0.03, 0.72, 0.97],
+      "tags": ["draughtboard"]
+    },
+    {
+      "key": "taken",
+      "label": "Taken",
+      "layout": "stack",
+      "copies": "per_seat",
+      "pos": [[0.76, 0.65, 0.97, 0.95], [0.76, 0.05, 0.97, 0.35]]
+    },
+    {
+      "key": "seat_box", "status": "board", "layout": "stack", "copies": "per_seat",
+      "pos": [[0.02, 0.65, 0.23, 0.95], [0.02, 0.05, 0.23, 0.35]]
+    },
+    { "key": "turn_box", "layout": "stack", "use": "abilities", "pos": [0.04, 0.40, 0.21, 0.58] },
+    { "key": "rules", "layout": "stack", "pos": [0.78, 0.40, 0.95, 0.58] }
+  ],
+  "phases": [
+    {
+      "key": "red_move",
+      "type": "player_input",
+      "label": "Red to move",
+      "seat": "next",
+      "on_enter": ["stat_set:chaining@each.anyone.piece:0"],
+      "next": [
+        { "when": "count:piece@enemy.board == 0", "then": "red_won" },
+        { "when": "max:chaining@mine.board >= 1", "then": "red_move", "seat": "same" },
+        { "then": "white_move" }
+      ]
+    },
+    {
+      "key": "white_move",
+      "type": "player_input",
+      "label": "White to move",
+      "seat": "next",
+      "on_enter": ["stat_set:chaining@each.anyone.piece:0"],
+      "next": [
+        { "when": "count:piece@enemy.board == 0", "then": "white_won" },
+        { "when": "max:chaining@mine.board >= 1", "then": "white_move", "seat": "same" },
+        { "then": "red_move" }
+      ]
+    },
+    { "key": "red_won", "type": "automatic", "actions": ["reveal:red_wins"] },
+    { "key": "white_won", "type": "automatic", "actions": ["reveal:white_wins"] }
+  ],
+  "end_conditions": [],
+  "setup": {
+    "place": [
+      { "card": "player_red", "zone": "seat_box" },
+      { "card": "player_white", "zone": "seat_box" },
+      {
+        "card": "man",
+        "owner": "player_red",
+        "zone": "board",
+        "at": ["b1", "d1", "f1", "h1", "a2", "c2", "e2", "g2", "b3", "d3", "f3", "h3"]
+      },
+      {
+        "card": "man",
+        "owner": "player_white",
+        "zone": "board",
+        "at": ["a6", "c6", "e6", "g6", "b7", "d7", "f7", "h7", "a8", "c8", "e8", "g8"]
+      },
+      { "card": "done_jumping", "zone": "turn_box" },
+      { "card": "how_to_play", "zone": "rules" }
+    ]
+  },
+  "cards": [
+    { "key": "player_red", "text": "Red", "tags": ["red_side"] },
+    { "key": "player_white", "text": "White", "tags": ["white_side"] },
+    {
+      "key": "man",
+      "text": "Man",
+      "asset": "man",
+      "tooltip": "One square diagonally forward, onto an empty square. It jumps an enemy piece to the empty square beyond it, and may go on jumping as long as jumps are there. Reaching the far row crowns it, and the crowning ends the move.",
+      "tags": ["piece", "man"],
+      "comment": "One ability per jump direction, because the action has to name the square it flew over and only the rule that chose that direction knows which one that is. The gate is the same on all of them: 'chaining' is 1 on a piece in the middle of a chain, so max:chaining over my side is 0 while nobody is mid-jump (everyone matches) and 1 once somebody is (only they match).",
+      "card_stats": { "rank": 0, "chaining": 0 },
+      "challenge": {
+        "needs": ["rank@self == 8"],
+        "pass": ["transform:self:king", "stat_set:chaining@each.mine.piece:0"],
+        "fail": []
+      },
+      "abilities": [
+        {
+          "key": "step",
+          "text": "Move",
+          "needs": ["max:chaining@mine.board == 0"],
+          "moves": [{ "patterns": ["up_left", "up_right"], "fill": "empty" }],
+          "action": ["move_to:target", "resolve_challenge", "end_phase"]
+        },
+        {
+          "key": "jump_left",
+          "text": "Jump left",
+          "needs": ["max:chaining@mine.board == chaining@self"],
+          "moves": [{ "patterns": ["leap_up_left"], "fill": "empty", "where": ["tagged:piece@enemy.down_right"] }],
+          "action": [
+            "move_to:target",
+            "move:enemy.down_right:taken",
+            "stat_set:chaining@self:1",
+            "resolve_challenge",
+            "end_phase"
+          ]
+        },
+        {
+          "key": "jump_right",
+          "text": "Jump right",
+          "needs": ["max:chaining@mine.board == chaining@self"],
+          "moves": [{ "patterns": ["leap_up_right"], "fill": "empty", "where": ["tagged:piece@enemy.down_left"] }],
+          "action": [
+            "move_to:target",
+            "move:enemy.down_left:taken",
+            "stat_set:chaining@self:1",
+            "resolve_challenge",
+            "end_phase"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "king",
+      "text": "King",
+      "asset": "king",
+      "tooltip": "One square diagonally, forward or back, and it jumps in all four directions. It may go on jumping as long as jumps are there.",
+      "tags": ["piece", "king"],
+      "card_stats": { "rank": 0, "chaining": 0 },
+      "abilities": [
+        {
+          "key": "step",
+          "text": "Move",
+          "needs": ["max:chaining@mine.board == 0"],
+          "moves": [{ "patterns": ["up_left", "up_right", "down_left", "down_right"], "fill": "empty" }],
+          "action": ["move_to:target", "end_phase"]
+        },
+        {
+          "key": "jump_left",
+          "text": "Jump forward left",
+          "needs": ["max:chaining@mine.board == chaining@self"],
+          "moves": [{ "patterns": ["leap_up_left"], "fill": "empty", "where": ["tagged:piece@enemy.down_right"] }],
+          "action": ["move_to:target", "move:enemy.down_right:taken", "stat_set:chaining@self:1", "end_phase"]
+        },
+        {
+          "key": "jump_right",
+          "text": "Jump forward right",
+          "needs": ["max:chaining@mine.board == chaining@self"],
+          "moves": [{ "patterns": ["leap_up_right"], "fill": "empty", "where": ["tagged:piece@enemy.down_left"] }],
+          "action": ["move_to:target", "move:enemy.down_left:taken", "stat_set:chaining@self:1", "end_phase"]
+        },
+        {
+          "key": "jump_back_left",
+          "text": "Jump back left",
+          "needs": ["max:chaining@mine.board == chaining@self"],
+          "moves": [{ "patterns": ["leap_down_left"], "fill": "empty", "where": ["tagged:piece@enemy.up_right"] }],
+          "action": ["move_to:target", "move:enemy.up_right:taken", "stat_set:chaining@self:1", "end_phase"]
+        },
+        {
+          "key": "jump_back_right",
+          "text": "Jump back right",
+          "needs": ["max:chaining@mine.board == chaining@self"],
+          "moves": [{ "patterns": ["leap_down_right"], "fill": "empty", "where": ["tagged:piece@enemy.up_left"] }],
+          "action": ["move_to:target", "move:enemy.up_left:taken", "stat_set:chaining@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "done_jumping",
+      "text": "Done jumping",
+      "asset": "square:slate",
+      "tags": ["immutable"],
+      "tooltip": "End your turn when the piece you jumped with has no jump left. The engine cannot ask whether another jump is there, so you say so.",
+      "abilities": [{
+        "needs": ["max:chaining@mine.board >= 1"],
+        "action": ["stat_set:chaining@each.mine.piece:0", "end_phase"]
+      }]
+    },
+    {
+      "key": "how_to_play",
+      "text": "How to play",
+      "tags": ["immutable"],
+      "play": { "phases": [] },
+      "tooltip": "Click one of your pieces to light up the squares it can reach, then click a square to move. A piece that can both step and jump asks which.\n\nMen move one square diagonally forward. A jump takes the piece flown over and lands beyond it. A man reaching the far row is crowned a king, which moves and jumps in all four directions.\n\nA jump does not end your turn: jump again with the same piece, or press *Done jumping*.\n\nNot implemented yet:\n- Forced capture. The rules say a jump on offer must be taken, and that a chain must be played out; here both are your choice, which is why *Done jumping* exists.\n- Losing when you cannot move. You lose by running out of pieces only.\n- Draws.\n- Flying kings, which belong to international draughts rather than to this one."
+    },
+    {
+      "key": "red_wins",
+      "text": "Red wins",
+      "story": "White has nothing left on the board.",
+      "play": { "action": ["load_game:menu.json"] }
+    },
+    {
+      "key": "white_wins",
+      "text": "White wins",
+      "story": "Red has nothing left on the board.",
+      "play": { "action": ["load_game:menu.json"] }
+    }
+  ]
+}

@@ -1,0 +1,3396 @@
+{
+  "title": "Ghost Stories",
+  "seed": 9,
+  "comment": "Antoine Bauza's cooperative game, four seats at Initiation level. The village and the four player boards are one 5x5 grid, which is what makes 'the space in front of your tile' a pattern rather than a table of coordinates, and every pattern here names both directions because the engine turns y round for every seat but the first. What the file does not say yet is on the 'Not in this file yet' card.",
+  "players": [{ "card": "south" }, { "card": "west" }, { "card": "north" }, { "card": "east" }],
+  "styles": {
+    "seat_plate": { "badges": ["qi", "yy"] },
+    "piece": { "hide": ["title", "border", "plate"] },
+    "face": { "hide": ["title"] }
+  },
+  "patterns": {
+    "adjacent": { "vectors": [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]] },
+    "orthogonal": { "vectors": [[1, 0], [-1, 0], [0, 1], [0, -1]] },
+    "row3": { "vectors": [[1, 0], [2, 0], [3, 0], [-1, 0], [-2, 0], [-3, 0]] },
+    "col3": { "vectors": [[0, 1], [0, 2], [0, 3], [0, -1], [0, -2], [0, -3]] },
+    "vert1": { "vectors": [[0, 1], [0, -1]] },
+    "horiz1": { "vectors": [[1, 0], [-1, 0]] },
+    "vert2": { "vectors": [[0, 2], [0, -2]] },
+    "horiz2": { "vectors": [[2, 0], [-2, 0]] },
+    "vert3": { "vectors": [[0, 3], [0, -3]] },
+    "horiz3": { "vectors": [[3, 0], [-3, 0]] },
+    "vert4": { "vectors": [[0, 4], [0, -4]] },
+    "horiz4": { "vectors": [[4, 0], [-4, 0]] }
+  },
+  "computes": [
+    {
+      "key": "power_yellow",
+      "value": "count:yellow@dice + count:white@dice + count:yellow@mine.spent + count:yellow@circle + mantra@self",
+      "tooltip": "What this exorcism is worth in yellow: the dice, the whites, the tokens committed, the Circle of Prayer, and the Mantra."
+    },
+    {
+      "key": "token_yellow",
+      "value": "count:yellow@mine.spent + count:yellow@circle + mantra@self",
+      "tooltip": "The same sum without the dice, for a ghost the Tao dice cannot touch."
+    },
+    {
+      "key": "power_green",
+      "value": "count:green@dice + count:white@dice + count:green@mine.spent + count:green@circle + mantra@self",
+      "tooltip": "What this exorcism is worth in green: the dice, the whites, the tokens committed, the Circle of Prayer, and the Mantra."
+    },
+    {
+      "key": "token_green",
+      "value": "count:green@mine.spent + count:green@circle + mantra@self",
+      "tooltip": "The same sum without the dice, for a ghost the Tao dice cannot touch."
+    },
+    {
+      "key": "power_red",
+      "value": "count:red@dice + count:white@dice + count:red@mine.spent + count:red@circle + mantra@self",
+      "tooltip": "What this exorcism is worth in red: the dice, the whites, the tokens committed, the Circle of Prayer, and the Mantra."
+    },
+    {
+      "key": "token_red",
+      "value": "count:red@mine.spent + count:red@circle + mantra@self",
+      "tooltip": "The same sum without the dice, for a ghost the Tao dice cannot touch."
+    },
+    {
+      "key": "power_blue",
+      "value": "count:blue@dice + count:white@dice + count:blue@mine.spent + count:blue@circle + mantra@self",
+      "tooltip": "What this exorcism is worth in blue: the dice, the whites, the tokens committed, the Circle of Prayer, and the Mantra."
+    },
+    {
+      "key": "token_blue",
+      "value": "count:blue@mine.spent + count:blue@circle + mantra@self",
+      "tooltip": "The same sum without the dice, for a ghost the Tao dice cannot touch."
+    },
+    {
+      "key": "power_black",
+      "value": "count:black@dice + count:white@dice + count:black@mine.spent + count:black@circle + mantra@self",
+      "tooltip": "What this exorcism is worth in black: the dice, the whites, the tokens committed, the Circle of Prayer, and the Mantra."
+    },
+    {
+      "key": "token_black",
+      "value": "count:black@mine.spent + count:black@circle + mantra@self",
+      "tooltip": "The same sum without the dice, for a ghost the Tao dice cannot touch."
+    }
+  ],
+  "stats": [
+    {
+      "key": "qi",
+      "label": "Qi",
+      "icon": "heart",
+      "color": "crimson",
+      "min": 0,
+      "max": 20,
+      "on": ["player"],
+      "start": 4
+    },
+    {
+      "key": "yy",
+      "label": "Yin-Yang",
+      "icon": "diamond",
+      "color": "silver",
+      "min": 0,
+      "max": 1,
+      "display": "nonzero",
+      "on": ["player"],
+      "start": 1
+    },
+    {
+      "key": "owed",
+      "label": "Tao owed",
+      "icon": "coin",
+      "color": "gold",
+      "min": 0,
+      "max": 9,
+      "display": "nonzero",
+      "on": ["player"],
+      "start": 0
+    },
+    {
+      "key": "boons",
+      "label": "Rewards",
+      "icon": "banner",
+      "color": "sand",
+      "min": 0,
+      "max": 9,
+      "display": "nonzero",
+      "on": ["player"],
+      "start": 0
+    },
+    { "key": "side", "min": 0, "max": 9, "display": "offscreen", "on": ["player"], "start": 0 },
+    {
+      "key": "incoming",
+      "min": 0,
+      "max": 9,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
+    { "key": "skip", "min": 0, "max": 9, "display": "offscreen", "on": ["player"], "start": 0 },
+    {
+      "key": "rolling",
+      "min": 0,
+      "max": 9,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
+    { "key": "acted", "min": 0, "max": 9, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "moved", "min": 0, "max": 9, "display": "offscreen", "on": ["player"], "start": 0 },
+    {
+      "key": "exorcising",
+      "min": 0,
+      "max": 9,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
+    {
+      "key": "owed_c",
+      "min": 0,
+      "max": 9,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
+    {
+      "key": "blowing",
+      "min": 0,
+      "max": 9,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
+    {
+      "key": "in_yang",
+      "min": 0,
+      "max": 9,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
+    {
+      "key": "haunted",
+      "label": "Haunted",
+      "icon": "none",
+      "min": 0,
+      "max": 1,
+      "display": "offscreen",
+      "on": ["village"],
+      "start": 0
+    },
+    {
+      "key": "haunt",
+      "label": "Haunting",
+      "icon": "none",
+      "min": 0,
+      "max": 2,
+      "display": "offscreen",
+      "on": ["ghost"],
+      "start": 0
+    },
+    {
+      "key": "rolls",
+      "min": 0,
+      "max": 1,
+      "display": "offscreen",
+      "on": ["ghost", "village"],
+      "start": 0
+    },
+    { "key": "board", "min": 0, "max": 9, "display": "offscreen", "on": ["ghost"], "start": 0 },
+    {
+      "key": "to_haunt",
+      "min": 0,
+      "max": 9,
+      "display": "offscreen",
+      "on": ["ghost"],
+      "start": 0
+    },
+    { "key": "mantra", "min": 0, "max": 9, "display": "offscreen", "on": ["ghost"], "start": 0 },
+    { "key": "rolled", "min": 0, "max": 9, "display": "offscreen", "on": ["ghost"], "start": 0 },
+    { "key": "dying", "min": 0, "max": 9, "display": "offscreen", "on": ["ghost"], "start": 0 },
+    { "key": "fresh", "min": 0, "max": 9, "display": "offscreen", "on": ["ghost"], "start": 0 },
+    { "key": "stock", "icon": "none", "min": 0, "max": 99, "display": "offscreen" }
+  ],
+  "tags": {
+    "ghost": {
+      "abilities": [
+        { "key": "stamp_south", "needs": "row@self == 1", "action": ["stat_set:board@self:0"] },
+        { "key": "stamp_west", "needs": "col@self == 1", "action": ["stat_set:board@self:1"] },
+        { "key": "stamp_north", "needs": "row@self == 5", "action": ["stat_set:board@self:2"] },
+        { "key": "stamp_east", "needs": "col@self == 5", "action": ["stat_set:board@self:3"] },
+        {
+          "key": "haunt_v1",
+          "needs": ["to_haunt@self >= 1", "board@self != 1", "board@self != 3", "haunted@vert1 == 0"],
+          "action": ["stat_gain:haunted@vert1:1", "stat_set:to_haunt@self:0"]
+        },
+        {
+          "key": "haunt_v2",
+          "needs": [
+            "to_haunt@self >= 1",
+            "board@self != 1",
+            "board@self != 3",
+            "haunted@vert1 >= 1",
+            "haunted@vert2 == 0"
+          ],
+          "action": ["stat_gain:haunted@vert2:1", "stat_set:to_haunt@self:0"]
+        },
+        {
+          "key": "haunt_v3",
+          "needs": [
+            "to_haunt@self >= 1",
+            "board@self != 1",
+            "board@self != 3",
+            "haunted@vert1 >= 1",
+            "haunted@vert2 >= 1",
+            "haunted@vert3 == 0"
+          ],
+          "action": ["stat_gain:haunted@vert3:1", "stat_set:to_haunt@self:0"]
+        },
+        {
+          "key": "haunt_h1",
+          "needs": ["to_haunt@self >= 1", "board@self != 0", "board@self != 2", "haunted@horiz1 == 0"],
+          "action": ["stat_gain:haunted@horiz1:1", "stat_set:to_haunt@self:0"]
+        },
+        {
+          "key": "haunt_h2",
+          "needs": [
+            "to_haunt@self >= 1",
+            "board@self != 0",
+            "board@self != 2",
+            "haunted@horiz1 >= 1",
+            "haunted@horiz2 == 0"
+          ],
+          "action": ["stat_gain:haunted@horiz2:1", "stat_set:to_haunt@self:0"]
+        },
+        {
+          "key": "haunt_h3",
+          "needs": [
+            "to_haunt@self >= 1",
+            "board@self != 0",
+            "board@self != 2",
+            "haunted@horiz1 >= 1",
+            "haunted@horiz2 >= 1",
+            "haunted@horiz3 == 0"
+          ],
+          "action": ["stat_gain:haunted@horiz3:1", "stat_set:to_haunt@self:0"]
+        },
+        { "key": "death_go", "needs": ["dying@self >= 1"], "action": ["destroy:self"] },
+        {
+          "key": "place_free_south",
+          "phases": ["yin_place"],
+          "needs": ["side@mine.player == 0", "aims:place_home == 0", "aims:place_home_south == 0"],
+          "target": { "type": "slot", "count": 1, "zones": ["table"], "fill": "empty" },
+          "action": ["move_to:target", "stat_set:fresh@self:1", "end_phase"]
+        },
+        {
+          "key": "place_free_west",
+          "phases": ["yin_place"],
+          "needs": ["side@mine.player == 1", "aims:place_home == 0", "aims:place_home_west == 0"],
+          "target": { "type": "slot", "count": 1, "zones": ["table"], "fill": "empty" },
+          "action": ["move_to:target", "stat_set:fresh@self:1", "end_phase"]
+        },
+        {
+          "key": "place_free_north",
+          "phases": ["yin_place"],
+          "needs": ["side@mine.player == 2", "aims:place_home == 0", "aims:place_home_north == 0"],
+          "target": { "type": "slot", "count": 1, "zones": ["table"], "fill": "empty" },
+          "action": ["move_to:target", "stat_set:fresh@self:1", "end_phase"]
+        },
+        {
+          "key": "place_free_east",
+          "phases": ["yin_place"],
+          "needs": ["side@mine.player == 3", "aims:place_home == 0", "aims:place_home_east == 0"],
+          "target": { "type": "slot", "count": 1, "zones": ["table"], "fill": "empty" },
+          "action": ["move_to:target", "stat_set:fresh@self:1", "end_phase"]
+        },
+        {
+          "key": "place_buddha",
+          "phases": ["yin_place"],
+          "target": { "type": "card", "count": 1, "tags": ["buddha"], "zones": ["table"] },
+          "action": ["move:target:shrine", "purge:self", "end_phase"]
+        },
+        {
+          "key": "blown",
+          "phases": ["pavilion"],
+          "target": { "type": "slot", "count": 1, "zones": ["table"], "fill": "empty" },
+          "action": ["move_to:target", "stat_set:blowing@mine.player:0", "end_phase"]
+        }
+      ]
+    },
+    "haunter": {
+      "abilities": [
+        {
+          "key": "haunt_step",
+          "needs": ["board@self == side@mine.player", "haunt@self <= 1"],
+          "action": ["stat_gain:haunt@self:1"]
+        },
+        {
+          "key": "haunt_strike",
+          "needs": ["board@self == side@mine.player", "haunt@self >= 2"],
+          "action": ["stat_set:haunt@self:0", "stat_gain:to_haunt@self:1"]
+        }
+      ]
+    },
+    "tormentor": {
+      "abilities": [
+        {
+          "key": "curse_roll",
+          "needs": ["board@self == side@mine.player", "rolled@self == 0", "rolling@mine.player == 0"],
+          "action": [
+            "move:curse:curse_bag",
+            "shuffle:curse_bag",
+            "draw_from:curse_bag:curse:1",
+            "stat_set:rolled@self:1",
+            "stat_set:rolls@self:1",
+            "stat_set:rolling@mine.player:1"
+          ]
+        },
+        {
+          "key": "curse_qi",
+          "needs": ["rolls@self >= 1", "count:c_qi@curse >= 1"],
+          "action": ["stat_damage:qi@mine.player:1"]
+        },
+        {
+          "key": "curse_tao",
+          "needs": ["rolls@self >= 1", "count:c_tao@curse >= 1"],
+          "action": ["purge:mine.tao"]
+        },
+        {
+          "key": "curse_ghost",
+          "needs": ["rolls@self >= 1", "count:c_ghost@curse >= 1"],
+          "action": ["stat_gain:incoming@mine.player:1"]
+        },
+        {
+          "key": "curse_haunt",
+          "needs": ["rolls@self >= 1", "count:c_haunt@curse >= 1"],
+          "action": ["stat_gain:to_haunt@self:1"]
+        },
+        {
+          "key": "curse_done",
+          "needs": ["rolls@self >= 1"],
+          "action": ["stat_set:rolls@self:0", "stat_set:rolling@mine.player:0"]
+        }
+      ]
+    },
+    "dying_curse": {
+      "abilities": [
+        {
+          "key": "death_roll",
+          "needs": ["dying@self >= 1"],
+          "action": [
+            "move:curse:curse_bag",
+            "shuffle:curse_bag",
+            "draw_from:curse_bag:curse:1",
+            "stat_set:rolls@self:1"
+          ]
+        }
+      ]
+    },
+    "yellow_ghost": {
+      "abilities": [
+        {
+          "key": "place_home",
+          "phases": ["yin_place"],
+          "target": {
+            "type": "slot",
+            "count": 1,
+            "zones": ["table"],
+            "fill": "empty",
+            "where": ["row@target == 1"]
+          },
+          "action": ["move_to:target", "stat_set:fresh@self:1", "end_phase"]
+        }
+      ]
+    },
+    "blue_ghost": {
+      "abilities": [
+        {
+          "key": "place_home",
+          "phases": ["yin_place"],
+          "target": {
+            "type": "slot",
+            "count": 1,
+            "zones": ["table"],
+            "fill": "empty",
+            "where": ["col@target == 1"]
+          },
+          "action": ["move_to:target", "stat_set:fresh@self:1", "end_phase"]
+        }
+      ]
+    },
+    "green_ghost": {
+      "abilities": [
+        {
+          "key": "place_home",
+          "phases": ["yin_place"],
+          "target": {
+            "type": "slot",
+            "count": 1,
+            "zones": ["table"],
+            "fill": "empty",
+            "where": ["row@target == 5"]
+          },
+          "action": ["move_to:target", "stat_set:fresh@self:1", "end_phase"]
+        }
+      ]
+    },
+    "red_ghost": {
+      "abilities": [
+        {
+          "key": "place_home",
+          "phases": ["yin_place"],
+          "target": {
+            "type": "slot",
+            "count": 1,
+            "zones": ["table"],
+            "fill": "empty",
+            "where": ["col@target == 5"]
+          },
+          "action": ["move_to:target", "stat_set:fresh@self:1", "end_phase"]
+        }
+      ]
+    },
+    "black_ghost": {
+      "abilities": [
+        {
+          "key": "place_home_south",
+          "phases": ["yin_place"],
+          "needs": ["side@mine.player == 0"],
+          "target": {
+            "type": "slot",
+            "count": 1,
+            "zones": ["table"],
+            "fill": "empty",
+            "where": ["row@target == 1"]
+          },
+          "action": ["move_to:target", "stat_set:fresh@self:1", "end_phase"]
+        },
+        {
+          "key": "place_home_west",
+          "phases": ["yin_place"],
+          "needs": ["side@mine.player == 1"],
+          "target": {
+            "type": "slot",
+            "count": 1,
+            "zones": ["table"],
+            "fill": "empty",
+            "where": ["col@target == 1"]
+          },
+          "action": ["move_to:target", "stat_set:fresh@self:1", "end_phase"]
+        },
+        {
+          "key": "place_home_north",
+          "phases": ["yin_place"],
+          "needs": ["side@mine.player == 2"],
+          "target": {
+            "type": "slot",
+            "count": 1,
+            "zones": ["table"],
+            "fill": "empty",
+            "where": ["row@target == 5"]
+          },
+          "action": ["move_to:target", "stat_set:fresh@self:1", "end_phase"]
+        },
+        {
+          "key": "place_home_east",
+          "phases": ["yin_place"],
+          "needs": ["side@mine.player == 3"],
+          "target": {
+            "type": "slot",
+            "count": 1,
+            "zones": ["table"],
+            "fill": "empty",
+            "where": ["col@target == 5"]
+          },
+          "action": ["move_to:target", "stat_set:fresh@self:1", "end_phase"]
+        }
+      ]
+    },
+    "multi_ghost": {
+      "abilities": [
+        {
+          "key": "place_home_south",
+          "phases": ["yin_place"],
+          "needs": ["side@mine.player == 0"],
+          "target": {
+            "type": "slot",
+            "count": 1,
+            "zones": ["table"],
+            "fill": "empty",
+            "where": ["row@target == 1"]
+          },
+          "action": ["move_to:target", "stat_set:fresh@self:1", "end_phase"]
+        },
+        {
+          "key": "place_home_west",
+          "phases": ["yin_place"],
+          "needs": ["side@mine.player == 1"],
+          "target": {
+            "type": "slot",
+            "count": 1,
+            "zones": ["table"],
+            "fill": "empty",
+            "where": ["col@target == 1"]
+          },
+          "action": ["move_to:target", "stat_set:fresh@self:1", "end_phase"]
+        },
+        {
+          "key": "place_home_north",
+          "phases": ["yin_place"],
+          "needs": ["side@mine.player == 2"],
+          "target": {
+            "type": "slot",
+            "count": 1,
+            "zones": ["table"],
+            "fill": "empty",
+            "where": ["row@target == 5"]
+          },
+          "action": ["move_to:target", "stat_set:fresh@self:1", "end_phase"]
+        },
+        {
+          "key": "place_home_east",
+          "phases": ["yin_place"],
+          "needs": ["side@mine.player == 3"],
+          "target": {
+            "type": "slot",
+            "count": 1,
+            "zones": ["table"],
+            "fill": "empty",
+            "where": ["col@target == 5"]
+          },
+          "action": ["move_to:target", "stat_set:fresh@self:1", "end_phase"]
+        }
+      ]
+    }
+  },
+  "zones": [
+    {
+      "key": "table",
+      "label": "The village and the four boards",
+      "layout": "grid",
+      "grid": [5, 5],
+      "status": "board",
+      "use": "abilities",
+      "pos": [0.21, 0.02, 0.78, 0.98],
+      "tooltip": "Nine village tiles in the middle, three ghost spaces along each edge, and a plaque in each corner that counts the board beside it."
+    },
+    {
+      "key": "deck",
+      "label": "Ghosts",
+      "layout": "stack",
+      "visibility": "secret",
+      "tags": ["shuffle"],
+      "pos": [0.8, 0.02, 0.88, 0.14],
+      "contents": [
+        "g_ghoul",
+        "g_walking_corpse",
+        "g_coffin_a",
+        "g_coffin_b",
+        "g_restless_dead",
+        "g_zombie_a",
+        "g_zombie_b",
+        "g_hopping_a",
+        "g_hopping_b",
+        "g_yellow_plague",
+        "g_lich",
+        "g_drowned_maiden",
+        "g_hound",
+        "g_nymph_a",
+        "g_nymph_b",
+        "g_sticky_feet",
+        "g_abysmal_a",
+        "g_abysmal_b",
+        "g_ooze_a",
+        "g_ooze_b",
+        "g_liquid_horror",
+        "g_fury",
+        "g_creeping_one",
+        "g_fungus",
+        "g_fallen_a",
+        "g_fallen_b",
+        "g_restless_spirit",
+        "g_rotten_a",
+        "g_rotten_b",
+        "g_wicked_a",
+        "g_wicked_b",
+        "g_green_abom",
+        "g_great_putrid",
+        "g_skinner",
+        "g_reaper",
+        "g_mistress_a",
+        "g_mistress_b",
+        "g_bleeding_eyes",
+        "g_blood_a",
+        "g_blood_b",
+        "g_scarlet_a",
+        "g_scarlet_b",
+        "g_flesh",
+        "g_raging_one",
+        "g_gloomy",
+        "g_repellent",
+        "g_severed_a",
+        "g_severed_b",
+        "g_grave_walker",
+        "g_widow_a",
+        "g_widow_b",
+        "g_wraith_a",
+        "g_wraith_b",
+        "g_shapeless",
+        "g_soul_eater"
+      ],
+      "tooltip": "Fifty-five ghosts. The incarnation of Wu-Feng comes off the urn when ten are left, which is where the rulebook buries it."
+    },
+    {
+      "key": "urn",
+      "label": "Wu-Feng",
+      "layout": "stack",
+      "visibility": "secret",
+      "tags": ["shuffle"],
+      "pos": [0.9, 0.02, 0.99, 0.14],
+      "contents": [
+        "i_howling",
+        "i_uncatch",
+        "i_hope",
+        "i_death_army",
+        "i_forgotten",
+        "i_bone",
+        "i_mistress",
+        "i_horror",
+        "i_vampire",
+        "i_nameless"
+      ],
+      "tooltip": "Ten incarnations, one of which will be drawn when the deck is down to its last ten cards. Which one is nobody's business until then."
+    },
+    {
+      "key": "hell",
+      "label": "Hell",
+      "layout": "stack",
+      "status": "grave",
+      "use": "none",
+      "pos": [0.8, 0.16, 0.88, 0.28]
+    },
+    {
+      "key": "shrine",
+      "label": "Buddhas",
+      "layout": "row",
+      "status": "board",
+      "pos": [0.9, 0.16, 0.99, 0.28],
+      "tooltip": "The two Buddha figurines live on the Buddhist Temple tile until somebody asks for one."
+    },
+    {
+      "key": "dice",
+      "label": "Tao dice",
+      "layout": "row",
+      "status": "board",
+      "use": "none",
+      "pos": [0.8, 0.3, 0.99, 0.41]
+    },
+    {
+      "key": "curse",
+      "label": "Curse die",
+      "layout": "row",
+      "status": "board",
+      "use": "none",
+      "pos": [0.8, 0.43, 0.88, 0.54]
+    },
+    {
+      "key": "circle",
+      "label": "Circle of Prayer",
+      "layout": "row",
+      "status": "board",
+      "use": "none",
+      "pos": [0.9, 0.43, 0.99, 0.54],
+      "tooltip": "The token standing on the Circle of Prayer makes every ghost of its colour one easier to exorcise, for every Taoist."
+    },
+    {
+      "key": "box",
+      "label": "Tao tokens",
+      "layout": "row",
+      "status": "supply",
+      "use": "abilities",
+      "pos": [0.8, 0.56, 0.99, 0.67],
+      "contents": ["tao_yellow:4", "tao_green:4", "tao_red:4", "tao_blue:4", "tao_black:4"]
+    },
+    {
+      "key": "arriving",
+      "label": "Arriving",
+      "layout": "row",
+      "use": "abilities",
+      "pos": [0.8, 0.69, 0.99, 0.82],
+      "tooltip": "The ghost just drawn, waiting to be placed."
+    },
+    {
+      "key": "bag1",
+      "layout": "stack",
+      "display": "offscreen",
+      "tags": ["shuffle"],
+      "use": "none",
+      "contents": ["f1_yellow", "f1_green", "f1_red", "f1_blue", "f1_black", "f1_white"]
+    },
+    {
+      "key": "bag2",
+      "layout": "stack",
+      "display": "offscreen",
+      "tags": ["shuffle"],
+      "use": "none",
+      "contents": ["f2_yellow", "f2_green", "f2_red", "f2_blue", "f2_black", "f2_white"]
+    },
+    {
+      "key": "bag3",
+      "layout": "stack",
+      "display": "offscreen",
+      "tags": ["shuffle"],
+      "use": "none",
+      "contents": ["f3_yellow", "f3_green", "f3_red", "f3_blue", "f3_black", "f3_white"]
+    },
+    {
+      "key": "curse_bag",
+      "layout": "stack",
+      "display": "offscreen",
+      "tags": ["shuffle"],
+      "use": "none",
+      "contents": ["c_blank:2", "c_haunt:1", "c_ghost:1", "c_tao:1", "c_qi:1"]
+    },
+    { "key": "rules", "layout": "stack", "display": "offscreen" },
+    {
+      "key": "seat_home",
+      "label": "{owner}",
+      "layout": "stack",
+      "status": "board",
+      "copies": "per_seat",
+      "pos": [
+        [0.005, 0.02, 0.048, 0.128],
+        [0.005, 0.138, 0.048, 0.246],
+        [0.005, 0.256, 0.048, 0.364],
+        [0.005, 0.374, 0.048, 0.482]
+      ]
+    },
+    {
+      "key": "figure",
+      "layout": "stack",
+      "status": "board",
+      "use": "abilities",
+      "copies": "per_seat",
+      "pos": [
+        [0.052, 0.02, 0.078, 0.07],
+        [0.052, 0.138, 0.078, 0.188],
+        [0.052, 0.256, 0.078, 0.306],
+        [0.052, 0.374, 0.078, 0.424]
+      ],
+      "tooltip": "Your Taoist, before it takes its place on the central tile."
+    },
+    {
+      "key": "tao",
+      "label": "Tao",
+      "layout": "row",
+      "status": "board",
+      "copies": "per_seat",
+      "pos": [
+        [0.082, 0.02, 0.199, 0.07],
+        [0.082, 0.138, 0.199, 0.188],
+        [0.082, 0.256, 0.199, 0.306],
+        [0.082, 0.374, 0.199, 0.424]
+      ]
+    },
+    {
+      "key": "spent",
+      "label": "Committed",
+      "layout": "row",
+      "status": "board",
+      "use": "none",
+      "copies": "per_seat",
+      "pos": [
+        [0.052, 0.074, 0.12, 0.124],
+        [0.052, 0.192, 0.12, 0.242],
+        [0.052, 0.31, 0.12, 0.36],
+        [0.052, 0.428, 0.12, 0.478]
+      ],
+      "tooltip": "Tokens put behind this exorcism. They come back if you walk away from it."
+    },
+    {
+      "key": "held",
+      "label": "Held",
+      "layout": "row",
+      "status": "board",
+      "use": "abilities",
+      "copies": "per_seat",
+      "pos": [
+        [0.124, 0.074, 0.199, 0.124],
+        [0.124, 0.192, 0.199, 0.242],
+        [0.124, 0.31, 0.199, 0.36],
+        [0.124, 0.428, 0.199, 0.478]
+      ]
+    },
+    {
+      "key": "choices",
+      "label": "{active} may",
+      "layout": "row",
+      "status": "board",
+      "tags": ["optional"],
+      "pos": [0.005, 0.5, 0.199, 0.98],
+      "tooltip": "What the Taoist whose turn it is may do. One tray for the table, because only one of them is ever up."
+    }
+  ],
+  "phases": [
+    {
+      "key": "station",
+      "type": "player_input",
+      "zone": "figure",
+      "seat": "next",
+      "label": "Take your place on the central tile",
+      "ends_when": "count@mine.figure == 0",
+      "next": [
+        { "when": "count:taoist@anyone.figure == 0", "then": "turn_end" },
+        { "then": "station", "seat": "next" }
+      ]
+    },
+    {
+      "key": "yin_stamp",
+      "type": "automatic",
+      "label": "Yin — the ghosts",
+      "actions": [
+        "stat_set:moved@mine.player:0",
+        "stat_set:acted@mine.player:0",
+        "stat_set:skip@mine.player:0",
+        "stat_set:incoming@mine.player:0",
+        "stat_set:rolling@mine.player:0",
+        "stat_set:in_yang@mine.player:0",
+        "stat_set:rolled@table.ghost:0",
+        "activate_zone:table:by_column:stamp_south",
+        "activate_zone:table:by_column:stamp_west",
+        "activate_zone:table:by_column:stamp_north",
+        "activate_zone:table:by_column:stamp_east"
+      ],
+      "next": [{ "then": "yin_ghosts" }]
+    },
+    {
+      "key": "yin_ghosts",
+      "type": "automatic",
+      "label": "The ghosts stir",
+      "actions": [
+        "activate_zone:table:by_column:haunt_step",
+        "activate_zone:table:by_column:haunt_strike",
+        "activate_zone:table:by_column:yin_tithe",
+        "activate_zone:table:by_column:curse_roll",
+        "activate_zone:table:by_column:curse_qi",
+        "activate_zone:table:by_column:curse_tao",
+        "activate_zone:table:by_column:curse_ghost",
+        "activate_zone:table:by_column:curse_haunt",
+        "activate_zone:table:by_column:curse_done",
+        "activate_zone:table:by_column:curse_roll",
+        "activate_zone:table:by_column:curse_qi",
+        "activate_zone:table:by_column:curse_tao",
+        "activate_zone:table:by_column:curse_ghost",
+        "activate_zone:table:by_column:curse_haunt",
+        "activate_zone:table:by_column:curse_done",
+        "activate_zone:table:by_column:curse_roll",
+        "activate_zone:table:by_column:curse_qi",
+        "activate_zone:table:by_column:curse_tao",
+        "activate_zone:table:by_column:curse_ghost",
+        "activate_zone:table:by_column:curse_haunt",
+        "activate_zone:table:by_column:curse_done",
+        "activate_zone:table:by_column:haunt_v1",
+        "activate_zone:table:by_column:haunt_v2",
+        "activate_zone:table:by_column:haunt_v3",
+        "activate_zone:table:by_column:haunt_h1",
+        "activate_zone:table:by_column:haunt_h2",
+        "activate_zone:table:by_column:haunt_h3"
+      ],
+      "next": [{ "when": "max:to_haunt@ghost >= 1", "then": "lost_village" }, { "then": "yin_overrun" }]
+    },
+    {
+      "key": "yin_overrun",
+      "type": "automatic",
+      "actions": ["activate_zone:table:by_column:overrun"],
+      "next": [
+        { "when": "qi@mine.player == 0", "then": "turn_end" },
+        { "when": "skip@mine.player >= 1", "then": "yang_move" },
+        { "then": "yin_draw" }
+      ]
+    },
+    {
+      "key": "yin_draw",
+      "type": "automatic",
+      "next": [
+        { "when": "count@deck == 0", "then": "lost_deck" },
+        { "when": "count:ghost@table >= 12", "then": "yin_full" },
+        { "when": "count@deck == 10", "then": "yin_draw_urn" },
+        { "then": "yin_draw_deck" }
+      ]
+    },
+    {
+      "key": "yin_full",
+      "type": "automatic",
+      "label": "Nowhere left to stand",
+      "actions": ["stat_damage:qi@mine.player:1"],
+      "next": [{ "then": "yang_move" }]
+    },
+    {
+      "key": "yin_draw_deck",
+      "type": "automatic",
+      "actions": ["draw_from:deck:arriving:1"],
+      "next": [{ "then": "yin_place" }]
+    },
+    {
+      "key": "yin_draw_urn",
+      "type": "automatic",
+      "label": "Wu-Feng walks",
+      "actions": ["draw_from:urn:arriving:1"],
+      "next": [{ "then": "yin_place" }]
+    },
+    {
+      "key": "yin_place",
+      "type": "player_input",
+      "zone": "arriving",
+      "label": "Lay the ghost on a free space",
+      "ends_when": "count@arriving == 0",
+      "next": [{ "then": "yin_arrived" }]
+    },
+    {
+      "key": "yin_arrived",
+      "type": "automatic",
+      "actions": [
+        "activate_zone:table:by_column:stamp_south",
+        "activate_zone:table:by_column:stamp_west",
+        "activate_zone:table:by_column:stamp_north",
+        "activate_zone:table:by_column:stamp_east",
+        "activate_zone:table:by_column:arrive",
+        "stat_set:fresh@table.ghost:0",
+        "activate_zone:table:by_column:haunt_v1",
+        "activate_zone:table:by_column:haunt_v2",
+        "activate_zone:table:by_column:haunt_v3",
+        "activate_zone:table:by_column:haunt_h1",
+        "activate_zone:table:by_column:haunt_h2",
+        "activate_zone:table:by_column:haunt_h3"
+      ],
+      "next": [
+        { "when": "max:to_haunt@ghost >= 1", "then": "lost_village" },
+        { "when": "incoming@mine.player >= 1", "then": "yin_again" },
+        { "when": "in_yang@mine.player >= 1", "then": "aftermath" },
+        { "then": "yang_move" }
+      ]
+    },
+    {
+      "key": "yin_again",
+      "type": "automatic",
+      "actions": ["stat_damage:incoming@mine.player:1"],
+      "next": [{ "then": "yin_draw" }]
+    },
+    {
+      "key": "yang_move",
+      "type": "player_input",
+      "label": "Yang — move, or stay",
+      "zone": ["choices", "table"],
+      "actions": ["stat_set:in_yang@mine.player:1"],
+      "next": [{ "then": "yang_act" }]
+    },
+    {
+      "key": "yang_act",
+      "type": "player_input",
+      "label": "Ask a villager, or attempt an exorcism",
+      "zone": ["choices", "table"],
+      "next": [
+        { "when": "exorcising@mine.player >= 1", "then": "yang_exorcise" },
+        { "then": "aftermath" }
+      ]
+    },
+    {
+      "key": "yang_exorcise",
+      "type": "player_input",
+      "label": "Commit Tao tokens, then name the ghost",
+      "zone": ["choices", "tao", "table"],
+      "next": [{ "then": "aftermath" }]
+    },
+    {
+      "key": "aftermath",
+      "type": "automatic",
+      "label": "What the ghost leaves behind",
+      "actions": [
+        "activate_zone:table:by_column:death_roll",
+        "activate_zone:table:by_column:curse_qi",
+        "activate_zone:table:by_column:curse_tao",
+        "activate_zone:table:by_column:curse_ghost",
+        "activate_zone:table:by_column:curse_haunt",
+        "activate_zone:table:by_column:curse_done",
+        "activate_zone:table:by_column:herb_yellow",
+        "activate_zone:table:by_column:herb_green",
+        "activate_zone:table:by_column:herb_red",
+        "activate_zone:table:by_column:herb_blue",
+        "activate_zone:table:by_column:herb_black",
+        "activate_zone:table:by_column:herb_white",
+        "activate_zone:table:by_column:herb_done",
+        "activate_zone:table:by_column:reward",
+        "activate_zone:table:by_column:death_go",
+        "purge:mine.spent",
+        "stat_set:exorcising@mine.player:0",
+        "activate_zone:table:by_column:haunt_v1",
+        "activate_zone:table:by_column:haunt_v2",
+        "activate_zone:table:by_column:haunt_v3",
+        "activate_zone:table:by_column:haunt_h1",
+        "activate_zone:table:by_column:haunt_h2",
+        "activate_zone:table:by_column:haunt_h3"
+      ],
+      "next": [
+        { "when": "max:to_haunt@ghost >= 1", "then": "lost_village" },
+        { "when": "blowing@mine.player >= 1", "then": "pavilion" },
+        { "when": "owed@mine.player >= 1", "then": "spoils" },
+        { "when": "owed_c@mine.player >= 1", "then": "prayer" },
+        { "when": "boons@mine.player >= 1", "then": "boon" },
+        { "when": "incoming@mine.player >= 1", "then": "yin_again" },
+        { "then": "yang_buddha" }
+      ]
+    },
+    {
+      "key": "pavilion",
+      "type": "player_input",
+      "zone": "table",
+      "label": "Blow a ghost to a free space",
+      "ends_when": "blowing@mine.player == 0",
+      "next": [{ "then": "aftermath" }]
+    },
+    {
+      "key": "spoils",
+      "type": "player_input",
+      "zone": "box",
+      "label": "Take your Tao tokens",
+      "ends_when": "owed@mine.player == 0",
+      "next": [{ "then": "aftermath" }]
+    },
+    {
+      "key": "prayer",
+      "type": "player_input",
+      "zone": "box",
+      "label": "Put a token on the Circle of Prayer",
+      "ends_when": "owed_c@mine.player == 0",
+      "next": [{ "then": "aftermath" }]
+    },
+    {
+      "key": "boon",
+      "type": "player_input",
+      "zone": "choices",
+      "label": "Qi, or your Yin-Yang back",
+      "ends_when": "boons@mine.player == 0",
+      "next": [{ "then": "aftermath" }]
+    },
+    {
+      "key": "yang_buddha",
+      "type": "player_input",
+      "label": "Place a Buddha, or end your turn",
+      "zone": ["choices", "held", "table"],
+      "next": [{ "then": "turn_end" }]
+    },
+    {
+      "key": "turn_end",
+      "type": "automatic",
+      "actions": ["stat_set:in_yang@mine.player:0", "activate_zone:mine.seat_home:by_column:handover"],
+      "next": [{ "then": "yin_stamp", "ends_round": true }]
+    },
+    {
+      "key": "lost_village",
+      "type": "automatic",
+      "actions": ["reveal:lose_haunt"],
+      "next": [{ "then": "over" }]
+    },
+    {
+      "key": "lost_deck",
+      "type": "automatic",
+      "actions": ["reveal:lose_deck"],
+      "next": [{ "then": "over" }]
+    },
+    {
+      "key": "lost_dead",
+      "type": "automatic",
+      "actions": ["reveal:lose_dead"],
+      "next": [{ "then": "over" }]
+    },
+    {
+      "key": "won",
+      "type": "automatic",
+      "actions": ["reveal:win_page"],
+      "next": [{ "then": "over" }]
+    },
+    {
+      "key": "over",
+      "type": "player_input",
+      "label": "The night is over",
+      "next": [{ "then": "over" }]
+    }
+  ],
+  "end_conditions": [
+    { "when": "count:incarnation@hell >= 1", "then": ["push_phase:won"] },
+    { "when": "max:qi@player <= 0", "then": ["push_phase:lost_dead"] },
+    { "when": "sum:haunted@village >= 4", "then": ["push_phase:lost_village"] }
+  ],
+  "cards": [
+    {
+      "key": "south",
+      "text": "South",
+      "tags": ["south_seat", "seat_plate"],
+      "asset": "circle:gold",
+      "card_stats": { "side": 0 },
+      "tooltip": "The south Taoist, guarding the yellow board.",
+      "abilities": [{ "key": "handover", "action": ["set_active_seat:west_seat"] }]
+    },
+    {
+      "key": "west",
+      "text": "West",
+      "tags": ["west_seat", "seat_plate"],
+      "asset": "circle:blue",
+      "card_stats": { "side": 1 },
+      "tooltip": "The west Taoist, guarding the blue board.",
+      "abilities": [{ "key": "handover", "action": ["set_active_seat:north_seat"] }]
+    },
+    {
+      "key": "north",
+      "text": "North",
+      "tags": ["north_seat", "seat_plate"],
+      "asset": "circle:green",
+      "card_stats": { "side": 2 },
+      "tooltip": "The north Taoist, guarding the green board.",
+      "abilities": [{ "key": "handover", "action": ["set_active_seat:east_seat"] }]
+    },
+    {
+      "key": "east",
+      "text": "East",
+      "tags": ["east_seat", "seat_plate"],
+      "asset": "circle:crimson",
+      "card_stats": { "side": 3 },
+      "tooltip": "The east Taoist, guarding the red board.",
+      "abilities": [{ "key": "handover", "action": ["set_active_seat:south_seat"] }]
+    },
+    {
+      "key": "monk",
+      "text": "{owner}'s Taoist",
+      "tags": ["taoist", "piece"],
+      "asset": "triangle:sand",
+      "tooltip": "Your Taoist. It stands on a village tile, walks to any tile beside that one, and exorcises the ghost space in front of it.",
+      "abilities": [
+        {
+          "key": "station",
+          "phases": ["station"],
+          "target": { "type": "card", "count": 1, "tags": ["centre_tile"] },
+          "action": ["attach_to_target", "end_phase"]
+        },
+        {
+          "key": "step",
+          "phases": ["yang_move"],
+          "needs": ["moved@mine.player == 0"],
+          "target": {
+            "type": "card",
+            "count": 1,
+            "tags": ["village"],
+            "where": ["count:taoist@mine.attached_to.adjacent >= 1"]
+          },
+          "action": ["attach_to_target", "stat_set:moved@mine.player:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "plaque_south",
+      "text": "South board",
+      "tags": ["plaque"],
+      "asset": "square:gold",
+      "tooltip": "The yellow board: the three ghost spaces beside this plaque. Ask the Night Watchman here to send this board's haunting figures home.",
+      "abilities": [
+        {
+          "key": "overrun",
+          "needs": ["count@mine.self >= 1", "count:ghost@row3 >= 3"],
+          "action": ["stat_damage:qi@mine.player:1", "stat_set:skip@mine.player:1"]
+        },
+        {
+          "key": "watch",
+          "phases": ["yang_act"],
+          "needs": [
+            "count:taoist@mine.attached_to.watchman >= 1",
+            "haunted@watchman == 0",
+            "acted@mine.player == 0"
+          ],
+          "action": ["stat_set:haunt@row3:0", "stat_set:acted@mine.player:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "plaque_west",
+      "text": "West board",
+      "tags": ["plaque"],
+      "asset": "square:blue",
+      "tooltip": "The blue board: the three ghost spaces beside this plaque. Ask the Night Watchman here to send this board's haunting figures home.",
+      "abilities": [
+        {
+          "key": "overrun",
+          "needs": ["count@mine.self >= 1", "count:ghost@col3 >= 3"],
+          "action": ["stat_damage:qi@mine.player:1", "stat_set:skip@mine.player:1"]
+        },
+        {
+          "key": "watch",
+          "phases": ["yang_act"],
+          "needs": [
+            "count:taoist@mine.attached_to.watchman >= 1",
+            "haunted@watchman == 0",
+            "acted@mine.player == 0"
+          ],
+          "action": ["stat_set:haunt@col3:0", "stat_set:acted@mine.player:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "plaque_north",
+      "text": "North board",
+      "tags": ["plaque"],
+      "asset": "square:green",
+      "tooltip": "The green board: the three ghost spaces beside this plaque. Ask the Night Watchman here to send this board's haunting figures home.",
+      "abilities": [
+        {
+          "key": "overrun",
+          "needs": ["count@mine.self >= 1", "count:ghost@row3 >= 3"],
+          "action": ["stat_damage:qi@mine.player:1", "stat_set:skip@mine.player:1"]
+        },
+        {
+          "key": "watch",
+          "phases": ["yang_act"],
+          "needs": [
+            "count:taoist@mine.attached_to.watchman >= 1",
+            "haunted@watchman == 0",
+            "acted@mine.player == 0"
+          ],
+          "action": ["stat_set:haunt@row3:0", "stat_set:acted@mine.player:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "plaque_east",
+      "text": "East board",
+      "tags": ["plaque"],
+      "asset": "square:crimson",
+      "tooltip": "The red board: the three ghost spaces beside this plaque. Ask the Night Watchman here to send this board's haunting figures home.",
+      "abilities": [
+        {
+          "key": "overrun",
+          "needs": ["count@mine.self >= 1", "count:ghost@col3 >= 3"],
+          "action": ["stat_damage:qi@mine.player:1", "stat_set:skip@mine.player:1"]
+        },
+        {
+          "key": "watch",
+          "phases": ["yang_act"],
+          "needs": [
+            "count:taoist@mine.attached_to.watchman >= 1",
+            "haunted@watchman == 0",
+            "acted@mine.player == 0"
+          ],
+          "action": ["stat_set:haunt@col3:0", "stat_set:acted@mine.player:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "t_cemetery",
+      "text": "Cemetery",
+      "tags": ["village", "cemetery"],
+      "asset": "square:sand",
+      "story": "Bring a dead Taoist back with 2 Qi, then roll the Curse die.",
+      "tooltip": "Bring a dead Taoist back with 2 Qi, then roll the Curse die.",
+      "abilities": [
+        {
+          "key": "ask",
+          "phases": ["yang_act"],
+          "needs": [
+            "count:taoist@mine.attached_to.self >= 1",
+            "haunted@self == 0",
+            "acted@mine.player == 0"
+          ],
+          "action": [
+            "stat_set:qi@target:2",
+            "move:curse:curse_bag",
+            "shuffle:curse_bag",
+            "draw_from:curse_bag:curse:1",
+            "stat_set:rolls@self:1",
+            "stat_set:acted@mine.player:1",
+            "end_phase"
+          ],
+          "target": { "type": "card", "count": 1, "tags": ["player"], "where": ["qi@target == 0"] }
+        },
+        {
+          "key": "curse_qi",
+          "needs": ["rolls@self >= 1", "count:c_qi@curse >= 1"],
+          "action": ["stat_damage:qi@mine.player:1"]
+        },
+        {
+          "key": "curse_tao",
+          "needs": ["rolls@self >= 1", "count:c_tao@curse >= 1"],
+          "action": ["purge:mine.tao"]
+        },
+        {
+          "key": "curse_ghost",
+          "needs": ["rolls@self >= 1", "count:c_ghost@curse >= 1"],
+          "action": ["stat_gain:incoming@mine.player:1"]
+        },
+        {
+          "key": "curse_haunt",
+          "needs": ["rolls@self >= 1", "count:c_haunt@curse >= 1"],
+          "action": ["stat_gain:haunted@self:1"]
+        },
+        {
+          "key": "curse_done",
+          "needs": ["rolls@self >= 1"],
+          "action": ["stat_set:rolls@self:0"]
+        }
+      ]
+    },
+    {
+      "key": "t_altar",
+      "text": "Taoist Altar",
+      "tags": ["village", "altar"],
+      "asset": "square:sand",
+      "story": "Turn one haunted tile back to its active side, then bring a ghost into play.",
+      "tooltip": "Turn one haunted tile back to its active side, then bring a ghost into play.",
+      "abilities": [
+        {
+          "key": "ask",
+          "phases": ["yang_act"],
+          "needs": [
+            "count:taoist@mine.attached_to.self >= 1",
+            "haunted@self == 0",
+            "acted@mine.player == 0"
+          ],
+          "action": [
+            "stat_set:haunted@target:0",
+            "stat_gain:incoming@mine.player:1",
+            "stat_set:acted@mine.player:1",
+            "end_phase"
+          ],
+          "target": { "type": "card", "count": 1, "tags": ["village"], "where": ["haunted@target >= 1"] }
+        }
+      ]
+    },
+    {
+      "key": "t_herbalist",
+      "text": "Herbalist's Shop",
+      "tags": ["village", "herbalist"],
+      "asset": "square:sand",
+      "story": "Roll 2 Tao dice and take a token of each colour rolled; a white face is any colour.",
+      "tooltip": "Roll 2 Tao dice and take a token of each colour rolled; a white face is any colour.",
+      "abilities": [
+        {
+          "key": "ask",
+          "phases": ["yang_act"],
+          "needs": [
+            "count:taoist@mine.attached_to.self >= 1",
+            "haunted@self == 0",
+            "acted@mine.player == 0"
+          ],
+          "action": [
+            "move:dice.d3:bag3",
+            "shuffle:bag1",
+            "draw_from:bag1:dice:1",
+            "draw_from:bag1:dice:1",
+            "shuffle:bag2",
+            "draw_from:bag2:dice:1",
+            "stat_set:rolls@self:1",
+            "stat_set:acted@mine.player:1",
+            "end_phase"
+          ]
+        },
+        {
+          "key": "herb_yellow",
+          "needs": ["rolls@self >= 1", "count:yellow@dice >= 1"],
+          "action": ["take:box.yellow:mine.tao:1"]
+        },
+        {
+          "key": "herb_green",
+          "needs": ["rolls@self >= 1", "count:green@dice >= 1"],
+          "action": ["take:box.green:mine.tao:1"]
+        },
+        {
+          "key": "herb_red",
+          "needs": ["rolls@self >= 1", "count:red@dice >= 1"],
+          "action": ["take:box.red:mine.tao:1"]
+        },
+        {
+          "key": "herb_blue",
+          "needs": ["rolls@self >= 1", "count:blue@dice >= 1"],
+          "action": ["take:box.blue:mine.tao:1"]
+        },
+        {
+          "key": "herb_black",
+          "needs": ["rolls@self >= 1", "count:black@dice >= 1"],
+          "action": ["take:box.black:mine.tao:1"]
+        },
+        {
+          "key": "herb_white",
+          "needs": ["rolls@self >= 1", "count:white@dice >= 1"],
+          "action": ["stat_gain:owed@mine.player:count:white@dice"]
+        },
+        {
+          "key": "herb_done",
+          "needs": ["rolls@self >= 1"],
+          "action": ["stat_set:rolls@self:0"]
+        }
+      ]
+    },
+    {
+      "key": "t_sorcerer",
+      "text": "Sorcerer's Hut",
+      "tags": ["village", "sorcerer"],
+      "asset": "square:sand",
+      "story": "Discard any ghost in play, with neither its curse nor its reward. Lose 1 Qi.",
+      "tooltip": "Discard any ghost in play, with neither its curse nor its reward. Lose 1 Qi.",
+      "abilities": [
+        {
+          "key": "ask",
+          "phases": ["yang_act"],
+          "needs": [
+            "count:taoist@mine.attached_to.self >= 1",
+            "haunted@self == 0",
+            "acted@mine.player == 0"
+          ],
+          "action": [
+            "purge:target",
+            "stat_damage:qi@mine.player:1",
+            "stat_set:acted@mine.player:1",
+            "end_phase"
+          ],
+          "target": { "type": "card", "count": 1, "tags": ["ghost"], "zones": ["table"] }
+        }
+      ]
+    },
+    {
+      "key": "t_temple",
+      "text": "Buddhist Temple",
+      "tags": ["village", "temple", "centre_tile"],
+      "asset": "square:sand",
+      "story": "Take a Buddha figurine. You may place it from your next turn on.",
+      "tooltip": "Take a Buddha figurine. You may place it from your next turn on.",
+      "abilities": [
+        {
+          "key": "ask",
+          "phases": ["yang_act"],
+          "needs": [
+            "count:taoist@mine.attached_to.self >= 1",
+            "haunted@self == 0",
+            "acted@mine.player == 0",
+            "count@shrine >= 1"
+          ],
+          "action": ["move:shrine:mine.held:1", "stat_set:acted@mine.player:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "t_watchman",
+      "text": "Night Watchman's Beat",
+      "tags": ["village", "watchman"],
+      "asset": "square:sand",
+      "story": "Send every haunting figure on one board back onto its card.",
+      "tooltip": "Send every haunting figure on one board back onto its card."
+    },
+    {
+      "key": "t_circle_tile",
+      "text": "Circle of Prayer",
+      "tags": ["village", "circle_tile"],
+      "asset": "square:sand",
+      "story": "Put a Tao token here, or change the one there. Ghosts of that colour are one easier to exorcise, for everybody.",
+      "tooltip": "Put a Tao token here, or change the one there. Ghosts of that colour are one easier to exorcise, for everybody.",
+      "abilities": [
+        {
+          "key": "ask",
+          "phases": ["yang_act"],
+          "needs": [
+            "count:taoist@mine.attached_to.self >= 1",
+            "haunted@self == 0",
+            "acted@mine.player == 0"
+          ],
+          "action": [
+            "purge:circle",
+            "stat_gain:owed_c@mine.player:1",
+            "stat_set:acted@mine.player:1",
+            "end_phase"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "t_pavilion",
+      "text": "Pavilion of the Heavenly Wind",
+      "tags": ["village", "pavilion"],
+      "asset": "square:sand",
+      "story": "Move one ghost to any free space, then move another Taoist to any tile.",
+      "tooltip": "Move one ghost to any free space, then move another Taoist to any tile.",
+      "abilities": [
+        {
+          "key": "ask",
+          "phases": ["yang_act"],
+          "needs": [
+            "count:taoist@mine.attached_to.self >= 1",
+            "haunted@self == 0",
+            "acted@mine.player == 0",
+            "count:ghost@table >= 1"
+          ],
+          "action": ["stat_set:blowing@mine.player:1", "stat_set:acted@mine.player:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "t_tea_house",
+      "text": "Tea House",
+      "tags": ["village", "tea_house"],
+      "asset": "square:sand",
+      "story": "Take a Tao token of your choice and 1 Qi, then bring a ghost into play.",
+      "tooltip": "Take a Tao token of your choice and 1 Qi, then bring a ghost into play.",
+      "abilities": [
+        {
+          "key": "ask",
+          "phases": ["yang_act"],
+          "needs": [
+            "count:taoist@mine.attached_to.self >= 1",
+            "haunted@self == 0",
+            "acted@mine.player == 0"
+          ],
+          "action": [
+            "stat_gain:owed@mine.player:1",
+            "stat_gain:qi@mine.player:1",
+            "stat_gain:incoming@mine.player:1",
+            "stat_set:acted@mine.player:1",
+            "end_phase"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "g_ghoul",
+      "text": "Ghoul",
+      "tags": ["ghost", "yellow_ghost", "haunter"],
+      "asset": "square:gold",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Yellow, resistance 1. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "tooltip": "Yellow, resistance 1. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_yellow"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_yellow >= 1"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_walking_corpse",
+      "text": "Walking Corpse",
+      "tags": ["ghost", "yellow_ghost", "dice_off"],
+      "asset": "square:gold",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Yellow, resistance 1. Tao dice do nothing to it. Tokens and the Circle of Prayer still do.",
+      "tooltip": "Yellow, resistance 1. Tao dice do nothing to it. Tokens and the Circle of Prayer still do.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["token_yellow"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "token_yellow >= 1"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_coffin_a",
+      "text": "Coffin Breakers",
+      "tags": ["ghost", "yellow_ghost", "power_off"],
+      "asset": "square:gold",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Yellow, resistance 1. When it arrives, another ghost comes into play. While it lives, the board it stands on loses its power.",
+      "tooltip": "Yellow, resistance 1. When it arrives, another ghost comes into play. While it lives, the board it stands on loses its power.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_yellow"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_yellow >= 1"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "arrive",
+          "needs": ["fresh@self >= 1"],
+          "action": ["stat_gain:incoming@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "g_coffin_b",
+      "text": "Coffin Breakers",
+      "tags": ["ghost", "yellow_ghost"],
+      "asset": "square:gold",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Yellow, resistance 1. When it arrives, another ghost comes into play.",
+      "tooltip": "Yellow, resistance 1. When it arrives, another ghost comes into play.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_yellow"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_yellow >= 1"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "arrive",
+          "needs": ["fresh@self >= 1"],
+          "action": ["stat_gain:incoming@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "g_restless_dead",
+      "text": "Restless Dead",
+      "tags": ["ghost", "yellow_ghost", "haunter"],
+      "asset": "square:gold",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Yellow, resistance 2. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "tooltip": "Yellow, resistance 2. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_yellow"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_yellow >= 2"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_zombie_a",
+      "text": "Zombie",
+      "tags": ["ghost", "yellow_ghost", "dying_curse"],
+      "asset": "square:gold",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Yellow, resistance 2. Roll the Curse die.",
+      "tooltip": "Yellow, resistance 2. Roll the Curse die.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_yellow"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_yellow >= 2"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_zombie_b",
+      "text": "Zombie",
+      "tags": ["ghost", "yellow_ghost", "dying_curse"],
+      "asset": "square:gold",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Yellow, resistance 2. Roll the Curse die.",
+      "tooltip": "Yellow, resistance 2. Roll the Curse die.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_yellow"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_yellow >= 2"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_hopping_a",
+      "text": "Hopping Vampire",
+      "tags": ["ghost", "yellow_ghost", "haunter"],
+      "asset": "square:gold",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Yellow, resistance 3. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "tooltip": "Yellow, resistance 3. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_yellow"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_yellow >= 3"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_hopping_b",
+      "text": "Hopping Vampire",
+      "tags": ["ghost", "yellow_ghost", "haunter"],
+      "asset": "square:gold",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Yellow, resistance 3. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "tooltip": "Yellow, resistance 3. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_yellow"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_yellow >= 3"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_yellow_plague",
+      "text": "Yellow Plague",
+      "tags": ["ghost", "yellow_ghost"],
+      "asset": "square:gold",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Yellow, resistance 3. Reward: 2 Tao tokens of your choice.",
+      "tooltip": "Yellow, resistance 3. Reward: 2 Tao tokens of your choice.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_yellow"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_yellow >= 3"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:owed@mine.player:2"]
+        }
+      ]
+    },
+    {
+      "key": "g_lich",
+      "text": "Lich",
+      "tags": ["ghost", "yellow_ghost", "tormentor"],
+      "asset": "square:gold",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Yellow, resistance 4. Roll the Curse die. Reward: 1 Qi, or your Yin-Yang back.",
+      "tooltip": "Yellow, resistance 4. Roll the Curse die. Reward: 1 Qi, or your Yin-Yang back.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_yellow"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_yellow >= 4"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:boons@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "g_drowned_maiden",
+      "text": "Drowned Maiden",
+      "tags": ["ghost", "blue_ghost", "haunter"],
+      "asset": "square:blue",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Blue, resistance 1. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "tooltip": "Blue, resistance 1. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_blue"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_blue >= 1"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_hound",
+      "text": "Hound of Depth",
+      "tags": ["ghost", "blue_ghost", "dice_off"],
+      "asset": "square:blue",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Blue, resistance 1. Tao dice do nothing to it. Tokens and the Circle of Prayer still do.",
+      "tooltip": "Blue, resistance 1. Tao dice do nothing to it. Tokens and the Circle of Prayer still do.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["token_blue"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "token_blue >= 1"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_nymph_a",
+      "text": "Perfidious Nymph",
+      "tags": ["ghost", "blue_ghost", "power_off"],
+      "asset": "square:blue",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Blue, resistance 1. When it arrives, another ghost comes into play. While it lives, the board it stands on loses its power.",
+      "tooltip": "Blue, resistance 1. When it arrives, another ghost comes into play. While it lives, the board it stands on loses its power.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_blue"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_blue >= 1"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "arrive",
+          "needs": ["fresh@self >= 1"],
+          "action": ["stat_gain:incoming@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "g_nymph_b",
+      "text": "Perfidious Nymph",
+      "tags": ["ghost", "blue_ghost"],
+      "asset": "square:blue",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Blue, resistance 1. When it arrives, another ghost comes into play.",
+      "tooltip": "Blue, resistance 1. When it arrives, another ghost comes into play.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_blue"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_blue >= 1"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "arrive",
+          "needs": ["fresh@self >= 1"],
+          "action": ["stat_gain:incoming@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "g_sticky_feet",
+      "text": "Sticky Feet",
+      "tags": ["ghost", "blue_ghost", "haunter"],
+      "asset": "square:blue",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Blue, resistance 2. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "tooltip": "Blue, resistance 2. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_blue"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_blue >= 2"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_abysmal_a",
+      "text": "Abysmal",
+      "tags": ["ghost", "blue_ghost", "dying_curse"],
+      "asset": "square:blue",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Blue, resistance 2. Roll the Curse die.",
+      "tooltip": "Blue, resistance 2. Roll the Curse die.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_blue"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_blue >= 2"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_abysmal_b",
+      "text": "Abysmal",
+      "tags": ["ghost", "blue_ghost", "dying_curse"],
+      "asset": "square:blue",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Blue, resistance 2. Roll the Curse die.",
+      "tooltip": "Blue, resistance 2. Roll the Curse die.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_blue"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_blue >= 2"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_ooze_a",
+      "text": "Ooze Devil",
+      "tags": ["ghost", "blue_ghost", "haunter"],
+      "asset": "square:blue",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Blue, resistance 3. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "tooltip": "Blue, resistance 3. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_blue"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_blue >= 3"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_ooze_b",
+      "text": "Ooze Devil",
+      "tags": ["ghost", "blue_ghost", "haunter"],
+      "asset": "square:blue",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Blue, resistance 3. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "tooltip": "Blue, resistance 3. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_blue"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_blue >= 3"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_liquid_horror",
+      "text": "Liquid Horror",
+      "tags": ["ghost", "blue_ghost"],
+      "asset": "square:blue",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Blue, resistance 4. Reward: 2 Tao tokens of your choice.",
+      "tooltip": "Blue, resistance 4. Reward: 2 Tao tokens of your choice.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_blue"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_blue >= 4"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:owed@mine.player:2"]
+        }
+      ]
+    },
+    {
+      "key": "g_fury",
+      "text": "Fury of Depth",
+      "tags": ["ghost", "blue_ghost", "tormentor"],
+      "asset": "square:blue",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Blue, resistance 4. Roll the Curse die. Reward: 1 Qi, or your Yin-Yang back.",
+      "tooltip": "Blue, resistance 4. Roll the Curse die. Reward: 1 Qi, or your Yin-Yang back.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_blue"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_blue >= 4"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:boons@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "g_creeping_one",
+      "text": "Creeping One",
+      "tags": ["ghost", "green_ghost", "haunter"],
+      "asset": "square:green",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Green, resistance 1. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "tooltip": "Green, resistance 1. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_green"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_green >= 1"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_fungus",
+      "text": "Fungus Thing",
+      "tags": ["ghost", "green_ghost", "dice_off"],
+      "asset": "square:green",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Green, resistance 1. Tao dice do nothing to it. Tokens and the Circle of Prayer still do.",
+      "tooltip": "Green, resistance 1. Tao dice do nothing to it. Tokens and the Circle of Prayer still do.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["token_green"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "token_green >= 1"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_fallen_a",
+      "text": "Fallen Monks",
+      "tags": ["ghost", "green_ghost", "power_off"],
+      "asset": "square:green",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Green, resistance 1. When it arrives, another ghost comes into play. While it lives, the board it stands on loses its power.",
+      "tooltip": "Green, resistance 1. When it arrives, another ghost comes into play. While it lives, the board it stands on loses its power.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_green"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_green >= 1"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "arrive",
+          "needs": ["fresh@self >= 1"],
+          "action": ["stat_gain:incoming@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "g_fallen_b",
+      "text": "Fallen Monk",
+      "tags": ["ghost", "green_ghost"],
+      "asset": "square:green",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Green, resistance 1. When it arrives, another ghost comes into play.",
+      "tooltip": "Green, resistance 1. When it arrives, another ghost comes into play.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_green"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_green >= 1"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "arrive",
+          "needs": ["fresh@self >= 1"],
+          "action": ["stat_gain:incoming@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "g_restless_spirit",
+      "text": "Restless Spirit",
+      "tags": ["ghost", "green_ghost", "haunter"],
+      "asset": "square:green",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Green, resistance 2. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "tooltip": "Green, resistance 2. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_green"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_green >= 2"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_rotten_a",
+      "text": "Rotten Soul",
+      "tags": ["ghost", "green_ghost", "dying_curse"],
+      "asset": "square:green",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Green, resistance 2. Roll the Curse die.",
+      "tooltip": "Green, resistance 2. Roll the Curse die.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_green"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_green >= 2"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_rotten_b",
+      "text": "Rotten Soul",
+      "tags": ["ghost", "green_ghost", "dying_curse"],
+      "asset": "square:green",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Green, resistance 2. Roll the Curse die.",
+      "tooltip": "Green, resistance 2. Roll the Curse die.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_green"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_green >= 2"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_wicked_a",
+      "text": "Wicked One",
+      "tags": ["ghost", "green_ghost", "haunter"],
+      "asset": "square:green",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Green, resistance 3. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "tooltip": "Green, resistance 3. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_green"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_green >= 3"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_wicked_b",
+      "text": "Wicked One",
+      "tags": ["ghost", "green_ghost", "haunter"],
+      "asset": "square:green",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Green, resistance 3. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "tooltip": "Green, resistance 3. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_green"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_green >= 3"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_green_abom",
+      "text": "Green Abomination",
+      "tags": ["ghost", "green_ghost"],
+      "asset": "square:green",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Green, resistance 4. Reward: 2 Tao tokens of your choice.",
+      "tooltip": "Green, resistance 4. Reward: 2 Tao tokens of your choice.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_green"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_green >= 4"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:owed@mine.player:2"]
+        }
+      ]
+    },
+    {
+      "key": "g_great_putrid",
+      "text": "Great Putrid",
+      "tags": ["ghost", "green_ghost", "tormentor"],
+      "asset": "square:green",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Green, resistance 4. Roll the Curse die. Reward: 1 Qi, or your Yin-Yang back.",
+      "tooltip": "Green, resistance 4. Roll the Curse die. Reward: 1 Qi, or your Yin-Yang back.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_green"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_green >= 4"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:boons@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "g_skinner",
+      "text": "Skinner",
+      "tags": ["ghost", "red_ghost", "haunter"],
+      "asset": "square:crimson",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Red, resistance 1. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "tooltip": "Red, resistance 1. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_red"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_red >= 1"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_reaper",
+      "text": "Reaper",
+      "tags": ["ghost", "red_ghost", "dice_off"],
+      "asset": "square:crimson",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Red, resistance 1. Tao dice do nothing to it. Tokens and the Circle of Prayer still do.",
+      "tooltip": "Red, resistance 1. Tao dice do nothing to it. Tokens and the Circle of Prayer still do.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["token_red"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "token_red >= 1"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_mistress_a",
+      "text": "Sharp-Nailed Mistresses",
+      "tags": ["ghost", "red_ghost", "power_off"],
+      "asset": "square:crimson",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Red, resistance 1. When it arrives, another ghost comes into play. While it lives, the board it stands on loses its power.",
+      "tooltip": "Red, resistance 1. When it arrives, another ghost comes into play. While it lives, the board it stands on loses its power.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_red"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_red >= 1"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "arrive",
+          "needs": ["fresh@self >= 1"],
+          "action": ["stat_gain:incoming@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "g_mistress_b",
+      "text": "Sharp-Nailed Mistresses",
+      "tags": ["ghost", "red_ghost"],
+      "asset": "square:crimson",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Red, resistance 1. When it arrives, another ghost comes into play.",
+      "tooltip": "Red, resistance 1. When it arrives, another ghost comes into play.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_red"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_red >= 1"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "arrive",
+          "needs": ["fresh@self >= 1"],
+          "action": ["stat_gain:incoming@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "g_bleeding_eyes",
+      "text": "Bleeding Eyes",
+      "tags": ["ghost", "red_ghost", "haunter"],
+      "asset": "square:crimson",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Red, resistance 2. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "tooltip": "Red, resistance 2. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_red"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_red >= 2"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_blood_a",
+      "text": "Blood Drinker",
+      "tags": ["ghost", "red_ghost", "dying_curse"],
+      "asset": "square:crimson",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Red, resistance 2. Roll the Curse die.",
+      "tooltip": "Red, resistance 2. Roll the Curse die.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_red"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_red >= 2"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_blood_b",
+      "text": "Blood Drinker",
+      "tags": ["ghost", "red_ghost", "dying_curse"],
+      "asset": "square:crimson",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Red, resistance 2. Roll the Curse die.",
+      "tooltip": "Red, resistance 2. Roll the Curse die.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_red"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_red >= 2"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_scarlet_a",
+      "text": "Scarlet Evildoer",
+      "tags": ["ghost", "red_ghost", "haunter"],
+      "asset": "square:crimson",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Red, resistance 3. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "tooltip": "Red, resistance 3. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_red"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_red >= 3"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_scarlet_b",
+      "text": "Scarlet Evildoer",
+      "tags": ["ghost", "red_ghost", "haunter"],
+      "asset": "square:crimson",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Red, resistance 3. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "tooltip": "Red, resistance 3. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_red"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_red >= 3"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "g_flesh",
+      "text": "Flesh Devourer",
+      "tags": ["ghost", "red_ghost"],
+      "asset": "square:crimson",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Red, resistance 4. Reward: 2 Tao tokens of your choice.",
+      "tooltip": "Red, resistance 4. Reward: 2 Tao tokens of your choice.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_red"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_red >= 4"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:owed@mine.player:2"]
+        }
+      ]
+    },
+    {
+      "key": "g_raging_one",
+      "text": "Raging One",
+      "tags": ["ghost", "red_ghost", "tormentor"],
+      "asset": "square:crimson",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Red, resistance 4. Roll the Curse die. Reward: 1 Qi, or your Yin-Yang back.",
+      "tooltip": "Red, resistance 4. Roll the Curse die. Reward: 1 Qi, or your Yin-Yang back.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_red"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_red >= 4"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:boons@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "g_gloomy",
+      "text": "Gloomy Minion",
+      "tags": ["ghost", "black_ghost", "haunter"],
+      "asset": "square:slate",
+      "card_stats": { "col": 0, "row": 0, "haunt": 1 },
+      "story": "Black, resistance 1. Its haunting figure starts on the board, so it haunts at once. Haunter: every second Yin phase it haunts the first active tile in front of it. Reward: 1 Tao token of your choice.",
+      "tooltip": "Black, resistance 1. Its haunting figure starts on the board, so it haunts at once. Haunter: every second Yin phase it haunts the first active tile in front of it. Reward: 1 Tao token of your choice.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_black"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_black >= 1"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:owed@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "g_repellent",
+      "text": "Repellent Beauty",
+      "tags": ["ghost", "black_ghost", "dice_off", "die_captive"],
+      "asset": "square:slate",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Black, resistance 1. While it lives, it holds one Tao die: exorcisms roll one die fewer. Tao dice do nothing to it. Tokens and the Circle of Prayer still do. Reward: 1 Tao token of your choice.",
+      "tooltip": "Black, resistance 1. While it lives, it holds one Tao die: exorcisms roll one die fewer. Tao dice do nothing to it. Tokens and the Circle of Prayer still do. Reward: 1 Tao token of your choice.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["token_black"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "token_black >= 1"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:owed@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "g_severed_a",
+      "text": "Severed Heads",
+      "tags": ["ghost", "black_ghost", "die_captive"],
+      "asset": "square:slate",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Black, resistance 1. While it lives, it holds one Tao die: exorcisms roll one die fewer. When it arrives, another ghost comes into play. Reward: 1 Tao token of your choice.",
+      "tooltip": "Black, resistance 1. While it lives, it holds one Tao die: exorcisms roll one die fewer. When it arrives, another ghost comes into play. Reward: 1 Tao token of your choice.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_black"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_black >= 1"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "arrive",
+          "needs": ["fresh@self >= 1"],
+          "action": ["stat_gain:incoming@mine.player:1"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:owed@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "g_severed_b",
+      "text": "Severed Heads",
+      "tags": ["ghost", "black_ghost", "die_captive"],
+      "asset": "square:slate",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Black, resistance 1. While it lives, it holds one Tao die: exorcisms roll one die fewer. When it arrives, another ghost comes into play. Reward: 1 Tao token of your choice.",
+      "tooltip": "Black, resistance 1. While it lives, it holds one Tao die: exorcisms roll one die fewer. When it arrives, another ghost comes into play. Reward: 1 Tao token of your choice.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_black"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_black >= 1"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "arrive",
+          "needs": ["fresh@self >= 1"],
+          "action": ["stat_gain:incoming@mine.player:1"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:owed@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "g_grave_walker",
+      "text": "Grave Walker",
+      "tags": ["ghost", "black_ghost", "haunter"],
+      "asset": "square:slate",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Black, resistance 2. When it arrives, you lose 1 Qi. Haunter: every second Yin phase it haunts the first active tile in front of it. Reward: 1 Qi, or your Yin-Yang back.",
+      "tooltip": "Black, resistance 2. When it arrives, you lose 1 Qi. Haunter: every second Yin phase it haunts the first active tile in front of it. Reward: 1 Qi, or your Yin-Yang back.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_black"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_black >= 2"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "arrive",
+          "needs": ["fresh@self >= 1"],
+          "action": ["stat_damage:qi@mine.player:1"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:boons@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "g_widow_a",
+      "text": "Black Widow",
+      "tags": ["ghost", "black_ghost", "dying_curse", "tao_off"],
+      "asset": "square:slate",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Black, resistance 2. While it lives, nobody may spend Tao tokens. Roll the Curse die. Reward: 1 Qi, or your Yin-Yang back.",
+      "tooltip": "Black, resistance 2. While it lives, nobody may spend Tao tokens. Roll the Curse die. Reward: 1 Qi, or your Yin-Yang back.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_black"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_black >= 2"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:boons@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "g_widow_b",
+      "text": "Black Widow",
+      "tags": ["ghost", "black_ghost", "dying_curse", "tao_off"],
+      "asset": "square:slate",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Black, resistance 2. While it lives, nobody may spend Tao tokens. Roll the Curse die. Reward: 1 Qi, or your Yin-Yang back.",
+      "tooltip": "Black, resistance 2. While it lives, nobody may spend Tao tokens. Roll the Curse die. Reward: 1 Qi, or your Yin-Yang back.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_black"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_black >= 2"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:boons@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "g_wraith_a",
+      "text": "Dark Wraith",
+      "tags": ["ghost", "black_ghost", "haunter"],
+      "asset": "square:slate",
+      "card_stats": { "col": 0, "row": 0, "haunt": 1 },
+      "story": "Black, resistance 3. Its haunting figure starts on the board, so it haunts at once. Haunter: every second Yin phase it haunts the first active tile in front of it. Reward: 1 Qi, or your Yin-Yang back.",
+      "tooltip": "Black, resistance 3. Its haunting figure starts on the board, so it haunts at once. Haunter: every second Yin phase it haunts the first active tile in front of it. Reward: 1 Qi, or your Yin-Yang back.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_black"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_black >= 3"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:boons@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "g_wraith_b",
+      "text": "Dark Wraith",
+      "tags": ["ghost", "black_ghost", "haunter"],
+      "asset": "square:slate",
+      "card_stats": { "col": 0, "row": 0, "haunt": 1 },
+      "story": "Black, resistance 3. Its haunting figure starts on the board, so it haunts at once. Haunter: every second Yin phase it haunts the first active tile in front of it. Reward: 1 Qi, or your Yin-Yang back.",
+      "tooltip": "Black, resistance 3. Its haunting figure starts on the board, so it haunts at once. Haunter: every second Yin phase it haunts the first active tile in front of it. Reward: 1 Qi, or your Yin-Yang back.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_black"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_black >= 3"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:boons@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "g_shapeless",
+      "text": "Shapeless Evil",
+      "tags": ["ghost", "black_ghost"],
+      "asset": "square:slate",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Black, resistance 2. When it arrives, it haunts the first active tile in front of it. Reward: 1 Qi, or your Yin-Yang back.",
+      "tooltip": "Black, resistance 2. When it arrives, it haunts the first active tile in front of it. Reward: 1 Qi, or your Yin-Yang back.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_black"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_black >= 2"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "arrive",
+          "needs": ["fresh@self >= 1"],
+          "action": ["stat_gain:to_haunt@self:1"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:boons@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "g_soul_eater",
+      "text": "Soul Eater",
+      "tags": ["ghost", "black_ghost", "tormentor"],
+      "asset": "square:slate",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Black, resistance 2. Every player discards a Tao token. Roll the Curse die. Reward: 1 Qi, or your Yin-Yang back.",
+      "tooltip": "Black, resistance 2. Every player discards a Tao token. Roll the Curse die. Reward: 1 Qi, or your Yin-Yang back.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_black"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_black >= 2"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "arrive",
+          "needs": ["fresh@self >= 1"],
+          "action": ["each_seat:purge:random.mine.tao:1"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:boons@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "i_howling",
+      "text": "Howling Nightmare",
+      "tags": ["ghost", "black_ghost", "incarnation"],
+      "asset": "square:slate",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Black, resistance 3. When it arrives, another ghost comes into play.",
+      "tooltip": "Black, resistance 3. When it arrives, another ghost comes into play.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_black"],
+          "needs": [
+            "count:taoist@mine.attached_to.orthogonal >= 1",
+            "power_black >= 3",
+            "count:ghost@vert4 == 0",
+            "count:ghost@horiz4 == 0"
+          ],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "arrive",
+          "needs": ["fresh@self >= 1"],
+          "action": ["stat_gain:incoming@mine.player:1"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "i_uncatch",
+      "text": "Uncatchable",
+      "tags": ["ghost", "black_ghost", "incarnation"],
+      "asset": "square:slate",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Black, resistance 3. When it arrives, another ghost comes into play.",
+      "tooltip": "Black, resistance 3. When it arrives, another ghost comes into play.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_black"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_black >= 3"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "arrive",
+          "needs": ["fresh@self >= 1"],
+          "action": ["stat_gain:incoming@mine.player:1"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "i_hope",
+      "text": "Hope Killer",
+      "tags": ["ghost", "multi_ghost", "incarnation", "dying_curse"],
+      "asset": "square:violet",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Multi, resistance 2. Roll the Curse die.",
+      "tooltip": "Multi, resistance 2. Roll the Curse die.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_yellow", "power_green", "power_red", "power_blue"],
+          "needs": [
+            "count:taoist@mine.attached_to.orthogonal >= 1",
+            "power_blue >= 2",
+            "power_red >= 2",
+            "power_green >= 2",
+            "power_yellow >= 2"
+          ],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "i_death_army",
+      "text": "Death Army",
+      "tags": ["ghost", "black_ghost", "incarnation", "tormentor", "dying_curse"],
+      "asset": "square:slate",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Black, resistance 5. Roll the Curse die. Roll the Curse die.",
+      "tooltip": "Black, resistance 5. Roll the Curse die. Roll the Curse die.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_black"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_black >= 5"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "i_forgotten",
+      "text": "Forgotten Ones",
+      "tags": ["ghost", "black_ghost", "incarnation"],
+      "asset": "square:slate",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Black, resistance 3. While it lives, no Taoist may use their power.",
+      "tooltip": "Black, resistance 3. While it lives, no Taoist may use their power.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_black"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_black >= 3"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "i_bone",
+      "text": "Bone Cracker",
+      "tags": ["ghost", "red_ghost", "incarnation"],
+      "asset": "square:crimson",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Red, resistance 4. Every player discards a Tao token. Every player discards a Tao token.",
+      "tooltip": "Red, resistance 4. Every player discards a Tao token. Every player discards a Tao token.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_red"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_red >= 4"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "arrive",
+          "needs": ["fresh@self >= 1"],
+          "action": ["each_seat:purge:random.mine.tao:1"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"]
+        },
+        {
+          "key": "yin_tithe",
+          "needs": ["board@self == side@mine.player"],
+          "action": ["each_seat:purge:random.mine.tao:1"]
+        }
+      ]
+    },
+    {
+      "key": "i_mistress",
+      "text": "Dark Mistress",
+      "tags": ["ghost", "blue_ghost", "incarnation", "tao_off"],
+      "asset": "square:blue",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Blue, resistance 3. While it lives, nobody may spend Tao tokens.",
+      "tooltip": "Blue, resistance 3. While it lives, nobody may spend Tao tokens.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_blue"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_blue >= 3"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "i_horror",
+      "text": "Creeping Horror",
+      "tags": ["ghost", "green_ghost", "incarnation", "die_captive"],
+      "asset": "square:green",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Green, resistance 4. While it lives, it holds one Tao die: exorcisms roll one die fewer.",
+      "tooltip": "Green, resistance 4. While it lives, it holds one Tao die: exorcisms roll one die fewer.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_green"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_green >= 4"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "i_vampire",
+      "text": "Vampire Lord",
+      "tags": ["ghost", "yellow_ghost", "incarnation", "haunter"],
+      "asset": "square:gold",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Yellow, resistance 4. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "tooltip": "Yellow, resistance 4. Haunter: every second Yin phase it haunts the first active tile in front of it.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_yellow"],
+          "needs": ["count:taoist@mine.attached_to.orthogonal >= 1", "power_yellow >= 4"],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "i_nameless",
+      "text": "Nameless",
+      "tags": ["ghost", "multi_ghost", "incarnation"],
+      "asset": "square:violet",
+      "card_stats": { "col": 0, "row": 0 },
+      "story": "Multi, resistance 1. When it arrives, the Tao token on the Circle of Prayer is discarded.",
+      "tooltip": "Multi, resistance 1. When it arrives, the Tao token on the Circle of Prayer is discarded.",
+      "abilities": [
+        {
+          "key": "exorcise",
+          "phases": ["yang_exorcise"],
+          "compute": ["power_yellow", "power_green", "power_red", "power_blue", "power_black"],
+          "needs": [
+            "count:taoist@mine.attached_to.orthogonal >= 1",
+            "power_blue >= 1",
+            "power_green >= 1",
+            "power_yellow >= 1",
+            "power_red >= 1",
+            "power_black >= 1"
+          ],
+          "action": ["stat_set:dying@self:1", "end_phase"]
+        },
+        { "key": "arrive", "needs": ["fresh@self >= 1"], "action": ["purge:circle"] },
+        {
+          "key": "reward",
+          "needs": ["dying@self >= 1"],
+          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "f1_yellow",
+      "text": "Yellow",
+      "tags": ["yellow", "d1", "face"],
+      "asset": "circle:gold"
+    },
+    {
+      "key": "f1_green",
+      "text": "Green",
+      "tags": ["green", "d1", "face"],
+      "asset": "circle:green"
+    },
+    { "key": "f1_red", "text": "Red", "tags": ["red", "d1", "face"], "asset": "circle:crimson" },
+    { "key": "f1_blue", "text": "Blue", "tags": ["blue", "d1", "face"], "asset": "circle:blue" },
+    {
+      "key": "f1_black",
+      "text": "Black",
+      "tags": ["black", "d1", "face"],
+      "asset": "circle:slate"
+    },
+    {
+      "key": "f1_white",
+      "text": "White",
+      "tags": ["white", "d1", "face"],
+      "asset": "circle:white"
+    },
+    {
+      "key": "f2_yellow",
+      "text": "Yellow",
+      "tags": ["yellow", "d2", "face"],
+      "asset": "circle:gold"
+    },
+    {
+      "key": "f2_green",
+      "text": "Green",
+      "tags": ["green", "d2", "face"],
+      "asset": "circle:green"
+    },
+    { "key": "f2_red", "text": "Red", "tags": ["red", "d2", "face"], "asset": "circle:crimson" },
+    { "key": "f2_blue", "text": "Blue", "tags": ["blue", "d2", "face"], "asset": "circle:blue" },
+    {
+      "key": "f2_black",
+      "text": "Black",
+      "tags": ["black", "d2", "face"],
+      "asset": "circle:slate"
+    },
+    {
+      "key": "f2_white",
+      "text": "White",
+      "tags": ["white", "d2", "face"],
+      "asset": "circle:white"
+    },
+    {
+      "key": "f3_yellow",
+      "text": "Yellow",
+      "tags": ["yellow", "d3", "face"],
+      "asset": "circle:gold"
+    },
+    {
+      "key": "f3_green",
+      "text": "Green",
+      "tags": ["green", "d3", "face"],
+      "asset": "circle:green"
+    },
+    { "key": "f3_red", "text": "Red", "tags": ["red", "d3", "face"], "asset": "circle:crimson" },
+    { "key": "f3_blue", "text": "Blue", "tags": ["blue", "d3", "face"], "asset": "circle:blue" },
+    {
+      "key": "f3_black",
+      "text": "Black",
+      "tags": ["black", "d3", "face"],
+      "asset": "circle:slate"
+    },
+    {
+      "key": "f3_white",
+      "text": "White",
+      "tags": ["white", "d3", "face"],
+      "asset": "circle:white"
+    },
+    {
+      "key": "c_blank",
+      "text": "No effect",
+      "tags": ["c_blank", "curse_face"],
+      "asset": "square:slate",
+      "tooltip": "No effect"
+    },
+    {
+      "key": "c_haunt",
+      "text": "The first active tile in front of the ghost is haunted",
+      "tags": ["c_haunt", "curse_face"],
+      "asset": "square:slate",
+      "tooltip": "The first active tile in front of the ghost is haunted"
+    },
+    {
+      "key": "c_ghost",
+      "text": "Bring a ghost into play",
+      "tags": ["c_ghost", "curse_face"],
+      "asset": "square:slate",
+      "tooltip": "Bring a ghost into play"
+    },
+    {
+      "key": "c_tao",
+      "text": "Discard all your Tao tokens",
+      "tags": ["c_tao", "curse_face"],
+      "asset": "square:slate",
+      "tooltip": "Discard all your Tao tokens"
+    },
+    {
+      "key": "c_qi",
+      "text": "Lose 1 Qi",
+      "tags": ["c_qi", "curse_face"],
+      "asset": "square:slate",
+      "tooltip": "Lose 1 Qi"
+    },
+    {
+      "key": "tao_yellow",
+      "text": "Sticky rice",
+      "tags": ["yellow", "token"],
+      "asset": "circle:gold",
+      "tooltip": "A yellow Tao token. Commit it to an exorcism against a yellow ghost.",
+      "play": {
+        "phases": ["yang_exorcise"],
+        "needs": ["count:tao_off@table == 0"],
+        "action": ["move_to:mine.spent"]
+      },
+      "abilities": [
+        {
+          "key": "take",
+          "phases": ["spoils"],
+          "needs": ["owed@mine.player >= 1"],
+          "action": ["take:self:mine.tao:1", "stat_damage:owed@mine.player:1"]
+        },
+        {
+          "key": "pray",
+          "phases": ["prayer"],
+          "needs": ["owed_c@mine.player >= 1"],
+          "action": ["take:self:circle:1", "stat_damage:owed_c@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "tao_green",
+      "text": "Silver bell",
+      "tags": ["green", "token"],
+      "asset": "circle:green",
+      "tooltip": "A green Tao token. Commit it to an exorcism against a green ghost.",
+      "play": {
+        "phases": ["yang_exorcise"],
+        "needs": ["count:tao_off@table == 0"],
+        "action": ["move_to:mine.spent"]
+      },
+      "abilities": [
+        {
+          "key": "take",
+          "phases": ["spoils"],
+          "needs": ["owed@mine.player >= 1"],
+          "action": ["take:self:mine.tao:1", "stat_damage:owed@mine.player:1"]
+        },
+        {
+          "key": "pray",
+          "phases": ["prayer"],
+          "needs": ["owed_c@mine.player >= 1"],
+          "action": ["take:self:circle:1", "stat_damage:owed_c@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "tao_red",
+      "text": "Incense",
+      "tags": ["red", "token"],
+      "asset": "circle:crimson",
+      "tooltip": "A red Tao token. Commit it to an exorcism against a red ghost.",
+      "play": {
+        "phases": ["yang_exorcise"],
+        "needs": ["count:tao_off@table == 0"],
+        "action": ["move_to:mine.spent"]
+      },
+      "abilities": [
+        {
+          "key": "take",
+          "phases": ["spoils"],
+          "needs": ["owed@mine.player >= 1"],
+          "action": ["take:self:mine.tao:1", "stat_damage:owed@mine.player:1"]
+        },
+        {
+          "key": "pray",
+          "phases": ["prayer"],
+          "needs": ["owed_c@mine.player >= 1"],
+          "action": ["take:self:circle:1", "stat_damage:owed_c@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "tao_blue",
+      "text": "Mirror",
+      "tags": ["blue", "token"],
+      "asset": "circle:blue",
+      "tooltip": "A blue Tao token. Commit it to an exorcism against a blue ghost.",
+      "play": {
+        "phases": ["yang_exorcise"],
+        "needs": ["count:tao_off@table == 0"],
+        "action": ["move_to:mine.spent"]
+      },
+      "abilities": [
+        {
+          "key": "take",
+          "phases": ["spoils"],
+          "needs": ["owed@mine.player >= 1"],
+          "action": ["take:self:mine.tao:1", "stat_damage:owed@mine.player:1"]
+        },
+        {
+          "key": "pray",
+          "phases": ["prayer"],
+          "needs": ["owed_c@mine.player >= 1"],
+          "action": ["take:self:circle:1", "stat_damage:owed_c@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "tao_black",
+      "text": "Coin",
+      "tags": ["black", "token"],
+      "asset": "circle:slate",
+      "tooltip": "A black Tao token. Commit it to an exorcism against a black ghost.",
+      "play": {
+        "phases": ["yang_exorcise"],
+        "needs": ["count:tao_off@table == 0"],
+        "action": ["move_to:mine.spent"]
+      },
+      "abilities": [
+        {
+          "key": "take",
+          "phases": ["spoils"],
+          "needs": ["owed@mine.player >= 1"],
+          "action": ["take:self:mine.tao:1", "stat_damage:owed@mine.player:1"]
+        },
+        {
+          "key": "pray",
+          "phases": ["prayer"],
+          "needs": ["owed_c@mine.player >= 1"],
+          "action": ["take:self:circle:1", "stat_damage:owed_c@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "buddha",
+      "text": "Buddha",
+      "tags": ["buddha", "piece"],
+      "asset": "circle:sand",
+      "tooltip": "A mystical trap. Placed on an empty ghost space, it sends whatever is laid there straight to hell and goes home.",
+      "abilities": [
+        {
+          "key": "set",
+          "phases": ["yang_buddha"],
+          "target": {
+            "type": "slot",
+            "count": 1,
+            "zones": ["table"],
+            "fill": "empty",
+            "where": ["row@target >= 1"]
+          },
+          "action": ["move_to:target", "end_phase"]
+        }
+      ]
+    },
+    {
+      "key": "no_move",
+      "text": "Stay where you are",
+      "tags": ["button"],
+      "asset": "square:slate",
+      "play": { "phases": ["yang_move"], "action": ["end_phase"] }
+    },
+    {
+      "key": "no_act",
+      "text": "Do nothing this turn",
+      "tags": ["button"],
+      "asset": "square:slate",
+      "play": { "phases": ["yang_act"], "action": ["end_phase"] }
+    },
+    {
+      "key": "no_buddha",
+      "text": "End your turn",
+      "tags": ["button"],
+      "asset": "square:slate",
+      "play": { "phases": ["yang_buddha"], "action": ["end_phase"] }
+    },
+    {
+      "key": "roll_dice",
+      "text": "Attempt an exorcism",
+      "tags": ["button"],
+      "asset": "square:slate",
+      "tooltip": "Roll the three Tao dice, then commit tokens and name a ghost you face.",
+      "play": {
+        "phases": ["yang_act"],
+        "needs": ["acted@mine.player == 0"],
+        "action": [
+          "move:dice.d1:bag1",
+          "move:dice.d2:bag2",
+          "move:dice.d3:bag3",
+          "shuffle:bag1",
+          "draw_from:bag1:dice:1",
+          "shuffle:bag2",
+          "draw_from:bag2:dice:1",
+          "shuffle:bag3",
+          "draw_from:bag3:dice:1",
+          "stat_set:exorcising@mine.player:1",
+          "stat_set:acted@mine.player:1",
+          "end_phase"
+        ]
+      }
+    },
+    {
+      "key": "give_up",
+      "text": "Leave it be",
+      "tags": ["button"],
+      "asset": "square:slate",
+      "tooltip": "Take back every token you committed and let the ghost stand.",
+      "play": {
+        "phases": ["yang_exorcise"],
+        "action": ["move:mine.spent:mine.tao", "stat_set:exorcising@mine.player:0", "end_phase"]
+      }
+    },
+    {
+      "key": "use_yy",
+      "text": "Spend your Yin-Yang",
+      "tags": ["button"],
+      "asset": "square:slate",
+      "tooltip": "Turn one haunted tile back to its active side. The villager comes home.",
+      "play": {
+        "phases": ["yang_move", "yang_act"],
+        "needs": ["yy@mine.player >= 1"],
+        "target": { "type": "card", "count": 1, "tags": ["village"], "where": ["haunted@target >= 1"] },
+        "action": ["stat_set:haunted@target:0", "stat_damage:yy@mine.player:1"]
+      }
+    },
+    {
+      "key": "take_qi",
+      "text": "Take 1 Qi",
+      "tags": ["button"],
+      "asset": "square:slate",
+      "play": {
+        "phases": ["boon"],
+        "action": ["stat_gain:qi@mine.player:1", "stat_damage:boons@mine.player:1"]
+      }
+    },
+    {
+      "key": "take_yy",
+      "text": "Take your Yin-Yang back",
+      "tags": ["button"],
+      "asset": "square:slate",
+      "play": {
+        "phases": ["boon"],
+        "needs": ["yy@mine.player == 0"],
+        "action": ["stat_set:yy@mine.player:1", "stat_damage:boons@mine.player:1"]
+      }
+    },
+    {
+      "key": "win_page",
+      "text": "Wu-Feng is sent back to hell",
+      "tags": ["page"],
+      "story": "The incarnation is exorcised, the urn stays buried, and the village wakes to an ordinary morning. The Taoists have won."
+    },
+    {
+      "key": "lose_haunt",
+      "text": "The village falls",
+      "tags": ["page"],
+      "story": "A fourth location goes dark. The ghosts have Wu-Feng's funerary urn, and the world of the living does not exist any more."
+    },
+    {
+      "key": "lose_dead",
+      "text": "No one is left to watch",
+      "tags": ["page"],
+      "story": "The last Taoist is dead. The village lies quiet under the assault of the ghosts."
+    },
+    {
+      "key": "lose_deck",
+      "text": "The night never ends",
+      "tags": ["page"],
+      "story": "The last ghost card is laid and Wu-Feng is still walking. The village will never see daylight again."
+    },
+    {
+      "key": "rules_card",
+      "text": "Not in this file yet",
+      "tags": ["page"],
+      "story": "Left out of this telling: the two-ghost exorcism from a corner tile; Tao tokens lent between Taoists standing on the same tile; the eight Taoist powers, and with them the ghosts that switch a power off; neutral boards for fewer than four players; the second half of the Pavilion of the Heavenly Wind, which moves another Taoist; the Yin-Yang spent to ask a distant villager; and the Tao die a ghost holds captive. Two incarnations bend rather than break: the Uncatchable is exorcised like any other, since a Buddha here eats whatever is laid on it, and the Nameless does not stop the white dice counting as wild. A resistance printed in several colours spends the same white face on each of them. The village tiles are laid out in a fixed order rather than shuffled."
+    }
+  ],
+  "setup": {
+    "place": [
+      { "card": "south", "zone": "seat_home" },
+      { "card": "west", "zone": "seat_home" },
+      { "card": "north", "zone": "seat_home" },
+      { "card": "east", "zone": "seat_home" },
+      { "card": "monk", "zone": "figure" },
+      { "card": "t_cemetery", "zone": "table", "at": "b2" },
+      { "card": "t_altar", "zone": "table", "at": "c2" },
+      { "card": "t_herbalist", "zone": "table", "at": "d2" },
+      { "card": "t_sorcerer", "zone": "table", "at": "b3" },
+      { "card": "t_temple", "zone": "table", "at": "c3" },
+      { "card": "t_watchman", "zone": "table", "at": "d3" },
+      { "card": "t_circle_tile", "zone": "table", "at": "b4" },
+      { "card": "t_pavilion", "zone": "table", "at": "c4" },
+      { "card": "t_tea_house", "zone": "table", "at": "d4" },
+      { "card": "plaque_south", "owner": "south", "zone": "table", "at": "a1" },
+      { "card": "plaque_west", "owner": "west", "zone": "table", "at": "a5" },
+      { "card": "plaque_north", "owner": "north", "zone": "table", "at": "e5" },
+      { "card": "plaque_east", "owner": "east", "zone": "table", "at": "e1" },
+      { "card": "no_move", "zone": "choices" },
+      { "card": "no_act", "zone": "choices" },
+      { "card": "roll_dice", "zone": "choices" },
+      { "card": "use_yy", "zone": "choices" },
+      { "card": "give_up", "zone": "choices" },
+      { "card": "take_qi", "zone": "choices" },
+      { "card": "take_yy", "zone": "choices" },
+      { "card": "no_buddha", "zone": "choices" },
+      { "card": "buddha", "zone": "shrine" },
+      { "card": "buddha", "zone": "shrine" },
+      { "card": "rules_card", "zone": "rules" }
+    ]
+  }
+}

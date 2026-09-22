@@ -1637,6 +1637,21 @@ if some of what a player does should not end the turn, count the thing that shou
 `actions` run on every entry including a loop; `on_enter` runs only when the **turn** begins
 here.
 
+### A jump that keeps the turn, until the piece has jumped its last.
+
+```json
+{ "key": "red_move", "type": "player_input", "seat": "next",
+  "on_enter": ["stat_set:chaining@each.anyone.piece:0"],
+  "next": [{ "when": "max:chaining@mine.board >= 1", "then": "red_move", "seat": "same" },
+           { "then": "white_move" }] }
+```
+
+The jump's action writes `chaining` onto the piece, the route reads it and comes back to the same
+seat, and `on_enter` clears it when a turn really begins. `max:chaining@mine.board ==
+chaining@self` on every piece ability is what stops anybody *else* moving mid-chain: nought
+matches nought while nobody is jumping, and once somebody is, only they match. The player says
+when the chain is over — see *Known gaps*.
+
 ### Each player takes the same three steps, highest initiative first.
 
 ```json
@@ -1773,6 +1788,20 @@ moving and threatening is drawn here.
 `@behind`, `@across` and `@beside` point at the other cards from the square being considered.
 `last_acted` is the card a player most recently played or activated.
 
+### A checkers jump: take the piece it flew over.
+
+```json
+{ "key": "jump_left",
+  "moves": [{ "patterns": ["leap_up_left"], "fill": "empty",
+              "where": ["tagged:piece@enemy.down_right"] }],
+  "action": ["move_to:target", "move:enemy.down_right:taken"] }
+```
+
+`down_right` names the same square twice: in `where` it is anchored on the square being
+considered, and in the action it is anchored on the piece — which is standing on that square by
+then, because `move_to:target` ran first. **One ability per direction**, because a rule's `where`
+knows which way the piece went and an action shared by two rules does not.
+
 ### Is my king standing where they could move?
 
 ```json
@@ -1836,6 +1865,17 @@ The player *is* a card, so everything that works on a card works on a seat.
 ```json
 "action": ["set_active_seat:has_init"]
 ```
+
+### Hand the turn on when no phase asks anybody anything.
+
+```json
+{ "key": "south", "abilities": [{ "key": "handover", "action": ["set_active_seat:west_seat"] }] }
+"actions": ["activate_zone:mine.seat_home:by_column:handover"]
+```
+
+`seat: "next"` is read where a hand is dealt, so an **automatic** phase never turns the seat
+over — a turn that opens with the board acting rather than the player has to say so itself.
+Each seat card naming the one that follows it is the whole rule, and nothing has to count.
 
 ---
 
@@ -1923,8 +1963,8 @@ arrives. A one-off look for one card is still `effect:<name>` in its actions, on
 
 ## Known gaps
 
-Effects with **no spelling yet**, so nobody re-derives one. Each has live customers in
-`game/games/codex.json`, and each is worked through in `ideas/37-codex.md`:
+Effects with **no spelling yet**, so nobody re-derives one. All but the last have live customers
+in `game/games/codex.json` and are worked through in `ideas/37-codex.md`:
 
 - **Swift strike** — a blow struck before the exchange.
 - **A death replaced by something else** — a card that returns, or leaves a token, instead of
@@ -1935,3 +1975,6 @@ Effects with **no spelling yet**, so nobody re-derives one. Each has live custom
 - **An aim narrowed after it is made** — a flagbearer that redirects what was already pointed
   somewhere else. 3 cards.
 - **"This costs nothing"** — a cost of zero is not the same as no cost. 4 cards.
+- **Whether an ability still has a target, once the action has moved the piece** — `aims:` answers
+  it, and an action's amount may not read one, so a checkers chain cannot end itself and the game
+  carries a *Done jumping* button. `ideas/01-boardgames.md`.

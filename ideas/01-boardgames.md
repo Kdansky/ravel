@@ -4,7 +4,7 @@
 > boardgame rule set and just turn it into a json, and then have the board game
 > be simulated?* — `IDEAS.md`
 
-**In progress.** Lost Cities and chess shipped.
+**In progress.** Lost Cities, chess and checkers shipped.
 
 ## The honest boundary
 
@@ -29,67 +29,77 @@ generalise.
 |---|---|---|
 | **Knizia (Lost Cities)** | two seats; scoring functions; drop legality | **done** — seats, `sum:`/`max:`/products, `accepts` |
 | **Chess** | per-piece movement geometry; blocking; check | **done** — `patterns`, `geometry.lua`, capture, castling, check. Checkmate is [08](08-grid-movement-notation.md)'s own milestone |
-| **Checkers** | move a piece already on the board; capture; chained moves | *partly* — chess brought movement, capture and ownership. Left: **the square a move passes over** |
+| **Checkers** | move a piece already on the board; capture; chained moves | **done** — `checkers.json`, hand-written, no generator. The jumped square needed no word; the chain is a route back to the same seat. Left: the button that ends a chain, which one widened word would delete |
 | **Klondike** | ordered stacks; move a run | *partly* — `accepts` and `fan` are built; reordering and the reach half are not |
 | **Hearthstone** | triggered abilities; buffs | not started — `turn.action` is the only trigger |
 
 ## Gap 1 — the squares a move passes over (checkers)
 
-A checkers jump is `[2,2]`, and it takes the piece it flies *past* — a square
-that is neither where the piece started nor where it lands.
+**Shipped.** `game/games/checkers.json`, 223 lines, hand-written, and
+`tests/integration/checkers.lua` plays a game through a double jump, a crowning,
+a king's backward chain and the win.
 
-**This file said no word could name that square. It was wrong** (probed
-2026-09-08), and both halves — asking about the mid square and taking the piece
-on it — work today:
+A jump takes the piece it flies *past*, and it needed no word. Two things built
+for other reasons meet: **a pattern is already a scope**, and **the anchor
+follows the piece** — `where` is asked with the candidate square as the anchor,
+so `@enemy.down_right` from the landing square is the victim; then
+`move_to:target` runs first in the action, so `pattern_slots`' fallback to
+`c.slot_id` is that same landing square by the time the capture line is read and
+the same words name the same square twice:
 
 ```json
-"patterns": { "hop_ne": { "vectors": [[2, 2]] }, "back_sw": { "vectors": [[-1, -1]] } },
-"abilities": [
-  { "key": "hop",
-    "moves": [{ "patterns": ["hop_ne"], "fill": "empty",
-                "where": ["count:piece@back_sw == 1"] }],
-    "action": ["move_to:target", "purge:back_sw"] }
-]
+{ "key": "jump_left",
+  "moves": [{ "patterns": ["leap_up_left"], "fill": "empty",
+              "where": ["tagged:piece@enemy.down_right"] }],
+  "action": ["move_to:target", "move:enemy.down_right:taken", …] }
 ```
 
-An empty mid square offers no jump; with a victim on d4 the jump to e5 is
-offered, and taking it removes the victim. Two things that were built for other
-reasons meet: **a pattern is already a scope** (`entities_in_scope` has a branch
-for `pattern_defs`, so `@back_sw` names whoever stands there), and **the anchor
-follows the piece** — `where` is asked with `anchor = sid`, so the pattern is
-read from the *destination*; then `move_to:target` runs first in the action, so
-`pattern_slots`' fallback to `c.slot_id` is the landing square by the time
-`purge:back_sw` is read. The same pattern names the same square twice, for two
-different reasons.
+### The word that would collapse the directions is still not wanted
 
-Castling through check is the asking half alone and needs nothing either — an
-absolute pattern named as a scope is `count:piece@castle_path`.
+The cost is one **ability** per direction rather than one rule, which is worse
+than this file predicted: a rule's `where` can name the square flown over, but
+the *action* cannot, and an action shared by two rules would capture down the
+diagonal the piece did not take. A man is 2 jump abilities, a king 4.
 
-### The word, if it is ever wanted — **only implement when needed**
+**Read in the file, that is fine.** The four sit under each other, differ in a
+compass point, and "does a king jump backwards" is answered by counting them.
+The word would save perhaps twenty lines of one game and cost `geometry.reach`
+its purity. Still no — and now it has been read rather than imagined.
 
-The cost of the spelling above is **one rule per direction**. A pattern is a set
-of vectors and the mid square depends on which vector was taken, so
-`[[2,2],[-2,2]]` in one pattern would make `@back_sw` name a square the piece
-never flew over. A checkers man is 2 rules and 4 patterns; a king is 4 and 8.
-Verbose, correct, and it ships today.
+### The chain is a route, not a targeting word
 
-A word would collapse that to one rule: *the squares this move passed over*,
-anchored on the move actually made. It is not free — `geometry.reach` returns a
-flat list of slot ids and would have to report which vector produced each
-square, which changes what a pure function hands back, and interpolation is only
-defined for vectors that are a line (a knight's `[1,2]` has no meaningful
-midpoint). **Do not build it until checkers is written and the four-rule version
-has actually been read.** If it reads fine, the word is not wanted.
+Chained jumps turned out to be the flow question this file said they were, and
+the flow words already existed. A jump leaves `chaining` standing on the piece;
+the phase's own route reads it and comes back to the **same** seat
+(`{ "when": "max:chaining@mine.board >= 1", "then": "red_move", "seat": "same" }`);
+`on_enter` clears it when a turn actually begins, which a loop that keeps the
+player does not run. One clause on every piece ability,
+`max:chaining@mine.board == chaining@self`, is what stops anybody *else* moving
+mid-chain: nought matches nought while nobody is jumping, and once somebody is,
+only they match.
 
-### What is genuinely left
+### What it cost: a button, and the one word that would delete it
 
-**Chained jumps**: the move action re-pushes a targeting phase while more jumps
-exist. One move per piece per turn is already the default — what bounds a turn
-is the handover, not the piece being spent — so the chain is the exception and
-has to say so. This is a flow question, not a targeting word, and it is the only
-part of this gap that needs anything new.
+**A chain cannot end itself**, so the game carries a *Done jumping* button. The
+question "does this piece still have a jump" is exactly `aims:`, and `aims:`
+already answers it correctly from the square just landed on — probed on a live
+board, `aims:jump_right` is 1 after the first jump of a double and 0 after the
+second. Two things stand between that and no button:
 
-**Milestone: checkers plays end to end, without forced-capture rules.**
+- an **amount** may be a number, a `count:`/`sum:` measure or a compute, and
+  `aims:` is refused by name — so `stat_set:chaining@self:aims:jump_left` (then
+  `stat_gain:` for the other directions) does not parse, though every part of
+  what it asks for is built;
+- a **compute** is bound before the action runs, so a compute summing the
+  directions would be measured from the square the piece has not left yet.
+
+Widening the amount grammar to accept `aims:` is the whole fix, and it is
+measured where every other amount is: when that line runs. It would also make a
+chain *forced* — with the button gone, a piece that still has a jump is the only
+legal move there is — which is half of the forced-capture rule falling out for
+nothing. The other half, declining the first jump, stays a choice.
+
+**Milestone met: checkers plays end to end, without forced-capture rules.**
 
 ## Gap 3 — ordered stacks and drop legality (Klondike)
 
@@ -150,7 +160,7 @@ Two hard rules, both learned from every card game engine that got this wrong:
 
 **Milestone: a 20-card Hearthstone-like with summon/deathrattle, two players.**
 
-## What the two shipped ones cost
+## What the shipped ones cost
 
 **Chess overtook checkers** because the notation question was the interesting
 one and chess is where it had to be answered. The `slide:`/`step:`/`leap:` verbs
@@ -171,13 +181,19 @@ route marker is tagged `wager` so `count:wager` *is* the multiplier with no
 arithmetic, and a destination marker in each expedition gives the empty case
 something to target.
 
+**Checkers cost nothing but the chain.** Twenty-four pieces, two templates, and
+the only engine question in it was how a turn comes back to the same player. The
+board half — diagonal geometry, a rank counted from the owner's own side, a man
+crowned by `transform`, art per seat on one template — was chess's, already
+paid for.
+
 *Set scoring* — "n points per complete set of k distinct tags" — is still not
 directly expressible, and still should not get its own operator. Express it as a
 computed tag plus a card that reads it.
 
 ## Order, non-goals, and the standing risk
 
-Next: **checkers** (small, once the path is named) · **Klondike** (medium) ·
+Next: **Klondike** (medium) ·
 **chess, legal** — move generation and checkmate (medium) · **a
 Hearthstone-like** (large).
 
