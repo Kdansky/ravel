@@ -86,44 +86,44 @@ local function play(moves)
 	end
 end
 
--- Eight moves that walk a white man down to d3 and leave a second on f5, with
--- e4 and g6 empty behind them: the position a double jump needs.
+-- Eight moves that walk a white man down to e3 and leave a second on c5, with
+-- d4 and b6 empty behind them: the position a double jump needs.
 local DOUBLE_JUMP_SET_UP = {
-	{ "d3", "c4" }, { "g6", "f5" },
-	{ "c4", "b5" }, { "f5", "e4" },
-	{ "h3", "g4" }, { "e4", "d3" },
-	{ "g4", "h5" }, { "e6", "f5" },
+	{ "e3", "f4" }, { "b6", "c5" },
+	{ "f4", "g5" }, { "c5", "d4" },
+	{ "a3", "b4" }, { "d4", "e3" },
+	{ "b4", "a5" }, { "d6", "c5" },
 }
 
 function M.test_checkers_opens_with_twelve_men_a_side_on_the_dark_squares(check)
 	start()
 	check("twenty-four men, red to move", #board.cards == 24 and zones.active_seat() == "player_red")
-	check("each side fills its own three rows", at("b1") == "red man" and at("h3") == "red man"
-		and at("a6") == "white man" and at("g8") == "white man")
-	check("and the light squares are empty", on("a1") == nil and on("b8") == nil)
+	check("each side fills its own three rows", at("g1") == "red man" and at("a3") == "red man"
+		and at("h6") == "white man" and at("b8") == "white man")
+	check("and the light squares are empty", on("h1") == nil and on("g8") == nil)
 	check("a rank counts from a piece's own side, so both front rows are 3",
-		on("b3").stats.rank == 3 and on("a6").stats.rank == 3)
-	check("the back row has nowhere to go", reach("b1") == "")
-	check("the front row steps forward, and only forward", reach("b3") == "a4 c4")
+		on("g3").stats.rank == 3 and on("h6").stats.rank == 3)
+	check("the back row has nowhere to go", reach("g1") == "")
+	check("the front row steps forward, and only forward", reach("g3") == "f4 h4")
 end
 
 function M.test_checkers_a_man_steps_diagonally_forward(check)
 	start()
-	check("b3-c4, and the turn passes", move("b3", "c4") and at("c4") == "red man"
+	check("g3-f4, and the turn passes", move("g3", "f4") and at("f4") == "red man"
 		and zones.active_seat() == "player_white")
-	check("white may not move red's men", flow.can_activate(on("c4").id) == false)
-	check("white steps the other way down the board", move("c6", "d5") and at("d5") == "white man")
-	check("a man may not step back the way it came", move("c4", "b3") == false)
+	check("white may not move red's men", flow.can_activate(on("f4").id) == false)
+	check("white steps the other way down the board", move("f6", "e5") and at("e5") == "white man")
+	check("a man may not step back the way it came", move("f4", "g3") == false)
 end
 
 function M.test_checkers_a_jump_takes_the_piece_it_flies_over(check)
 	start()
-	check("the opening plays", play({ { "b3", "c4" }, { "e6", "d5" } }) == nil)
-	local victim = on("d5")
-	check("c4 takes d5 and lands on e6", move("c4", "e6", 3) and at("e6") == "red man" and on("d5") == nil)
+	check("the opening plays", play({ { "g3", "f4" }, { "d6", "e5" } }) == nil)
+	local victim = on("e5")
+	check("f4 takes e5 and lands on d6", move("f4", "d6", 2) and at("d6") == "red man" and on("e5") == nil)
 	check("the taken man is in red's tray, off the board",
 		entity.get(victim.id).zone_id == tray("player_red").id and #board.cards == 23)
-	check("and a square the jump did not fly over keeps what stands on it", at("d7") == "white man")
+	check("and a square the jump did not fly over keeps what stands on it", at("e7") == "white man")
 end
 
 function M.test_checkers_a_jump_keeps_the_turn_until_the_player_says_it_is_over(check)
@@ -132,56 +132,56 @@ function M.test_checkers_a_jump_keeps_the_turn_until_the_player_says_it_is_over(
 		flow.can_activate(button("done_jumping").id) == false)
 	check("the set-up plays", play(DOUBLE_JUMP_SET_UP) == nil)
 
-	check("c2 takes d3 and lands on e4", move("c2", "e4", 3) and at("e4") == "red man")
+	check("f2 takes e3 and lands on d4", move("f2", "d4", 2) and at("d4") == "red man")
 	check("red is still to move", zones.active_seat() == "player_red" and phase.current().key == "red_move")
 	check("and no other red man may move while that one is mid-jump",
-		flow.can_activate(on("b5").id) == false and flow.can_activate(on("f3").id) == false)
+		flow.can_activate(on("g5").id) == false and flow.can_activate(on("c3").id) == false)
 
-	check("the same man takes f5 and lands on g6", move("e4", "g6", 3) and at("g6") == "red man")
+	check("the same man takes c5 and lands on b6", move("d4", "b6", 2) and at("b6") == "red man")
 	check("two white men are in the tray", #tray("player_red").cards == 2)
 	check("*Done jumping* hands the turn over", done() and zones.active_seat() == "player_white")
-	check("and the next turn starts with no chain standing", on("g6").stats.chaining == 0)
+	check("and the next turn starts with no chain standing", on("b6").stats.chaining == 0)
 end
 
 function M.test_checkers_the_far_row_crowns_a_man(check)
 	start()
 	check("the set-up plays", play(DOUBLE_JUMP_SET_UP) == nil)
-	check("the double jump plays", move("c2", "e4", 3) and move("e4", "g6", 3) and done())
+	check("the double jump plays", move("f2", "d4", 2) and move("d4", "b6", 2) and done())
 	check("the way to the far row opens", play({
-		{ "f7", "e6" }, { "g6", "f7" },
-		{ "h7", "g6" }, { "b3", "a4" },
-		{ "g8", "h7" } }) == nil)
+		{ "c7", "d6" }, { "b6", "c7" },
+		{ "a7", "b6" }, { "g3", "h4" },
+		{ "b8", "a7" } }) == nil)
 
-	check("f7-g8, and the man is crowned", move("f7", "g8") and at("g8") == "red king")
+	check("c7-b8, and the man is crowned", move("c7", "b8") and at("b8") == "red king")
 	check("the crowning ends the move", zones.active_seat() == "player_white"
-		and on("g8").stats.chaining == 0)
-	check("white replies", move("c6", "d5"))
-	check("a king steps back the way a man may not", move("g8", "f7") and at("f7") == "red king")
+		and on("b8").stats.chaining == 0)
+	check("white replies", move("f6", "e5"))
+	check("a king steps back the way a man may not", move("b8", "c7") and at("c7") == "red king")
 end
 
 function M.test_checkers_a_king_jumps_backwards_and_goes_on_jumping(check)
 	start()
 	check("the game up to the crowning plays", play(DOUBLE_JUMP_SET_UP) == nil
-		and move("c2", "e4", 3) and move("e4", "g6", 3) and done()
-		and play({ { "f7", "e6" }, { "g6", "f7" }, { "h7", "g6" }, { "b3", "a4" }, { "g8", "h7" },
-			{ "f7", "g8" }, { "c6", "d5" }, { "g8", "f7" }, { "d5", "c4" } }) == nil)
+		and move("f2", "d4", 2) and move("d4", "b6", 2) and done()
+		and play({ { "c7", "d6" }, { "b6", "c7" }, { "a7", "b6" }, { "g3", "h4" }, { "b8", "a7" },
+			{ "c7", "b8" }, { "f6", "e5" }, { "b8", "c7" }, { "e5", "f4" } }) == nil)
 
-	check("the king takes e6 backwards and lands on d5", move("f7", "d5", 4) and at("d5") == "red king")
+	check("the king takes d6 backwards and lands on e5", move("c7", "e5", 5) and at("e5") == "red king")
 	check("it is still red's move", zones.active_seat() == "player_red")
-	check("and it takes c4 in the same turn", move("d5", "b3", 4) and at("b3") == "red king")
+	check("and it takes f4 in the same turn", move("e5", "g3", 5) and at("g3") == "red king")
 	check("four white men are in the tray", #tray("player_red").cards == 4)
 	check("the turn passes when red says so", done() and zones.active_seat() == "player_white")
 end
 
 function M.test_checkers_the_last_man_taken_ends_the_game(check)
 	start()
-	check("red opens", move("b3", "c4"))
-	check("white replies", move("c6", "d5"))
+	check("red opens", move("g3", "f4"))
+	check("white replies", move("f6", "e5"))
 	-- The last twelve captures are a long script and prove nothing the one above
 	-- does not; what is under test is the route, which reads the board and not
 	-- how it got that way.
-	actions.run({ "purge:each.enemy.board" }, { card_id = on("c4").id, targets = {} })
-	check("red moves onto an empty board", move("c4", "b5"))
+	actions.run({ "purge:each.enemy.board" }, { card_id = on("f4").id, targets = {} })
+	check("red moves onto an empty board", move("f4", "g5"))
 	check("and the game is over", phase.current().key == "reveal"
 		and entity.get(zones.find("reveal").cards[1]).def_key == "red_wins")
 end

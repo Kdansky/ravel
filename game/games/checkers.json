@@ -80,13 +80,13 @@
         "card": "man",
         "owner": "player_red",
         "zone": "board",
-        "at": ["b1", "d1", "f1", "h1", "a2", "c2", "e2", "g2", "b3", "d3", "f3", "h3"]
+        "at": ["a1", "c1", "e1", "g1", "b2", "d2", "f2", "h2", "a3", "c3", "e3", "g3"]
       },
       {
         "card": "man",
         "owner": "player_white",
         "zone": "board",
-        "at": ["a6", "c6", "e6", "g6", "b7", "d7", "f7", "h7", "a8", "c8", "e8", "g8"]
+        "at": ["b6", "d6", "f6", "h6", "a7", "c7", "e7", "g7", "b8", "d8", "f8", "h8"]
       },
       { "card": "done_jumping", "zone": "turn_box" },
       { "card": "how_to_play", "zone": "rules" }
