@@ -85,7 +85,13 @@ function M.parse(spec)
 
 	local fg = M.colour(parts[i])
 	if not fg then return nil end
-	local bg = M.colour(parts[i + 1]) or backdrop(fg)
+	-- "none" is no background at all, which is the one thing a colour cannot
+	-- say: a card that hides its plate shows the board through its art, and a
+	-- generated shape with an opaque backdrop stands on a tile of its own
+	-- instead. Matching the backdrop to the board is what checkers did, and it
+	-- only held while nothing tinted the art.
+	local word = parts[i + 1]
+	local bg = word ~= "none" and (M.colour(word) or backdrop(fg)) or nil
 	if parts[i + 2] then return nil end   -- trailing junk is a typo, not art
 
 	return { shape = parts[1], n = n, fg = fg, bg = bg }
@@ -159,7 +165,7 @@ end
 
 local function paint(p)
 	local g, c = love.graphics, SIZE * 0.5
-	g.clear(p.bg[1], p.bg[2], p.bg[3], 1)
+	if p.bg then g.clear(p.bg[1], p.bg[2], p.bg[3], 1) else g.clear(0, 0, 0, 0) end
 	g.setColor(p.fg[1], p.fg[2], p.fg[3])
 
 	if p.shape == "circle" then

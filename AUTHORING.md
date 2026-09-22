@@ -322,6 +322,7 @@ procedurally: `<shape>[:<n>]:<colour>[:<colour>]`.
 ```json
 "asset": "circle:teal"           "asset": "polygon:5:green"
 "asset": "star:6:gold:navy"      "asset": "stripes:7:crimson"
+"asset": "circle:crimson:none"   "asset": "diamond:slate:none"
 "asset": "chequer:8:black:white" "asset": "auto"
 ```
 
@@ -335,6 +336,12 @@ red crimson maroon pink orange amber gold yellow sand tan brown olive green
 forest teal cyan blue navy indigo violet purple magenta`. A second colour is
 the background; with only one, the background is a dark wash of the first, so a
 one-colour spec looks deliberate. Counts outside a shape's range are clamped.
+
+**`none` as the background draws no background at all**, and it is what a piece
+wants: a style that hides the `plate` shows the board through the art, and a
+shape with a backdrop stands on a tile of its own instead. `checkers.json` used
+to paint that tile the colour of its dark squares, which held until the piece
+was dimmed and the tint darkened the tile with it.
 
 **`"asset": "auto"`** derives a shape, a count and a hue from the card *key*.
 Same card, same art, every run and every machine — no authoring at all, and no

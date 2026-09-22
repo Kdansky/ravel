@@ -2102,6 +2102,9 @@ check("a filename is never a shape",     spec("castle_hill.jpg") == "nil")
 check("a non-string is not art",         spec(nil) == "nil" and spec(42) == "nil")
 check("one colour still gets a backdrop",
 	art.parse("circle:teal").bg ~= nil and art.parse("circle:teal").bg[1] < 0.3)
+check("none is no backdrop at all",      art.parse("circle:teal:none").bg == nil
+	and art.parse("star:6:gold:none").n == 6)
+check("none is only a background",       spec("circle:none") == "nil")
 
 -- auto must be stable: same key, same art, on every machine and every run,
 -- and it must never consume an RNG draw or it would shift the shuffle.

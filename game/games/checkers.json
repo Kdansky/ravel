@@ -3,8 +3,8 @@
   "players": [{ "card": "player_red" }, { "card": "player_white" }],
   "comment": "English draughts. The board layer already had everything the moves need: the jump takes the piece it flies past because a pattern is also a scope and the anchor follows the piece, so 'down_right' read from the square landed on names the victim. What the game had to invent is the chain — a route back to the same seat while a piece is mid-jump. 'aims:<ability>' is how many cards one of this card's own abilities could point at right now, and a computed tag is asked once per card, so 'can_jump' worn by a piece is that piece having a jump and 'tagged:can_jump@mine.board' is a jump being on offer anywhere on my side. That is forced capture; and the same tag under 'chaining' is 'chain_open', which ends the chain the moment the jumps run out, so the game needs no button saying so. See ideas/01-boardgames.md.",
   "assets": {
-    "man": { "per_player": ["circle:crimson:#7a5230", "circle:white:#7a5230"] },
-    "king": { "per_player": ["star:crimson:#7a5230", "star:white:#7a5230"] }
+    "man": { "per_player": ["circle:crimson:none", "circle:white:none"] },
+    "king": { "per_player": ["star:crimson:none", "star:white:none"] }
   },
   "styles": {
     "piece": { "hide": ["title", "border", "plate"] },

@@ -275,7 +275,11 @@ function M.draw()
 	local cy = y + pad
 	if img then
 		local iw, ih = img:getDimensions()
-		local sc = math.max(inner / iw, img_h / ih)
+		-- A piece is the whole shape and has no plate to crop against, so it is
+		-- fitted the way the board fits it; a card is cropped to fill the band,
+		-- because a letterbox around a photograph is wasted panel.
+		local bare = (cards.style(c).hide or {}).plate
+		local sc = bare and math.min(inner / iw, img_h / ih) or math.max(inner / iw, img_h / ih)
 		love.graphics.setScissor(x + pad, cy, inner, img_h)
 		love.graphics.setColor(1, 1, 1)
 		love.graphics.draw(img, x + pad + (inner - iw * sc) * 0.5,

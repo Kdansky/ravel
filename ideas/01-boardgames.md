@@ -114,19 +114,6 @@ shorter *and* says what each rule is about. The spare men on a1 and h8 are there
 so the last capture does not end the game, a route the board is checked against
 before the chain's.
 
-### Two bugs found playing it
-
-**The red men do not sit in the middle of their squares; everything else
-does.** Not yet reproduced off a screen, and the obvious causes are ruled out:
-both men are one `per_player` asset differing only in a colour word
-(`circle:crimson:#7a5230` / `circle:white:#7a5230`), both parse to the same
-`{shape = "circle", fg, bg}`, `art.paint` draws a circle at the texture's own
-centre, the `piece` style hides title, border and plate for both, and the board
-zone has no label band to push one end of the grid down. So the difference is
-downstream of the spec, and **the next step is a look at the running board**,
-not more reading. [Assumption: it is the men rather than the red *side* — the
-note says "men", and red's kings are a different asset.]
-
 ## Gap 3 — ordered stacks and drop legality (Klondike)
 
 Klondike is the sharpest test of "is this an engine or a card game", because it

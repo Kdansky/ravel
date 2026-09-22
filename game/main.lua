@@ -664,7 +664,7 @@ function love.update(dt)
 			if zz and (zz.tooltip or (zz.abilities and #zz.abilities > 0)) then hover = zid end
 		end
 	end
-	tooltip.update(dt, not inspecting and hover or nil)
+	tooltip.update(dt, not inspecting and (hover or debugserver.hover()) or nil)
 
 	debugserver.update()
 end

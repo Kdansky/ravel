@@ -90,7 +90,7 @@
       "name": "what the card is called, as against what it says. `text` is the caption and may be a template; this is a plain word that template can read, and the one field set_name writes — so a seat prints \"{name}\" and reads \"Player One\" until a character takes the chair. Nothing else reads it: it is a caption's word, never an identity.",
       "tooltip": "prose shown in the hover panel after a short delay. May carry two marks: *bold* for the mechanics, _italic_ for flavour, which is set a size smaller. A mark that never closes is left as the character it is, so weather_now stays one word.",
       "story": "long prose for the full-screen page overlay and the detail view",
-      "asset": "a picture: a name in the assets table, a bare filename in games/assets, an http(s) URL, a shape spec like star:5:amber, or auto for a generated one. A name is anything with no source in it, which is what tells the five apart. A picture that cannot be produced draws a generated placeholder derived from the card key, never nothing.",
+      "asset": "a picture: a name in the assets table, a bare filename in games/assets, an http(s) URL, a shape spec like star:5:amber (whose second colour may be \"none\", for a piece that shows the board through it), or auto for a generated one. A name is anything with no source in it, which is what tells the five apart. A picture that cannot be produced draws a generated placeholder derived from the card key, never nothing.",
       "tags": [
         "a list of words. Free vocabulary for targeting and counting, except where the engine knows one (see _engine_tags) or a style is named after one (see styles) — a card claims a look by tagging it."
       ],

@@ -6,6 +6,7 @@
 --   echo "stats"          | nc 127.0.0.1 5757
 --   echo "play farm slot:8" | nc 127.0.0.1 5757
 --   echo "eval stat_gain:gold:5" | nc 127.0.0.1 5757
+--   echo "hover man" | nc 127.0.0.1 5757    then: echo "screenshot tip" | ...
 
 local declaration = require("declaration")
 local entity      = require("entity")
@@ -203,6 +204,20 @@ COMMANDS["screenshot"] = function(args)
 	love.graphics.captureScreenshot(function(img) img:encode("png", name) end)
 	return { file = love.filesystem.getSaveDirectory() .. "/" .. name }
 end
+
+-- Hover-only drawing — the tooltip, chiefly — needs a cursor resting on a card,
+-- and love.mouse.setPosition is ignored under Wayland, so the pointer cannot be
+-- put there from here. main.lua asks for this instead when nothing real is
+-- under the cursor, which is what lets a tooltip be screenshotted from a
+-- terminal. No argument clears it.
+local pinned = nil
+
+COMMANDS["hover"] = function(args)
+	pinned = args[1] and resolve(args[1]) or nil
+	return { hover = pinned }
+end
+
+function M.hover() return pinned end
 
 COMMANDS["help"] = function()
 	local names = {}
