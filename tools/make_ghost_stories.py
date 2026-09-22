@@ -29,7 +29,7 @@ same pattern from the north edge names the tile below. One rule, four boards.
     python3 tools/make_ghost_stories.py
 """
 
-import os, sys
+import os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import jsonfmt
 import guard
@@ -569,7 +569,7 @@ def monks():
     """
     return [{
         "key": "monk", "text": "{owner}'s Taoist",
-        "tags": ["taoist", "piece"], "asset": "triangle:sand",
+        "tags": ["taoist", "piece"], "asset": "taoist",
         "tooltip": "Your Taoist. It stands on a village tile, walks to any tile beside "
                    "that one, and exorcises the ghost space in front of it.",
         "abilities": [
@@ -656,7 +656,7 @@ def village():
         if key == CENTRE_TILE:
             tags.append("centre_tile")
         card = {"key": "t_" + key, "text": name, "tags": tags,
-                "asset": "square:sand", "story": text, "tooltip": text}
+                "asset": "t_" + key, "story": text, "tooltip": text}
         rules = []
         if powers[key]:
             rules.append(powers[key])
@@ -764,7 +764,7 @@ def ghost_card(key, name, colour, res, left, mid, right, incarnation=False):
     card = {
         "key": ("i_" if incarnation else "g_") + key,
         "text": name, "tags": tags,
-        "asset": "square:" + _ghost_plate(colour),
+        "asset": ("i_" + key) if incarnation else _slug(name),
         # `col` and `row` are the engine's to write and the card's to opt into,
         # and a ghost cannot say which board it stands on without them.
         "card_stats": dict({"col": 0, "row": 0}, **({"haunt": 1} if "QUICK" in left else {})),
@@ -773,6 +773,45 @@ def ghost_card(key, name, colour, res, left, mid, right, incarnation=False):
         "abilities": rules,
     }
     return card
+
+
+# --------------------------------------------------------------------------
+# The art
+
+# Every picture is a public-domain Chinese painting from Wikimedia Commons, held
+# in game/games/assets and credited there. The file a card wears is its name and
+# nothing else — `gs_<ghost>.jpg`, `gs_i_<incarnation>.jpg`, `gs_t_<tile>.jpg` —
+# so there is no table here to fall out of step with the directory.
+#
+# **Which painting a ghost wears is arbitrary.** Forty-one named ghosts cannot be
+# matched one to one against a Ming scroll, so they are dealt out of one coherent
+# set (the Water-Land ritual paintings of Baoning Temple) in the order the cards
+# are printed. The incarnations get the Ten Kings of Hell, the Taoists get Zhong
+# Kui the demon-queller (Shoki in Japanese hands), and the nine village tiles get
+# details of the town in *Along the River During the Qingming Festival*, each
+# chosen for the nearest scene.
+#
+# **The colour plate stays at the end of every list.** A game that arrives over
+# the network carries the JSON and not the assets folder, and a red ghost drawn
+# as a generated squiggle has lost the one thing about it a player reads first.
+
+
+def _slug(name):
+    return re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
+
+
+def assets():
+    out = {}
+    for _key, name, colour, *_rest in G:
+        out[_slug(name)] = {"src": ["gs_%s.jpg" % _slug(name), "square:" + _ghost_plate(colour)]}
+    for key, _name, colour, *_rest in INC:
+        out["i_" + key] = {"src": ["gs_i_%s.jpg" % key, "square:" + _ghost_plate(colour)]}
+    for key, _name, _text in TILES:
+        out["t_" + key] = {"src": ["gs_t_%s.jpg" % key, "square:sand"]}
+    # One name, four pictures: the Taoist card is declared once and dealt into
+    # every seat, so whose it is has to pick the painting.
+    out["taoist"] = {"per_player": [["gs_taoist_%s.jpg" % s[0], "triangle:sand"] for s in SIDES]}
+    return out
 
 
 def _ghost_plate(colour):
@@ -1142,6 +1181,7 @@ def build():
             "piece": {"hide": ["title", "border", "plate"]},
             "face": {"hide": ["title"]},
         },
+        "assets": assets(),
         "patterns": patterns(),
         "computes": computes(),
         "stats": stats(),
