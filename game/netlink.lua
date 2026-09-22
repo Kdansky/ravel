@@ -79,8 +79,9 @@ end
 ---------------------------------------------------------------- browser
 
 -- Getting data out of a browser tab turned out to be possible without touching
--- the love.js build, and not by the route cards.lua guesses at: there is no
--- love.js.eval in the 2dengine runtime this project serves. What there is:
+-- the love.js build. The same door cards.lua goes through, opened by hand
+-- rather than through `love.js.eval`: that shim reads the stream to its end and
+-- joins it, and everything below needs one line at a time. What the door is:
 --
 --   * player.js overrides window.open, so love.system.openURL("javascript:…")
 --     runs the code and parks its result in window._output;
@@ -89,7 +90,8 @@ end
 --     returns whatever the last snippet evaluated to.
 --
 -- That is a synchronous, repeatable, two-way bridge, and it is the documented
--- 2dengine interop path rather than a trick. Both halves are verified in
+-- 2dengine interop path rather than a trick — `lua/normalize1.lua` in the
+-- player is the same two calls, which is why `love.js.eval` exists at all. Both halves are verified in
 -- tests/net.lua's notes; here they are just used.
 --
 -- One measured constraint shapes everything below. Emscripten's tty hands stdin

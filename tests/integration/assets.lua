@@ -168,6 +168,39 @@ function M.test_assets_per_player_picks_by_seat(check)
 	check("and it is not read as one picture", G.asset_defs.piece.src == nil)
 end
 
+-- **The browser has a second place to look.** The packer leaves games/assets out
+-- of game.love — it is 97.5% of it — and nginx serves the same directory beside
+-- the page, so a picture is fetched the first time a card is drawn. Nothing in a
+-- game file says so: a bare filename names the picture, never the place.
+function M.test_assets_a_missing_local_file_is_fetched_beside_the_page(check)
+	local G, was = fixture('{ "face": "crown_royal.jpg" }', '"face"'), declaration.G
+	declaration.G = G
+	cards.reset()
+	local asked = {}
+	love.js = { eval = function(program) asked[#asked + 1] = tostring(program); return "" end }
+	local seen = love.filesystem.getInfo
+	love.filesystem.getInfo = function() return nil end   -- as if the bundle held no art
+
+	local got = cards.asset_image("face", "hero")
+	check("the picture is not ready on the frame that asks for it", got == nil)
+	check("the page was asked for it, exactly once", #asked == 1, tostring(#asked))
+	check("and asked at the path nginx serves the directory from",
+		asked[1] ~= nil and asked[1]:find('fetch("/assets/crown_royal.jpg"', 1, true) ~= nil,
+		tostring(asked[1]):sub(1, 120))
+
+	-- The other half of the rule: a file that *is* in the bundle never goes near
+	-- the network, which is what keeps the desktop off this path entirely.
+	love.filesystem.getInfo = seen
+	cards.reset()
+	asked = {}
+	cards.asset_image("face", "hero2")
+	check("a picture in the bundle is not fetched", #asked == 0, tostring(#asked))
+
+	love.js = nil
+	declaration.G = was
+	cards.reset()
+end
+
 function M.test_assets_the_shipped_game_uses_one(check)
 	local G = declaration.parse("kingdom.json")
 	check("Coronation names the archmage's tower", G.asset_defs.archmage_tower ~= nil)

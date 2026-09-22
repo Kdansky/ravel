@@ -2480,7 +2480,12 @@ function M.check(G)
 				warn("%s: '%s' isn't a shape the engine can draw", where, s)
 			end
 		elseif s:find("%.") then
-			if not love.filesystem.read("games/assets/" .. s) then
+			-- The browser has a second place to look: it packs games/assets out
+			-- of game.love and fetches each picture from beside the page, so a
+			-- miss here is not a miss there. Nothing is checked in that case
+			-- because nothing can be until the request runs — the same bargain
+			-- a URL asset already makes.
+			if not (love.filesystem.read("games/assets/" .. s) or love.js) then
 				warn("%s: '%s' is not in games/assets", where, s)
 			end
 		else
@@ -2650,7 +2655,7 @@ function M.check(G)
 		elseif def.asset and not tostring(def.asset):find("%.") then
 			warn("%s: nothing is named '%s' in the assets section%s", where, tostring(def.asset),
 				suggest(tostring(def.asset), G.asset_defs or {}))
-		elseif def.asset and not love.filesystem.read("games/assets/" .. tostring(def.asset)) then
+		elseif def.asset and not (love.filesystem.read("games/assets/" .. tostring(def.asset)) or love.js) then
 			warn("%s: its image '%s' is not in games/assets", where, tostring(def.asset))
 		end
 		-- One word, and it is a word about the only player there is. A game with

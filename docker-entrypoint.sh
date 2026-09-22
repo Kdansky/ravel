@@ -29,7 +29,12 @@ pack_game() {
   tmpfile="$tmpdir/game.love"
   (
     cd "$GAME_DIR"
-    zip -q -9 -r "$tmpfile" . -x '*.DS_Store'
+    # games/assets is left out on purpose: it is 20.5 MB of the 21 MB this zip
+    # used to be, and nginx serves the very same directory beside the page, so
+    # the browser fetches a picture the first time a card is drawn instead of
+    # every visitor downloading every game's art to reach the menu. See
+    # BESIDE_PAGE in game/cards.lua and `location /assets/` in nginx.conf.
+    zip -q -9 -r "$tmpfile" . -x '*.DS_Store' 'games/assets/*'
   )
   mv "$tmpfile" "$OUTPUT"
   rmdir "$tmpdir"

@@ -873,6 +873,31 @@ end
 -- one texture.
 local DEFAULT_MAX = 1024
 
+-- Where the browser build looks for art that is not in game.love.
+--
+-- **The art is 97.5% of the bundle.** Packed whole, game.love is 21 MB, of
+-- which 20.5 is games/assets and 14 is one game's card faces — so every visitor
+-- downloaded all of Spellstorm to reach the menu, over a link that is often a
+-- Raspberry Pi on the end of a tunnel. Left out, game.love is 523 KB.
+--
+-- So the browser packer leaves the directory out and nginx serves the same
+-- directory beside the page (`location /assets/`), and a picture is fetched the
+-- first time a card is actually drawn. Nothing in a game file changes: a bare
+-- filename still names the picture and not the place, exactly as it always did,
+-- and where the engine goes looking for it is the engine's business — the same
+-- business as "games/assets" being the folder in the first place.
+--
+-- **This path and nginx.conf have to move together.** They are in one
+-- repository for that reason; there is nowhere else the pair is written down.
+local BESIDE_PAGE = "/assets/"
+
+-- Our own files, so the browser hands them over as they lie. DEFAULT_MAX is a
+-- guard against a *remote* host answering with a 4000px photograph, and 77 of
+-- the pictures in games/assets are over it — re-encoding one we shipped
+-- ourselves costs a canvas draw per card and a little quality for nothing. 2048
+-- clears the largest (1593) and is 16 MB of RGBA against a 256 MB heap.
+local BESIDE_MAX = 2048
+
 -- A picture that cannot be produced draws a generated one, never nothing.
 --
 -- The reasons a picture goes missing are mostly not the author's: a remote host
@@ -939,6 +964,22 @@ local function resolve(src, max)
 		return false, (art.parse(src) == nil and src:find(":"))
 			and ("'" .. src .. "' is not a shape the engine knows")
 			or ("'" .. src .. "' is neither a plain filename nor a shape")
+	end
+	-- Asked before opening it, because the answer decides where to look rather
+	-- than only whether this worked: a miss in the browser is the ordinary case
+	-- and not a mistake, and a failed open per frame while the fetch is in
+	-- flight would be a wasted syscall sixty times a second.
+	local inside = love.filesystem.getInfo
+		and love.filesystem.getInfo("games/assets/" .. src) ~= nil
+	if not inside and love.js and love.js.eval then
+		-- `src` has already been held to a bare filename above, so there is no
+		-- path here to traverse and nothing in it to escape. That check is what
+		-- url_is_safe would have been for, done earlier and more strictly.
+		local path = BESIDE_PAGE .. src
+		local got = fetch_browser(path, url_id(path .. "|" .. BESIDE_MAX), BESIDE_MAX)
+		if got == nil then return nil end
+		if got == false then return false, "'" .. src .. "' is neither in game.love nor beside the page" end
+		return got
 	end
 	local ok, img = pcall(love.graphics.newImage, "games/assets/" .. src)
 	if ok and img then return img end

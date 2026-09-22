@@ -587,12 +587,21 @@ semantics (`luajit` is the reference interpreter; the suite also runs under
 Lua 5.1/5.4+ to keep the code portable, and since `rng.lua` it produces the
 same golden traces there).
 
-There *is* a way to reach JavaScript, and it is not the `love.js.eval` that
-`cards.lua` assumes — that does not exist in the 2dengine runtime, so the
-browser asset path silently does nothing. `player.js` overrides `window.open`
-(so `love.system.openURL("javascript:…")` is eval'd) and `window.prompt`
-(which is what emscripten's stdin calls, so `io.read` returns the result).
-`netlink.lua` documents the two traps: inbound reads are quadratic unless
+**JavaScript is reachable, by one door with two handles.** `player.js` overrides
+`window.open`, so `love.system.openURL("javascript:…")` runs the code and parks
+its result in `window._output`, and it overrides `window.prompt`, which is what
+emscripten's stdin calls — so `io.read` returns what the snippet evaluated to.
+
+`love.js.eval` is that door with the handle already fitted: the 2dengine player
+injects `lua/normalize1.lua`, which is `openURL` followed by `io.read` until the
+stream ends. It is a Lua shim and not part of `love.js`, `player.js` or the
+wasm, so **grepping those three for it finds nothing and proves nothing** — this
+paragraph used to say on that evidence that it did not exist and that the
+browser asset path was dead, which was wrong, and cost a session. `cards.lua`
+uses it and remote card art works in the browser.
+
+`netlink.lua` opens the same door by hand rather than through the shim, because
+it needs one line at a time; it documents the two traps: inbound reads are quadratic unless
 chunked, and a snippet returning `null` closes stdin permanently. Everything a
 page can do is reachable this way — `netlink`'s peer-to-peer transport drives
 `RTCPeerConnection` through the same door. Check
