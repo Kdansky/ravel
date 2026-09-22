@@ -54,6 +54,10 @@ local img_cache = {}
 -- desktop) and share the table safely only because exactly one of them ever
 -- runs — see the branch in M.asset_image.
 local pending   = {}
+-- How far along its list of sources each key has got. Without it a chain whose
+-- first source is a host that refuses us would ask that host again every frame,
+-- for as long as the card is on screen.
+local chain_at  = {}
 
 -- Strict allowlist for URLs that get spliced into a generated JS program
 -- (see fetch_browser below): only the characters RFC 3986 actually permits
@@ -74,6 +78,7 @@ end
 function M.reset()
 	img_cache = {}
 	pending   = {}
+	chain_at  = {}
 end
 
 -- Give a card a stat it does not have yet, from what the game file wrote.
@@ -902,31 +907,11 @@ local function seat_of(e)
 	return seat and declaration.G.seat_index and declaration.G.seat_index[seat] or nil
 end
 
-function M.asset_image(asset, key, e)
-	local named = asset and declaration.G.asset_defs and declaration.G.asset_defs[asset]
-	local max = DEFAULT_MAX
-	if named then
-		local src = named.src
-		-- One name, one picture per seat. A rook is a rook — whose it is decides
-		-- only which sprite is drawn — and that is what lets six cards stand for
-		-- thirty-two pieces. The seat index is part of the cache key, or the
-		-- second player is handed the first one's rook.
-		if type(src) == "table" then
-			local i = seat_of(e) or 1
-			key, src = "asset:" .. asset .. "#" .. i, src[i] or src[1]
-		else
-			key = "asset:" .. asset
-		end
-		asset, max = src, named.max or DEFAULT_MAX
-	end
-	if img_cache[key] ~= nil then return img_cache[key] or nil end
-	if not asset then img_cache[key] = false; return nil end
-	local def_key = key
-	if tostring(asset):match("^https?://") then
-		if not M.url_is_safe(asset) then
-			img_cache[def_key] = placeholder(key, "that URL has characters no URL may contain") or false
-			return img_cache[def_key] or nil
-		end
+-- One source, resolved: an Image, false and what is wrong with it, or nil while
+-- a fetch is still in flight (ask again next frame).
+local function resolve(src, max)
+	if src:match("^https?://") then
+		if not M.url_is_safe(src) then return false, "that URL has characters no URL may contain" end
 		-- A real branch, not `cond and browser(...) or desktop(...)`: both of the
 		-- browser fetch's unfinished answers are falsy — nil while in flight,
 		-- false on failure — so `or` ran the desktop path too, which found the
@@ -936,32 +921,71 @@ function M.asset_image(asset, key, e)
 		-- The size is part of the identity: the same URL asked for at two sizes
 		-- is two different pictures, and one id would hand the second asker the
 		-- first one's answer.
-		local id = url_id(asset .. "|" .. max)
+		local id = url_id(src .. "|" .. max)
 		local img
-		if love.js and love.js.eval then img = fetch_browser(asset, id, max)
-		else img = fetch_desktop(asset, id) end
-		if img == nil then return nil end   -- still fetching
-		if img == false then img = placeholder(key, "the fetch failed") or false end
-		img_cache[def_key] = img
-		return img or nil
+		if love.js and love.js.eval then img = fetch_browser(src, id, max)
+		else img = fetch_desktop(src, id) end
+		if img == nil then return nil end
+		if img == false then return false, "the fetch failed" end
+		return img
 	end
 	-- A local asset is untrusted content too: require a bare filename (no
 	-- path separators or "..") so it can only ever name a file directly in
 	-- games/assets, never traverse elsewhere. Filenames carry an extension and
 	-- shape specs never do, so the two can't be confused.
-	if not tostring(asset):match("^[%w_%-]+%.[%w]+$") then
-		local drawn = art.render(asset)
-		if drawn then img_cache[def_key] = drawn; return drawn end
-		local why = (art.parse(asset) == nil and asset:find(":"))
-			and ("'" .. tostring(asset) .. "' is not a shape the engine knows")
-			or ("'" .. tostring(asset) .. "' is neither a plain filename nor a shape")
-		img_cache[def_key] = placeholder(key, why) or false
-		return img_cache[def_key] or nil
+	if not src:match("^[%w_%-]+%.[%w]+$") then
+		local drawn = art.render(src)
+		if drawn then return drawn end
+		return false, (art.parse(src) == nil and src:find(":"))
+			and ("'" .. src .. "' is not a shape the engine knows")
+			or ("'" .. src .. "' is neither a plain filename nor a shape")
 	end
-	local ok, i = pcall(love.graphics.newImage, "games/assets/" .. asset)
-	if not ok then i = placeholder(key, "'" .. tostring(asset) .. "' is not in games/assets") end
-	img_cache[def_key] = i or false
-	return img_cache[def_key] or nil
+	local ok, img = pcall(love.graphics.newImage, "games/assets/" .. src)
+	if ok and img then return img end
+	return false, "'" .. src .. "' is not in games/assets"
+end
+
+function M.asset_image(asset, key, e)
+	local srcs, max = { asset }, DEFAULT_MAX
+	local named = asset and declaration.G.asset_defs and declaration.G.asset_defs[asset]
+	if named then
+		max = named.max or DEFAULT_MAX
+		if named.per_player then
+			-- One name, one picture per seat. A rook is a rook — whose it is decides
+			-- only which sprite is drawn — and that is what lets six cards stand for
+			-- thirty-two pieces. The seat index is part of the cache key, or the
+			-- second player is handed the first one's rook.
+			local i = seat_of(e) or 1
+			key, srcs = "asset:" .. asset .. "#" .. i, named.per_player[i] or named.per_player[1]
+		else
+			key, srcs = "asset:" .. asset, named.src
+		end
+		if type(srcs) == "string" then srcs = { srcs } end
+	end
+	if img_cache[key] ~= nil then return img_cache[key] or nil end
+	if type(srcs) ~= "table" or srcs[1] == nil then img_cache[key] = false; return nil end
+
+	-- **The first source that can be drawn**, and the rest are what to do when it
+	-- cannot. Two hosts serving one picture is the case that asked for it: a
+	-- desktop LÖVE with no https module and a browser that refuses a response
+	-- without CORS headers can have no URL in common, so the name carries one of
+	-- each and each platform silently takes the one it can reach.
+	local i, why = chain_at[key] or 1, nil
+	while srcs[i] do
+		local img, no = resolve(tostring(srcs[i]), max)
+		if img == nil then chain_at[key] = i; return nil end
+		if img then
+			chain_at[key] = nil
+			img_cache[key] = img
+			return img
+		end
+		why = no
+		if srcs[i + 1] then print(("'%s': %s — trying the next source"):format(tostring(key), why)) end
+		i = i + 1
+	end
+	chain_at[key] = nil
+	img_cache[key] = placeholder(key, why) or false
+	return img_cache[key] or nil
 end
 
 -- Takes the card entity, because a picture can depend on whose card it is.

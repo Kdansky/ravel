@@ -3,8 +3,8 @@
   "players": [{ "card": "player_red" }, { "card": "player_white" }],
   "comment": "English draughts. The board layer already had everything the moves need: the jump takes the piece it flies past because a pattern is also a scope and the anchor follows the piece, so 'down_right' read from the square landed on names the victim. What the game had to invent is the chain — a route back to the same seat while a piece is mid-jump, and a button to say the chain is over. 'aims:jump_left' already answers whether another jump is there, measured from the square just landed on, but an action's amount may not read it, so the piece cannot write the answer down. See ideas/01-boardgames.md.",
   "assets": {
-    "man": { "src": ["circle:crimson:#7a5230", "circle:white:#7a5230"] },
-    "king": { "src": ["star:crimson:#7a5230", "star:white:#7a5230"] }
+    "man": { "per_player": ["circle:crimson:#7a5230", "circle:white:#7a5230"] },
+    "king": { "per_player": ["star:crimson:#7a5230", "star:white:#7a5230"] }
   },
   "styles": {
     "piece": { "hide": ["title", "border", "plate"] },

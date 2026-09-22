@@ -640,9 +640,11 @@ local CASES = {
 	-- One picture per player, and one player per picture: a game with more
 	-- pictures than seats has written some that can never be drawn.
 	{ "more pictures than there are players to draw them", "the rest can never be drawn",
-		function(g) g.raw_assets = { crown = { src = { "a.png", "b.png", "c.png" } } } end },
-	{ "an asset that is neither a source nor a list of them", "or one source per player",
+		function(g) g.raw_assets = { crown = { per_player = { "a.png", "b.png", "c.png" } } } end },
+	{ "an asset that is neither a source nor a list of them", "a list of them to try in order",
 		function(g) g.raw_assets = { crown = { src = 7 } } end },
+	{ "an asset naming both a chain and one per player", "a picture is one or the other",
+		function(g) g.raw_assets = { crown = { src = "a.png", per_player = { "a.png" } } } end },
 	-- An absolute pattern names squares, so a pair is as wrong there as a name
 	-- would be in a direction.
 	{ "an absolute pattern given a pair instead of a square", 'is not a square — write a column letter',

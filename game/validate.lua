@@ -319,7 +319,7 @@ local FAN_DIRS        = { up = true, down = true, left = true, right = true }
 -- The orders activate_zone will walk a zone in. Naming none is the order the
 -- cards are in, which is why this set does not contain a word for it.
 local ORDER_WORDS     = { by_column = true }
-local ASSET_FIELDS    = { src = true, max = true }
+local ASSET_FIELDS    = { src = true, per_player = true, max = true }
 -- A challenge is asked by the resolve_challenge action: one condition, and the
 -- two action lists it chooses between. They only ever work together, which is
 -- why they are one block rather than three fields that can be half-written.
@@ -2467,51 +2467,70 @@ function M.check(G)
 		end
 	end
 
+	-- One source, by the same rules a card's `asset` is spelled out by.
+	local function check_source(where, s)
+		if type(s) ~= "string" then
+			warn("%s: '%s' is not a source", where, tostring(s))
+		elseif s:match("^https?://") then
+			if not url_is_safe(s) then
+				warn("%s: its URL contains characters that aren't valid in a URL — it will be refused at load time", where)
+			end
+		elseif s:find(":") then
+			if not art.parse(s) then
+				warn("%s: '%s' isn't a shape the engine can draw", where, s)
+			end
+		elseif s:find("%.") then
+			if not love.filesystem.read("games/assets/" .. s) then
+				warn("%s: '%s' is not in games/assets", where, s)
+			end
+		else
+			warn("%s: '%s' names no picture — a filename, an http(s) URL or a shape", where, s)
+		end
+	end
+
+	-- A source, or a list meaning "the first of these that can be drawn".
+	local function check_chain(where, src)
+		if type(src) == "string" then return check_source(where, src) end
+		if type(src) ~= "table" or #src == 0 then
+			return warn("%s: should be a source, or a list of them to try in order", where)
+		end
+		for _, s in ipairs(src) do check_source(where, s) end
+	end
+
 	for name, def in pairs(type(G.raw_assets) == "table" and G.raw_assets or {}) do
 		local where = "asset '" .. tostring(name) .. "'"
-		local src = type(def) == "table" and def.src or def
-		if type(def) == "table" then
+		local obj = (type(def) == "table" and def[1] == nil) and def or { src = def }
+		if type(def) == "table" and def[1] == nil then
 			check_fields(where, def, ASSET_FIELDS)
-			if def.src == nil then
+			if def.src == nil and def.per_player == nil then
 				warn('%s: needs a "src" — the filename, URL or shape it draws', where)
+			end
+			if def.src ~= nil and def.per_player ~= nil then
+				warn('%s: names both "src" and "per_player" — a picture is one or the other', where)
 			end
 			if def.max ~= nil and (tonumber(def.max) == nil or tonumber(def.max) < 1 or tonumber(def.max) > 4092) then
 				warn("%s: max is the longest edge in pixels, between 1 and 4092 — %s is not", where, tostring(def.max))
 			end
 		end
-		-- One source, or one per seat. A piece that is the same piece in two
-		-- colours is one name with two pictures, which is what lets a game
-		-- declare six kinds instead of six kinds times however many players.
-		local srcs = src
-		if type(src) == "string" then srcs = { src }
-		elseif type(src) == "table" and #src == 0 then srcs = nil end
-		if type(srcs) ~= "table" then
-			warn("%s: should be a source, an object with one, or one source per player", where)
-		else
-			local seats = #(G.seat_list or {})
-			if seats > 0 and #srcs > seats then
-				warn("%s: has %d pictures for %d player%s — the rest can never be drawn",
-					where, #srcs, seats, seats == 1 and "" or "s")
-			end
-			for _, s in ipairs(srcs) do
-				if type(s) ~= "string" then
-					warn("%s: '%s' is not a source", where, tostring(s))
-				elseif s:match("^https?://") then
-					if not url_is_safe(s) then
-						warn("%s: its URL contains characters that aren't valid in a URL — it will be refused at load time", where)
-					end
-				elseif s:find(":") then
-					if not art.parse(s) then
-						warn("%s: '%s' isn't a shape the engine can draw", where, s)
-					end
-				elseif s:find("%.") then
-					if not love.filesystem.read("games/assets/" .. s) then
-						warn("%s: '%s' is not in games/assets", where, s)
-					end
-				else
-					warn("%s: '%s' names no picture — a filename, an http(s) URL or a shape", where, s)
+		-- One picture per seat. A piece that is the same piece in two colours is
+		-- one name with two pictures, which is what lets a game declare six kinds
+		-- instead of six kinds times however many players. Each seat's entry may
+		-- itself be a list, and then it is that seat's sources in order.
+		if obj.per_player ~= nil then
+			if type(obj.per_player) ~= "table" or #obj.per_player == 0 then
+				warn("%s: per_player is one picture per player, as a list", where)
+			else
+				local seats = #(G.seat_list or {})
+				if seats > 0 and #obj.per_player > seats then
+					warn("%s: has %d pictures for %d player%s — the rest can never be drawn",
+						where, #obj.per_player, seats, seats == 1 and "" or "s")
+				end
+				for i, s in ipairs(obj.per_player) do
+					check_chain(where .. " player " .. i, s)
 				end
 			end
+		elseif obj.src ~= nil then
+			check_chain(where, obj.src)
 		end
 	end
 

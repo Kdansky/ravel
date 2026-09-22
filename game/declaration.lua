@@ -1025,12 +1025,20 @@ function M.parse(filename)
 	-- the common case and an object for it would be ceremony.
 	G.raw_assets = type(parsed.assets) == "table" and parsed.assets or {}
 	for name, def in pairs(G.raw_assets) do
-		local src = type(def) == "table" and def.src or def
-		-- A string, or one per seat: the same named picture drawn differently
-		-- depending on whose card wears it. Kept as given, because which one is
-		-- wanted is not known until a card asks.
-		if type(src) == "string" or (type(src) == "table" and #src > 0) then
-			G.asset_defs[name] = { src = src, max = tonumber(type(def) == "table" and def.max) }
+		-- A bare source, a bare list of them, or an object carrying options. The
+		-- list has no `src` at [1], which is what tells the two tables apart.
+		local obj = (type(def) == "table" and def[1] == nil) and def or { src = def }
+		-- **A list of sources is "the first of these that can be drawn"**, not a
+		-- list of pictures. Normalised to one here so nothing downstream asks
+		-- which of two shapes it was given.
+		local src = type(obj.src) == "string" and { obj.src } or obj.src
+		local per = obj.per_player
+		if type(src) ~= "table" or #src == 0 then src = nil end
+		-- One per seat, kept as given: which entry is wanted is not known until
+		-- a card asks, and an entry may be a list of its own.
+		if type(per) ~= "table" or #per == 0 then per = nil end
+		if src or per then
+			G.asset_defs[name] = { src = src, per_player = per, max = tonumber(obj.max) }
 		end
 	end
 

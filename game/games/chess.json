@@ -2,13 +2,13 @@
   "title": "Chess",
   "players": [{ "card": "player_white" }, { "card": "player_black" }],
   "assets": {
-    "pawn": { "src": ["Chess_plt60.png", "Chess_pdt60.png"] },
-    "rook": { "src": ["Chess_rlt60.png", "Chess_rdt60.png"] },
-    "knight": { "src": ["Chess_nlt60.png", "Chess_ndt60.png"] },
-    "bishop": { "src": ["Chess_blt60.png", "Chess_bdt60.png"] },
-    "queen": { "src": ["Chess_qlt60.png", "Chess_qdt60.png"] },
-    "king": { "src": ["Chess_klt60.png", "Chess_kdt60.png"] },
-    "castle_button": { "src": ["Chess_klt60.png", "Chess_kdt60.png"] }
+    "pawn": { "per_player": ["Chess_plt60.png", "Chess_pdt60.png"] },
+    "rook": { "per_player": ["Chess_rlt60.png", "Chess_rdt60.png"] },
+    "knight": { "per_player": ["Chess_nlt60.png", "Chess_ndt60.png"] },
+    "bishop": { "per_player": ["Chess_blt60.png", "Chess_bdt60.png"] },
+    "queen": { "per_player": ["Chess_qlt60.png", "Chess_qdt60.png"] },
+    "king": { "per_player": ["Chess_klt60.png", "Chess_kdt60.png"] },
+    "castle_button": { "per_player": ["Chess_klt60.png", "Chess_kdt60.png"] }
   },
   "styles": {
     "piece": { "hide": ["title", "border", "plate"] },

@@ -451,7 +451,8 @@
   },
   "assets": {
     "<your picture name>": {
-      "src": "the picture itself: a bare filename in games/assets, an http(s) URL, or a shape spec. Everything a card can spell out inline is legal here. A list gives one picture per player, chosen by whose card it is — which is how one card can be a piece in either colour.",
+      "src": "the picture itself: a bare filename in games/assets, an http(s) URL, or a shape spec. Everything a card can spell out inline is legal here. A list means the first of them that can be drawn, and the rest are what to do when it cannot — which is how one name covers a host the browser can reach and a host the desktop can.",
+      "per_player": "a list, one picture per player, chosen by whose card wears it — which is how one card can be a piece in either colour. An entry may itself be a list, and then it is that player's sources in order. Not written beside \"src\": a picture is one or the other.",
       "max": "number, 1 to 4092: the longest edge in pixels the browser hands over. Bigger pictures are scaled to it. Anything spelled out inline instead of named gets 1024."
     }
   },

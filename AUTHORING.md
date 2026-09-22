@@ -784,7 +784,7 @@ file to check what may appear where.
 | `tags` | Tag behaviour — a tag is a mixin: it can give its cards a home `zone`, a `tooltip`, and an `abilities` list (the same one a card has), which a zone may then hand to its contents with `applies` (see below) |
 | `effects` | Named visual effects on the base vocabulary (see below) |
 | `patterns` | Named direction sets for grid movement (see *Pieces that move*) |
-| `assets` | Named pictures, and the only place a picture carries options (see *Named assets*) |
+| `assets` | Named pictures, and the only place a picture carries a fallback, one picture per player, or options (see *Named assets*) |
 | `cards` | Card definitions — one entry per card *kind* |
 | `zones` | Zone definitions, in declaration order |
 | `phases` | Phase definitions; first entry starts the game |
@@ -1380,24 +1380,54 @@ is one, `max` — the longest edge in pixels, 1 to 4092, which caps how large th
 browser hands the picture over (see the size note below). Anything spelled out
 inline instead gets 1024.
 
-**A `src` may be a list, and then it is one picture per player**, chosen by whose
-card wears it:
+**A `src` may be a list, and then it is the first of them that can be drawn.**
+The rest are what to do when it cannot:
 
 ```json
-"assets": { "rook": { "src": ["Chess_rlt60.png", "Chess_rdt60.png"] } }
+"assets": {
+  "calypso": { "src": [
+    "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0023_calypso_vystari.jpg",
+    "http://codexcards-assets.surge.sh/images/0023_calypso_vystari.jpg",
+    "polygon:5:crimson"
+  ] }
+}
+```
+
+Two hosts serving one picture is what asked for it. **The browser and the
+desktop can have no URL in common**: LÖVE 11 has no `https` module at all, so
+only `http://` reaches a host from the desktop, while a browser refuses a
+cross-origin response that carries no CORS headers and — served over https —
+refuses `http://` outright. A name that carries one of each is drawn on both,
+and neither platform has to be told which one is for it. A shape at the end of
+the list is a deliberate last resort, in place of the one derived from the key.
+
+Each source is tried in order and a source that fails is never asked again, so a
+host that is down costs one request rather than one per frame. A URL still in
+flight is not a failure: the chain waits for it.
+
+**`per_player` is a list, one picture per player**, chosen by whose card wears
+it:
+
+```json
+"assets": { "rook": { "per_player": ["Chess_rlt60.png", "Chess_rdt60.png"] } }
 ```
 
 That is what lets one card be a piece in either colour, and it is why chess
 declares six pieces rather than six times however many players. A card's owner
 is placement state (`setup.place`'s `owner`), so the same template placed for
 white and for black draws differently without knowing anything about either.
-A card with no owner takes the first picture.
+A card with no owner takes the first picture. An entry may itself be a list, and
+then it is that player's sources in order.
+
+`src` and `per_player` answer different questions and are never written
+together: one list means *try these*, the other means *one of these each*.
 
 Three reasons to name one rather than inline it:
 
 - **Options.** A photograph that must stay sharp in the detail view asks for a
   bigger `max`; everything else should not pay for it.
-- **One picture per player**, as above — there is nowhere else to say it.
+- **A fallback, or one picture per player**, as above — there is nowhere else to
+  say either.
 - **Sharing.** The name is the cache key, so twenty cards drawn from one
   picture are one download and one texture. Inline sources are cached per card.
 
@@ -1416,6 +1446,14 @@ send permissive CORS headers will fail there exactly as a plain `<img>` tag
 would. The fetch never blocks the game: on desktop it runs on a worker thread and on the browser it is an async `fetch()`, so an unreachable host costs nothing but a card without art. A URL asset shows blank for a frame or two while it loads (and
 permanently, if the fetch fails) rather than being validated at load time —
 there is nothing to check until the request actually runs.
+
+**The two platforms can reach different hosts, and a single URL may not be one
+either can.** The desktop's `https` module is LÖVE 12's, so under LÖVE 11 an
+`https://` asset fails before it leaves the process and only `http://` gets out;
+the browser is the other way about, refusing a cross-origin response with no
+CORS headers and, when the page itself is served over https, refusing a plain
+`http://` as mixed content. A picture that has to appear in both places is a
+named asset with one URL of each kind in its `src` list — see *Named assets*.
 
 In the browser the picture is decoded by the page before the engine sees it,
 and is handed over untouched if it is a JPEG or PNG no larger than **4092
