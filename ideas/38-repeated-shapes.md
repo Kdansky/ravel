@@ -13,10 +13,14 @@ should have said so. The second kind is a word that is missing.
 
 ## Already sayable
 
-- **Codex's combat macro, written out three times.** `strike_lead`,
-  `strike_patrol` and `strike_army` each carry the same 25 steps, 11 of which
-  are `activate_zone:duel:by_column:<pass>`. One immutable card in a rules zone
-  holds it once.
+- **Codex's combat macro, written out three times** — built. All 33 duel
+  passes sit on `tags.fighter` now, in one place. The lesson it paid for: the
+  three `strike_*` abilities differed in nothing but which zone they aimed at,
+  and reading them side by side was the only way to see it.
+- The rest of this kind is [43](43-what-the-files-already-say-twice.md), which
+  surveyed the same three files again and found a tag that carries 63 identical
+  `play` blocks, a stat `start` worth 46 `card_stats` entries, and 19 `subject`
+  lines that say what a bare subject already says.
 
 ## Missing words, in the order worth building
 
@@ -124,6 +128,12 @@ own sentence and would take the accident out. `buffs` cannot do this: the amount
 
 ### 7. An ability cannot act and then ask
 
+**The gate half of this split is now [42](42-an-if-inside-an-action-list.md)**,
+which counted it: all 22 of Spellstorm's `cast2`/`cast3` abilities carry a
+`needs` and not one is a genuine second step. What stays here is the
+`cast_ask` half — acting and then asking, which is about the offer queue rather
+than about a condition.
+
 29 Spellstorm cards split their resolution into `cast` and `cast_ask`, with the
 answer landing in `chosen`. The resolve phase then walks the zone four times —
 `cast`, `cast2`, `cast3`, `cast_ask` — and the ordering of a card's own
@@ -138,8 +148,9 @@ business and is being paid for by every card in the zone.
 
 ## Smaller, and already noted in the generators
 
-- `move:` takes no count, so "discard two at random" is the line twice
-  (make_spellstorm.py:64).
+- `move:` and `destroy:` both take a count now (`move = "scope zone n? pos?"`),
+  so "discard two at random" is one line — and Spellstorm still writes it twice.
+  See [43](43-what-the-files-already-say-twice.md).
 - A one-tracker toggle like initiative is two writes and cannot be said as one
   (make_spellstorm.py:45).
 - `needs` has no `or`, which is deliberate and on `todo.md`. Worth recording
