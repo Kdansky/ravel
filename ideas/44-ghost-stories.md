@@ -92,6 +92,24 @@ into `COOKBOOK.md`.
    no Yang phase, and the players carry Power tokens to borrow its power. It is
    [09](09-composition.md)'s seat-count module in its natural habitat, and the
    reason this file ships at four seats.
-9. **The village laid out at random.** Nine tiles into nine squares in a
+9. **The four seats sitting round the board.** Today all four seat bands stack
+   in one left-hand column (`_seat_rect` in `tools/make_ghost_stories.py`, one
+   `band(i)` per seat) with the board at `0.21–0.78` and the decks, dice and
+   `arriving` in a right-hand column that stops at `0.82`. Wanted: a seat to a
+   side, each one's figure, tao, spent and held adjacent, so the four make a
+   ring round the village; the action tray in a narrower column on the left;
+   the right column running the full height. **Generator work only, and no new
+   word** — `pos` is already per-seat, and `layout` being shared across the
+   copies does not bite, because the hand branch of `render.laid_out` searches
+   column counts and picks the cells closest to square, so the same `row` zone
+   comes out as a vertical strip in a tall rect and a horizontal one in a wide
+   rect. [Assumption: the left and right seats get the board's own height to
+   play with, so their four zones stack rather than sitting side by side — which
+   is what "a line each" means on a vertical side.] The one thing to check on
+   screen is the label band: a named zone reserves a text height off the top of
+   its rect, which costs a short vertical strip proportionally more than a wide
+   one.
+
+10. **The village laid out at random.** Nine tiles into nine squares in a
    shuffled order; `setup.place` says which card goes where and has no way to
    say "these nine, in any order". Cheap, and it changes how a game opens.

@@ -103,6 +103,38 @@ card, in its own tooltip.
   **Community Service** and **Lawful Search** look at a hand but not at the
   choice of a discard pile instead.
 
+## One hero a side is the beginner's game; three is the real one
+
+The file deals **one spec per seat**. `pick_hero` is a `player_input` ending on
+`picked@mine.player >= 1`, and each of the eighteen `pick_*` cards does the
+whole deal in its own `play`: ten starter cards into `mine.deck`, twelve spec
+cards into `mine.codex` at tech 2, the hero into `mine.command`. The rulebook's
+own game is three specs of one colour, so three heroes, and the eighteen picks
+become six colours [Assumption: this is mono-colour — the box also allows three
+specs mixed across colours, which is a later variant and a different pick].
+
+Three things in the file assume the one:
+
+- **The starter deck is per colour, not per spec.** Zane, Drakk and Jaina share
+  the red ten, so three picks as written would create three copies of it. The
+  ten have to leave the spec card for whatever names the colour.
+- **`hero_wait` is on the player.** A hero dying sets
+  `stat_set:hero_wait@owner_of.self:2` and `main` ticks
+  `stat_damage:hero_wait@mine.player:1`, which every hero's summon reads as
+  `hero_wait@mine.player == 0`. With one hero the player *is* the hero; with
+  three, one death locks the other two out. It moves onto the hero card, and
+  the tick becomes an `each` over `mine.command`.
+- **`ripe` is read off the whole side.**
+  `stat_set:ripe@each.mine.hero:max:level@mine.hero` gives every hero the
+  highest level any of them has. Per-hero is what it meant, and whether an
+  `each` can read the card it is standing on — `level@self` inside the sweep —
+  is the one engine question here. [Assumption: it cannot today; every other
+  `each` in this file writes a constant or a side-wide measure.]
+
+The codex itself needs nothing: it is a `supply` with shelves, and thirty-six
+cards on three specs' worth of shelves is the same zone. Tech'ing two a turn is
+already `teched`.
+
 ## Six ways into the codex, and five of them are one missing word
 
 The codex is a `supply` now, so `show:mine.codex` answered by
