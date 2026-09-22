@@ -1673,6 +1673,34 @@ local function draw_targeting_hint()
 	love.graphics.pop()
 end
 
+-- **A corner that says the art is still on its way.** Only the browser build
+-- has anything to wait for — it fetches each picture the first time a card is
+-- drawn, rather than carrying twenty megabytes of them in game.love — and a
+-- card showing its generated shape for a moment is otherwise indistinguishable
+-- from a card whose picture is missing for good.
+--
+-- It counts what is in flight, not what is left to ask for: a game nobody has
+-- opened a zone of has asked for nothing, and promising a number that has not
+-- been reached yet would be a lie that grows.
+local function draw_loading_note()
+	local n = cards.loading()
+	if n == 0 then return end
+	local _, H = love.graphics.getDimensions()
+	local text = n == 1 and "1 picture still loading" or (n .. " pictures still loading")
+	love.graphics.push("all")
+	love.graphics.setFont(font_small)
+	-- On its own plate, because every corner of a laid-out table is over
+	-- something: unbacked, this landed on a seat panel and was unreadable.
+	local pad = 5 * S
+	local w, h = font_small:getWidth(text) + pad * 2, font_small:getHeight() + pad * 2
+	local x, y = 8 * S, H - h - 8 * S
+	love.graphics.setColor(0.04, 0.05, 0.07, 0.82)
+	love.graphics.rectangle("fill", x, y, w, h, 4 * S, 4 * S)
+	love.graphics.setColor(0.62, 0.68, 0.78, 0.92)
+	love.graphics.print(text, x + pad, y + pad)
+	love.graphics.pop()
+end
+
 local function draw_undo_button()
 	if targeting.active() or not can_undo then return end
 	local W, H = love.graphics.getDimensions()
@@ -1995,6 +2023,7 @@ function M.draw()
 	draw_targeting_hint()
 	draw_undo_button()
 	draw_detail_overlay()
+	draw_loading_note()
 end
 
 -- Sync card.place (used for hit-testing, tooltips and as the animation target)

@@ -670,6 +670,9 @@ function love.update(dt)
 end
 
 function love.draw()
+	-- One picture may cross from the page this frame. Said here because this is
+	-- where a frame begins; cards.lua owns what the budget is for.
+	cards.new_frame()
 	-- The whole frame is drawn against whatever state the run has reached, the
 	-- tooltip and the inspector included: a card the player is reading about
 	-- should say what it said when they pointed at it.

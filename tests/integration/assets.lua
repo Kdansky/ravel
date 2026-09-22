@@ -201,6 +201,47 @@ function M.test_assets_a_missing_local_file_is_fetched_beside_the_page(check)
 	cards.reset()
 end
 
+-- **One picture crosses per frame.** Everything else about the browser fetch is
+-- asynchronous, but the step that hands the bytes back is not: it walks several
+-- hundred kilobytes of base64 through stdin a byte at a time, and a frame that
+-- found several finished at once used to drag them all across before drawing —
+-- which is a stall followed by a screenful appearing in one lump.
+function M.test_assets_one_picture_crosses_the_bridge_per_frame(check)
+	local G, was = fixture('{ "a": "one.jpg", "b": "two.jpg" }', '"a"'), declaration.G
+	declaration.G = G
+	cards.reset()
+	local data_pulls, clock = 0, 0
+	love.timer = { getTime = function() clock = clock + 1; return clock end }
+	love.js = { eval = function(program)
+		program = tostring(program)
+		if program:find("a.status === \"ok\") ? a.data", 1, true) then
+			data_pulls = data_pulls + 1
+			return "not a data url"   -- refused downstream; the count is the point
+		end
+		if program:find("String(a.status)", 1, true) then return "ok" end
+		return "started"
+	end }
+	local seen = love.filesystem.getInfo
+	love.filesystem.getInfo = function() return nil end
+
+	-- One frame, two cards drawn, both answered "ok" by the page.
+	cards.new_frame()
+	cards.asset_image("a", "card_a")
+	cards.asset_image("b", "card_b")
+	check("only one of the two crossed in the frame", data_pulls == 1, tostring(data_pulls))
+	check("the one still waiting is counted as loading", cards.loading() == 1, tostring(cards.loading()))
+
+	cards.new_frame()
+	cards.asset_image("b", "card_b")
+	check("and the other crossed on the next one", data_pulls == 2, tostring(data_pulls))
+	check("with nothing left in flight", cards.loading() == 0, tostring(cards.loading()))
+
+	love.filesystem.getInfo = seen
+	love.js, love.timer = nil, nil
+	declaration.G = was
+	cards.reset()
+end
+
 function M.test_assets_the_shipped_game_uses_one(check)
 	local G = declaration.parse("kingdom.json")
 	check("Coronation names the archmage's tower", G.asset_defs.archmage_tower ~= nil)

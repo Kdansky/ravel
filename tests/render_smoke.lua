@@ -208,6 +208,17 @@ for _, title in ipairs({ "Lost Cities · online", "Café des Étoiles très trè
 end
 cards.edit("play_castle", "text", "Castle Lord")
 
+-- The corner that says pictures are still on their way. Only the browser build
+-- ever has any, so the count is faked here — what is being drawn is the note
+-- itself, including the singular, which is the part a plural-by-default string
+-- gets wrong.
+local real_loading = cards.loading
+for _, n in ipairs({ 7, 1 }) do
+	cards.loading = function() return n end
+	for _ = 1, 2 do frame(0.016) end
+end
+cards.loading = real_loading
+
 -- Tall narrow grids: an expedition column is five cells deep, so each cell is
 -- shorter than the text band a card reserves. Every shipped game gets a draw
 -- here for the same reason — layouts differ far more than draw code does.

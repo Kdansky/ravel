@@ -59,6 +59,31 @@ local pending   = {}
 -- for as long as the card is on screen.
 local chain_at  = {}
 
+-- **One picture crosses the bridge per frame.** Bringing a decoded picture back
+-- from the page means handing several hundred kilobytes of base64 through
+-- emscripten's stdin, which reads it a byte at a time; a frame that found six
+-- finished pictures used to drag all six across before it drew anything, so a
+-- screenful arrived in one lump after a stall instead of filling in. Asking for
+-- one a frame costs nothing when one is waiting and is the whole of the
+-- difference when thirty are.
+local ARRIVALS_PER_FRAME = 1
+local arrivals_left = ARRIVALS_PER_FRAME
+
+-- Called once at the top of the frame. Nothing below the presentation line has
+-- any business here; it is main.lua's, beside the draw it paces.
+function M.new_frame()
+	arrivals_left = ARRIVALS_PER_FRAME
+end
+
+-- How many pictures are on their way, for the corner that says so. Counted
+-- rather than kept, because `pending` is the truth and a tally beside it is one
+-- more thing to get wrong.
+function M.loading()
+	local n = 0
+	for _ in pairs(pending) do n = n + 1 end
+	return n
+end
+
 -- Strict allowlist for URLs that get spliced into a generated JS program
 -- (see fetch_browser below): only the characters RFC 3986 actually permits
 -- unencoded in a URL. This is the real defense, not the escaping further
@@ -812,25 +837,45 @@ local function fetch_browser(url, id, max)
 		pcall(love.js.eval, kickoff)
 	end
 
-	local now = (love.timer and love.timer.getTime and love.timer.getTime()) or 0
-	if now - pending[id].at < 0.2 then return nil end   -- throttle polling
-	pending[id].at = now
+	-- **Two questions, because the answers are different sizes.** "Is it there
+	-- yet" is a word and can be asked of everything in flight every few frames;
+	-- "hand it over" is the whole picture, and only one of those may cross in a
+	-- frame. Asked as one question — which is how this started — the frame that
+	-- polled six finished pictures pulled six of them across before drawing.
+	if not pending[id].ready then
+		local now = (love.timer and love.timer.getTime and love.timer.getTime()) or 0
+		if now - pending[id].at < 0.2 then return nil end   -- throttle polling
+		pending[id].at = now
+		local oks, status = pcall(love.js.eval, string.format([[(function(){
+			var a = (window.__ravelAssets || {})["%s"];
+			return a ? String(a.status) : "";
+		})()]], id))
+		if not oks or type(status) ~= "string" then return nil end
+		if status == "error" then
+			pending[id] = nil
+			local _, why = pcall(love.js.eval, string.format([[(function(){
+				var a = (window.__ravelAssets || {})["%s"];
+				return a ? String(a.message || "") : "";
+			})()]], id))
+			print("asset download failed: " .. url .. " (" .. tostring(why) .. ")")
+			return false
+		end
+		if status ~= "ok" then return nil end
+		pending[id].ready = true
+	end
+	-- Ready, and waiting only on its turn. No throttle from here: a picture that
+	-- has arrived should cross on the next frame that has room for it, not a
+	-- fifth of a second later.
+	if arrivals_left <= 0 then return nil end
+	arrivals_left = arrivals_left - 1
 
-	local poll = string.format([[(function(){
+	local ok, result = pcall(love.js.eval, string.format([[(function(){
 		var a = (window.__ravelAssets || {})["%s"];
-		if (!a) return "";
-		if (a.status === "ok") return a.data;
-		if (a.status === "error") return "ERROR:" + a.message;
-		return "";
-	})()]], id)
-	local ok, result = pcall(love.js.eval, poll)
+		return (a && a.status === "ok") ? a.data : "";
+	})()]], id))
 	if not ok or type(result) ~= "string" or result == "" then return nil end
 
 	pending[id] = nil
-	if result:sub(1, 6) == "ERROR:" then
-		print("asset download failed: " .. url .. " (" .. result:sub(7) .. ")")
-		return false
-	end
 	-- Everything below this line used to fail by returning nil or false without
 	-- a word, so a picture that never appeared looked exactly like a picture
 	-- still on its way. The bytes have crossed by now; say what became of them.
