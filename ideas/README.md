@@ -21,7 +21,7 @@ engine.
 | # | Idea | State |
 |---|---|---|
 | [DONE](DONE.md) | **Everything already built** | stats on cards · seats and hot-seat · the engine's own RNG · procedural art · networked play · stacks and mixins · named and remote assets · the inspector · a label that reads the board |
-| [01](01-boardgames.md) | Any board game as JSON | **the ladder.** Lost Cities, chess and checkers shipped. The jumped square needed no word — a pattern is already a scope, and the anchor follows the piece — and the chain turned out to be a route back to the same seat. Left: the button that ends a chain and the forced capture that goes with it, the red men drawn off-centre, Klondike's run moves, and triggers |
+| [01](01-boardgames.md) | Any board game as JSON | **the ladder.** Lost Cities, chess and checkers shipped. The jumped square needed no word — a pattern is already a scope, and the anchor follows the piece — and the chain turned out to be a route back to the same seat that now ends itself: forced capture is `aims:` read once per card through a computed tag, and the *Done jumping* button is gone. Left: the red men drawn off-centre, Klondike's run moves, and triggers |
 | [02](02-between-two-states.md) | An animation between two states | **shipped whole**: a click's steps are recorded in order and played back a beat at a time, and each beat is a whole state — so numbers, flips, pile counts and a destroyed card all agree with the cards. A move from the network plays its beats too. Left: an exit for a destroyed card, which waits on somewhere for it to go |
 | [03](03-a-move-out-of-a-stock.md) | A move out of a stock | **shipped** — `take` is `move` for a source that counts instead of keeps, and the count on `move` went in ahead of it. 95 pairs in Puzzle Strike became 95 statements, and the ten pairs going the other way went with [28](28-a-zone-by-its-parts.md)'s reclaim. Closed |
 | [04](04-simulation-games.md) | Cultist Simulator, turn-based | **not started**, unblocked, and smaller than written |
@@ -80,7 +80,6 @@ is left rather than what was done.
 | # | Item | Difficulty | Why here |
 |---|---|---|---|
 | 84 | [01](01-boardgames.md) — **the red men sit off-centre in their squares** | tiny, and one look at the screen | reported from play, and every reading cause is ruled out: one `per_player` asset differing only in a colour word, both parsing to the same circle, the same `piece` style hiding title, border and plate, and no label band on the board. What is left is downstream of the spec, and the next step is the running board rather than more grepping |
-| 79 | [01](01-boardgames.md) gap 1 — **an amount that may ask `aims:`** | small, and no word to agree | checkers ships with a *Done jumping* button because a chain cannot end itself, and everything needed to delete it is built: `aims:jump_right` answers 1 after the first jump of a double and 0 after the second, measured from the square just landed on. An **amount** takes a number, a `count:`/`sum:` measure or a compute and refuses `aims:` by name; a compute is bound before the action runs, so it would measure from the square the piece has not left yet. Widening the amount grammar is the whole fix. **Two customers now**: it deletes the button, and the same read as a `needs` on `step` is the forced capture the rulebook wants and the file ships without |
 | 76 | [43](43-what-the-files-already-say-twice.md) — **the three files' own repetition** | small, and no word to agree | free: every item is already sayable, verified behaviour-preserving on Spellstorm, and the edits are to `tools/make_*.py`. First because it shrinks [41](41-a-name-for-a-list-of-actions.md) before anybody sizes it |
 | 77 | [41](41-a-name-for-a-list-of-actions.md) — **a name for a list of actions** | medium, and a word to agree first | 80 cards that are not cards, 31 KB, 214 call sites, and three games that each invented a different spelling. Absorbs [37](37-codex.md)'s sideline and Spellstorm's `r_croh_redraw_1..4`. The decisions are where the list is declared and what `@self` is inside one; the recommendation is no arguments |
 | 78 | [42](42-an-if-inside-an-action-list.md) — **an if inside an action list** | small, and a grammar decision first | 44 Spellstorm abilities are a gate with an ability wrapped round it, and the `resolve` phase hard-codes a pass per clause. Blocked on one thing: a condition may contain a colon, so the wrapper cannot be parsed. Recommendation is that the gate names a `computes` key |
@@ -136,6 +135,14 @@ is the whole of Splendor's pricing; and `min(a, k)` is `a - max(0, a - k)`, the
 same floor used twice. Runeterra's Tough needed less again — the only reason it
 looked impossible was that the arithmetic was being done on the way *out*
 instead of on a number on the way *in*.
+
+**A computed tag is how a question about one card becomes a question about a
+side.** `aims:` is asked of the card asking and takes no scope, so "does this
+piece have a jump" had no side-wide reading — and forced capture is exactly the
+side-wide one. A computed tag's condition is asked once per card, so wearing the
+tag *is* the per-card answer and `tagged:<it>@mine.board` is the aggregate. That
+is the shape wherever a card-local word needs widening, and it is cheaper than
+widening the word.
 
 **A default that was never stated is a rule nobody chose.** `ends_after` counting
 plays was true of every game written first and false of most. `on_turn` firing

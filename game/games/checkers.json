@@ -1,7 +1,7 @@
 {
   "title": "Checkers",
   "players": [{ "card": "player_red" }, { "card": "player_white" }],
-  "comment": "English draughts. The board layer already had everything the moves need: the jump takes the piece it flies past because a pattern is also a scope and the anchor follows the piece, so 'down_right' read from the square landed on names the victim. What the game had to invent is the chain — a route back to the same seat while a piece is mid-jump, and a button to say the chain is over. 'aims:jump_left' already answers whether another jump is there, measured from the square just landed on, but an action's amount may not read it, so the piece cannot write the answer down. See ideas/01-boardgames.md.",
+  "comment": "English draughts. The board layer already had everything the moves need: the jump takes the piece it flies past because a pattern is also a scope and the anchor follows the piece, so 'down_right' read from the square landed on names the victim. What the game had to invent is the chain — a route back to the same seat while a piece is mid-jump. 'aims:<ability>' is how many cards one of this card's own abilities could point at right now, and a computed tag is asked once per card, so 'can_jump' worn by a piece is that piece having a jump and 'tagged:can_jump@mine.board' is a jump being on offer anywhere on my side. That is forced capture; and the same tag under 'chaining' is 'chain_open', which ends the chain the moment the jumps run out, so the game needs no button saying so. See ideas/01-boardgames.md.",
   "assets": {
     "man": { "per_player": ["circle:crimson:#7a5230", "circle:white:#7a5230"] },
     "king": { "per_player": ["star:crimson:#7a5230", "star:white:#7a5230"] }
@@ -19,6 +19,14 @@
     "leap_up_right": { "vectors": [[2, 2]] },
     "leap_down_left": { "vectors": [[-2, -2]] },
     "leap_down_right": { "vectors": [[2, -2]] }
+  },
+  "computed_tags": {
+    "jump_fl": { "needs": ["aims:jump_left >= 1"] },
+    "jump_fr": { "needs": ["aims:jump_right >= 1"] },
+    "jump_bl": { "needs": ["aims:jump_back_left >= 1"] },
+    "jump_br": { "needs": ["aims:jump_back_right >= 1"] },
+    "can_jump": { "any_of": ["jump_fl", "jump_fr", "jump_bl", "jump_br"] },
+    "chain_open": { "needs": ["chaining@self >= 1", "tagged:can_jump@self"] }
   },
   "zones": [
     {
@@ -40,7 +48,6 @@
       "key": "seat_box", "status": "board", "layout": "stack", "copies": "per_seat",
       "pos": [[0.02, 0.65, 0.23, 0.95], [0.02, 0.05, 0.23, 0.35]]
     },
-    { "key": "turn_box", "layout": "stack", "use": "abilities", "pos": [0.04, 0.40, 0.21, 0.58] },
     { "key": "rules", "layout": "stack", "pos": [0.78, 0.40, 0.95, 0.58] }
   ],
   "phases": [
@@ -52,7 +59,7 @@
       "on_enter": ["stat_set:chaining@each.anyone.piece:0"],
       "next": [
         { "when": "count:piece@enemy.board == 0", "then": "red_won" },
-        { "when": "max:chaining@mine.board >= 1", "then": "red_move", "seat": "same" },
+        { "when": "tagged:chain_open@mine.board", "then": "red_move", "seat": "same" },
         { "then": "white_move" }
       ]
     },
@@ -64,7 +71,7 @@
       "on_enter": ["stat_set:chaining@each.anyone.piece:0"],
       "next": [
         { "when": "count:piece@enemy.board == 0", "then": "white_won" },
-        { "when": "max:chaining@mine.board >= 1", "then": "white_move", "seat": "same" },
+        { "when": "tagged:chain_open@mine.board", "then": "white_move", "seat": "same" },
         { "then": "red_move" }
       ]
     },
@@ -88,7 +95,6 @@
         "zone": "board",
         "at": ["b6", "d6", "f6", "h6", "a7", "c7", "e7", "g7", "b8", "d8", "f8", "h8"]
       },
-      { "card": "done_jumping", "zone": "turn_box" },
       { "card": "how_to_play", "zone": "rules" }
     ]
   },
@@ -99,9 +105,9 @@
       "key": "man",
       "text": "Man",
       "asset": "man",
-      "tooltip": "One square diagonally forward, onto an empty square. It jumps an enemy piece to the empty square beyond it, and may go on jumping as long as jumps are there. Reaching the far row crowns it, and the crowning ends the move.",
+      "tooltip": "One square diagonally forward, onto an empty square — but only while nothing of yours can jump, because a jump on offer must be taken. It jumps an enemy piece to the empty square beyond it, and goes on jumping as long as jumps are there. Reaching the far row crowns it, and the crowning ends the move.",
       "tags": ["piece", "man"],
-      "comment": "One ability per jump direction, because the action has to name the square it flew over and only the rule that chose that direction knows which one that is. The gate is the same on all of them: 'chaining' is 1 on a piece in the middle of a chain, so max:chaining over my side is 0 while nobody is mid-jump (everyone matches) and 1 once somebody is (only they match).",
+      "comment": "One ability per jump direction, because the action has to name the square it flew over and only the rule that chose that direction knows which one that is. The gate is the same on all of them: 'chaining' is 1 on a piece in the middle of a chain, so max:chaining over my side is 0 while nobody is mid-jump (everyone matches) and 1 once somebody is (only they match). A step is gated the other way round, on nothing of mine having a jump, which is the rulebook making a capture compulsory.",
       "card_stats": { "rank": 0, "chaining": 0 },
       "challenge": {
         "needs": ["rank@self == 8"],
@@ -112,7 +118,7 @@
         {
           "key": "step",
           "text": "Move",
-          "needs": ["max:chaining@mine.board == 0"],
+          "needs": ["not_tagged:can_jump@mine.board"],
           "moves": [{ "patterns": ["up_left", "up_right"], "fill": "empty" }],
           "action": ["move_to:target", "resolve_challenge", "end_phase"]
         },
@@ -148,14 +154,14 @@
       "key": "king",
       "text": "King",
       "asset": "king",
-      "tooltip": "One square diagonally, forward or back, and it jumps in all four directions. It may go on jumping as long as jumps are there.",
+      "tooltip": "One square diagonally, forward or back, and it jumps in all four directions. A jump on offer must be taken, and it goes on jumping as long as jumps are there.",
       "tags": ["piece", "king"],
       "card_stats": { "rank": 0, "chaining": 0 },
       "abilities": [
         {
           "key": "step",
           "text": "Move",
-          "needs": ["max:chaining@mine.board == 0"],
+          "needs": ["not_tagged:can_jump@mine.board"],
           "moves": [{ "patterns": ["up_left", "up_right", "down_left", "down_right"], "fill": "empty" }],
           "action": ["move_to:target", "end_phase"]
         },
@@ -190,22 +196,11 @@
       ]
     },
     {
-      "key": "done_jumping",
-      "text": "Done jumping",
-      "asset": "square:slate",
-      "tags": ["immutable"],
-      "tooltip": "End your turn when the piece you jumped with has no jump left. The engine cannot ask whether another jump is there, so you say so.",
-      "abilities": [{
-        "needs": ["max:chaining@mine.board >= 1"],
-        "action": ["stat_set:chaining@each.mine.piece:0", "end_phase"]
-      }]
-    },
-    {
       "key": "how_to_play",
       "text": "How to play",
       "tags": ["immutable"],
       "play": { "phases": [] },
-      "tooltip": "Click one of your pieces to light up the squares it can reach, then click a square to move. A piece that can both step and jump asks which.\n\nMen move one square diagonally forward. A jump takes the piece flown over and lands beyond it. A man reaching the far row is crowned a king, which moves and jumps in all four directions.\n\nA jump does not end your turn: jump again with the same piece, or press *Done jumping*.\n\nNot implemented yet:\n- Forced capture. The rules say a jump on offer must be taken, and that a chain must be played out; here both are your choice, which is why *Done jumping* exists.\n- Losing when you cannot move. You lose by running out of pieces only.\n- Draws.\n- Flying kings, which belong to international draughts rather than to this one."
+      "tooltip": "Click one of your pieces to light up the squares it can reach, then click a square to move. A piece that can jump two ways asks which.\n\nMen move one square diagonally forward. A jump takes the piece flown over and lands beyond it. A man reaching the far row is crowned a king, which moves and jumps in all four directions.\n\nA jump on offer must be taken, so while any of your pieces can jump, none of them may step. A jump does not end your turn either: the piece goes on jumping until it has no jump left, and then the turn passes by itself.\n\nNot implemented yet:\n- Losing when you cannot move. You lose by running out of pieces only.\n- Draws.\n- Flying kings, which belong to international draughts rather than to this one."
     },
     {
       "key": "red_wins",

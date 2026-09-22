@@ -1144,6 +1144,31 @@ now. It takes no `@`. It counts candidates — zones, owner, `where`, and every 
 and never the ability's own `needs`. It exists so a rule is not written twice: a new `where`
 clause or a new ward feeds the permission rule the moment it is written.
 
+It is also an amount, so `stat_set:chaining@self:aims:jump_left` writes the answer down. That is
+worth knowing because an amount is read **when its line runs** and a `computes` is bound before
+the action starts: a piece asking how many jumps it has left has to ask after it has landed.
+
+### A capture on offer must be taken.
+
+```json
+"computed_tags": {
+  "jump_fl":  { "needs": ["aims:jump_left >= 1"] },
+  "jump_fr":  { "needs": ["aims:jump_right >= 1"] },
+  "can_jump": { "any_of": ["jump_fl", "jump_fr"] }
+},
+"abilities": [{ "key": "step", "needs": ["not_tagged:can_jump@mine.board"], "moves": [] }]
+```
+
+`aims:` is about the card asking, and *"may anything of mine jump"* is about a whole side — so
+the bridge is a **computed tag**, whose condition is asked once per card. Worn, `can_jump` is
+that piece having a jump; read over a scope, `tagged:can_jump@mine.board` is a jump being on
+offer anywhere. The `any_of` union is how the directions become one word, and a piece that does
+not carry a direction's ability simply never wears its tag.
+
+The same tag under a stat is how a **chain ends itself**: `chain_open` needs
+`["chaining@self >= 1", "tagged:can_jump@self"]`, the phase routes home while anything wears it,
+and the turn passes by itself the moment the jumps run out. `game/games/checkers.json`.
+
 ---
 
 ## Being targeted
@@ -1975,6 +2000,3 @@ in `game/games/codex.json` and are worked through in `ideas/37-codex.md`:
 - **An aim narrowed after it is made** — a flagbearer that redirects what was already pointed
   somewhere else. 3 cards.
 - **"This costs nothing"** — a cost of zero is not the same as no cost. 4 cards.
-- **Whether an ability still has a target, once the action has moved the piece** — `aims:` answers
-  it, and an action's amount may not read one, so a checkers chain cannot end itself and the game
-  carries a *Done jumping* button. `ideas/01-boardgames.md`.

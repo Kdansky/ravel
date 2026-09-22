@@ -137,9 +137,14 @@ local function send_home(card_id, where)
 end
 
 -- Every numeric slot accepts a number or a measuring fn over a subject —
--- "count:<tag>", "card:<key>", "sum:<subject>", "max:<subject>", "min:<subject>" — e.g.
--- "stat_gain:gold:count:economic". One rule everywhere.
-local FN_TERMS = { count = true, card = true, sum = true, max = true, min = true }
+-- "count:<tag>", "card:<key>", "sum:<subject>", "max:<subject>", "min:<subject>",
+-- "aims:<ability>" — e.g. "stat_gain:gold:count:economic". One rule everywhere.
+--
+-- "aims:" is here and not only in a condition because **a compute is bound
+-- before the action runs and an amount is read when the line runs**. Checkers
+-- asks how many jumps a piece still has *after* it has landed, which a compute
+-- would answer from the square it has not left yet.
+local FN_TERMS = { count = true, card = true, sum = true, max = true, min = true, aims = true }
 
 local function term(p, i, default, ctx)
 	if FN_TERMS[p[i] or ""] then

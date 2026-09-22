@@ -35,9 +35,9 @@ generalise.
 
 ## Gap 1 — the squares a move passes over (checkers)
 
-**Shipped.** `game/games/checkers.json`, 223 lines, hand-written, and
+**Shipped.** `game/games/checkers.json`, hand-written, and
 `tests/integration/checkers.lua` plays a game through a double jump, a crowning,
-a king's backward chain and the win.
+a king's backward chain, forced capture and the win.
 
 A jump takes the piece it flies *past*, and it needed no word. Two things built
 for other reasons meet: **a pattern is already a scope**, and **the anchor
@@ -66,44 +66,53 @@ compass point, and "does a king jump backwards" is answered by counting them.
 The word would save perhaps twenty lines of one game and cost `geometry.reach`
 its purity. Still no — and now it has been read rather than imagined.
 
-### The chain is a route, not a targeting word
+### The chain is a route, not a targeting word, and it ends itself
 
 Chained jumps turned out to be the flow question this file said they were, and
 the flow words already existed. A jump leaves `chaining` standing on the piece;
-the phase's own route reads it and comes back to the **same** seat
-(`{ "when": "max:chaining@mine.board >= 1", "then": "red_move", "seat": "same" }`);
+the phase's own route reads it and comes back to the **same** seat;
 `on_enter` clears it when a turn actually begins, which a loop that keeps the
 player does not run. One clause on every piece ability,
 `max:chaining@mine.board == chaining@self`, is what stops anybody *else* moving
 mid-chain: nought matches nought while nobody is jumping, and once somebody is,
 only they match.
 
-### What it cost: a button, and the one word that would delete it
+### Forced capture, and what it taught about `aims:`
 
-**A chain cannot end itself**, so the game carries a *Done jumping* button. The
-question "does this piece still have a jump" is exactly `aims:`, and `aims:`
-already answers it correctly from the square just landed on — probed on a live
-board, `aims:jump_right` is 1 after the first jump of a double and 0 after the
-second. Two things stand between that and no button:
+**Shipped 2026-09-22**, both halves, and it deleted the *Done jumping* button
+the chain used to need.
 
-- an **amount** may be a number, a `count:`/`sum:` measure or a compute, and
-  `aims:` is refused by name — so `stat_set:chaining@self:aims:jump_left` (then
-  `stat_gain:` for the other directions) does not parse, though every part of
-  what it asks for is built;
-- a **compute** is bound before the action runs, so a compute summing the
-  directions would be measured from the square the piece has not left yet.
+`aims:<ability>` already answered *"does this piece still have a jump"*, measured
+from the square just landed on. What it could not do is answer it about a
+**side**: it is asked of the card asking, so a `needs` on `step` only ever knew
+that piece's jumps, and "a capture anywhere must be taken" is about all twelve.
 
-Widening the amount grammar to accept `aims:` is the whole fix, and it is
-measured where every other amount is: when that line runs. It would also make a
-chain *forced* — with the button gone, a piece that still has a jump is the only
-legal move there is — which is half of the forced-capture rule falling out for
-nothing. The other half, declining the first jump, **is a rule after all** — the
-rulebook makes a capture compulsory whenever one is on offer, so a step is
-illegal while any jump is. Its one line is a `needs` on `step` saying no jump
-aims anywhere, which is the same widened amount read the other way round, so
-both halves ship together or neither does.
+**A computed tag is the bridge, because its condition is asked once per card.**
+`can_jump` is an `any_of` union of one tag per direction; worn, it is that piece
+having a jump, and `tagged:can_jump@mine.board` is a jump on offer anywhere. A
+man never carries the two backward abilities, so it never wears their tags and
+one union serves both pieces. `step` is then gated on `not_tagged:` of it, which
+is the whole rule — and it subsumed the old mid-chain guard, since a piece in
+the middle of a chain is by definition one that can jump.
 
-**Milestone met: checkers plays end to end, without forced-capture rules.**
+**The same union under `chaining` is what ended the chain.** `chain_open` needs
+`["chaining@self >= 1", "tagged:can_jump@self"]`, and the phase routes home while
+anything wears it. The button is gone, and with it the tooltip apologising for it.
+
+**`aims:` is an amount now too** — `FN_TERMS` in `actions.lua` and `AMOUNT_FNS`
+in `validate.lua`, two words. It is the honest fix for the thing an amount and a
+`computes` differ on: an amount is read when its line runs, a compute is bound
+before the action starts, so a piece asking about the square it has landed on
+can only ask as an amount. Checkers ends up not needing it, because the computed
+tag answers the same question one level up and reads better; it is kept because
+the refusal it removes was arbitrary and the grammar is now the same everywhere.
+
+**What it cost to test**: the old scripts walked a double jump out of the opening
+in eight moves, and forced capture refuses half of them. The tests set positions
+out directly instead — clear the board, put down four or five men — which is
+shorter *and* says what each rule is about. The spare men on a1 and h8 are there
+so the last capture does not end the game, a route the board is checked against
+before the chain's.
 
 ### Two bugs found playing it
 
@@ -117,10 +126,6 @@ zone has no label band to push one end of the grid down. So the difference is
 downstream of the spec, and **the next step is a look at the running board**,
 not more reading. [Assumption: it is the men rather than the red *side* — the
 note says "men", and red's kings are a different asset.]
-
-**Forced capture**, above: the rule the file says it ships without, now asked
-for. It is the second customer for the widened amount, and the reason that item
-outranks its own button.
 
 ## Gap 3 — ordered stacks and drop legality (Klondike)
 

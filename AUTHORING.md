@@ -1816,6 +1816,33 @@ at all — but the validator refuses the second, since a word that quietly answe
 0 forever is the worse of the two mistakes. Two abilities naming each other
 answer 0 rather than hanging.
 
+**It is an amount as well as a condition.** `stat_set:chaining@self:aims:jump_left`
+writes the answer down, and it matters that it is an amount and not a `computes`:
+an amount is read when its line runs, a compute is bound before the action
+starts. A checkers piece asking how many jumps it still has has to ask from the
+square it has landed on, not the one it has not left.
+
+**And it reaches a whole side through a computed tag.** `aims:` is about the card
+asking, so *"may anything of mine jump"* has no direct spelling — but a computed
+tag's condition is asked once per card, so the tag is the bridge:
+
+```json
+"computed_tags": {
+  "jump_fl":  { "needs": ["aims:jump_left >= 1"] },
+  "jump_fr":  { "needs": ["aims:jump_right >= 1"] },
+  "can_jump": { "any_of": ["jump_fl", "jump_fr"] }
+}
+```
+
+Worn, `can_jump` is that piece having a jump; read over a scope,
+`tagged:can_jump@mine.board` is a jump on offer anywhere on my side, which is the
+whole of draughts' forced capture. The `any_of` union is how the directions
+become one word, and a piece that does not carry a direction's ability never
+wears its tag. Put the same union under a stat — `chain_open` needs
+`["chaining@self >= 1", "tagged:can_jump@self"]` — and a chain of jumps ends
+itself: the phase routes home while anything wears it, and the turn passes the
+moment the jumps run out.
+
 ### `lowest:` and `highest:` — a pool in order
 
 Every other quantifier says *which* of a pool is meant. These two say what

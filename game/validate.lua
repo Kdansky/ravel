@@ -1272,7 +1272,7 @@ function M.check(G)
 	-- What may stand in a value slot. The measuring words take a subject in the
 	-- slot after them and are checked there, so here they only have to be let
 	-- through.
-	local AMOUNT_FNS = { count = true, card = true, sum = true, max = true, min = true }
+	local AMOUNT_FNS = { count = true, card = true, sum = true, max = true, min = true, aims = true }
 
 	-- What a computed tag's rule reads: the tags it can reach and the stats it
 	-- compares. Both cycle walks below follow it — one for a tag that combines
@@ -1617,7 +1617,9 @@ function M.check(G)
 			if (w == "sum" or w == "max" or w == "min") and p[j + 1] then
 				subject_ok(where .. ": " .. tostring(op), p[j + 1])
 			end
-			if (w == "count" or w == "card") and p[j + 1] and not (w == "card" and j == 1) then
+			-- "aims" goes with them: what follows it is an ability key, and
+			-- subject_ok is where the two ways of getting one wrong are named.
+			if (w == "count" or w == "card" or w == "aims") and p[j + 1] and not (w == "card" and j == 1) then
 				subject_ok(where .. ": " .. tostring(op), w .. ":" .. p[j + 1])
 			end
 		end
