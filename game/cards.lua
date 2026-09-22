@@ -69,10 +69,59 @@ local chain_at  = {}
 local ARRIVALS_PER_FRAME = 1
 local arrivals_left = ARRIVALS_PER_FRAME
 
+-- **Installed once, so a poll is a call and not a program.** Every eval is a
+-- fresh parse — the browser cannot cache a string it has not seen before — and
+-- the version before this one sent a hundred and fifty characters of new
+-- JavaScript per waiting picture, five times a second. netlink.lua hit the same
+-- wall first and says more about it; this is the same answer.
+--
+-- `__rvaReady` reports every finished job at once, so the whole of the polling
+-- is one call a frame however many pictures are in the air.
+local HELPERS = [[(function(){
+	var W = window;
+	W.__rvaReady = function(){
+		try {
+			var A = W.__ravelAssets || {}, out = [];
+			for (var k in A) {
+				var s = A[k].status;
+				if (s === "ok" || s === "error") out.push(s.charAt(0) + k);
+			}
+			return out.join(",");
+		} catch (e) { return "" }
+	};
+	W.__rvaTake = function(id){
+		try {
+			var a = (W.__ravelAssets || {})[id];
+			if (!a) return "";
+			if (a.status === "error") return "!" + String(a.message || "");
+			return a.status === "ok" ? a.data : "";
+		} catch (e) { return "!" + String(e && e.message || e) }
+	};
+	return "ok";
+})()]]
+
+local helpers_up = false
+-- Which jobs the page says are finished, refreshed once a frame. A job not in
+-- here is still on its way; nothing else is asked about it.
+local ready_now = {}
+
 -- Called once at the top of the frame. Nothing below the presentation line has
 -- any business here; it is main.lua's, beside the draw it paces.
 function M.new_frame()
 	arrivals_left = ARRIVALS_PER_FRAME
+	if not (love.js and love.js.eval) then return end
+	if not next(pending) then ready_now = {}; return end
+	if not helpers_up then
+		local ok, answer = pcall(love.js.eval, HELPERS)
+		helpers_up = ok and answer == "ok"
+		if not helpers_up then return end
+	end
+	local ok, list = pcall(love.js.eval, "__rvaReady()")
+	if not ok or type(list) ~= "string" then return end
+	ready_now = {}
+	for item in list:gmatch("[^,]+") do
+		ready_now[item:sub(2)] = item:sub(1, 1) == "o" and "ok" or "error"
+	end
 end
 
 -- How many pictures are on their way, for the corner that says so. Counted
@@ -784,7 +833,7 @@ end
 -- this trick fails.
 local function fetch_browser(url, id, max)
 	if not pending[id] then
-		pending[id] = { at = 0 }
+		pending[id] = true   -- the page holds the state; this only says "asked for"
 		local kickoff = string.format([[(function(){
 			window.__ravelAssets = window.__ravelAssets || {};
 			var id = "%s";
@@ -837,49 +886,37 @@ local function fetch_browser(url, id, max)
 		pcall(love.js.eval, kickoff)
 	end
 
-	-- **Two questions, because the answers are different sizes.** "Is it there
-	-- yet" is a word and can be asked of everything in flight every few frames;
-	-- "hand it over" is the whole picture, and only one of those may cross in a
-	-- frame. Asked as one question — which is how this started — the frame that
-	-- polled six finished pictures pulled six of them across before drawing.
-	if not pending[id].ready then
-		local now = (love.timer and love.timer.getTime and love.timer.getTime()) or 0
-		if now - pending[id].at < 0.2 then return nil end   -- throttle polling
-		pending[id].at = now
-		local oks, status = pcall(love.js.eval, string.format([[(function(){
-			var a = (window.__ravelAssets || {})["%s"];
-			return a ? String(a.status) : "";
-		})()]], id))
-		if not oks or type(status) ~= "string" then return nil end
-		if status == "error" then
-			pending[id] = nil
-			local _, why = pcall(love.js.eval, string.format([[(function(){
-				var a = (window.__ravelAssets || {})["%s"];
-				return a ? String(a.message || "") : "";
-			})()]], id))
-			print("asset download failed: " .. url .. " (" .. tostring(why) .. ")")
-			return false
-		end
-		if status ~= "ok" then return nil end
-		pending[id].ready = true
-	end
-	-- Ready, and waiting only on its turn. No throttle from here: a picture that
-	-- has arrived should cross on the next frame that has room for it, not a
-	-- fifth of a second later.
+	-- **Nothing is asked about a job that is not finished.** The frame's one
+	-- sweep said which are, so a picture still on its way costs nothing at all
+	-- here — no eval, no string, no parse.
+	local state = ready_now[id]
+	if not state then return nil end
+	-- Ready, and waiting only on its turn: one picture may cross per frame, and
+	-- a picture that has arrived should cross on the next frame with room for
+	-- it. Asking for the bytes is the expensive half and this is the whole of
+	-- what paces it.
 	if arrivals_left <= 0 then return nil end
 	arrivals_left = arrivals_left - 1
 
-	local ok, result = pcall(love.js.eval, string.format([[(function(){
-		var a = (window.__ravelAssets || {})["%s"];
-		return (a && a.status === "ok") ? a.data : "";
-	})()]], id))
+	local began = (love.timer and love.timer.getTime and love.timer.getTime()) or 0
+	local ok, result = pcall(love.js.eval, ("__rvaTake(%q)"):format(id))
 	if not ok or type(result) ~= "string" or result == "" then return nil end
 
 	pending[id] = nil
+	ready_now[id] = nil
+	if state == "error" or result:sub(1, 1) == "!" then
+		print("asset download failed: " .. url .. " (" .. result:sub(2) .. ")")
+		return false
+	end
 	-- Everything below this line used to fail by returning nil or false without
 	-- a word, so a picture that never appeared looked exactly like a picture
 	-- still on its way. The bytes have crossed by now; say what became of them.
-	print(("asset arrived: %s (%d bytes across the bridge)"):format(url, #result))
+	-- **Timed, because this is the step that can hurt and nobody could see it.**
+	-- The bytes come back through emscripten's stdin, which hands them over one
+	-- at a time: a 300 KB picture is 400 KB of base64 and so four hundred
+	-- thousand calls from JavaScript into wasm, for one card. The numbers go to
+	-- the console so the cost is a measurement rather than an argument.
+	local crossed = (love.timer and love.timer.getTime and love.timer.getTime()) or began
 	local b64 = result:match("^data:[^,]*,(.*)$")
 	if not b64 then
 		print("asset unusable: not a data URL, starts " .. string.format("%q", result:sub(1, 40)))
@@ -899,6 +936,12 @@ local function fetch_browser(url, id, max)
 		print(("asset unusable: %d bytes decoded, %s"):format(#bytes, tostring(why)))
 		return false
 	end
+	local done = (love.timer and love.timer.getTime and love.timer.getTime()) or crossed
+	-- Floored, not left to the format: Lua 5.3 and up refuse "%d" on a number
+	-- with a fraction, and the suite runs there as well as under LuaJIT.
+	print(("asset arrived: %s — %d KB across the bridge in %d ms, decoded in %d ms")
+		:format(url, math.floor(#result / 1024), math.floor((crossed - began) * 1000),
+			math.floor((done - crossed) * 1000)))
 	return img
 end
 

@@ -202,42 +202,57 @@ function M.test_assets_a_missing_local_file_is_fetched_beside_the_page(check)
 end
 
 -- **One picture crosses per frame.** Everything else about the browser fetch is
--- asynchronous, but the step that hands the bytes back is not: it walks several
--- hundred kilobytes of base64 through stdin a byte at a time, and a frame that
--- found several finished at once used to drag them all across before drawing —
--- which is a stall followed by a screenful appearing in one lump.
+-- asynchronous, but the step that hands the bytes back is not: they come through
+-- emscripten's stdin a byte at a time, so a frame that found several finished at
+-- once used to drag them all across before drawing — a stall, then a screenful
+-- appearing in one lump.
 function M.test_assets_one_picture_crosses_the_bridge_per_frame(check)
 	local G, was = fixture('{ "a": "one.jpg", "b": "two.jpg" }', '"a"'), declaration.G
 	declaration.G = G
 	cards.reset()
-	local data_pulls, clock = 0, 0
-	love.timer = { getTime = function() clock = clock + 1; return clock end }
+	local ids, takes, sweeps = {}, 0, 0
 	love.js = { eval = function(program)
 		program = tostring(program)
-		if program:find("a.status === \"ok\") ? a.data", 1, true) then
-			data_pulls = data_pulls + 1
-			return "not a data url"   -- refused downstream; the count is the point
+		local want = program:match('^__rvaTake%("([%x]+)"%)$')
+		if want then takes = takes + 1; return "not a data url" end   -- refused below; the count is the point
+		if program == "__rvaReady()" then
+			sweeps = sweeps + 1
+			local out = {}
+			for _, id in ipairs(ids) do out[#out + 1] = "o" .. id end
+			return table.concat(out, ",")
 		end
-		if program:find("String(a.status)", 1, true) then return "ok" end
+		if program:find("__rvaReady = function", 1, true) then return "ok" end
+		local id = program:match('var id = "([%x]+)"')
+		if id then ids[#ids + 1] = id end
 		return "started"
 	end }
 	local seen = love.filesystem.getInfo
 	love.filesystem.getInfo = function() return nil end
 
-	-- One frame, two cards drawn, both answered "ok" by the page.
+	-- Frame one asks for both; nothing is finished yet, so nothing crosses.
 	cards.new_frame()
 	cards.asset_image("a", "card_a")
 	cards.asset_image("b", "card_b")
-	check("only one of the two crossed in the frame", data_pulls == 1, tostring(data_pulls))
+	check("both were asked for", #ids == 2, tostring(#ids))
+	check("and neither crossed before the page said it was ready", takes == 0, tostring(takes))
+
+	-- Frame two: the sweep reports both finished, and exactly one may cross.
+	cards.new_frame()
+	cards.asset_image("a", "card_a")
+	cards.asset_image("b", "card_b")
+	check("only one of the two crossed in the frame", takes == 1, tostring(takes))
 	check("the one still waiting is counted as loading", cards.loading() == 1, tostring(cards.loading()))
 
 	cards.new_frame()
 	cards.asset_image("b", "card_b")
-	check("and the other crossed on the next one", data_pulls == 2, tostring(data_pulls))
+	check("and the other crossed on the next one", takes == 2, tostring(takes))
 	check("with nothing left in flight", cards.loading() == 0, tostring(cards.loading()))
 
+	-- The whole of the polling, however many are in the air.
+	check("one sweep per frame and no other question", sweeps == 2, tostring(sweeps))
+
 	love.filesystem.getInfo = seen
-	love.js, love.timer = nil, nil
+	love.js = nil
 	declaration.G = was
 	cards.reset()
 end
