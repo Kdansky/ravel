@@ -112,3 +112,16 @@ them outside this project needs their own.
 |---|---|---|---|
 | ss_*.jpg (101 files) | [Spellstorm](https://keithburgun.net) print-and-play card faces | Christina Zhong, for Keith Burgun | © Keith Burgun — used by written permission |
 | ss_rainoftoads.jpg | Spellstorm, "Rain of Toads" | Peter Siecienski | © Keith Burgun — used by written permission |
+
+## Art that is not here
+
+**Codex draws its 329 card faces over the network and holds none of them.**
+`game/games/codex.json` names two URLs per card, both pointing at
+codexcarddb.com's own image host — `codexcards-assets.surge.sh` directly, and
+the Cloudinary resizer that site fetches through, which is the one that answers
+with CORS headers and so is the one the browser build can use. The list is in
+`ideas/codex/card_art.md`.
+
+Codex is © Sirlin Games and the art is theirs. Nothing of it is copied into this
+repository, and a player who is offline or whose host is down sees the generated
+shape the card would have had anyway. Take the URLs out and the game still plays.

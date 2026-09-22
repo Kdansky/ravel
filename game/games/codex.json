@@ -3268,6 +3268,1982 @@
       }
     ]
   },
+  "assets": {
+    "abomination": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0036_abomination.jpg",
+        "http://codexcards-assets.surge.sh/images/0036_abomination.jpg"
+      ]
+    },
+    "aged_sensei": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0003_aged_sensei.jpg",
+        "http://codexcards-assets.surge.sh/images/0003_aged_sensei.jpg"
+      ]
+    },
+    "air_hammer": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0031_air_hammer.jpg",
+        "http://codexcards-assets.surge.sh/images/0031_air_hammer.jpg"
+      ]
+    },
+    "appel_stomp": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0036_appel_stomp.jpg",
+        "http://codexcards-assets.surge.sh/images/0036_appel_stomp.jpg"
+      ]
+    },
+    "ardras_boulder": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0027_ardras_boulder.jpg",
+        "http://codexcards-assets.surge.sh/images/0027_ardras_boulder.jpg"
+      ]
+    },
+    "argagarg": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0005_growth_hero.jpg",
+        "http://codexcards-assets.surge.sh/images/0005_growth_hero.jpg"
+      ]
+    },
+    "argonaut": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0024_argonaut.jpg",
+        "http://codexcards-assets.surge.sh/images/0024_argonaut.jpg"
+      ]
+    },
+    "arrest": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0008_arrest.jpg",
+        "http://codexcards-assets.surge.sh/images/0008_arrest.jpg"
+      ]
+    },
+    "arresting_constable": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0036_arresting_constable.jpg",
+        "http://codexcards-assets.surge.sh/images/0036_arresting_constable.jpg"
+      ]
+    },
+    "artisan_mantis": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0038_artisan_mantis.jpg",
+        "http://codexcards-assets.surge.sh/images/0038_artisan_mantis.jpg"
+      ]
+    },
+    "assimilate": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0020_assimilate.jpg",
+        "http://codexcards-assets.surge.sh/images/0020_assimilate.jpg"
+      ]
+    },
+    "backstabber": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0029_backstabber.jpg",
+        "http://codexcards-assets.surge.sh/images/0029_backstabber.jpg"
+      ]
+    },
+    "bamstamper_lizzo": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0039_bamstamper_lizzo.jpg",
+        "http://codexcards-assets.surge.sh/images/0039_bamstamper_lizzo.jpg"
+      ]
+    },
+    "banefire_golem": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0030_banefire_golem.jpg",
+        "http://codexcards-assets.surge.sh/images/0030_banefire_golem.jpg"
+      ]
+    },
+    "barkcoat_bear": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0035_barkcoat_bear.jpg",
+        "http://codexcards-assets.surge.sh/images/0035_barkcoat_bear.jpg"
+      ]
+    },
+    "battle_suits": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0006_battle_suits.jpg",
+        "http://codexcards-assets.surge.sh/images/0006_battle_suits.jpg"
+      ]
+    },
+    "behind_the_ferns": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0015_behind_the_ferns.jpg",
+        "http://codexcards-assets.surge.sh/images/0015_behind_the_ferns.jpg"
+      ]
+    },
+    "bigby": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0006_law_hero.jpg",
+        "http://codexcards-assets.surge.sh/images/0006_law_hero.jpg"
+      ]
+    },
+    "birds_nest": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0018_birds_nest.jpg",
+        "http://codexcards-assets.surge.sh/images/0018_birds_nest.jpg"
+      ]
+    },
+    "blackhand_dozer": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0029_blackhand_dozer.jpg",
+        "http://codexcards-assets.surge.sh/images/0029_blackhand_dozer.jpg"
+      ]
+    },
+    "blackhand_resurrector": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0038_blackhand_resurrector.jpg",
+        "http://codexcards-assets.surge.sh/images/0038_blackhand_resurrector.jpg"
+      ]
+    },
+    "blademaster": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0032_blademaster.jpg",
+        "http://codexcards-assets.surge.sh/images/0032_blademaster.jpg"
+      ]
+    },
+    "bloodburn": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0007_bloodburn.jpg",
+        "http://codexcards-assets.surge.sh/images/0007_bloodburn.jpg"
+      ]
+    },
+    "bloodlust": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0017_bloodlust.jpg",
+        "http://codexcards-assets.surge.sh/images/0017_bloodlust.jpg"
+      ]
+    },
+    "bloodrage_ogre": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0005_bloodrage_ogre.jpg",
+        "http://codexcards-assets.surge.sh/images/0005_bloodrage_ogre.jpg"
+      ]
+    },
+    "bloom": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0011_bloom.jpg",
+        "http://codexcards-assets.surge.sh/images/0011_bloom.jpg"
+      ]
+    },
+    "blooming_ancient": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0040_blooming_ancient.jpg",
+        "http://codexcards-assets.surge.sh/images/0040_blooming_ancient.jpg"
+      ]
+    },
+    "blooming_elm": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0041_blooming_elm.jpg",
+        "http://codexcards-assets.surge.sh/images/0041_blooming_elm.jpg"
+      ]
+    },
+    "bluecoat_musketeer": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0002_bluecoat_musketeer.jpg",
+        "http://codexcards-assets.surge.sh/images/0002_bluecoat_musketeer.jpg"
+      ]
+    },
+    "bombaster": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0003_bombaster.jpg",
+        "http://codexcards-assets.surge.sh/images/0003_bombaster.jpg"
+      ]
+    },
+    "bone_collector": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0025_bone_collector.jpg",
+        "http://codexcards-assets.surge.sh/images/0025_bone_collector.jpg"
+      ]
+    },
+    "boot_camp": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0014_boot_camp.jpg",
+        "http://codexcards-assets.surge.sh/images/0014_boot_camp.jpg"
+      ]
+    },
+    "brave_knight": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0025_brave_knight.jpg",
+        "http://codexcards-assets.surge.sh/images/0025_brave_knight.jpg"
+      ]
+    },
+    "brick_thief": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0006_brick_thief.jpg",
+        "http://codexcards-assets.surge.sh/images/0006_brick_thief.jpg"
+      ]
+    },
+    "building_inspector": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0000_building_inspector.jpg",
+        "http://codexcards-assets.surge.sh/images/0000_building_inspector.jpg"
+      ]
+    },
+    "burning_volley": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0022_burning_volley.jpg",
+        "http://codexcards-assets.surge.sh/images/0022_burning_volley.jpg"
+      ]
+    },
+    "calamandra": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0004_feral_hero.jpg",
+        "http://codexcards-assets.surge.sh/images/0004_feral_hero.jpg"
+      ]
+    },
+    "calypso_vystari": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0023_calypso_vystari.jpg",
+        "http://codexcards-assets.surge.sh/images/0023_calypso_vystari.jpg"
+      ]
+    },
+    "captured_bugblatter": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0035_captured_bugblatter.jpg",
+        "http://codexcards-assets.surge.sh/images/0035_captured_bugblatter.jpg"
+      ]
+    },
+    "careless_musketeer": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0004_careless_musketeer.jpg",
+        "http://codexcards-assets.surge.sh/images/0004_careless_musketeer.jpg"
+      ]
+    },
+    "carrion_curse": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0016_carrion_curse.jpg",
+        "http://codexcards-assets.surge.sh/images/0016_carrion_curse.jpg"
+      ]
+    },
+    "censorship_council": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0037_censorship_council.jpg",
+        "http://codexcards-assets.surge.sh/images/0037_censorship_council.jpg"
+      ]
+    },
+    "centaur": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0025_centaur.jpg",
+        "http://codexcards-assets.surge.sh/images/0025_centaur.jpg"
+      ]
+    },
+    "chameleon": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0028_chameleon.jpg",
+        "http://codexcards-assets.surge.sh/images/0028_chameleon.jpg"
+      ]
+    },
+    "chameleon_lizzo": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0030_chameleon_lizzo.jpg",
+        "http://codexcards-assets.surge.sh/images/0030_chameleon_lizzo.jpg"
+      ]
+    },
+    "chaos_mirror": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0011_chaos_mirror.jpg",
+        "http://codexcards-assets.surge.sh/images/0011_chaos_mirror.jpg"
+      ]
+    },
+    "charge": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0009_charge.jpg",
+        "http://codexcards-assets.surge.sh/images/0009_charge.jpg"
+      ]
+    },
+    "chronofixer": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0033_chronofixer.jpg",
+        "http://codexcards-assets.surge.sh/images/0033_chronofixer.jpg"
+      ]
+    },
+    "cinderblast_dragon": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0046_cinderblast_dragon.jpg",
+        "http://codexcards-assets.surge.sh/images/0046_cinderblast_dragon.jpg"
+      ]
+    },
+    "circle_of_life": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0012_circle_of_life.jpg",
+        "http://codexcards-assets.surge.sh/images/0012_circle_of_life.jpg"
+      ]
+    },
+    "cloud_sprite": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0030_cloud_sprite.jpg",
+        "http://codexcards-assets.surge.sh/images/0030_cloud_sprite.jpg"
+      ]
+    },
+    "colossus": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0040_colossus.jpg",
+        "http://codexcards-assets.surge.sh/images/0040_colossus.jpg"
+      ]
+    },
+    "community_service": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0012_community_service.jpg",
+        "http://codexcards-assets.surge.sh/images/0012_community_service.jpg"
+      ]
+    },
+    "corpse_catapult": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0040_corpse_catapult.jpg",
+        "http://codexcards-assets.surge.sh/images/0040_corpse_catapult.jpg"
+      ]
+    },
+    "crash_bomber": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0025_crash_bomber.jpg",
+        "http://codexcards-assets.surge.sh/images/0025_crash_bomber.jpg"
+      ]
+    },
+    "crashbarrow": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0036_crashbarrow.jpg",
+        "http://codexcards-assets.surge.sh/images/0036_crashbarrow.jpg"
+      ]
+    },
+    "crypt_crawler": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0026_crypt_crawler.jpg",
+        "http://codexcards-assets.surge.sh/images/0026_crypt_crawler.jpg"
+      ]
+    },
+    "cursed_crow": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0035_cursed_crow.jpg",
+        "http://codexcards-assets.surge.sh/images/0035_cursed_crow.jpg"
+      ]
+    },
+    "cursed_ghoul": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0034_cursed_ghoul.jpg",
+        "http://codexcards-assets.surge.sh/images/0034_cursed_ghoul.jpg"
+      ]
+    },
+    "dark_pact": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0011_dark_pact.jpg",
+        "http://codexcards-assets.surge.sh/images/0011_dark_pact.jpg"
+      ]
+    },
+    "death_and_decay": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0017_death_and_decay.jpg",
+        "http://codexcards-assets.surge.sh/images/0017_death_and_decay.jpg"
+      ]
+    },
+    "death_rites": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0021_death_rites.jpg",
+        "http://codexcards-assets.surge.sh/images/0021_death_rites.jpg"
+      ]
+    },
+    "debilitator_alpha": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0030_debilitator_alpha.jpg",
+        "http://codexcards-assets.surge.sh/images/0030_debilitator_alpha.jpg"
+      ]
+    },
+    "desperation": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0015_desperation.jpg",
+        "http://codexcards-assets.surge.sh/images/0015_desperation.jpg"
+      ]
+    },
+    "deteriorate": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0007_deteriorate.jpg",
+        "http://codexcards-assets.surge.sh/images/0007_deteriorate.jpg"
+      ]
+    },
+    "detonate": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0012_detonate.jpg",
+        "http://codexcards-assets.surge.sh/images/0012_detonate.jpg"
+      ]
+    },
+    "dinosize": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0019_dinosize.jpg",
+        "http://codexcards-assets.surge.sh/images/0019_dinosize.jpg"
+      ]
+    },
+    "discord": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0034_discord.jpg",
+        "http://codexcards-assets.surge.sh/images/0034_discord.jpg"
+      ]
+    },
+    "disguised_monkey": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0029_disguised_monkey.jpg",
+        "http://codexcards-assets.surge.sh/images/0029_disguised_monkey.jpg"
+      ]
+    },
+    "doom_grasp": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0020_doom_grasp.jpg",
+        "http://codexcards-assets.surge.sh/images/0020_doom_grasp.jpg"
+      ]
+    },
+    "dothram_horselord": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0030_dothram_horselord.jpg",
+        "http://codexcards-assets.surge.sh/images/0030_dothram_horselord.jpg"
+      ]
+    },
+    "double_time": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0021_double_time.jpg",
+        "http://codexcards-assets.surge.sh/images/0021_double_time.jpg"
+      ]
+    },
+    "doubleshot_archer": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0040_doubleshot_archer.jpg",
+        "http://codexcards-assets.surge.sh/images/0040_doubleshot_archer.jpg"
+      ]
+    },
+    "doubling_barbarbarian": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0038_doubling_barbarbarian.jpg",
+        "http://codexcards-assets.surge.sh/images/0038_doubling_barbarbarian.jpg"
+      ]
+    },
+    "drakk": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0001_blood_hero.jpg",
+        "http://codexcards-assets.surge.sh/images/0001_blood_hero.jpg"
+      ]
+    },
+    "dreamscape": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0020_dreamscape.jpg",
+        "http://codexcards-assets.surge.sh/images/0020_dreamscape.jpg"
+      ]
+    },
+    "drill_sergeant": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0028_drill_sergeant.jpg",
+        "http://codexcards-assets.surge.sh/images/0028_drill_sergeant.jpg"
+      ]
+    },
+    "earthquake": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0021_earthquake.jpg",
+        "http://codexcards-assets.surge.sh/images/0021_earthquake.jpg"
+      ]
+    },
+    "ebbflow_archon": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0043_ebbflow_archon.jpg",
+        "http://codexcards-assets.surge.sh/images/0043_ebbflow_archon.jpg"
+      ]
+    },
+    "eggship": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0018_eggship.jpg",
+        "http://codexcards-assets.surge.sh/images/0018_eggship.jpg"
+      ]
+    },
+    "elite_training": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0015_elite_training.jpg",
+        "http://codexcards-assets.surge.sh/images/0015_elite_training.jpg"
+      ]
+    },
+    "ember_sparks": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0020_ember_sparks.jpg",
+        "http://codexcards-assets.surge.sh/images/0020_ember_sparks.jpg"
+      ]
+    },
+    "entangling_vines": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0019_entangling_vines.jpg",
+        "http://codexcards-assets.surge.sh/images/0019_entangling_vines.jpg"
+      ]
+    },
+    "eyes_of_the_chancellor": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0042_eyes_of_the_chancellor.jpg",
+        "http://codexcards-assets.surge.sh/images/0042_eyes_of_the_chancellor.jpg"
+      ]
+    },
+    "fading_argonaut": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0003_fading_argonaut.jpg",
+        "http://codexcards-assets.surge.sh/images/0003_fading_argonaut.jpg"
+      ]
+    },
+    "fairie_dragon": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0029_fairie_dragon.jpg",
+        "http://codexcards-assets.surge.sh/images/0029_fairie_dragon.jpg"
+      ]
+    },
+    "feral_strike": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0017_feral_strike.jpg",
+        "http://codexcards-assets.surge.sh/images/0017_feral_strike.jpg"
+      ]
+    },
+    "ferocity": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0014_ferocity.jpg",
+        "http://codexcards-assets.surge.sh/images/0014_ferocity.jpg"
+      ]
+    },
+    "final_showdown": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0013_final_showdown.jpg",
+        "http://codexcards-assets.surge.sh/images/0013_final_showdown.jpg"
+      ]
+    },
+    "final_smash": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0024_final_smash.jpg",
+        "http://codexcards-assets.surge.sh/images/0024_final_smash.jpg"
+      ]
+    },
+    "fire_dart": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0019_fire_dart.jpg",
+        "http://codexcards-assets.surge.sh/images/0019_fire_dart.jpg"
+      ]
+    },
+    "firebat": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0028_firebat.jpg",
+        "http://codexcards-assets.surge.sh/images/0028_firebat.jpg"
+      ]
+    },
+    "firehouse": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0042_firehouse.jpg",
+        "http://codexcards-assets.surge.sh/images/0042_firehouse.jpg"
+      ]
+    },
+    "flagstone_garrison": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0032_flagstone_garrison.jpg",
+        "http://codexcards-assets.surge.sh/images/0032_flagstone_garrison.jpg"
+      ]
+    },
+    "flagstone_spy": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0029_flagstone_spy.jpg",
+        "http://codexcards-assets.surge.sh/images/0029_flagstone_spy.jpg"
+      ]
+    },
+    "flame_arrow": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0021_flame_arrow.jpg",
+        "http://codexcards-assets.surge.sh/images/0021_flame_arrow.jpg"
+      ]
+    },
+    "flying_fox": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0033_flying_fox.jpg",
+        "http://codexcards-assets.surge.sh/images/0033_flying_fox.jpg"
+      ]
+    },
+    "focus_master": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0029_focus_master.jpg",
+        "http://codexcards-assets.surge.sh/images/0029_focus_master.jpg"
+      ]
+    },
+    "forests_favor": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0009_forests_favor.jpg",
+        "http://codexcards-assets.surge.sh/images/0009_forests_favor.jpg"
+      ]
+    },
+    "forgotten_fighter": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0009_forgotten_fighter.jpg",
+        "http://codexcards-assets.surge.sh/images/0009_forgotten_fighter.jpg"
+      ]
+    },
+    "fox_primus": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0005_fox_primus.jpg",
+        "http://codexcards-assets.surge.sh/images/0005_fox_primus.jpg"
+      ]
+    },
+    "fox_viper": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0002_fox_viper.jpg",
+        "http://codexcards-assets.surge.sh/images/0002_fox_viper.jpg"
+      ]
+    },
+    "foxs_den_school": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0037_foxs_den_school.jpg",
+        "http://codexcards-assets.surge.sh/images/0037_foxs_den_school.jpg"
+      ]
+    },
+    "foxs_den_students": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0017_foxs_den_students.jpg",
+        "http://codexcards-assets.surge.sh/images/0017_foxs_den_students.jpg"
+      ]
+    },
+    "free_speech": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0018_free_speech.jpg",
+        "http://codexcards-assets.surge.sh/images/0018_free_speech.jpg"
+      ]
+    },
+    "fruit_ninja": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0009_fruit_ninja.jpg",
+        "http://codexcards-assets.surge.sh/images/0009_fruit_ninja.jpg"
+      ]
+    },
+    "fuzz_cuddles": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0025_fuzz_cuddles.jpg",
+        "http://codexcards-assets.surge.sh/images/0025_fuzz_cuddles.jpg"
+      ]
+    },
+    "galina_glimmer": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0026_galina_glimmer.jpg",
+        "http://codexcards-assets.surge.sh/images/0026_galina_glimmer.jpg"
+      ]
+    },
+    "gargoyle": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0022_gargoyle.jpg",
+        "http://codexcards-assets.surge.sh/images/0022_gargoyle.jpg"
+      ]
+    },
+    "garth_torken": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0011_necromancy_hero.jpg",
+        "http://codexcards-assets.surge.sh/images/0011_necromancy_hero.jpg"
+      ]
+    },
+    "garus_rook": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0017_strength_hero.jpg",
+        "http://codexcards-assets.surge.sh/images/0017_strength_hero.jpg"
+      ]
+    },
+    "gemscout_owl": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0022_gemscout_owl.jpg",
+        "http://codexcards-assets.surge.sh/images/0022_gemscout_owl.jpg"
+      ]
+    },
+    "generals_hammer": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0016_generals_hammer.jpg",
+        "http://codexcards-assets.surge.sh/images/0016_generals_hammer.jpg"
+      ]
+    },
+    "giant_panda": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0027_giant_panda.jpg",
+        "http://codexcards-assets.surge.sh/images/0027_giant_panda.jpg"
+      ]
+    },
+    "gigadon": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0037_gigadon.jpg",
+        "http://codexcards-assets.surge.sh/images/0037_gigadon.jpg"
+      ]
+    },
+    "gilded_glaxx": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0027_gilded_glaxx.jpg",
+        "http://codexcards-assets.surge.sh/images/0027_gilded_glaxx.jpg"
+      ]
+    },
+    "glorious_ninja": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0034_glorious_ninja.jpg",
+        "http://codexcards-assets.surge.sh/images/0034_glorious_ninja.jpg"
+      ]
+    },
+    "gorgon": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0033_gorgon.jpg",
+        "http://codexcards-assets.surge.sh/images/0033_gorgon.jpg"
+      ]
+    },
+    "granfalloon_flagbearer": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0008_granfalloon_flagbearer.jpg",
+        "http://codexcards-assets.surge.sh/images/0008_granfalloon_flagbearer.jpg"
+      ]
+    },
+    "grappling_hook": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0008_grappling_hook.jpg",
+        "http://codexcards-assets.surge.sh/images/0008_grappling_hook.jpg"
+      ]
+    },
+    "grave_stormborne": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0015_discipline_hero.jpg",
+        "http://codexcards-assets.surge.sh/images/0015_discipline_hero.jpg"
+      ]
+    },
+    "graveyard": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0005_graveyard.jpg",
+        "http://codexcards-assets.surge.sh/images/0005_graveyard.jpg"
+      ]
+    },
+    "grounded_guide": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0027_grounded_guide.jpg",
+        "http://codexcards-assets.surge.sh/images/0027_grounded_guide.jpg"
+      ]
+    },
+    "guardian_of_the_gates": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0033_guardian_of_the_gates.jpg",
+        "http://codexcards-assets.surge.sh/images/0033_guardian_of_the_gates.jpg"
+      ]
+    },
+    "guargum": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0045_guargum.jpg",
+        "http://codexcards-assets.surge.sh/images/0045_guargum.jpg"
+      ]
+    },
+    "gunpoint_taxman": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0024_gunpoint_taxman.jpg",
+        "http://codexcards-assets.surge.sh/images/0024_gunpoint_taxman.jpg"
+      ]
+    },
+    "hallucination": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0019_hallucination.jpg",
+        "http://codexcards-assets.surge.sh/images/0019_hallucination.jpg"
+      ]
+    },
+    "hardened_mox": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0005_hardened_mox.jpg",
+        "http://codexcards-assets.surge.sh/images/0005_hardened_mox.jpg"
+      ]
+    },
+    "harmony": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0033_harmony.jpg",
+        "http://codexcards-assets.surge.sh/images/0033_harmony.jpg"
+      ]
+    },
+    "harvest_reaper": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0019_harvest_reaper.jpg",
+        "http://codexcards-assets.surge.sh/images/0019_harvest_reaper.jpg"
+      ]
+    },
+    "helpful_turtle": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0007_helpful_turtle.jpg",
+        "http://codexcards-assets.surge.sh/images/0007_helpful_turtle.jpg"
+      ]
+    },
+    "heros_monument": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0043_heros_monument.jpg",
+        "http://codexcards-assets.surge.sh/images/0043_heros_monument.jpg"
+      ]
+    },
+    "hidden_ninja": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0014_hidden_ninja.jpg",
+        "http://codexcards-assets.surge.sh/images/0014_hidden_ninja.jpg"
+      ]
+    },
+    "hired_stomper": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0015_hired_stomper.jpg",
+        "http://codexcards-assets.surge.sh/images/0015_hired_stomper.jpg"
+      ]
+    },
+    "hive": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0042_hive.jpg",
+        "http://codexcards-assets.surge.sh/images/0042_hive.jpg"
+      ]
+    },
+    "hooded_executioner": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0024_hooded_executioner.jpg",
+        "http://codexcards-assets.surge.sh/images/0024_hooded_executioner.jpg"
+      ]
+    },
+    "hotter_fire": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0043_hotter_fire.jpg",
+        "http://codexcards-assets.surge.sh/images/0043_hotter_fire.jpg"
+      ]
+    },
+    "huntress": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0024_huntress.jpg",
+        "http://codexcards-assets.surge.sh/images/0024_huntress.jpg"
+      ]
+    },
+    "hyperion": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0034_hyperion.jpg",
+        "http://codexcards-assets.surge.sh/images/0034_hyperion.jpg"
+      ]
+    },
+    "immortal": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0036_immortal.jpg",
+        "http://codexcards-assets.surge.sh/images/0036_immortal.jpg"
+      ]
+    },
+    "injunction": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0011_injunction.jpg",
+        "http://codexcards-assets.surge.sh/images/0011_injunction.jpg"
+      ]
+    },
+    "insurance_agent": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0034_insurance_agent.jpg",
+        "http://codexcards-assets.surge.sh/images/0034_insurance_agent.jpg"
+      ]
+    },
+    "intimidate": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0023_intimidate.jpg",
+        "http://codexcards-assets.surge.sh/images/0023_intimidate.jpg"
+      ]
+    },
+    "inverse_power_ninja": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0024_inverse_power_ninja.jpg",
+        "http://codexcards-assets.surge.sh/images/0024_inverse_power_ninja.jpg"
+      ]
+    },
+    "iron_man": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0013_iron_man.jpg",
+        "http://codexcards-assets.surge.sh/images/0013_iron_man.jpg"
+      ]
+    },
+    "ironbark_treant": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0004_ironbark_treant.jpg",
+        "http://codexcards-assets.surge.sh/images/0004_ironbark_treant.jpg"
+      ]
+    },
+    "jade_fox_dens_headmistress": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0044_jade_fox.jpg",
+        "http://codexcards-assets.surge.sh/images/0044_jade_fox.jpg"
+      ]
+    },
+    "jail": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0006_jail.jpg",
+        "http://codexcards-assets.surge.sh/images/0006_jail.jpg"
+      ]
+    },
+    "jaina": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0002_fire_hero.jpg",
+        "http://codexcards-assets.surge.sh/images/0002_fire_hero.jpg"
+      ]
+    },
+    "jandra_the_negator": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0004_jandra.jpg",
+        "http://codexcards-assets.surge.sh/images/0004_jandra.jpg"
+      ]
+    },
+    "jefferson_degrey_ghostly_diplomat": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0041_jefferson_degrey.jpg",
+        "http://codexcards-assets.surge.sh/images/0041_jefferson_degrey.jpg"
+      ]
+    },
+    "judgment_day": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0013_judgment_day.jpg",
+        "http://codexcards-assets.surge.sh/images/0013_judgment_day.jpg"
+      ]
+    },
+    "jurisdiction": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0010_jurisdiction.jpg",
+        "http://codexcards-assets.surge.sh/images/0010_jurisdiction.jpg"
+      ]
+    },
+    "justice_juggernaut": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0035_justice_juggernaut.jpg",
+        "http://codexcards-assets.surge.sh/images/0035_justice_juggernaut.jpg"
+      ]
+    },
+    "kidnapping": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0016_kidnapping.jpg",
+        "http://codexcards-assets.surge.sh/images/0016_kidnapping.jpg"
+      ]
+    },
+    "land_octopus": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0037_land_octopus.jpg",
+        "http://codexcards-assets.surge.sh/images/0037_land_octopus.jpg"
+      ]
+    },
+    "lawbringer_gryphon": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0043_lawbringer_gryphon.jpg",
+        "http://codexcards-assets.surge.sh/images/0043_lawbringer_gryphon.jpg"
+      ]
+    },
+    "lawful_search": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0007_lawful_search.jpg",
+        "http://codexcards-assets.surge.sh/images/0007_lawful_search.jpg"
+      ]
+    },
+    "leaping_lizard": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0031_leaping_lizard.jpg",
+        "http://codexcards-assets.surge.sh/images/0031_leaping_lizard.jpg"
+      ]
+    },
+    "liberty_gryphon": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0045_liberty_gryphon.jpg",
+        "http://codexcards-assets.surge.sh/images/0045_liberty_gryphon.jpg"
+      ]
+    },
+    "lichs_bargain": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0019_lichs_bargain.jpg",
+        "http://codexcards-assets.surge.sh/images/0019_lichs_bargain.jpg"
+      ]
+    },
+    "lobber": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0027_lobber.jpg",
+        "http://codexcards-assets.surge.sh/images/0027_lobber.jpg"
+      ]
+    },
+    "lord_of_shadows": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0045_lord_of_shadows.jpg",
+        "http://codexcards-assets.surge.sh/images/0045_lord_of_shadows.jpg"
+      ]
+    },
+    "macciatus": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0038_macciatus.jpg",
+        "http://codexcards-assets.surge.sh/images/0038_macciatus.jpg"
+      ]
+    },
+    "mad_man": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0002_mad_man.jpg",
+        "http://codexcards-assets.surge.sh/images/0002_mad_man.jpg"
+      ]
+    },
+    "maestro": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0028_maestro.jpg",
+        "http://codexcards-assets.surge.sh/images/0028_maestro.jpg"
+      ]
+    },
+    "makeshift_rambaster": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0006_makeshift_rambaster.jpg",
+        "http://codexcards-assets.surge.sh/images/0006_makeshift_rambaster.jpg"
+      ]
+    },
+    "manufactured_truth": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0009_manufactured_truth.jpg",
+        "http://codexcards-assets.surge.sh/images/0009_manufactured_truth.jpg"
+      ]
+    },
+    "marauder": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0031_marauder.jpg",
+        "http://codexcards-assets.surge.sh/images/0031_marauder.jpg"
+      ]
+    },
+    "martial_mastery": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0010_martial_mastery.jpg",
+        "http://codexcards-assets.surge.sh/images/0010_martial_mastery.jpg"
+      ]
+    },
+    "masked_raccoon": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0036_masked_raccoon.jpg",
+        "http://codexcards-assets.surge.sh/images/0036_masked_raccoon.jpg"
+      ]
+    },
+    "max_geiger": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0013_present_hero.jpg",
+        "http://codexcards-assets.surge.sh/images/0013_present_hero.jpg"
+      ]
+    },
+    "maximum_anarchy": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0014_maximum_anarchy.jpg",
+        "http://codexcards-assets.surge.sh/images/0014_maximum_anarchy.jpg"
+      ]
+    },
+    "merfolk_prospector": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0000_merfolk_prospector.jpg",
+        "http://codexcards-assets.surge.sh/images/0000_merfolk_prospector.jpg"
+      ]
+    },
+    "metamorphosis": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0013_metamorphosis.jpg",
+        "http://codexcards-assets.surge.sh/images/0013_metamorphosis.jpg"
+      ]
+    },
+    "midori": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0003_balance_hero.jpg",
+        "http://codexcards-assets.surge.sh/images/0003_balance_hero.jpg"
+      ]
+    },
+    "might_of_leaf_and_claw": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0042_might_of_leaf_and_claw.jpg",
+        "http://codexcards-assets.surge.sh/images/0042_might_of_leaf_and_claw.jpg"
+      ]
+    },
+    "mind_control": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0021_mind_control.jpg",
+        "http://codexcards-assets.surge.sh/images/0021_mind_control.jpg"
+      ]
+    },
+    "mindparry_monk": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0031_mind_parry_monk.jpg",
+        "http://codexcards-assets.surge.sh/images/0031_mind_parry_monk.jpg"
+      ]
+    },
+    "molting_firebird": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0041_molting_firebird.jpg",
+        "http://codexcards-assets.surge.sh/images/0041_molting_firebird.jpg"
+      ]
+    },
+    "moments_peace": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0010_moments_peace.jpg",
+        "http://codexcards-assets.surge.sh/images/0010_moments_peace.jpg"
+      ]
+    },
+    "morningstar_flagbearer": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0004_morningstar_flagbearer.jpg",
+        "http://codexcards-assets.surge.sh/images/0004_morningstar_flagbearer.jpg"
+      ]
+    },
+    "morningstar_pass": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0042_morningstar_pass.jpg",
+        "http://codexcards-assets.surge.sh/images/0042_morningstar_pass.jpg"
+      ]
+    },
+    "moss_ancient": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0044_moss_ancient.jpg",
+        "http://codexcards-assets.surge.sh/images/0044_moss_ancient.jpg"
+      ]
+    },
+    "murkwood_allies": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0016_murkwood_allies.jpg",
+        "http://codexcards-assets.surge.sh/images/0016_murkwood_allies.jpg"
+      ]
+    },
+    "mythmaking": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0026_mythmaking.jpg",
+        "http://codexcards-assets.surge.sh/images/0026_mythmaking.jpg"
+      ]
+    },
+    "nature_reclaims": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0011_nature_reclaims.jpg",
+        "http://codexcards-assets.surge.sh/images/0011_nature_reclaims.jpg"
+      ]
+    },
+    "nautical_dog": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0001_nautical_dog.jpg",
+        "http://codexcards-assets.surge.sh/images/0001_nautical_dog.jpg"
+      ]
+    },
+    "nebula": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0045_nebula.jpg",
+        "http://codexcards-assets.surge.sh/images/0045_nebula.jpg"
+      ]
+    },
+    "necromancer": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0042_necromancer.jpg",
+        "http://codexcards-assets.surge.sh/images/0042_necromancer.jpg"
+      ]
+    },
+    "neo_plexus": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0000_neo_plexus.jpg",
+        "http://codexcards-assets.surge.sh/images/0000_neo_plexus.jpg"
+      ]
+    },
+    "nether_drain": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0018_nether_drain.jpg",
+        "http://codexcards-assets.surge.sh/images/0018_nether_drain.jpg"
+      ]
+    },
+    "nimble_fencer": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0025_nimble_fencer.jpg",
+        "http://codexcards-assets.surge.sh/images/0025_nimble_fencer.jpg"
+      ]
+    },
+    "now": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0015_now.jpg",
+        "http://codexcards-assets.surge.sh/images/0015_now.jpg"
+      ]
+    },
+    "nullcraft": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0002_nullcraft.jpg",
+        "http://codexcards-assets.surge.sh/images/0002_nullcraft.jpg"
+      ]
+    },
+    "oathkeeper_of_kor_mountain": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0045_oathkeeper_of_kor_mountain.jpg",
+        "http://codexcards-assets.surge.sh/images/0045_oathkeeper_of_kor_mountain.jpg"
+      ]
+    },
+    "octavian": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0044_octavian.jpg",
+        "http://codexcards-assets.surge.sh/images/0044_octavian.jpg"
+      ]
+    },
+    "ogre_recruiter": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0038_ogre_recruiter.jpg",
+        "http://codexcards-assets.surge.sh/images/0038_ogre_recruiter.jpg"
+      ]
+    },
+    "older_brother": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0005_older_brother.jpg",
+        "http://codexcards-assets.surge.sh/images/0005_older_brother.jpg"
+      ]
+    },
+    "omegacron": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0038_omegacron.jpg",
+        "http://codexcards-assets.surge.sh/images/0038_omegacron.jpg"
+      ]
+    },
+    "onimaru": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0007_peace_hero.jpg",
+        "http://codexcards-assets.surge.sh/images/0007_peace_hero.jpg"
+      ]
+    },
+    "origin_story": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0012_origin_story.jpg",
+        "http://codexcards-assets.surge.sh/images/0012_origin_story.jpg"
+      ]
+    },
+    "orpal_gloor": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0010_disease_hero.jpg",
+        "http://codexcards-assets.surge.sh/images/0010_disease_hero.jpg"
+      ]
+    },
+    "overeager_cadet": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0024_overeager_cadet.jpg",
+        "http://codexcards-assets.surge.sh/images/0024_overeager_cadet.jpg"
+      ]
+    },
+    "oversized_rhinoceros": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0039_oversized_rhinoceros.jpg",
+        "http://codexcards-assets.surge.sh/images/0039_oversized_rhinoceros.jpg"
+      ]
+    },
+    "patriot_gryphon": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0044_patriot_gryphon.jpg",
+        "http://codexcards-assets.surge.sh/images/0044_patriot_gryphon.jpg"
+      ]
+    },
+    "pestering_haunt": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0000_pestering_haunt.jpg",
+        "http://codexcards-assets.surge.sh/images/0000_pestering_haunt.jpg"
+      ]
+    },
+    "pillage": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0010_pillage.jpg",
+        "http://codexcards-assets.surge.sh/images/0010_pillage.jpg"
+      ]
+    },
+    "pirate_gunship": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0044_pirate_gunship.jpg",
+        "http://codexcards-assets.surge.sh/images/0044_pirate_gunship.jpg"
+      ]
+    },
+    "pirategang_commander": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0045_pirate_gang_commander.jpg",
+        "http://codexcards-assets.surge.sh/images/0045_pirate_gang_commander.jpg"
+      ]
+    },
+    "plague_lab": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0037_plague_lab.jpg",
+        "http://codexcards-assets.surge.sh/images/0037_plague_lab.jpg"
+      ]
+    },
+    "plague_lord": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0044_plague_lord.jpg",
+        "http://codexcards-assets.surge.sh/images/0044_plague_lord.jpg"
+      ]
+    },
+    "plague_spitter": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0027_plague_spitter.jpg",
+        "http://codexcards-assets.surge.sh/images/0027_plague_spitter.jpg"
+      ]
+    },
+    "plasmodium": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0001_plasmodium.jpg",
+        "http://codexcards-assets.surge.sh/images/0001_plasmodium.jpg"
+      ]
+    },
+    "playful_panda": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0003_playful_panda.jpg",
+        "http://codexcards-assets.surge.sh/images/0003_playful_panda.jpg"
+      ]
+    },
+    "poisonblade_rogue": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0002_poisonblade_rogue.jpg",
+        "http://codexcards-assets.surge.sh/images/0002_poisonblade_rogue.jpg"
+      ]
+    },
+    "polymorph_squirrel": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0018_polymorph_squirrel.jpg",
+        "http://codexcards-assets.surge.sh/images/0018_polymorph_squirrel.jpg"
+      ]
+    },
+    "porcupine": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0035_porcupine.jpg",
+        "http://codexcards-assets.surge.sh/images/0035_porcupine.jpg"
+      ]
+    },
+    "porkhand_magistrate": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0004_porkhand_magistrate.jpg",
+        "http://codexcards-assets.surge.sh/images/0004_porkhand_magistrate.jpg"
+      ]
+    },
+    "potent_basilisk": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0032_potent_basilisk.jpg",
+        "http://codexcards-assets.surge.sh/images/0032_potent_basilisk.jpg"
+      ]
+    },
+    "predator_tiger": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0034_predator_tiger.jpg",
+        "http://codexcards-assets.surge.sh/images/0034_predator_tiger.jpg"
+      ]
+    },
+    "promise_of_payment": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0018_promise_of_payment.jpg",
+        "http://codexcards-assets.surge.sh/images/0018_promise_of_payment.jpg"
+      ]
+    },
+    "prynn_pasternaak": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0012_past_hero.jpg",
+        "http://codexcards-assets.surge.sh/images/0012_past_hero.jpg"
+      ]
+    },
+    "rambasa_twin": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0022_rambasa_twin.jpg",
+        "http://codexcards-assets.surge.sh/images/0022_rambasa_twin.jpg"
+      ]
+    },
+    "rampaging_elephant": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0036_rampaging_elephant.jpg",
+        "http://codexcards-assets.surge.sh/images/0036_rampaging_elephant.jpg"
+      ]
+    },
+    "rampant_growth": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0008_rampant_growth.jpg",
+        "http://codexcards-assets.surge.sh/images/0008_rampant_growth.jpg"
+      ]
+    },
+    "ready_or_not": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0016_ready_or_not.jpg",
+        "http://codexcards-assets.surge.sh/images/0016_ready_or_not.jpg"
+      ]
+    },
+    "reaver": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0039_reaver.jpg",
+        "http://codexcards-assets.surge.sh/images/0039_reaver.jpg"
+      ]
+    },
+    "regularsized_rhinoceros": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0016_regular_sized_rhinoceros.jpg",
+        "http://codexcards-assets.surge.sh/images/0016_regular_sized_rhinoceros.jpg"
+      ]
+    },
+    "rememberer": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0030_rememberer.jpg",
+        "http://codexcards-assets.surge.sh/images/0030_rememberer.jpg"
+      ]
+    },
+    "reputable_newsman": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0005_reputable_newsman.jpg",
+        "http://codexcards-assets.surge.sh/images/0005_reputable_newsman.jpg"
+      ]
+    },
+    "research__development": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0017_research__development.jpg",
+        "http://codexcards-assets.surge.sh/images/0017_research__development.jpg"
+      ]
+    },
+    "reteller_of_truths": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0039_reteller_of_truths.jpg",
+        "http://codexcards-assets.surge.sh/images/0039_reteller_of_truths.jpg"
+      ]
+    },
+    "reversal": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0012_reversal.jpg",
+        "http://codexcards-assets.surge.sh/images/0012_reversal.jpg"
+      ]
+    },
+    "revolver_ocelot": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0014_revolver_ocelot.jpg",
+        "http://codexcards-assets.surge.sh/images/0014_revolver_ocelot.jpg"
+      ]
+    },
+    "rewind": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0013_rewind.jpg",
+        "http://codexcards-assets.surge.sh/images/0013_rewind.jpg"
+      ]
+    },
+    "rich_earth": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0007_rich_earth.jpg",
+        "http://codexcards-assets.surge.sh/images/0007_rich_earth.jpg"
+      ]
+    },
+    "rickety_mine": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0026_rickety_mine.jpg",
+        "http://codexcards-assets.surge.sh/images/0026_rickety_mine.jpg"
+      ]
+    },
+    "river_montoya": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0021_finesse_hero.jpg",
+        "http://codexcards-assets.surge.sh/images/0021_finesse_hero.jpg"
+      ]
+    },
+    "sacrifice_the_weak": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0009_sacrifice_the_weak.jpg",
+        "http://codexcards-assets.surge.sh/images/0009_sacrifice_the_weak.jpg"
+      ]
+    },
+    "safe_attacking": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0006_safe_attacking.jpg",
+        "http://codexcards-assets.surge.sh/images/0006_safe_attacking.jpg"
+      ]
+    },
+    "sanatorium": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0033_sanatorium.jpg",
+        "http://codexcards-assets.surge.sh/images/0033_sanatorium.jpg"
+      ]
+    },
+    "savior_monk": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0001_savior_monk.jpg",
+        "http://codexcards-assets.surge.sh/images/0001_savior_monk.jpg"
+      ]
+    },
+    "scorch": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0008_scorch.jpg",
+        "http://codexcards-assets.surge.sh/images/0008_scorch.jpg"
+      ]
+    },
+    "scribe": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0023_scribe.jpg",
+        "http://codexcards-assets.surge.sh/images/0023_scribe.jpg"
+      ]
+    },
+    "second_chances": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0031_second_chances.jpg",
+        "http://codexcards-assets.surge.sh/images/0031_second_chances.jpg"
+      ]
+    },
+    "seer": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0022_seer.jpg",
+        "http://codexcards-assets.surge.sh/images/0022_seer.jpg"
+      ]
+    },
+    "senseis_advice": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0007_senseis_advice.jpg",
+        "http://codexcards-assets.surge.sh/images/0007_senseis_advice.jpg"
+      ]
+    },
+    "sentry": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0025_sentry.jpg",
+        "http://codexcards-assets.surge.sh/images/0025_sentry.jpg"
+      ]
+    },
+    "setsuki_hiruki": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0016_ninjutsu_hero.jpg",
+        "http://codexcards-assets.surge.sh/images/0016_ninjutsu_hero.jpg"
+      ]
+    },
+    "shadow_blade": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0012_shadow_blade.jpg",
+        "http://codexcards-assets.surge.sh/images/0012_shadow_blade.jpg"
+      ]
+    },
+    "shimmer_ray": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0028_shimmer_ray.jpg",
+        "http://codexcards-assets.surge.sh/images/0028_shimmer_ray.jpg"
+      ]
+    },
+    "shoddy_glider": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0034_shoddy_glider.jpg",
+        "http://codexcards-assets.surge.sh/images/0034_shoddy_glider.jpg"
+      ]
+    },
+    "shrine_of_forbidden_knowledge": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0032_shrine_of_forbidden_knowledge.jpg",
+        "http://codexcards-assets.surge.sh/images/0032_shrine_of_forbidden_knowledge.jpg"
+      ]
+    },
+    "shuriken_hail": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0016_shuriken_hail.jpg",
+        "http://codexcards-assets.surge.sh/images/0016_shuriken_hail.jpg"
+      ]
+    },
+    "sickness": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0014_sickness.jpg",
+        "http://codexcards-assets.surge.sh/images/0014_sickness.jpg"
+      ]
+    },
+    "sirus": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0008_truth_hero.jpg",
+        "http://codexcards-assets.surge.sh/images/0008_truth_hero.jpg"
+      ]
+    },
+    "skeletal_archery": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0006_skeletal_archery.jpg",
+        "http://codexcards-assets.surge.sh/images/0006_skeletal_archery.jpg"
+      ]
+    },
+    "skeletal_lord": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0039_skeletal_lord.jpg",
+        "http://codexcards-assets.surge.sh/images/0039_skeletal_lord.jpg"
+      ]
+    },
+    "skeleton_javelineer": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0001_skeleton_javelineer.jpg",
+        "http://codexcards-assets.surge.sh/images/0001_skeleton_javelineer.jpg"
+      ]
+    },
+    "slowtime_generator": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0032_slow_time_generator.jpg",
+        "http://codexcards-assets.surge.sh/images/0032_slow_time_generator.jpg"
+      ]
+    },
+    "smoker": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0000_smoker.jpg",
+        "http://codexcards-assets.surge.sh/images/0000_smoker.jpg"
+      ]
+    },
+    "snapback": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0009_snapback.jpg",
+        "http://codexcards-assets.surge.sh/images/0009_snapback.jpg"
+      ]
+    },
+    "sneaky_pig": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0017_sneaky_pig.jpg",
+        "http://codexcards-assets.surge.sh/images/0017_sneaky_pig.jpg"
+      ]
+    },
+    "soul_stone": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0010_soul_stone.jpg",
+        "http://codexcards-assets.surge.sh/images/0010_soul_stone.jpg"
+      ]
+    },
+    "spark": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0010_spark.jpg",
+        "http://codexcards-assets.surge.sh/images/0010_spark.jpg"
+      ]
+    },
+    "sparring_partner": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0023_sparring_partner.jpg",
+        "http://codexcards-assets.surge.sh/images/0023_sparring_partner.jpg"
+      ]
+    },
+    "spectral_aven": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0001_spectral_aven.jpg",
+        "http://codexcards-assets.surge.sh/images/0001_spectral_aven.jpg"
+      ]
+    },
+    "spectral_flagbearer": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0026_spectral_flagbearer.jpg",
+        "http://codexcards-assets.surge.sh/images/0026_spectral_flagbearer.jpg"
+      ]
+    },
+    "spectral_hound": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0027_spectral_hound.jpg",
+        "http://codexcards-assets.surge.sh/images/0027_spectral_hound.jpg"
+      ]
+    },
+    "spectral_roc": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0041_spectral_roc.jpg",
+        "http://codexcards-assets.surge.sh/images/0041_spectral_roc.jpg"
+      ]
+    },
+    "spectral_tiger": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0040_spectral_tiger.jpg",
+        "http://codexcards-assets.surge.sh/images/0040_spectral_tiger.jpg"
+      ]
+    },
+    "speed_of_the_fox": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0015_speed_of_the_fox.jpg",
+        "http://codexcards-assets.surge.sh/images/0015_speed_of_the_fox.jpg"
+      ]
+    },
+    "spirit_of_the_panda": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0020_spirit_of_the_panda.jpg",
+        "http://codexcards-assets.surge.sh/images/0020_spirit_of_the_panda.jpg"
+      ]
+    },
+    "spore_shambler": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0005_spore_shambler.jpg",
+        "http://codexcards-assets.surge.sh/images/0005_spore_shambler.jpg"
+      ]
+    },
+    "spreading_plague": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0015_spreading_plague.jpg",
+        "http://codexcards-assets.surge.sh/images/0015_spreading_plague.jpg"
+      ]
+    },
+    "stalking_tiger": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0033_stalking_tiger.jpg",
+        "http://codexcards-assets.surge.sh/images/0033_stalking_tiger.jpg"
+      ]
+    },
+    "stampede": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0021_stampede.jpg",
+        "http://codexcards-assets.surge.sh/images/0021_stampede.jpg"
+      ]
+    },
+    "starcrossed_starlet": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0026_star_crossed_starlet.jpg",
+        "http://codexcards-assets.surge.sh/images/0026_star_crossed_starlet.jpg"
+      ]
+    },
+    "steam_tank": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0032_steam_tank.jpg",
+        "http://codexcards-assets.surge.sh/images/0032_steam_tank.jpg"
+      ]
+    },
+    "stewardess_of_the_undone": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0023_stewardess_of_the_undone.jpg",
+        "http://codexcards-assets.surge.sh/images/0023_stewardess_of_the_undone.jpg"
+      ]
+    },
+    "summon_skeletons": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0008_summon_skeletons.jpg",
+        "http://codexcards-assets.surge.sh/images/0008_summon_skeletons.jpg"
+      ]
+    },
+    "surprise_attack": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0013_surprise_attack.jpg",
+        "http://codexcards-assets.surge.sh/images/0013_surprise_attack.jpg"
+      ]
+    },
+    "tax_collector": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0022_tax_collector.jpg",
+        "http://codexcards-assets.surge.sh/images/0022_tax_collector.jpg"
+      ]
+    },
+    "temporal_distortion": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0014_temporal_distortion.jpg",
+        "http://codexcards-assets.surge.sh/images/0014_temporal_distortion.jpg"
+      ]
+    },
+    "temporal_research": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0008_temporal_research.jpg",
+        "http://codexcards-assets.surge.sh/images/0008_temporal_research.jpg"
+      ]
+    },
+    "tenderfoot": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0004_tenderfoot.jpg",
+        "http://codexcards-assets.surge.sh/images/0004_tenderfoot.jpg"
+      ]
+    },
+    "terras_q_the_shackled": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0031_terras_q.jpg",
+        "http://codexcards-assets.surge.sh/images/0031_terras_q.jpg"
+      ]
+    },
+    "the_art_of_war": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0017_the_art_of_war.jpg",
+        "http://codexcards-assets.surge.sh/images/0017_the_art_of_war.jpg"
+      ]
+    },
+    "the_boot": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0022_the_boot.jpg",
+        "http://codexcards-assets.surge.sh/images/0022_the_boot.jpg"
+      ]
+    },
+    "thieving_imp": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0003_theiving_imp.jpg",
+        "http://codexcards-assets.surge.sh/images/0003_theiving_imp.jpg"
+      ]
+    },
+    "thunderclap": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0020_thunderclap.jpg",
+        "http://codexcards-assets.surge.sh/images/0020_thunderclap.jpg"
+      ]
+    },
+    "tiger_cub": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0001_tiger_cub.jpg",
+        "http://codexcards-assets.surge.sh/images/0001_tiger_cub.jpg"
+      ]
+    },
+    "time_spiral": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0007_time_spiral.jpg",
+        "http://codexcards-assets.surge.sh/images/0007_time_spiral.jpg"
+      ]
+    },
+    "timely_messenger": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0003_timely_messenger.jpg",
+        "http://codexcards-assets.surge.sh/images/0003_timely_messenger.jpg"
+      ]
+    },
+    "tinkerer": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0004_tinkerer.jpg",
+        "http://codexcards-assets.surge.sh/images/0004_tinkerer.jpg"
+      ]
+    },
+    "tiny_basilisk": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0023_tiny_basilisk.jpg",
+        "http://codexcards-assets.surge.sh/images/0023_tiny_basilisk.jpg"
+      ]
+    },
+    "traffic_director": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0003_traffic_director.jpg",
+        "http://codexcards-assets.surge.sh/images/0003_traffic_director.jpg"
+      ]
+    },
+    "training_grounds": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0032_training_grounds.jpg",
+        "http://codexcards-assets.surge.sh/images/0032_training_grounds.jpg"
+      ]
+    },
+    "tricycloid": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0037_tricycloid.jpg",
+        "http://codexcards-assets.surge.sh/images/0037_tricycloid.jpg"
+      ]
+    },
+    "trojan_duck": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0020_trojan_duck.jpg",
+        "http://codexcards-assets.surge.sh/images/0020_trojan_duck.jpg"
+      ]
+    },
+    "troq_bashar": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0020_bashing_hero.jpg",
+        "http://codexcards-assets.surge.sh/images/0020_bashing_hero.jpg"
+      ]
+    },
+    "true_power_of_storms": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0013_true_power_of_storms.jpg",
+        "http://codexcards-assets.surge.sh/images/0013_true_power_of_storms.jpg"
+      ]
+    },
+    "twilight_baron": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0023_twilight_baron.jpg",
+        "http://codexcards-assets.surge.sh/images/0023_twilight_baron.jpg"
+      ]
+    },
+    "two_step": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0035_two_step.jpg",
+        "http://codexcards-assets.surge.sh/images/0035_two_step.jpg"
+      ]
+    },
+    "tyrannosaurus_rex": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0043_tyrannosaurus_rex.jpg",
+        "http://codexcards-assets.surge.sh/images/0043_tyrannosaurus_rex.jpg"
+      ]
+    },
+    "undo": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0011_undo.jpg",
+        "http://codexcards-assets.surge.sh/images/0011_undo.jpg"
+      ]
+    },
+    "unphase": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0019_unphase.jpg",
+        "http://codexcards-assets.surge.sh/images/0019_unphase.jpg"
+      ]
+    },
+    "vandy_anadrose": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0009_demonology_hero.jpg",
+        "http://codexcards-assets.surge.sh/images/0009_demonology_hero.jpg"
+      ]
+    },
+    "verdant_tree": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0006_verdant_tree.jpg",
+        "http://codexcards-assets.surge.sh/images/0006_verdant_tree.jpg"
+      ]
+    },
+    "versatile_style": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0011_versatile_style.jpg",
+        "http://codexcards-assets.surge.sh/images/0011_versatile_style.jpg"
+      ]
+    },
+    "vigor_adept": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0030_vigor_adept.jpg",
+        "http://codexcards-assets.surge.sh/images/0030_vigor_adept.jpg"
+      ]
+    },
+    "vir_garbarean": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0014_future_hero.jpg",
+        "http://codexcards-assets.surge.sh/images/0014_future_hero.jpg"
+      ]
+    },
+    "void_star": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0040_void_star.jpg",
+        "http://codexcards-assets.surge.sh/images/0040_void_star.jpg"
+      ]
+    },
+    "voidblocker": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0028_voidblocker.jpg",
+        "http://codexcards-assets.surge.sh/images/0028_voidblocker.jpg"
+      ]
+    },
+    "vortoss_emblem": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0010_vortoss_emblem.jpg",
+        "http://codexcards-assets.surge.sh/images/0010_vortoss_emblem.jpg"
+      ]
+    },
+    "wandering_mimic": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0031_wandering_mimic.jpg",
+        "http://codexcards-assets.surge.sh/images/0031_wandering_mimic.jpg"
+      ]
+    },
+    "war_drums": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0018_war_drums.jpg",
+        "http://codexcards-assets.surge.sh/images/0018_war_drums.jpg"
+      ]
+    },
+    "warp_gate_disciple": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0035_warp_gate_disciple.jpg",
+        "http://codexcards-assets.surge.sh/images/0035_warp_gate_disciple.jpg"
+      ]
+    },
+    "whitestar_grappler": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0039_whitestar_grappler.jpg",
+        "http://codexcards-assets.surge.sh/images/0039_whitestar_grappler.jpg"
+      ]
+    },
+    "wight": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0041_wight.jpg",
+        "http://codexcards-assets.surge.sh/images/0041_wight.jpg"
+      ]
+    },
+    "wither": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0012_wither.jpg",
+        "http://codexcards-assets.surge.sh/images/0012_wither.jpg"
+      ]
+    },
+    "wrecking_ball": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0021_wrecking_ball.jpg",
+        "http://codexcards-assets.surge.sh/images/0021_wrecking_ball.jpg"
+      ]
+    },
+    "xenostalker": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0041_xenostalker.jpg",
+        "http://codexcards-assets.surge.sh/images/0041_xenostalker.jpg"
+      ]
+    },
+    "yesterdays_golgort": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0029_yesterdays_golgort.jpg",
+        "http://codexcards-assets.surge.sh/images/0029_yesterdays_golgort.jpg"
+      ]
+    },
+    "young_lightning_dragon": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0028_young_lightning_dragon.jpg",
+        "http://codexcards-assets.surge.sh/images/0028_young_lightning_dragon.jpg"
+      ]
+    },
+    "young_treant": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0002_young_treant.jpg",
+        "http://codexcards-assets.surge.sh/images/0002_young_treant.jpg"
+      ]
+    },
+    "zane": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0000_anarchy_hero.jpg",
+        "http://codexcards-assets.surge.sh/images/0000_anarchy_hero.jpg"
+      ]
+    },
+    "zarramonde_the_obliterator": {
+      "src": [
+        "https://res.cloudinary.com/rgdelato/image/fetch/f_auto/http://codexcards-assets.surge.sh/images/0043_zarramonde.jpg",
+        "http://codexcards-assets.surge.sh/images/0043_zarramonde.jpg"
+      ]
+    }
+  },
   "cards": [
     {
       "key": "south",
@@ -4474,7 +6450,7 @@
         "flame",
         "hero_face"
       ],
-      "asset": "star:5:crimson",
+      "asset": "zane",
       "tooltip": "Blood Guard Anarchist. Levels 1-3 haste, 2/2. Levels 4-5 3/3: whenever Zane kills a scavenger get 1 gold, and a technician draws you a card. Level 6 4/4: shove a patroller to an empty slot in its patrol zone, then deal 1 damage to it (the shove is NOT MODELLED: it needs a card and a square chosen together, and an ability takes one kind of target).",
       "card_stats": {
         "price": 2,
@@ -4648,7 +6624,7 @@
         "flame",
         "hero_face"
       ],
-      "asset": "star:6:maroon",
+      "asset": "drakk",
       "tooltip": "War Drummer. Levels 1-3 1/3: Dies — deal 1 damage to each opponent's base. Levels 4-5 2/3: your units get Frenzy 1. Level 6 3/4: the first unit that arrives from your hand each turn gets haste.",
       "card_stats": {
         "price": 2,
@@ -4782,7 +6758,7 @@
         "flame",
         "hero_face"
       ],
-      "asset": "star:7:orange",
+      "asset": "jaina",
       "tooltip": "Phoenix Archer. Levels 1-3 2/3 with sparkshot (NOT MODELLED: it sparks every adjacent patroller rather than one of your choice). Levels 4-6 3/3: exhaust to deal 1 damage to a patrolling unit or building. Level 7 4/3: exhaust to deal 3 damage to a unit or building.",
       "card_stats": {
         "price": 2,
@@ -4986,7 +6962,7 @@
         "moss",
         "hero_face"
       ],
-      "asset": "star:4:forest",
+      "asset": "midori",
       "tooltip": "Mentor Dragon. Levels 1-4 2/3. Levels 5-7 3/4: your units with no abilities get +1/+1 (NOT MODELLED: no condition asks whether a card has abilities). Level 8 4/5: during your turn, flying.",
       "card_stats": {
         "price": 2,
@@ -5154,7 +7130,7 @@
         "moss",
         "hero_face"
       ],
-      "asset": "star:5:olive",
+      "asset": "calamandra",
       "tooltip": "Tiger Magus. Levels 1-2 2/3: discard two cards for stealth this turn (NOT MODELLED — there is no discard-as-cost). Levels 3-4 3/4: your units get resist 1. Level 5 4/5: 4 gold and exhaust to search your codex for a tiger unit and put it into play.",
       "card_stats": {
         "price": 2,
@@ -5296,7 +7272,7 @@
         "moss",
         "hero_face"
       ],
-      "asset": "star:8:teal",
+      "asset": "argagarg",
       "tooltip": "Water Shaman. Levels 1-2 1/3: arrives summoning a Wisp. Levels 3-4 1/4: exhaust to give a unit +1 ATK and +1 armor. Level 5 1/5: summons a 3/3 Water Elemental with anti-air.",
       "card_stats": {
         "price": 2,
@@ -5490,6 +7466,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "bluecoat_musketeer",
       "tooltip": "While this has exactly 1 ATK, it has long-range.",
       "card_stats": {
         "price": 2,
@@ -5513,6 +7490,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "building_inspector",
       "tooltip": "The first building each opponent builds each turn costs 1 more to build. NOT MODELLED: a cost is only adjustable through an aim, and a building is raised from a board button that points at nothing.",
       "card_stats": {
         "price": 1,
@@ -5535,6 +7513,7 @@
         "build_face",
         "generate_art"
       ],
+      "asset": "jail",
       "tooltip": "Opposing units played from hand go to jail instead of arriving. When a unit enters jail, any unit already there is released and arrives in play. NOT MODELLED AT ALL: nothing can send somebody else's play somewhere other than where it was going.",
       "card_stats": {
         "price": 3,
@@ -5557,6 +7536,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "porkhand_magistrate",
       "tooltip": "1 gold, exhaust: disable a unit or hero. Its controller draws a card.",
       "card_stats": {
         "price": 3,
@@ -5610,6 +7590,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "reputable_newsman",
       "tooltip": "Arrives: choose a number. Opponents can't play spells or upgrades that cost that amount. NOT MODELLED AT ALL: a choice is made among cards, and a number is not one.",
       "card_stats": {
         "price": 2,
@@ -5635,6 +7616,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "spectral_aven",
       "tooltip": "Flying. Illusion: dies when a spell or an ability aims at it.",
       "card_stats": {
         "price": 2,
@@ -5661,6 +7643,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "traffic_director",
       "tooltip": "Untargetable. Unstoppable when attacking a building. NOT MODELLED: the unstoppable, which holds only against one kind of target and so is a permission that has to be judged after the aim rather than before it.",
       "card_stats": {
         "price": 1,
@@ -5684,6 +7667,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "arrest",
       "tooltip": "Disable a patrolling unit: it is exhausted, does not ready during its next ready step, and leaves its post.",
       "card_stats": {
         "price": 2
@@ -5732,6 +7716,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "lawful_search",
       "tooltip": "Draw a card, then look at an opponent's hand. NOT MODELLED: the choice of their discard pile instead, which is the same look at a second place and wants an offer that reveals without lending.",
       "card_stats": {
         "price": 1
@@ -5768,6 +7753,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "manufactured_truth",
       "tooltip": "One of your tech 0 or I units becomes a copy of another tech 0 or I unit until end of turn. NOT MODELLED AT ALL: transform replaces a card outright and keeps no memory of what it replaced, so nothing turns back.",
       "card_stats": {
         "price": 1
@@ -5787,6 +7773,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "scribe",
       "tooltip": "Arrives: draw a card.",
       "card_stats": {
         "price": 2,
@@ -5827,6 +7814,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "tax_collector",
       "tooltip": "Arrives: steal 1 gold from an opponent.",
       "card_stats": {
         "price": 2,
@@ -5868,6 +7856,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "arresting_constable",
       "tooltip": "Exhaust: disable a tech 0, I or II unit.",
       "card_stats": {
         "price": 4,
@@ -5922,6 +7911,7 @@
         "build_face",
         "generate_art"
       ],
+      "asset": "censorship_council",
       "tooltip": "Opponents can't play more than one card from hand during their turns. NOT MODELLED: a play is gated by the card's own needs, and no card can put a condition on what another player may play.",
       "card_stats": {
         "price": 4,
@@ -5946,6 +7936,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "guardian_of_the_gates",
       "tooltip": "Can't attack. Whenever it deals combat damage to a unit, disable that unit.",
       "card_stats": {
         "price": 3,
@@ -5987,6 +7978,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "insurance_agent",
       "tooltip": "Arrives: put an insurance rune on a unit. When that insured unit dies, gain gold equal to its cost and draw a card.",
       "card_stats": {
         "price": 1,
@@ -6040,6 +8032,7 @@
         "generate_art",
         "juggernaut"
       ],
+      "asset": "justice_juggernaut",
       "tooltip": "Unstoppable but can't patrol. Two lives: the first death heals it and leaves a crumbling rune instead.",
       "card_stats": {
         "price": 6,
@@ -6066,6 +8059,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "lawbringer_gryphon",
       "tooltip": "Flying, resist 2. Obliterate 4: attacking destroys the defender's four lowest tech units first. Your base gains flying.  NOT MODELLED: the base's flying, which is a keyword lent to a building.",
       "card_stats": {
         "price": 10,
@@ -6106,6 +8100,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "community_service",
       "tooltip": "Look at an opponent's hand. You may put a tech I or II unit from there into play under your control. NOT MODELLED: their discard pile as a second place to look.",
       "card_stats": {
         "price": 5
@@ -6152,6 +8147,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "injunction",
       "tooltip": "Disable a tech I or II building and every unit that player has of the same tech level. NOT MODELLED: the building half — a building has no readiness to spend, and \"not operational next turn\" is a permission suspended for a turn, which nothing can say.",
       "card_stats": {
         "price": 3
@@ -6203,6 +8199,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "jurisdiction",
       "tooltip": "Play any non-ultimate spell from your codex, paying its cost. NOT MODELLED: paying the second cost — an offer's pick has a price of its own, but a price the picked card names is not sayable.",
       "card_stats": {
         "price": 2
@@ -6221,6 +8218,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "judgment_day",
       "tooltip": "Ultimate spell. Destroy all tech 0, I and II units. Heroes are not units; tokens are tech 0.",
       "card_stats": {
         "price": 4
@@ -6258,6 +8256,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "overeager_cadet",
       "tooltip": "A plain 2/2 for nothing.",
       "card_stats": {
         "price": 0,
@@ -6282,6 +8281,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "brave_knight",
       "tooltip": "Readiness: does not exhaust to attack, but attacks once a turn. Dying to combat damage returns him to hand instead.",
       "card_stats": {
         "price": 3,
@@ -6332,6 +8332,7 @@
         "generate_art",
         "hammer"
       ],
+      "asset": "air_hammer",
       "tooltip": "Flying. +2 ATK when attacking a damaged building.",
       "card_stats": {
         "price": 4,
@@ -6359,6 +8360,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "debilitator_alpha",
       "tooltip": "As squad leader: units attacking it get -1 ATK.",
       "card_stats": {
         "price": 5,
@@ -6384,6 +8386,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "drill_sergeant",
       "tooltip": "Whenever you play a unit from your hand, put a +1/+1 rune on this. Remove a +1/+1 rune: put a +1/+1 rune on another unit.",
       "reactions": [
         { "to": "arrived", "whose": "mine", "forced": "mandatory", "in": "board",
@@ -6440,6 +8443,7 @@
         "build_face",
         "generate_art"
       ],
+      "asset": "flagstone_garrison",
       "tooltip": "Whenever you play a unit from your hand, draw a card.",
       "reactions": [
         { "to": "arrived", "whose": "mine", "forced": "mandatory", "in": "board",
@@ -6469,6 +8473,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "flagstone_spy",
       "tooltip": "Invisible. Deals combat damage to a building: look at that player's hand and steal 1 gold.",
       "card_stats": {
         "price": 3,
@@ -6513,6 +8518,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "patriot_gryphon",
       "tooltip": "Flying, resist 2. Unstoppable by units with 2 ATK or less. Destroys a building: also deals its ATK to that base.",
       "card_stats": {
         "price": 8,
@@ -6554,6 +8560,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "boot_camp",
       "tooltip": "Exhaust one of your units and put a +1/+1 rune on it. Draw a card. NOT MODELLED: aiming it at somebody else's non-Peace hero, which is a second pool one aim cannot hold.",
       "card_stats": {
         "price": 1
@@ -6603,6 +8610,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "elite_training",
       "tooltip": "Up to two of your units and/or heroes get +1 ATK, +1 armor, anti-air and sparkshot until your next upkeep.",
       "card_stats": {
         "price": 2
@@ -6647,6 +8655,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "generals_hammer",
       "tooltip": "Deal 3 damage to a building.",
       "card_stats": {
         "price": 3
@@ -6693,6 +8702,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "the_art_of_war",
       "tooltip": "Ultimate spell. Your Peace hero is unstoppable, has swift strike and gets +2 ATK / +2 armor until your next upkeep. NOT MODELLED: swift strike, which wants a blow struck before the exchange rather than in it.",
       "card_stats": {
         "price": 3
@@ -6730,6 +8740,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "spectral_flagbearer",
       "tooltip": "Illusion. A spell or ability that could aim at a flagbearer must aim at one. NOT MODELLED: the compulsion.",
       "card_stats": {
         "price": 1,
@@ -6755,6 +8766,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "spectral_hound",
       "tooltip": "Illusion: dies when a spell or an ability aims at it.",
       "card_stats": {
         "price": 1,
@@ -6778,6 +8790,7 @@
         "relic",
         "generate_art"
       ],
+      "asset": "eyes_of_the_chancellor",
       "tooltip": "Detector, haste. Exhaust: make one of your units invisible until your next upkeep.  NOT MODELLED: opponents playing with their hands revealed.",
       "card_stats": {
         "price": 3
@@ -6825,6 +8838,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "macciatus",
       "tooltip": "Legendary. Your Illusions get +1/+1 and no longer die when a spell or ability aims at them. NOT MODELLED: both halves. The protection wants an owner scope anchored on the Illusion \u2014 \"mine\" is read against whoever is up, not against the card being asked about.",
       "card_stats": {
         "price": 2,
@@ -6850,6 +8864,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "reteller_of_truths",
       "tooltip": "Illusion. The first two of your non-token Illusions to die each turn go back to their owner's hand. NOT MODELLED: the returning, which is a death replacement counted twice a turn.",
       "card_stats": {
         "price": 2,
@@ -6876,6 +8891,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "spectral_roc",
       "tooltip": "Flying. Illusion: dies when a spell or an ability aims at it.",
       "card_stats": {
         "price": 4,
@@ -6903,6 +8919,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "spectral_tiger",
       "tooltip": "Illusion: dies when a spell or an ability aims at it.",
       "card_stats": {
         "price": 3,
@@ -6930,6 +8947,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "liberty_gryphon",
       "tooltip": "Flying, haste. Unstoppable, unattackable and untargetable while you control another Illusion. NOT MODELLED: the unattackable and unstoppable halves.",
       "card_stats": {
         "price": 3,
@@ -6956,6 +8974,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "dreamscape",
       "tooltip": "Channelled ongoing spell. All tech 0, I and II units are Illusions. NOT MODELLED: handing the word out. The dying itself is in.",
       "card_stats": {
         "price": 3
@@ -6974,6 +8993,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "free_speech",
       "tooltip": "Silence an opponent: their heroes can't cast spells and lose all abilities until after their next turn. NOT MODELLED AT ALL: nothing can take a card's abilities away.",
       "card_stats": {
         "price": 2
@@ -6992,6 +9012,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "hallucination",
       "tooltip": "Up to two tech 0, I or II units are Illusions this turn. NOT MODELLED: handing the word out, and taking it back at end of turn. The dying itself is in.",
       "card_stats": {
         "price": 2
@@ -7012,6 +9033,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "mind_control",
       "tooltip": "Ultimate ongoing spell. Attach to a tech 0, I or II unit. You control it.",
       "card_stats": {
         "price": 5
@@ -7059,7 +9081,7 @@
         "tide",
         "hero_face"
       ],
-      "asset": "star:5:blue",
+      "asset": "bigby",
       "tooltip": "Iron-Fisted Judge. Levels 1-2 2/3 with stash (NOT MODELLED: nothing may be held back through the draw). Levels 3-4 2/4: exhaust to sideline a tech 0 or I patroller. Level 5 3/4: exhaust to draw a card.",
       "card_stats": {
         "price": 2,
@@ -7225,7 +9247,7 @@
         "tide",
         "hero_face"
       ],
-      "asset": "star:8:blue",
+      "asset": "onimaru",
       "tooltip": "Wartime Strategist. Levels 1-4 2/3 with frenzy 1. Levels 5-7 3/4 with readiness. Level 8 4/5: summon three 1/1 blue Soldier tokens with sparkshot.",
       "card_stats": {
         "price": 2,
@@ -7434,7 +9456,7 @@
         "tide",
         "hero_face"
       ],
-      "asset": "star:5:blue",
+      "asset": "sirus",
       "tooltip": "Flagstone Chief Magistrate. Levels 1-2 1/3: arrives with a 0/1 Mirror Illusion, and 2 gold summons another (limit 2). Levels 3-4 1/4, level 5 1/5. NOT MODELLED: both copying halves — a Mirror becoming another unit, since transform replaces a card outright and keeps no memory of what it replaced.",
       "card_stats": {
         "price": 2,
@@ -7572,6 +9594,7 @@
         "generate_art",
         "abom"
       ],
+      "asset": "abomination",
       "tooltip": "All other units get -1/-1.",
       "card_stats": {
         "price": 6,
@@ -7595,6 +9618,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "aged_sensei",
       "tooltip": "Exhaust: give a friendly unit or hero +1 ATK and +1 armor for the turn.",
       "card_stats": {
         "price": 1,
@@ -7645,6 +9669,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "appel_stomp",
       "tooltip": "Ultimate Spell — Debuff. Sideline a patroller (move it out of the patrol zone), draw a card, then you may put Appel Stomp on top of your draw pile. \"Appel\" is a kind of stomp in fencing. Apples are different.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 1
@@ -7665,6 +9690,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "ardras_boulder",
       "tooltip": "A 0/6 that simply sits there.",
       "card_stats": {
         "price": 2,
@@ -7689,6 +9715,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "argonaut",
       "tooltip": "Readiness.",
       "card_stats": {
         "price": 3,
@@ -7734,6 +9761,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "assimilate",
       "tooltip": "Gain control of an opposing building or ongoing spell.",
       "card_stats": {
         "price": 3
@@ -7781,6 +9809,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "backstabber",
       "tooltip": "Unit — Rogue. Invisible (To opponents without a detector, this is untargetable, unattackable, and can sneak past patrollers. While patrolling, this is attackable.) Don't let him slip behind you.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 3,
@@ -7805,6 +9834,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "banefire_golem",
       "tooltip": "Upkeep: sacrifice a unit to deal 1 damage to each opposing unit, hero and building.  NOT MODELLED: which unit — a sacrifice takes the oldest match and never asks.",
       "card_stats": {
         "price": 6,
@@ -7826,6 +9856,7 @@
         "relic",
         "generate_art"
       ],
+      "asset": "battle_suits",
       "tooltip": "Your non-token Soldiers and Mystics get +1 ATK.  NOT MODELLED: which kinds it lifts — Codex has no Soldier or Mystic tag on this side of the box.",
       "card_stats": {
         "price": 2
@@ -7845,6 +9876,7 @@
         "generate_art",
         "channeled"
       ],
+      "asset": "birds_nest",
       "tooltip": "Channelled: summon two 1/1 white Bird tokens with flying.  NOT MODELLED: re-summoning the ones that die, which needs the limit counted at the upkeep.",
       "card_stats": {
         "price": 2
@@ -7880,6 +9912,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "blackhand_dozer",
       "tooltip": "Overpower. Dies: the active player destroys one of your lowest tech units.  NOT MODELLED: the damage floor that stops it taking a base below 6, which is not the stat's own.",
       "card_stats": {
         "price": 4,
@@ -7910,6 +9943,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "blackhand_resurrector",
       "tooltip": "Exhaust and sacrifice it to bring a fallen hero back at max level.  NOT MODELLED: all of it: a hero that died is gone rather than kept anywhere to be fetched from.",
       "card_stats": {
         "price": 2,
@@ -7935,6 +9969,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "blademaster",
       "tooltip": "Unit — Virtuoso. Your units and heroes have swift strike. (They deal combat damage before units and heroes without swift strike.) It'll be over before you know it started.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 6,
@@ -7958,6 +9993,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "bloom",
       "tooltip": "Minor Spell — Buff. Put a +1/+1 rune on a friendly unit or hero that doesn't have a +1/+1 rune. Bigger is better, and slightly bigger is slightly better.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 2
@@ -7977,6 +10013,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "bone_collector",
       "tooltip": "Attacks: summon a 1/1 black Skeleton token.",
       "card_stats": {
         "price": 2,
@@ -8014,6 +10051,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "brick_thief",
       "tooltip": "Unit — Mercenary. Arrives or attacks: Deal 1 damage to a building and repair 1 damage from another building. Resist 1 (Opponents must pay ① each time they would ◎ this with a spell or ability.) He has sometimes regretted not being a feather thief.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 2,
@@ -8036,6 +10074,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "carrion_curse",
       "tooltip": "Look at an opponent's hand and take a card from it to their discard.  NOT MODELLED: choosing two, and that it may only take what is not a unit.",
       "card_stats": {
         "price": 3
@@ -8077,6 +10116,7 @@
         "generate_art",
         "chrono"
       ],
+      "asset": "chronofixer",
       "tooltip": "Untargetable. Opposing heroes can't level up.",
       "card_stats": {
         "price": 2,
@@ -8102,6 +10142,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "cloud_sprite",
       "tooltip": "Unit — Fairy. Flying (Can fly over ground patrollers. Ground forces without anti-air can't attack this or deal combat damage to it when attacked.) She dances in the sky, avoiding the hassles of the ground.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 2,
@@ -8126,6 +10167,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "colossus",
       "tooltip": "Unstoppable when attacking a base.  NOT MODELLED: that it holds only against one kind of target, so it is judged after the aim rather than before it.",
       "card_stats": {
         "price": 6,
@@ -8150,6 +10192,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "corpse_catapult",
       "tooltip": "Whenever one of your units dies, put a corpse rune on this. Exhaust and spend two: deal 6 damage to a building.",
       "card_stats": {
         "price": 3,
@@ -8200,6 +10243,7 @@
         "generate_art",
         "sparkshot"
       ],
+      "asset": "crypt_crawler",
       "tooltip": "Sparkshot.  NOT MODELLED: grounding a flier for a turn, which is a keyword taken away rather than lent.",
       "card_stats": {
         "price": 2,
@@ -8224,6 +10268,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "cursed_crow",
       "tooltip": "Flying. Damages a base: the defending player discards a card at random.",
       "card_stats": {
         "price": 3,
@@ -8264,6 +10309,7 @@
         "generate_art",
         "ignores_runed"
       ],
+      "asset": "cursed_ghoul",
       "tooltip": "Arrives: put a -1/-1 rune on a unit. Unstoppable by units carrying one.",
       "card_stats": {
         "price": 4,
@@ -8312,6 +10358,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "dark_pact",
       "tooltip": "Deal 2 damage to a base, then that player draws two cards.",
       "card_stats": {
         "price": 0
@@ -8357,6 +10404,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "death_and_decay",
       "tooltip": "Give all an opponent's units and heroes -3/-3 this turn, and deal 3 damage to their buildings.",
       "card_stats": {
         "price": 8
@@ -8394,6 +10442,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "death_rites",
       "tooltip": "Whenever one of your units dies this turn, destroy one of an opponent's lowest tech units.  NOT MODELLED: that it lasts only the turn — this fires once, when the spell is cast.",
       "card_stats": {
         "price": 4
@@ -8428,6 +10477,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "deteriorate",
       "tooltip": "Give a unit -1/-1 this turn.",
       "card_stats": {
         "price": 0
@@ -8473,6 +10523,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "discord",
       "tooltip": "Spell — Debuff. Give all of an opponent's tech 0 and I units -2/-1 until end of turn. CLANG!  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 2
@@ -8490,6 +10541,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "doom_grasp",
       "tooltip": "Sacrifice a unit to destroy a tech 0, I or II unit or hero.",
       "card_stats": {
         "price": 4
@@ -8540,6 +10592,7 @@
         "generate_art",
         "fcast"
       ],
+      "asset": "double_time",
       "tooltip": "Forecast 3: three upkeeps from now, take an extra turn.  NOT MODELLED: the extra turn, which is a phase the file cannot insert into its own run.",
       "card_stats": {
         "price": 6
@@ -8574,6 +10627,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "doubling_barbarbarian",
       "tooltip": "Overpower.  NOT MODELLED: that everything it gains it gains twice, which is a multiplier on a change rather than on a reading.",
       "card_stats": {
         "price": 3,
@@ -8597,6 +10651,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "earthquake",
       "tooltip": "Deal 4 damage to an opponent's damaged buildings and 1 to the rest.",
       "card_stats": {
         "price": 5
@@ -8635,6 +10690,7 @@
         "generate_art",
         "fading"
       ],
+      "asset": "ebbflow_archon",
       "tooltip": "Fading 7. Spend a time rune to send a unit home.  NOT MODELLED: that it shrinks as its clock runs down, which is a buff counting a card's own counter.",
       "card_stats": {
         "price": 8,
@@ -8703,6 +10759,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "eggship",
       "tooltip": "Unit — Contraption. Flying (Can fly over ground patrollers. Ground forces without anti-air can't attack this or deal combat damage to it when attacked.) This somewhat-safe mode of transportation has been converted to a warship.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 4,
@@ -8726,6 +10783,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "entangling_vines",
       "tooltip": "Attach to a patrolling unit: sideline it, and it can't attack or patrol.  NOT MODELLED: that it keeps the unit down — the vines fall off when the unit next moves.",
       "card_stats": {
         "price": 3
@@ -8776,6 +10834,7 @@
         "generate_art",
         "fading"
       ],
+      "asset": "fading_argonaut",
       "tooltip": "Fading 3: it arrives with three time runes and goes when the last comes off.",
       "card_stats": {
         "price": 2,
@@ -8816,6 +10875,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "final_smash",
       "tooltip": "Ultimate Spell — Debuff. Destroy a tech 0 unit, return a tech I unit to its owner's hand, and gain control of a tech II unit. Troq Smash!  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 6
@@ -8835,6 +10895,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "flying_fox",
       "tooltip": "Flying.",
       "card_stats": {
         "price": 2,
@@ -8859,6 +10920,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "focus_master",
       "tooltip": "Arrives: put three focus runes on this.  NOT MODELLED: spending one to turn exactly lethal damage aside, which asks what a blow would come to before it lands.",
       "card_stats": {
         "price": 3,
@@ -8897,6 +10959,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "forgotten_fighter",
       "tooltip": "Return a patrolling tech 0 or I unit with 2 ATK or less to its owner's hand.",
       "card_stats": {
         "price": 2
@@ -8949,6 +11012,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "fox_primus",
       "tooltip": "Frenzy 1, anti-air.",
       "card_stats": {
         "price": 3,
@@ -8973,6 +11037,7 @@
         "generate_art",
         "sparkshot"
       ],
+      "asset": "fox_viper",
       "tooltip": "Sparkshot.",
       "card_stats": {
         "price": 2,
@@ -8997,6 +11062,7 @@
         "generate_art",
         "den"
       ],
+      "asset": "foxs_den_school",
       "tooltip": "Invisible. Your Ninjas and Cute Animals are invisible.  NOT MODELLED: making one of your units a Ninja, which is a tag granted to a card the player picks.",
       "card_stats": {
         "price": 4,
@@ -9019,6 +11085,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "foxs_den_students",
       "tooltip": "Summon four 1/1 white Ninja tokens with haste for the turn.",
       "card_stats": {
         "price": 4
@@ -9055,6 +11122,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "fruit_ninja",
       "tooltip": "Unit — Ninja. Frenzy 1 (Gets +1 ATK on your turn.) Quick to slice fruit. Quick to slice YOU.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 3,
@@ -9081,6 +11149,7 @@
         "healing",
         "healing2"
       ],
+      "asset": "fuzz_cuddles",
       "tooltip": "Healing 2.",
       "card_stats": {
         "price": 2,
@@ -9108,6 +11177,7 @@
         "cant_patrol",
         "stony"
       ],
+      "asset": "gargoyle",
       "tooltip": "Can't attack or patrol. Indestructible: the first death exhausts it and heals it instead.  NOT MODELLED: the ability that trades the word away for a turn of flying and +3 attack.",
       "card_stats": {
         "price": 3,
@@ -9131,6 +11201,7 @@
         "hero_face",
         "generate_art"
       ],
+      "asset": "garth_torken",
       "tooltip": "Hero — Dark Anatomist. Level 1- 3 : ① → Summon a 1/1 black Skeleton token. Once-per-turn. • ATK: 1 • HP: 3 Level 4 - 6 : Sacrifice a Skeleton → Draw a card. • ATK: 2 • HP: 4 Level 7 : Max Level: You may put a tech I or II unit that costs ⑤ or less from your discard pile into play if you meet the tech reqs for it. • ATK: 3 • HP: 4  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 2,
@@ -9155,6 +11226,7 @@
         "hero_face",
         "generate_art"
       ],
+      "asset": "garus_rook",
       "tooltip": "Hero — Stone Golem. Level 1- 4 : • ATK: 2 • HP: 4 Level 5 - 7 : Unstoppable by patrol zones with only one patroller. • ATK: 3 • HP: 5 Level 8 : Two Lives (If this would die, heal all damage on it and put a crumbling rune on it instead. While it has a crumbling rune, it can really die.) • ATK: 4 • HP: 6  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 2,
@@ -9180,6 +11252,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "gilded_glaxx",
       "tooltip": "A 3/4.  NOT MODELLED: that gold in your pile pins it in play, which is a permission suspended by a number.",
       "card_stats": {
         "price": 3,
@@ -9204,6 +11277,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "glorious_ninja",
       "tooltip": "Haste.  NOT MODELLED: swift strike, which wants a blow struck before the exchange rather than in it.",
       "card_stats": {
         "price": 5,
@@ -9228,6 +11302,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "gorgon",
       "tooltip": "Deathtouch. Dies: draw a card.",
       "card_stats": {
         "price": 3,
@@ -9257,6 +11332,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "granfalloon_flagbearer",
       "tooltip": "Unit — Flagbearer. Whenever an opponent plays a spell or ability that can ◎ a flagbearer, it must ◎ a flagbearer at least once. \"My flag flies for associations and societies based on a shared but ultimately fabricated premise, such as any company or nation.\"  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 3,
@@ -9279,6 +11355,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "grappling_hook",
       "tooltip": "Pull a patroller out of its post.  NOT MODELLED: the empty slot it is pulled to — a card and a square chosen together is one aim too many.",
       "card_stats": {
         "price": 0
@@ -9326,6 +11403,7 @@
         "hero_face",
         "generate_art"
       ],
+      "asset": "grave_stormborne",
       "tooltip": "Hero — Wind Warrior. Level 1- 2 : Sparkshot (When attacking a patroller, deals 1 damage to an adjacent patroller.) • ATK: 2 • HP: 3 Level 3 - 6 : Readiness (Doesn't exhaust to attack, but can only attack once per turn.) • ATK: 3 • HP: 4 Level 7 : Max Level: Put a sword rune on this. ⤵, Remove a sword rune → Destroy a unit or hero. ◎ • ATK: 4 • HP: 5  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 2,
@@ -9349,6 +11427,7 @@
         "build_face",
         "generate_art"
       ],
+      "asset": "graveyard",
       "tooltip": "Whenever your non-token units die, bury them here. NOT MODELLED: the burying, which needs a death to choose a destination other than the discard, and the sacrifice at four.",
       "card_stats": {
         "price": 2,
@@ -9373,6 +11452,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "grounded_guide",
       "tooltip": "Unit — Thespian. Your other units get +1 ATK. Your Virtuosos get +2/+1, instead. He'll teach you the fundamentals.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 5,
@@ -9396,6 +11476,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "hardened_mox",
       "tooltip": "Indestructible.  NOT MODELLED: both halves — the death replacement, and that a tech II unit of yours trashes it, which asks about a card that may be forecast and so nowhere.",
       "card_stats": {
         "price": 3,
@@ -9420,6 +11501,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "harmony",
       "tooltip": "Ongoing Spell — Buff. Channeling (Stays in play. Sacrifice it when you lose your Finesse hero.) Whenever you play a spell, summon a 0/1 neutral Dancer token (limit: 3). Sacrifice Harmony → \"Stop the music.\" (Your Dancers will flip over!)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 2
@@ -9440,6 +11522,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "harvest_reaper",
       "tooltip": "Unit — Contraption. Overpower (Excess combat damage this would deal to a patroller hits something else this could attack.) It reaps the fields. It reaps you.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 5,
@@ -9464,6 +11547,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "helpful_turtle",
       "tooltip": "Unit — Cute Animal. Healing 1 (During your upkeep, heal 1 damage from all friendly units and heroes.) \"I'm helping.\"  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 2,
@@ -9488,6 +11572,7 @@
         "generate_art",
         "monument"
       ],
+      "asset": "heros_monument",
       "tooltip": "Untargetable. Arrives: summon Daigo Stormborne, an 8/8 who cannot patrol. Your heroes get +1/+1.",
       "card_stats": {
         "price": 5,
@@ -9525,6 +11610,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "hidden_ninja",
       "tooltip": "Up to two of your units or heroes with 4 ATK or less get stealth this turn.  NOT MODELLED: the card drawn when one of them is a Ninja.",
       "card_stats": {
         "price": 2
@@ -9575,6 +11661,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "hired_stomper",
       "tooltip": "Unit — Lizardman. Arrives: Deal 3 damage to a unit. (Heroes aren't units.) \"Ragoroggggg! Hssssss!\"  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 4,
@@ -9599,6 +11686,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "hive",
       "tooltip": "Flying, resist 1. Arrives: summon five 1/1 purple Stinger tokens with flying.  NOT MODELLED: re-summoning a lost Stinger, which wants the limit counted.",
       "card_stats": {
         "price": 6,
@@ -9639,6 +11727,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "hooded_executioner",
       "tooltip": "A 3/3 for two.  NOT MODELLED: Boost, and the weakest unit it kills — both want an ordering.",
       "card_stats": {
         "price": 2,
@@ -9663,6 +11752,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "hyperion",
       "tooltip": "Haste. Attacks: draw a card.",
       "card_stats": {
         "price": 5,
@@ -9700,6 +11790,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "immortal",
       "tooltip": "A 5/5 for six.  NOT MODELLED: Indestructible, which is a death replacement.",
       "card_stats": {
         "price": 6,
@@ -9723,6 +11814,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "intimidate",
       "tooltip": "Spell — Debuff. Give a unit or hero -4 ATK this turn. Ready to fight now??  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 1
@@ -9742,6 +11834,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "inverse_power_ninja",
       "tooltip": "Gets -1/-1 for each other unit or hero you have.  NOT MODELLED: the whole of it: a buff is a plain number, and this one counts a side.",
       "card_stats": {
         "price": 3,
@@ -9767,6 +11860,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "iron_man",
       "tooltip": "Unit — Mercenary. \"I'm Iron Man.\"  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 3,
@@ -9793,6 +11887,7 @@
         "generate_art",
         "headmistress"
       ],
+      "asset": "jade_fox_dens_headmistress",
       "tooltip": "Arrives: summon four 1/1 white Ninja tokens. Your Ninjas fly.  NOT MODELLED: swift strike for them.",
       "card_stats": {
         "price": 8,
@@ -9833,6 +11928,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "jandra_the_negator",
       "tooltip": "Overpower. NOT MODELLED: that spells and abilities aimed at your other cards hit Jandra instead, which is an aim redirected after it is made.",
       "card_stats": {
         "price": 3,
@@ -9858,6 +11954,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "jefferson_degrey_ghostly_diplomat",
       "tooltip": "Arrives: destroy all tokens.",
       "card_stats": {
         "price": 3,
@@ -9941,6 +12038,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "leaping_lizard",
       "tooltip": "Unit — Lizardman. Anti-air (Can attack fliers, but can ignore patrolling fliers. Deals combat damage to fliers it fights or that fly over this while it patrols.) He can reach for the sky.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 1,
@@ -9963,6 +12061,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "lichs_bargain",
       "tooltip": "Sacrifice a worker and take 4 damage to your base: summon a Skeleton, a Zombie and a Demon.",
       "card_stats": {
         "price": 2
@@ -10004,6 +12103,7 @@
         "generate_art",
         "shadowlord"
       ],
+      "asset": "lord_of_shadows",
       "tooltip": "Your black units are invisible.",
       "card_stats": {
         "price": 7,
@@ -10030,6 +12130,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "maestro",
       "tooltip": "Unit — Thespian. Your virtuosos cost ⓪ to play and gain \"⤵ → Deal 2 damage to a building. ◎\" His enthusiasm is infectious.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 3,
@@ -10052,6 +12153,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "martial_mastery",
       "tooltip": "Discard a card, then draw two.",
       "card_stats": {
         "price": 1
@@ -10088,6 +12190,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "masked_raccoon",
       "tooltip": "A 3/4 for four.  NOT MODELLED: both halves — each holds only against one kind of attacker and so is judged after the aim rather than before it.",
       "card_stats": {
         "price": 4,
@@ -10111,6 +12214,7 @@
         "hero_face",
         "generate_art"
       ],
+      "asset": "max_geiger",
       "tooltip": "Hero — Vortoss Emissary. Level 1- 2 : Sparkshot (When attacking a patroller, deals 1 damage to an adjacent patroller.) • ATK: 2 • HP: 3 Level 3 - 4 : ⤵, Discard a card → Draw a card. • ATK: 2 • HP: 4 Level 5 : Max Level: You may trash a friendly unit then return it to play. ◎ • ATK: 3 • HP: 4  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 2,
@@ -10135,6 +12239,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "metamorphosis",
       "tooltip": "Sacrifice all units you control; your non-Demon heroes level to max and become Demons.  NOT MODELLED: all of it — a hero changing kind is a transform that keeps its level, and nothing turns back.",
       "card_stats": {
         "price": 6
@@ -10155,6 +12260,7 @@
         "generate_art",
         "mindparry"
       ],
+      "asset": "mindparry_monk",
       "tooltip": "Opponents can't aim spells or abilities at your units or heroes.",
       "card_stats": {
         "price": 5,
@@ -10178,6 +12284,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "morningstar_flagbearer",
       "tooltip": "A spell or ability that could aim at a flagbearer must aim at one.  NOT MODELLED: the compulsion, which narrows somebody else's aim after they have made it.",
       "card_stats": {
         "price": 3,
@@ -10202,6 +12309,7 @@
         "generate_art",
         "resist_1"
       ],
+      "asset": "morningstar_pass",
       "tooltip": "Opponents must pay 1 more to aim at this.  NOT MODELLED: preventing damage to your other buildings, which is a shield on somebody else's number.",
       "card_stats": {
         "price": 4,
@@ -10224,6 +12332,7 @@
         "generate_art",
         "myth"
       ],
+      "asset": "mythmaking",
       "tooltip": "Your legendary units get +2/+2; opponents' legendary units get -1/-1.  NOT MODELLED: the +2 HP for legendary buildings.",
       "card_stats": {
         "price": 2
@@ -10244,6 +12353,7 @@
         "generate_art",
         "nebular"
       ],
+      "asset": "nebula",
       "tooltip": "Flying, resist 3. Your other units are invisible. Free and once a turn: destroy a tech 0, I or II unit.",
       "card_stats": {
         "price": 7,
@@ -10299,6 +12409,7 @@
         "long_range",
         "necro"
       ],
+      "asset": "necromancer",
       "tooltip": "Long-range. Whenever another non-token unit of yours dies, summon a Skeleton.",
       "card_stats": {
         "price": 4,
@@ -10322,6 +12433,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "neo_plexus",
       "tooltip": "A 2/2 for two.",
       "card_stats": {
         "price": 2,
@@ -10344,6 +12456,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "nether_drain",
       "tooltip": "One hero loses two levels; another gains two.  NOT MODELLED: the second half — one aim names one pool, and these are two.",
       "card_stats": {
         "price": 1
@@ -10390,6 +12503,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "nimble_fencer",
       "tooltip": "Unit — Virtuoso. Your virtuosos have haste. (Can attack and ⤵ the turn they arrive.) \"En Garde!\"  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 2,
@@ -10412,6 +12526,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "now",
       "tooltip": "Give a unit or hero haste this turn.",
       "card_stats": {
         "price": 1
@@ -10457,6 +12572,7 @@
         "generate_art",
         "nullcraft"
       ],
+      "asset": "nullcraft",
       "tooltip": "Flying, haste. Can't be aimed at by Buff or Debuff spells.",
       "card_stats": {
         "price": 2,
@@ -10483,6 +12599,7 @@
         "generate_art",
         "resist_2"
       ],
+      "asset": "oathkeeper_of_kor_mountain",
       "tooltip": "Resist 2. 2 gold: sideline every patrolling unit.  NOT MODELLED: the oath, which binds what its own player may do for as long as it stands; and swift strike.",
       "card_stats": {
         "price": 7,
@@ -10524,6 +12641,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "octavian",
       "tooltip": "8 gold and exhaust: ready this and disable up to eight units or heroes.",
       "card_stats": {
         "price": 8,
@@ -10577,6 +12695,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "older_brother",
       "tooltip": "Unit — Drunkard. \"You said what about my little brother?\"  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 2,
@@ -10603,6 +12722,7 @@
         "fcast",
         "untargetable"
       ],
+      "asset": "omegacron",
       "tooltip": "Forecast 6, haste, untargetable. Sacrifice a unit to take a rune off it while it waits.",
       "card_stats": {
         "price": 2,
@@ -10658,6 +12778,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "origin_story",
       "tooltip": "Return a hero to its command zone.",
       "card_stats": {
         "price": 3
@@ -10704,6 +12825,7 @@
         "hero_face",
         "generate_art"
       ],
+      "asset": "orpal_gloor",
       "tooltip": "Hero — Plague Lord. Level 1- 3 : Deals damage to units and heroes in the form of -1/-1 runes. • ATK: 1 • HP: 3 Level 4 - 5 : Sacrifice a non-Demon unit → Put a -1/-1 rune on a unit. ◎ Once-per-turn. • ATK: 2 • HP: 4 Level 6 : The first time a unit with a -1/-1 rune dies each turn, the active player puts a -1/-1 rune on two units friendly to the dead unit. ◎ • ATK: 2 • HP: 5  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 2,
@@ -10728,6 +12850,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "pestering_haunt",
       "tooltip": "Unstoppable but can't patrol. Can't be sacrificed and can't be blocked by anything that would kill it. NOT MODELLED: the last, which asks what a fight would come to before it happens.",
       "card_stats": {
         "price": 0,
@@ -10751,6 +12874,7 @@
         "build_face",
         "generate_art"
       ],
+      "asset": "plague_lab",
       "tooltip": "Arrives: put a -1/-1 rune on all of an opponent's units.  NOT MODELLED: the second half, which adds another rune of whatever kind is already there — a counter naming itself.",
       "card_stats": {
         "price": 3,
@@ -10791,6 +12915,7 @@
         "generate_art",
         "resist_2"
       ],
+      "asset": "plague_lord",
       "tooltip": "Arrives or attacks: a -1/-1 rune on each opposing unit and hero. Resist 2. Upkeep: each base takes a point of damage for every -1/-1 rune its side carries.",
       "card_stats": {
         "price": 6,
@@ -10854,6 +12979,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "plague_spitter",
       "tooltip": "Anti-air. Its damage to units and heroes lands as -1/-1 runes.",
       "card_stats": {
         "price": 3,
@@ -10893,6 +13019,7 @@
         "generate_art",
         "fcast"
       ],
+      "asset": "plasmodium",
       "tooltip": "Forecast 3, haste: played into the future, and it arrives three upkeeps later.",
       "card_stats": {
         "price": 2,
@@ -10931,6 +13058,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "poisonblade_rogue",
       "tooltip": "Attacks: armor piercing, and its damage to units and heroes lands as -1/-1 runes.",
       "card_stats": {
         "price": 2,
@@ -10981,6 +13109,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "porcupine",
       "tooltip": "Deathtouch.",
       "card_stats": {
         "price": 3,
@@ -11003,6 +13132,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "promise_of_payment",
       "tooltip": "The next card you play this turn costs nothing.  NOT MODELLED: all of it — a cost waived for a card not yet chosen, and a debt that loses you the game.",
       "card_stats": {
         "price": 0
@@ -11021,6 +13151,7 @@
         "hero_face",
         "generate_art"
       ],
+      "asset": "prynn_pasternaak",
       "tooltip": "Hero — Templar Historian. Level 1- 3 : Fading 4 Attacks: Put a time rune on this. • ATK: 1 • HP: 3 Level 4 - 6 : Dies from fading: Opponents skip their next draw/discard step (they keep their hand cards). • ATK: 2 • HP: 4 Level 7 : Remove two time runes → Trash a unit. ◎ Leaves: Return all cards to play that Pasternaak trashed. • ATK: 3 • HP: 5  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 2,
@@ -11046,6 +13177,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "rambasa_twin",
       "tooltip": "A 3/2 for four.  NOT MODELLED: both halves — fetching its twin out of the codex, and the first death each turn sending it back there.",
       "card_stats": {
         "price": 4,
@@ -11068,6 +13200,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "ready_or_not",
       "tooltip": "Ready one of your units, and hold their spent ones spent.",
       "card_stats": {
         "price": 4
@@ -11115,6 +13248,7 @@
         "generate_art",
         "fcast"
       ],
+      "asset": "reaver",
       "tooltip": "Forecast 2. Once here: 1 gold and exhaust to deal 6 damage to a unit or hero.  NOT MODELLED: the discard it costs, and trashing two workers as the other half of the choice.",
       "card_stats": {
         "price": 3,
@@ -11181,6 +13315,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "regularsized_rhinoceros",
       "tooltip": "Unit — Rhino. As rhinoceroses go, this rhinoceros is a similar size to most rhinoceroses.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 4,
@@ -11206,6 +13341,7 @@
         "generate_art",
         "fading"
       ],
+      "asset": "rememberer",
       "tooltip": "Fading 3.  NOT MODELLED: putting a fading unit back from the discard when a rune comes off, which needs the removal itself to be a moment.",
       "card_stats": {
         "price": 5,
@@ -11245,6 +13381,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "research__development",
       "tooltip": "Draw five cards.",
       "card_stats": {
         "price": 2
@@ -11278,6 +13415,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "reversal",
       "tooltip": "Deal 3 damage to a patroller, then disable it.",
       "card_stats": {
         "price": 3
@@ -11331,6 +13469,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "revolver_ocelot",
       "tooltip": "Unit — Leopard. Sparkshot (When attacking a patroller, deals 1 damage to an adjacent patroller.) What's an ocelot, anyway?  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 2,
@@ -11354,6 +13493,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "rewind",
       "tooltip": "Ultimate spell. Return every tech 0, I and II unit to its owner's hand.",
       "card_stats": {
         "price": 4
@@ -11392,6 +13532,7 @@
         "hero_face",
         "generate_art"
       ],
+      "asset": "river_montoya",
       "tooltip": "Hero — Dancing Fencer. Level 1- 2 : • ATK: 2 • HP: 3 Level 3 - 4 : ⤵ → Sideline a tech 0 or tech I patroller. (Move it out of the patrol zone.) ◎ • ATK: 2 • HP: 4 Level 5 : Your tech 0 units cost ① less to play. • ATK: 3 • HP: 4  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 2,
@@ -11415,6 +13556,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "sacrifice_the_weak",
       "tooltip": "Each player sacrifices their weakest unit. NOT MODELLED: which one is weakest — \"lowest tech, then least attack\" is an ordering, and a scope names a pool rather than sorting one.",
       "card_stats": {
         "price": 2
@@ -11432,6 +13574,7 @@
         "generate_art",
         "safely"
       ],
+      "asset": "safe_attacking",
       "tooltip": "Your tech 0 and I units get +1 armor while they attack.",
       "card_stats": {
         "price": 1
@@ -11451,6 +13594,7 @@
         "generate_art",
         "healing"
       ],
+      "asset": "savior_monk",
       "tooltip": "Healing 1.",
       "card_stats": {
         "price": 2,
@@ -11473,6 +13617,7 @@
         "relic",
         "generate_art"
       ],
+      "asset": "second_chances",
       "tooltip": "Whenever one of your non-token units leaves play other than in combat, return it.  NOT MODELLED: all of it — a death replacement counted once a turn and choosing at random between several.",
       "card_stats": {
         "price": 2
@@ -11492,6 +13637,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "seer",
       "tooltip": "Arrives: add a time rune to something that already has one.  NOT MODELLED: taking one off instead.",
       "card_stats": {
         "price": 1,
@@ -11540,6 +13686,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "senseis_advice",
       "tooltip": "Give up to two of your units +1 ATK and +1 armor for the turn.",
       "card_stats": {
         "price": 1
@@ -11589,6 +13736,7 @@
         "generate_art",
         "sparkshot"
       ],
+      "asset": "sentry",
       "tooltip": "Sparkshot, anti-air.  NOT MODELLED: turning aside the first damage a spell would deal to one of your patrollers, which asks what a blow comes to before it lands.",
       "card_stats": {
         "price": 2,
@@ -11612,6 +13760,7 @@
         "hero_face",
         "generate_art"
       ],
+      "asset": "setsuki_hiruki",
       "tooltip": "Hero — Fox's Den Student. Level 1- 3 : While Setsuki isn't patrolling, opponents must pay ① each time they would attack her. • ATK: 1 • HP: 3 Level 4 - 5 : Attacks: Swift strike this turn. (Deals combat damage before units and heroes without swift strike.) • ATK: 2 • HP: 3 Level 6 : Upkeep: Draw 2 cards. • ATK: 3 • HP: 4  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 2,
@@ -11635,6 +13784,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "shadow_blade",
       "tooltip": "Deal 3 damage to a patroller. If it dies, its controller discards a card at random.",
       "card_stats": {
         "price": 3
@@ -11687,6 +13837,7 @@
         "generate_art",
         "fading"
       ],
+      "asset": "shimmer_ray",
       "tooltip": "Flying, fading 2.",
       "card_stats": {
         "price": 1,
@@ -11726,6 +13877,7 @@
         "build_face",
         "generate_art"
       ],
+      "asset": "shrine_of_forbidden_knowledge",
       "tooltip": "Upkeep: your base takes 1 damage. Your Demons are unstoppable by units.  NOT MODELLED: the extra card drawn and held, which is a number the draw step owns.",
       "card_stats": {
         "price": 3,
@@ -11757,6 +13909,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "shuriken_hail",
       "tooltip": "Deal 1 damage to each patroller.",
       "card_stats": {
         "price": 1
@@ -11791,6 +13944,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "sickness",
       "tooltip": "Put a -1/-1 rune on up to two units or heroes.",
       "card_stats": {
         "price": 2
@@ -11836,6 +13990,7 @@
         "generate_art",
         "archery"
       ],
+      "asset": "skeletal_archery",
       "tooltip": "Your Skeletons have long-range and anti-air. NOT MODELLED: the long-range half, which is read off the defender in the middle of the duel walk.",
       "card_stats": {
         "price": 2
@@ -11856,6 +14011,7 @@
         "generate_art",
         "bonelord"
       ],
+      "asset": "skeletal_lord",
       "tooltip": "Your Skeletons get +1/+1.  NOT MODELLED: spending five of them to put a unit into play, which is a cost counted in cards rather than in a stat.",
       "card_stats": {
         "price": 3,
@@ -11879,6 +14035,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "skeleton_javelineer",
       "tooltip": "Arrives: put a javelin rune on this. Remove it: long-range this turn. NOT MODELLED: the long-range, which is read off the attacker mid-duel.",
       "card_stats": {
         "price": 1,
@@ -11918,6 +14075,7 @@
         "build_face",
         "generate_art"
       ],
+      "asset": "slowtime_generator",
       "tooltip": "Each player's workers produce no more than 4 gold at their upkeep.  NOT MODELLED: the cap, which is a ceiling on somebody else's income.",
       "card_stats": {
         "price": 5,
@@ -11940,6 +14098,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "smoker",
       "tooltip": "Stealth.  NOT MODELLED: that a spell aimed at him sends him home, which is a ward that answers rather than refuses.",
       "card_stats": {
         "price": 1,
@@ -11962,6 +14121,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "snapback",
       "tooltip": "Return an opposing hero to its command zone and put a +1/+1 rune on one of your units.  NOT MODELLED: that the hero may not be summoned again for a turn.",
       "card_stats": {
         "price": 3
@@ -12010,6 +14170,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "sneaky_pig",
       "tooltip": "Unit — Pig. Haste Arrives: Gets stealth this turn. (Can sneak past patrollers if that opponent has no detector.) Have you ever seen a sneaky pig? Exactly.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 3,
@@ -12033,6 +14194,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "soul_stone",
       "tooltip": "Attach to one of your units: it gets +1/+1.  NOT MODELLED: the death replacement, which wants the stone spent rather than the unit.",
       "card_stats": {
         "price": 2
@@ -12078,6 +14240,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "spark",
       "tooltip": "Minor Spell — Burn. Deal 1 damage to a patroller. Practice mastery of all things, large and small.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 1
@@ -12097,6 +14260,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "sparring_partner",
       "tooltip": "Exhaust: put a +1/+1 rune on one of your units or heroes that has none. 2 gold: ready this.",
       "card_stats": {
         "price": 1,
@@ -12163,6 +14327,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "speed_of_the_fox",
       "tooltip": "Your Ninjutsu hero gets haste, armor piercing and +1 ATK this turn.  NOT MODELLED: readiness, which is a per-turn look rather than a number lent.",
       "card_stats": {
         "price": 2
@@ -12199,6 +14364,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "spreading_plague",
       "tooltip": "Destroy every tech 0, I or II unit and hero carrying a -1/-1 rune.",
       "card_stats": {
         "price": 4
@@ -12236,6 +14402,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "starcrossed_starlet",
       "tooltip": "Unit — Virtuoso. Upkeep: This takes 1 damage. This gets +1 ATK for each damage on her. \"Now's your time to shine.\"  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 2,
@@ -12260,6 +14427,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "stewardess_of_the_undone",
       "tooltip": "Arrives: return a tech 0 unit to its owner's hand.",
       "card_stats": {
         "price": 3,
@@ -12313,6 +14481,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "summon_skeletons",
       "tooltip": "Summon two 1/1 black Skeleton tokens.",
       "card_stats": {
         "price": 3
@@ -12345,6 +14514,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "temporal_distortion",
       "tooltip": "Return one of your tech I or II units to your hand.  NOT MODELLED: putting another of the same tech level into play from your codex, which is a second aim.",
       "card_stats": {
         "price": 2
@@ -12394,6 +14564,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "temporal_research",
       "tooltip": "Draw a card, and another if you have three or more time runes.  NOT MODELLED: the third card at ten runes, which is a second threshold on one line.",
       "card_stats": {
         "price": 2
@@ -12428,6 +14599,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "tenderfoot",
       "tooltip": "Unit — Virtuoso. \"I practice every day. I'm rapidly improving. At this rate, I'll be a Blademaster in no time. Sometimes I have bad days though. Like last week my dog ran away.\"  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 1,
@@ -12453,6 +14625,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "terras_q_the_shackled",
       "tooltip": "Resist 3. Arrives: summon four 0/1 black Warlock tokens for an opponent.  NOT MODELLED: that Terras Q is shackled while those tokens stand.",
       "card_stats": {
         "price": 6,
@@ -12507,6 +14680,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "the_boot",
       "tooltip": "Spell — Debuff. Destroy a tech 0 or tech I unit. (Heroes aren't units.) When you get the boot, you're out.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 3
@@ -12525,6 +14699,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "thieving_imp",
       "tooltip": "Arrives: an opponent discards a card at random.",
       "card_stats": {
         "price": 3,
@@ -12563,6 +14738,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "thunderclap",
       "tooltip": "Sideline up to three grounded units that cost 2 or less.",
       "card_stats": {
         "price": 2
@@ -12615,6 +14791,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "time_spiral",
       "tooltip": "Add a time rune to something that already has one.  NOT MODELLED: taking one off instead.",
       "card_stats": {
         "price": 1
@@ -12659,6 +14836,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "timely_messenger",
       "tooltip": "Unit — Mercenary. Haste (Can attack and play ⤵ abilities, if he had any, the turn he arrives.) \"I'm never late.\"  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 1,
@@ -12682,6 +14860,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "tinkerer",
       "tooltip": "Exhaust: add or take a time rune from something that already has one.  NOT MODELLED: the choice of which — this only adds.",
       "card_stats": {
         "price": 2,
@@ -12729,6 +14908,7 @@
         "generate_art",
         "dojo"
       ],
+      "asset": "training_grounds",
       "tooltip": "Your heroes get +1 ATK. Exhaust: level a hero to max.  NOT MODELLED: the levelling, which is a ladder each hero writes for itself rather than a number to set.",
       "card_stats": {
         "price": 1,
@@ -12752,6 +14932,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "tricycloid",
       "tooltip": "Arrives: three time runes. Spend one to deal 1 damage to a unit or hero.  NOT MODELLED: that it reads +1/+1 for each rune, which is a buff counting a card's own counter.",
       "card_stats": {
         "price": 5,
@@ -12820,6 +15001,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "trojan_duck",
       "tooltip": "Unit — Contraption. Obliterate 2 (Whenever this attacks, destroy the defender's two lowest tech units first.) Arrives or attacks: Deal 4 damage to a building. This weapon of war was disguised as a gift. It didn't fool many.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 7,
@@ -12843,6 +15025,7 @@
         "hero_face",
         "generate_art"
       ],
+      "asset": "troq_bashar",
       "tooltip": "Hero — Renegade Beast. Level 1- 4 : • ATK: 2 • HP: 3 Level 5 - 7 : Attacks: Deal 1 damage to that opponent's base. ◎ • ATK: 3 • HP: 4 Level 8 : Readiness (Doesn't exhaust to attack, but can only attack once per turn.) • ATK: 4 • HP: 5  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 2,
@@ -12867,6 +15050,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "true_power_of_storms",
       "tooltip": "Deal 10 damage to a unit, hero or building.  NOT MODELLED: its price — two other cards costing three, revealed and discarded, which is a cost counted in cards.",
       "card_stats": {
         "price": 3
@@ -12912,6 +15096,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "twilight_baron",
       "tooltip": "Overpower. You can't play tech II or III units.  NOT MODELLED: the cost — no card can put a condition on what another card may play.",
       "card_stats": {
         "price": 4,
@@ -12936,6 +15121,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "two_step",
       "tooltip": "Ongoing Spell — Buff. Channeling (Stays in play. Sacrifice it when you lose your Finesse hero.) Two of your units become dance partners if they aren't partnered already. While you control both, they each get +2/+2. If you lose one, sacrifice Two Step. The two units had a special time together.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 2
@@ -12953,6 +15139,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "undo",
       "tooltip": "Return a tech 0, I or II unit to its owner's hand.",
       "card_stats": {
         "price": 3
@@ -13001,6 +15188,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "unphase",
       "tooltip": "Make one of your units invisible until your next upkeep.",
       "card_stats": {
         "price": 2
@@ -13046,6 +15234,7 @@
         "hero_face",
         "generate_art"
       ],
+      "asset": "vandy_anadrose",
       "tooltip": "Hero — Queen of Demons. Level 1- 2 : Sparkshot (When attacking a patroller, deals 1 damage to an adjacent patroller.) • ATK: 2 • HP: 3 Level 3 - 4 : Resist 1 ①, ⤵, Discard a card → Fetch a Demonology spell from your codex, reveal it, then put it in your hand. • ATK: 3 • HP: 4 Level 5 : Max Level: Give +2/+2 to one friendly and one opposing tech 0 or I unit. They lose +2/+2 and die at your next upkeep. • ATK: 4 • HP: 5  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 2,
@@ -13069,6 +15258,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "versatile_style",
       "tooltip": "Disable a unit or hero with flying.  NOT MODELLED: the other two choices — destroying an upgrade and repairing a building — which are three pools one aim cannot hold.",
       "card_stats": {
         "price": 2
@@ -13120,6 +15310,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "vigor_adept",
       "tooltip": "Frenzy 1 and readiness.",
       "card_stats": {
         "price": 4,
@@ -13166,6 +15357,7 @@
         "hero_face",
         "generate_art"
       ],
+      "asset": "vir_garbarean",
       "tooltip": "Hero — Inventive Engineer. Level 1- 4 : ⓪ → Look at the top card of your draw pile. ① → Exchange the top card of your draw pile with a card from your hand. • ATK: 2 • HP: 3 Level 5 - 6 : ⤵ → Play the top card of your draw pile. (You still pay for it and must meet the reqs for it.) • ATK: 3 • HP: 3 Level 7 : Max Level: Summon a 6/7 purple Mech token with forecast 2 that's untargetable. (It will arrive in two turns.) • ATK: 3 • HP: 5  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 2,
@@ -13191,6 +15383,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "void_star",
       "tooltip": "Flying, overpower. 4 gold: +4 ATK until your next upkeep.",
       "card_stats": {
         "price": 5,
@@ -13231,6 +15424,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "voidblocker",
       "tooltip": "Whenever an opponent attacks it, they spend one of their ready units.  NOT MODELLED: which one — the engine picks the first rather than asking them.",
       "card_stats": {
         "price": 3,
@@ -13268,6 +15462,7 @@
         "generate_art",
         "fading"
       ],
+      "asset": "vortoss_emblem",
       "tooltip": "Fading 3. Attach to one of your units.  NOT MODELLED: the flagbearer half, which narrows somebody else's aim after they have made it.",
       "card_stats": {
         "price": 0
@@ -13314,6 +15509,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "warp_gate_disciple",
       "tooltip": "1 gold and exhaust: put a tech I or II unit from your codex into play.",
       "card_stats": {
         "price": 4,
@@ -13362,6 +15558,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "whitestar_grappler",
       "tooltip": "Exhaust: deal 4 damage to a unit, and sideline it if it was patrolling.  NOT MODELLED: that a survivor hits back.",
       "card_stats": {
         "price": 3,
@@ -13413,6 +15610,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "wight",
       "tooltip": "Unstoppable when attacking heroes, and deathtouch against them.  NOT MODELLED: both, which hold only against one kind of target and so are judged after the aim rather than before it.",
       "card_stats": {
         "price": 4,
@@ -13436,6 +15634,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "wither",
       "tooltip": "Minor Spell — Debuff. Put a -1/-1 rune on a unit or hero.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 2
@@ -13454,6 +15653,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "wrecking_ball",
       "tooltip": "Spell. Deal 2 damage to a building. Wrecked.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
       "card_stats": {
         "price": 0
@@ -13474,6 +15674,7 @@
         "generate_art",
         "unstoppable"
       ],
+      "asset": "xenostalker",
       "tooltip": "Unstoppable. Attacks: 1 damage to up to four grounded patrollers.",
       "card_stats": {
         "price": 4,
@@ -13513,6 +15714,7 @@
         "generate_art",
         "fading"
       ],
+      "asset": "yesterdays_golgort",
       "tooltip": "Fading 2. Damages a building: put a time rune back on it.",
       "card_stats": {
         "price": 3,
@@ -13568,6 +15770,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "young_lightning_dragon",
       "tooltip": "Flying.  NOT MODELLED: that it grows into an Elder Lightning Dragon, which is a transform that has to remember what it was.",
       "card_stats": {
         "price": 3,
@@ -13594,6 +15797,7 @@
         "generate_art",
         "untargetable"
       ],
+      "asset": "zarramonde_the_obliterator",
       "tooltip": "Untargetable. Arrives: destroy a unit, hero, upgrade or ongoing spell.  NOT MODELLED: that it only fires from your hand.",
       "card_stats": {
         "price": 10,
@@ -15466,6 +17670,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "nautical_dog",
       "tooltip": "Frenzy 1 (gets +1 ATK on your turn).",
       "card_stats": {
         "price": 1,
@@ -15491,6 +17696,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "mad_man",
       "tooltip": "Haste.",
       "card_stats": {
         "price": 1,
@@ -15516,6 +17722,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "bombaster",
       "tooltip": "1 gold, Sacrifice Bombaster: deal 2 damage to a patrolling unit.",
       "card_stats": {
         "price": 2,
@@ -15567,6 +17774,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "careless_musketeer",
       "tooltip": "Exhaust: deal 1 damage to a unit or building, and 1 damage to your own base.",
       "card_stats": {
         "price": 2,
@@ -15615,6 +17823,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "bloodrage_ogre",
       "tooltip": "End of turn: return Bloodrage Ogre to his owner's hand if he didn't arrive or attack this turn.",
       "card_stats": {
         "price": 2,
@@ -15655,6 +17864,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "makeshift_rambaster",
       "tooltip": "Haste. +2 ATK when attacking buildings. Can't patrol.",
       "card_stats": {
         "price": 2,
@@ -15692,6 +17902,7 @@
         "relic",
         "generate_art"
       ],
+      "asset": "bloodburn",
       "tooltip": "Whenever a unit dies, put a blood rune on this (limit 4). Exhaust, remove two blood runes: deal 1 damage to a unit or building.",
       "card_stats": {
         "price": 3,
@@ -15737,6 +17948,7 @@
         "arcane",
         "generate_art"
       ],
+      "asset": "scorch",
       "tooltip": "Deal 2 damage to a patroller or building.",
       "card_stats": {
         "price": 3
@@ -15779,6 +17991,7 @@
         "arcane",
         "generate_art"
       ],
+      "asset": "charge",
       "tooltip": "Give one of your units haste and +1 ATK this turn.",
       "card_stats": {
         "price": 2
@@ -15822,6 +18035,7 @@
         "arcane",
         "generate_art"
       ],
+      "asset": "pillage",
       "tooltip": "Deal 1 damage to a base and steal 1 gold from that player. If you have a Pirate, instead deal 2 and steal 2.",
       "card_stats": {
         "price": 1
@@ -15872,6 +18086,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "calypso_vystari",
       "tooltip": "Exhaust: if you played a spell this turn, sideline a patroller.",
       "card_stats": {
         "price": 1,
@@ -15928,6 +18143,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "gunpoint_taxman",
       "tooltip": "Anti-air. Whenever Gunpoint Taxman kills a patroller, steal 1 gold from that player.",
       "card_stats": {
         "price": 2,
@@ -15972,6 +18188,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "chameleon_lizzo",
       "tooltip": "Haste, stealth. At end of turn, return Chameleon Lizzo to his owner's hand.",
       "card_stats": {
         "price": 4,
@@ -15999,6 +18216,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "disguised_monkey",
       "tooltip": "Haste. Arrives: gets stealth this turn.",
       "card_stats": {
         "price": 2,
@@ -16043,6 +18261,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "marauder",
       "tooltip": "Boost 3. Haste. If you boosted, trash a worker.",
       "card_stats": {
         "price": 3,
@@ -16086,6 +18305,7 @@
         "build_face",
         "generate_art"
       ],
+      "asset": "sanatorium",
       "tooltip": "1 gold, exhaust: draw a card, and put up to two tech 0/I/II units from your hand into play with haste. They die at end of turn.",
       "card_stats": {
         "price": 4,
@@ -16139,6 +18359,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "steam_tank",
       "tooltip": "+4 ATK when attacking buildings.",
       "card_stats": {
         "price": 3,
@@ -16182,6 +18403,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "pirate_gunship",
       "tooltip": "Flying, haste, long-range, resist 2. Obliterate 2.",
       "card_stats": {
         "price": 6,
@@ -16233,6 +18455,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "chaos_mirror",
       "tooltip": "Swap the printed ATK of two units and/or heroes until end of turn. NOT MODELLED AT ALL: there is no way to hold one number while writing the other, so this card cannot be cast.",
       "card_stats": {
         "price": 2
@@ -16249,6 +18472,7 @@
         "arcane",
         "generate_art"
       ],
+      "asset": "detonate",
       "tooltip": "Trash a building card (not an add-on), then trash this card. NOT MODELLED: the worker half of the choice.",
       "card_stats": {
         "price": 3
@@ -16296,6 +18520,7 @@
         "arcane",
         "generate_art"
       ],
+      "asset": "surprise_attack",
       "tooltip": "Summon two 3/1 blue Shark tokens with haste and ephemeral.",
       "card_stats": {
         "price": 5
@@ -16329,6 +18554,7 @@
         "arcane",
         "generate_art"
       ],
+      "asset": "maximum_anarchy",
       "tooltip": "Ultimate spell. Destroy all units and heroes.",
       "card_stats": {
         "price": 3
@@ -16368,6 +18594,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "crash_bomber",
       "tooltip": "Dies on another player's turn: deal 1 damage to that player's base. NOT MODELLED: \"Dies on your turn: deal 1 damage to a patroller or building\" — the choice can be opened from the departure, but an offer borrows the cards it shows, and the base leaving its own zone is a base no end condition can find.",
       "card_stats": {
         "price": 1,
@@ -16402,6 +18629,7 @@
         "build_face",
         "generate_art"
       ],
+      "asset": "rickety_mine",
       "tooltip": "Exhaust: gain 3 gold and flip a coin. Heads: phew. Tails: sacrifice Rickety Mine and your base takes 2 damage.",
       "card_stats": {
         "price": 2,
@@ -16439,6 +18667,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "captured_bugblatter",
       "tooltip": "Whenever a unit dies, deal 1 damage to the base of whoever this card is not fighting for.",
       "card_stats": {
         "price": 3,
@@ -16478,6 +18707,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "crashbarrow",
       "tooltip": "Haste, ephemeral, overpower.",
       "card_stats": {
         "price": 3,
@@ -16505,6 +18735,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "land_octopus",
       "tooltip": "Overpower. Upkeep: sacrifice two workers or Land Octopus — here it always takes the workers. Can't patrol.",
       "card_stats": {
         "price": 3,
@@ -16541,6 +18772,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "ogre_recruiter",
       "tooltip": "Attacks: if this survives the combat, gain control of a tech 0 or I unit. NOT MODELLED: nothing can be chosen part-way through a fight.",
       "card_stats": {
         "price": 5,
@@ -16568,6 +18800,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "shoddy_glider",
       "tooltip": "Haste, ephemeral, flying.",
       "card_stats": {
         "price": 1,
@@ -16593,6 +18826,7 @@
         "arcane",
         "generate_art"
       ],
+      "asset": "bloodlust",
       "tooltip": "Give up to two units and/or heroes +1 ATK and haste this turn. They each take 1 damage at end of turn.",
       "card_stats": {
         "price": 2
@@ -16640,6 +18874,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "desperation",
       "tooltip": "If your hand is empty, trash this card and draw three cards. Discard your hand at the end of the main phase. NOT MODELLED AT ALL: it asks about a hand that must already be empty of it, which this file cannot say, so it cannot be cast.",
       "card_stats": {
         "price": 0
@@ -16657,6 +18892,7 @@
         "arcane",
         "generate_art"
       ],
+      "asset": "kidnapping",
       "tooltip": "Gain control of an opposing tech 0, I or II unit until end of turn. Ready it and it gets haste. It goes home at its owner's upkeep.",
       "card_stats": {
         "price": 4
@@ -16713,6 +18949,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "pirategang_commander",
       "tooltip": "Arrives: summon three 2/2 red Pirate tokens. Your units have \"Dies: deal 1 damage to each opposing base\". NOT MODELLED: playing tech I or II Blood units for free, since a cost has no place to say it is waived.",
       "card_stats": {
         "price": 6,
@@ -16755,6 +18992,7 @@
         "relic",
         "generate_art"
       ],
+      "asset": "war_drums",
       "tooltip": "Ultimate ongoing spell, channeling. Your units get +X ATK where X is the number of units you have. The drums are beaten at your upkeep, so the count is taken once and the bonus lasts your turn.",
       "card_stats": {
         "price": 2
@@ -16789,6 +19027,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "firebat",
       "tooltip": "1 gold, exhaust: deal 2 damage to a patroller or building.",
       "card_stats": {
         "price": 2,
@@ -16838,6 +19077,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "lobber",
       "tooltip": "Haste. Exhaust: deal 1 damage to a building.",
       "card_stats": {
         "price": 1,
@@ -16887,6 +19127,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "bamstamper_lizzo",
       "tooltip": "Arrives: deal 3 damage to a unit.",
       "card_stats": {
         "price": 4,
@@ -16940,6 +19181,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "doubleshot_archer",
       "tooltip": "Long-range. Attacks: deal 3 damage to that opponent's base.",
       "card_stats": {
         "price": 3,
@@ -16976,6 +19218,7 @@
         "build_face",
         "generate_art"
       ],
+      "asset": "firehouse",
       "tooltip": "Exhaust: deal 2 damage to a unit, hero or building. If you destroy it that way, ready this.",
       "card_stats": {
         "price": 3,
@@ -17036,6 +19279,7 @@
         "relic",
         "generate_art"
       ],
+      "asset": "hotter_fire",
       "tooltip": "Your red spells and abilities that deal damage deal 1 more.",
       "card_stats": {
         "price": 3
@@ -17056,6 +19300,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "molting_firebird",
       "tooltip": "Flying. Damages a building: deal 1 damage to every unit and hero that opponent controls.",
       "card_stats": {
         "price": 4,
@@ -17100,6 +19345,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "cinderblast_dragon",
       "tooltip": "Flying, resist 2. Arrives or attacks: you may play a non-ultimate Fire spell from your hand or codex for free. NOT MODELLED: the free spell.",
       "card_stats": {
         "price": 7,
@@ -17124,6 +19370,7 @@
         "arcane",
         "generate_art"
       ],
+      "asset": "ember_sparks",
       "tooltip": "Deal 3 damage divided as you choose among one, two or three patrollers and/or buildings. Click a target again to put another point on it.",
       "card_stats": {
         "price": 3
@@ -17167,6 +19414,7 @@
         "arcane",
         "generate_art"
       ],
+      "asset": "fire_dart",
       "tooltip": "Deal 3 damage to a unit, or 2 damage to a building.",
       "card_stats": {
         "price": 2
@@ -17209,6 +19457,7 @@
         "arcane",
         "generate_art"
       ],
+      "asset": "flame_arrow",
       "tooltip": "Deal 4 damage to a unit or hero, or 3 damage to a building.",
       "card_stats": {
         "price": 4
@@ -17253,6 +19502,7 @@
         "arcane",
         "generate_art"
       ],
+      "asset": "burning_volley",
       "tooltip": "Ultimate spell. Deal 5 damage divided as you choose among any number of units, heroes and/or buildings. Click a target again to put another point on it.",
       "card_stats": {
         "price": 3
@@ -17299,6 +19549,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "ironbark_treant",
       "tooltip": "-2 ATK / +2 armor while patrolling.",
       "card_stats": {
         "price": 3,
@@ -17322,6 +19573,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "merfolk_prospector",
       "tooltip": "Exhaust: gain 1 gold.",
       "card_stats": {
         "price": 1,
@@ -17359,6 +19611,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "playful_panda",
       "tooltip": "Arrives: exhausted. Summon a 0/1 green Wisp token.",
       "card_stats": {
         "price": 2,
@@ -17394,6 +19647,7 @@
         "relic",
         "generate_art"
       ],
+      "asset": "rich_earth",
       "tooltip": "You may hire workers for free.",
       "card_stats": {
         "price": 3
@@ -17412,6 +19666,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "spore_shambler",
       "tooltip": "Arrives: put two +1/+1 runes on this. Exhaust, then move a +1/+1 rune from this to another unit.",
       "card_stats": {
         "price": 3,
@@ -17473,6 +19728,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "tiger_cub",
       "tooltip": "Tiger cubs spring from the bushes as they practice hunting their prey.",
       "card_stats": {
         "price": 2,
@@ -17497,6 +19753,7 @@
         "build_face",
         "generate_art"
       ],
+      "asset": "verdant_tree",
       "tooltip": "Healing 1. Exhaust: your tech buildings finish building at once.",
       "card_stats": {
         "price": 2,
@@ -17534,6 +19791,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "young_treant",
       "tooltip": "Arrives: draw a card. Can't attack.",
       "card_stats": {
         "price": 2,
@@ -17569,6 +19827,7 @@
         "arcane",
         "generate_art"
       ],
+      "asset": "forests_favor",
       "tooltip": "Put a +1/+1 rune on a friendly unit or hero that doesn't have one.",
       "card_stats": {
         "price": 2
@@ -17614,6 +19873,7 @@
         "arcane",
         "generate_art"
       ],
+      "asset": "rampant_growth",
       "tooltip": "Give a unit or hero +2 ATK / +2 armor this turn.",
       "card_stats": {
         "price": 2
@@ -17664,6 +19924,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "gemscout_owl",
       "tooltip": "Flying, resist 1, but can't attack. Upkeep: gain 1 gold.",
       "card_stats": {
         "price": 1,
@@ -17701,6 +19962,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "tiny_basilisk",
       "tooltip": "Deathtouch. Unattackable and unstoppable by tech 0 units.",
       "card_stats": {
         "price": 2,
@@ -17727,6 +19989,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "chameleon",
       "tooltip": "Stealth.",
       "card_stats": {
         "price": 2,
@@ -17754,6 +20017,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "dothram_horselord",
       "tooltip": "Overpower. Upkeep: if a player has more total ATK than each other player, Dothram Horselord joins their forces.",
       "card_stats": {
         "price": 3,
@@ -17779,6 +20043,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "fairie_dragon",
       "tooltip": "Flying. Arrives: you may put a feather rune on a tech I or II unit, and a unit with a feather rune flies. NOT MODELLED: that it also becomes 3/1 — a buff shifts a number and this one replaces two.",
       "card_stats": {
         "price": 4,
@@ -17840,6 +20105,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "potent_basilisk",
       "tooltip": "Untargetable, deathtouch. Arrives: you may destroy an upgrade or ongoing spell.",
       "card_stats": {
         "price": 4,
@@ -17891,6 +20157,7 @@
         "generate_art",
         "mimic"
       ],
+      "asset": "wandering_mimic",
       "tooltip": "As long as another unit or hero with flying is in play, Wandering Mimic has flying. The same is true for overpower, haste, sparkshot, untargetable and stealth. NOT MODELLED: sparkshot, which is read off the attacker in the middle of a combat walk.",
       "card_stats": {
         "price": 4,
@@ -17917,6 +20184,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "tyrannosaurus_rex",
       "tooltip": "Overpower, resist 2. Arrives: destroy up to two units or upgrades.",
       "card_stats": {
         "price": 8,
@@ -17955,6 +20223,7 @@
       "key": "circle_of_life",
       "text": "Circle of Life",
       "tags": ["deck_card", "green", "balance", "spell", "summon", "arcane", "generate_art"],
+      "asset": "circle_of_life",
       "tooltip": "Sacrifice a green unit. If you do, put a green unit costing 5 or less from your codex into play. NOT MODELLED: that the new unit is one tech higher.\n\nDEV: the sacrifice is an offer, so the spell casts with nothing to give and fizzles — which is what \"if you do\" means. The offer carries a No button because a single unpayable entry would otherwise have no answer, so a player may also decline a sacrifice they could make; that is strictly worse and nobody will.",
       "card_stats": { "price": 3 },
       "play": {
@@ -17977,6 +20246,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "moments_peace",
       "tooltip": "Until your next turn, your units can't patrol and opposing units can't attack you. NOT MODELLED AT ALL: nothing can suspend a permission for a turn, so this cannot be cast.",
       "card_stats": {
         "price": 2
@@ -17993,6 +20263,7 @@
         "arcane",
         "generate_art"
       ],
+      "asset": "nature_reclaims",
       "tooltip": "Trash an upgrade, ongoing spell or building card (not an add-on), then trash this card.",
       "card_stats": {
         "price": 2
@@ -18042,6 +20313,7 @@
         "relic",
         "generate_art"
       ],
+      "asset": "final_showdown",
       "tooltip": "Ultimate ongoing spell. Attach to your Balance hero: +3/+3, resist 1, and it draws a card when it attacks. Summon two 3/3 green Hunter tokens with anti-air for an opponent, so that it's fair. NOT MODELLED: readiness, which is a cost that is not paid and costs have no such word.",
       "card_stats": {
         "price": 3
@@ -18092,6 +20364,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "centaur",
       "tooltip": "Overpower.",
       "card_stats": {
         "price": 3,
@@ -18118,6 +20391,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "huntress",
       "tooltip": "Sparkshot, anti-air. NOT MODELLED: it sparks every adjacent patroller rather than one of your choice.",
       "card_stats": {
         "price": 2,
@@ -18145,6 +20419,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "barkcoat_bear",
       "tooltip": "Resist 2, overpower.",
       "card_stats": {
         "price": 4,
@@ -18170,6 +20445,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "gigadon",
       "tooltip": "Gigadon costs 1 less for each green unit you have. Overpower.",
       "card_stats": {
         "price": 9,
@@ -18216,6 +20492,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "predator_tiger",
       "tooltip": "Unstoppable by tech 0 units. Whenever it deals combat damage to a base, trash a worker there.",
       "card_stats": {
         "price": 4,
@@ -18256,6 +20533,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "rampaging_elephant",
       "tooltip": "The first attack Rampaging Elephant makes each turn does not cost him his readiness.",
       "card_stats": {
         "price": 6,
@@ -18306,6 +20584,7 @@
         "generate_art",
         "stalker"
       ],
+      "asset": "stalking_tiger",
       "tooltip": "Stealth while attacking a unit; invisible while you have a Feral hero. NOT MODELLED: the stealth is unconditional here, and a post makes it visible to spells as well as to attacks.",
       "card_stats": {
         "price": 3,
@@ -18332,6 +20611,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "moss_ancient",
       "tooltip": "Untargetable. Arrives or attacks: summon three 1/1 green Squirrel tokens with haste, invisible until they take a post. NOT MODELLED: a squirrel that was already yours goes invisible too, since the summon cannot name only the three it has just made.",
       "card_stats": {
         "price": 7,
@@ -18388,6 +20668,7 @@
         "relic",
         "generate_art"
       ],
+      "asset": "behind_the_ferns",
       "tooltip": "Ongoing, channeling. Your units with 3 ATK or less have stealth on your own turn, which is the turn it matters on.",
       "card_stats": {
         "price": 2
@@ -18421,6 +20702,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "ferocity",
       "tooltip": "Your units get armor piercing until your next upkeep. NOT MODELLED: swift strike, which wants a blow struck before the exchange rather than in it.",
       "card_stats": {
         "price": 2
@@ -18454,6 +20736,7 @@
         "arcane",
         "generate_art"
       ],
+      "asset": "murkwood_allies",
       "tooltip": "Boost 4. Choose one: summon a 4/4 green Beast token, or four 1/1 green Frog tokens. Boosted, take both.",
       "card_stats": {
         "price": 5
@@ -18534,6 +20817,7 @@
         "spell_face",
         "generate_art"
       ],
+      "asset": "feral_strike",
       "tooltip": "Ultimate spell. Put up to two units from your hand into play, if you have tech buildings of the same tech level as them. NOT MODELLED: the other half — \"fetch up to two units from your codex, reveal them, then put them in your hand\" — and with it the Boost 4 that takes both, because a pick out of an offer cannot then aim at anything and each half aims somewhere else.",
       "card_stats": {
         "price": 4
@@ -18588,6 +20872,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "galina_glimmer",
       "tooltip": "Legendary: a second copy stays in hand while the first stands. Upkeep: gain 1 gold for every two of your green units. NOT MODELLED: the gold, because the grammar has no division.",
       "card_stats": {
         "price": 1,
@@ -18630,6 +20915,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "giant_panda",
       "tooltip": "Arrives: exhausted. Summon a 0/1 green Wisp token.",
       "card_stats": {
         "price": 3,
@@ -18670,6 +20956,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "artisan_mantis",
       "tooltip": "Arrives: repair 3 damage from a building.",
       "card_stats": {
         "price": 4,
@@ -18722,6 +21009,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "blooming_ancient",
       "tooltip": "Whenever another unit or hero of yours arrives, put a +1/+1 rune on this. Remove a +1/+1 rune: put a +1/+1 rune on another unit.",
       "reactions": [
         { "to": "arrived", "whose": "mine", "forced": "mandatory", "in": "board",
@@ -18776,6 +21064,7 @@
         "build_face",
         "generate_art"
       ],
+      "asset": "blooming_elm",
       "tooltip": "Your units and heroes with +1/+1 runes have overpower. Exhaust: put three +1/+1 runes on a unit.",
       "card_stats": {
         "price": 3,
@@ -18821,6 +21110,7 @@
         "relic",
         "generate_art"
       ],
+      "asset": "might_of_leaf_and_claw",
       "tooltip": "Whenever you deal combat damage with an attacker, put a growth rune on this. While it has at least five, your units and heroes get +5/+5 on your own turn.",
       "card_stats": {
         "price": 3,
@@ -18844,6 +21134,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "oversized_rhinoceros",
       "tooltip": "As rhinoceroses go, this rhinoceros is bigger than most rhinoceroses.",
       "card_stats": {
         "price": 5,
@@ -18872,6 +21163,7 @@
         "fighter_face",
         "generate_art"
       ],
+      "asset": "guargum",
       "tooltip": "Legendary: a second copy stays in hand while the first stands. Resist 2, obliterate 4. You may play Growth spells for free and without having a Growth hero.  NOT MODELLED: the free spells.",
       "card_stats": {
         "price": 10,
@@ -18937,6 +21229,7 @@
         "arcane",
         "generate_art"
       ],
+      "asset": "dinosize",
       "tooltip": "Give a unit or hero +6 ATK / +6 armor this turn.",
       "card_stats": {
         "price": 4
@@ -18983,6 +21276,7 @@
         "arcane",
         "generate_art"
       ],
+      "asset": "polymorph_squirrel",
       "tooltip": "Transform a unit into a 1/1 green Squirrel with no abilities until your next upkeep. NOT MODELLED: it never turns back.",
       "card_stats": {
         "price": 3
@@ -19029,6 +21323,7 @@
         "relic",
         "generate_art"
       ],
+      "asset": "spirit_of_the_panda",
       "tooltip": "Ongoing. Attach to a unit: it gets +2/+2 and \"Attacks: gain 1 gold\". Healing 1.",
       "card_stats": {
         "price": 4
@@ -19076,6 +21371,7 @@
         "arcane",
         "generate_art"
       ],
+      "asset": "stampede",
       "tooltip": "Ultimate spell. Your units get +3 ATK / +3 armor this turn, and excess combat damage they would deal to units and heroes hits that opponent's base.",
       "card_stats": {
         "price": 6
