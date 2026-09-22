@@ -8,6 +8,28 @@
     { "card": "green" }
   ],
 
+  "assets": {
+    "fields_board": { "src": ["gr_fields_board.jpg", "square:sand"] },
+    "forest_board": { "src": ["gr_forest_board.jpg", "square:brown"] },
+    "brickyard_board": { "src": ["gr_brickyard_board.jpg", "square:maroon"] },
+    "house_straw": { "src": ["gr_house_straw.jpg", "square:sand"] },
+    "house_wood": { "src": ["gr_house_wood.jpg", "square:brown"] },
+    "house_brick": { "src": ["gr_house_brick.jpg", "square:maroon"] },
+    "pig": { "src": ["gr_pig.jpg", "triangle:pink"] },
+    "fr_seven_dwarfs": { "src": ["gr_fr_seven_dwarfs.jpg", "square:teal"] },
+    "fr_fairy_godmother": { "src": ["gr_fr_fairy_godmother.jpg", "square:teal"] },
+    "fr_rumpelstiltskin": { "src": ["gr_fr_rumpelstiltskin.jpg", "square:teal"] },
+    "fr_golden_goose": { "src": ["gr_fr_golden_goose.jpg", "square:teal"] },
+    "fr_jack_giant_slayer": { "src": ["gr_fr_jack_giant_slayer.jpg", "square:teal"] },
+    "fr_the_wood_cutter": { "src": ["gr_fr_the_wood_cutter.jpg", "square:teal"] },
+    "f_little_helpers": { "src": ["gr_f_little_helpers.jpg", "square:indigo"] },
+    "f_powerful_friends": { "src": ["gr_f_powerful_friends.jpg", "square:indigo"] },
+    "f_mysterious_stranger": { "src": ["gr_f_mysterious_stranger.jpg", "square:indigo"] },
+    "f_spy_network": { "src": ["gr_f_spy_network.jpg", "square:indigo"] },
+    "f_search_the_past": { "src": ["gr_f_search_the_past.jpg", "square:indigo"] },
+    "f_hidden_vault": { "src": ["gr_f_hidden_vault.jpg", "square:indigo"] }
+  },
+
   "styles": {
     "plate_straw": { "color": [0.85, 0.74, 0.38] },
     "plate_wood": { "color": [0.47, 0.33, 0.20] },
@@ -311,10 +333,12 @@
       ],
       "chosen": { "action": ["move:target:mine.fables"] } },
 
-    { "key": "pig", "text": "Pig", "tags": ["pig", "piece"], "asset": "triangle:pink",
+    { "key": "pig", "text": "Pig", "tags": ["pig", "piece"],
+      "asset": "pig",
       "tooltip": "Your pig. It walks to the Location your Gather card names, and what it finds there is shared with every other pig that walked to the same place." },
 
     { "key": "fields_board", "text": "Fields", "tags": ["location", "at_fields", "ground", "plate_straw", "immutable"],
+      "asset": "fields_board",
       "card_stats": { "pool": 5 },
       "tooltip": "*Straw.* Five more is laid down here at the end of every round.",
       "abilities": [
@@ -327,6 +351,7 @@
         { "key": "replenish", "action": ["stat_gain:pool@self:5"] }
       ] },
     { "key": "forest_board", "text": "Forest", "tags": ["location", "at_forest", "ground", "plate_wood", "immutable"],
+      "asset": "forest_board",
       "card_stats": { "pool": 4 },
       "tooltip": "*Wood.* Four more is laid down here at the end of every round.",
       "abilities": [
@@ -339,6 +364,7 @@
         { "key": "replenish", "action": ["stat_gain:pool@self:4"] }
       ] },
     { "key": "brickyard_board", "text": "Brickyard", "tags": ["location", "at_brickyard", "ground", "plate_brick", "immutable"],
+      "asset": "brickyard_board",
       "card_stats": { "pool": 3 },
       "tooltip": "*Brick.* Three more is laid down here at the end of every round.",
       "abilities": [
@@ -446,6 +472,7 @@
         "action": ["create:mine.sites:house_brick:1"] }] },
 
     { "key": "house_straw", "text": "Straw house", "tags": ["house", "straw_h", "plate_straw"],
+      "asset": "house_straw",
       "tooltip": "Floor, then *Walls* for 4 Straw, then a *Roof* for 6. Walls draw you a Friend; a Roof finishes the house.",
       "abilities": [
         { "key": "walls", "text": "Build the walls — 4 Straw", "phases": ["build_turn"],
@@ -462,6 +489,7 @@
                      "stat_set:fin_type@mine.player:0"] }
       ] },
     { "key": "house_wood", "text": "Wood house", "tags": ["house", "wood_h", "plate_wood"],
+      "asset": "house_wood",
       "tooltip": "Floor, then *Walls* for 4 Wood, then a *Roof* for 6. Walls draw you a Friend; a Roof finishes the house.",
       "abilities": [
         { "key": "walls", "text": "Build the walls — 4 Wood", "phases": ["build_turn"],
@@ -478,6 +506,7 @@
                      "stat_set:fin_type@mine.player:0"] }
       ] },
     { "key": "house_brick", "text": "Brick house", "tags": ["house", "brick_h", "plate_brick"],
+      "asset": "house_brick",
       "tooltip": "Floor, then *Walls* for 4 Brick, then a *Roof* for 6. Walls draw you a Friend; a Roof finishes the house.",
       "abilities": [
         { "key": "walls", "text": "Build the walls — 4 Brick", "phases": ["build_turn"],
@@ -537,12 +566,14 @@
                            "stat_set:straw@mine.player:0"] } },
 
     { "key": "f_little_helpers", "text": "Little Helpers", "tags": ["fable", "plate_fable"],
+      "asset": "f_little_helpers",
       "tooltip": "*End of Gather Phase:* if you are alone at your Location, gain *2 extra actions* during this round's Build phase.",
       "abilities": [{ "key": "end_gather",
         "needs": ["crowd@mine.player == 1"],
         "action": ["stat_gain:extra_acts@mine.player:2"] }] },
 
     { "key": "f_powerful_friends", "text": "Powerful Friends", "tags": ["fable", "plate_fable"],
+      "asset": "f_powerful_friends",
       "tooltip": "*End of Gather Phase:* each opponent sharing your Location loses *1 action* in the Build phase this round, and you gain *1 action* for each of them.",
       "abilities": [{ "key": "end_gather",
         "needs": ["mates@mine.player >= 1"],
@@ -550,6 +581,7 @@
                    "stat_set:bully@mine.player:1"] }] },
 
     { "key": "f_mysterious_stranger", "text": "Mysterious Stranger", "tags": ["fable", "plate_fable"],
+      "asset": "f_mysterious_stranger",
       "tooltip": "*End of Gather Phase:* if you are alone at your Location, gain a *Friend* card from the deck.",
       "abilities": [{ "key": "end_gather",
         "needs": ["crowd@mine.player == 1"],
@@ -557,34 +589,40 @@
                    "draw_from:friend_deck:mine.friend:1"] }] },
 
     { "key": "f_spy_network", "text": "Spy Network", "tags": ["fable", "plate_fable"],
+      "asset": "f_spy_network",
       "tooltip": "*End of Gather Phase:* gain *1 Fable* card for every player at your Location, yourself included.",
       "abilities": [{ "key": "end_gather",
         "action": ["draw_from:fable_deck:mine.fables:sum:crowd@mine.player"] }] },
 
     { "key": "f_search_the_past", "text": "Search the Past", "tags": ["fable", "plate_fable"],
+      "asset": "f_search_the_past",
       "tooltip": "*End of Gather Phase:* if there is at least one opponent at your Location, look through the Fable discard pile and take *2 Fables* of your choice into your hand.",
       "abilities": [{ "key": "end_gather",
         "needs": ["mates@mine.player >= 1"],
         "action": ["stat_set:searching@mine.player:1"] }] },
 
     { "key": "f_hidden_vault", "text": "Hidden Vault", "tags": ["fable", "plate_fable"],
+      "asset": "f_hidden_vault",
       "tooltip": "*End of Gather Phase:* gain *2 resources* of the type produced at your Location.",
       "abilities": [{ "key": "end_gather",
         "action": ["stat_set:vaulting@mine.player:1"] }] },
 
     { "key": "fr_seven_dwarfs", "text": "The Seven Dwarfs", "tags": ["friend_card", "plate_friend"],
+      "asset": "fr_seven_dwarfs",
       "tooltip": "_Secret Tunnels._ *End of Gather Phase:* if you are alone at your Location, you may perform *1 additional Build action* on your turn.",
       "abilities": [{ "key": "end_gather", "phases": ["end_gather"],
         "needs": ["crowd@mine.player == 1"],
         "action": ["stat_gain:extra_acts@mine.player:1"] }] },
 
     { "key": "fr_fairy_godmother", "text": "Fairy Godmother", "tags": ["friend_card", "plate_friend"],
+      "asset": "fr_fairy_godmother",
       "tooltip": "_Magic Wand._ *Special Action:* gain *2 Fable cards*. Once per turn.",
       "abilities": [{ "key": "wand", "text": "Magic Wand — 2 Fables", "phases": ["build_turn"],
         "cost": { "acts@mine.player": 1, "exhaust": 1 },
         "action": ["draw_from:fable_deck:mine.fables:2"] }] },
 
     { "key": "fr_rumpelstiltskin", "text": "Rumpelstiltskin", "tags": ["friend_card", "plate_friend"],
+      "asset": "fr_rumpelstiltskin",
       "tooltip": "_Master Craftsman._ *Start of the Build phase:* gain 1 Straw. *Special Action:* discard all of your Straw to take the same amount of Wood or Brick.",
       "abilities": [
         { "key": "build_start", "phases": ["build_turn"],
@@ -596,6 +634,7 @@
       ] },
 
     { "key": "fr_golden_goose", "text": "The Golden Goose", "tags": ["friend_card", "plate_friend"],
+      "asset": "fr_golden_goose",
       "tooltip": "_Golden Eggs._ *End of Gather Phase:* if you are alone at your Location, gain *1 resource* of your choice from the supply.",
       "abilities": [
         { "key": "end_gather", "phases": ["end_gather"],
@@ -607,11 +646,13 @@
       ] },
 
     { "key": "fr_jack_giant_slayer", "text": "Jack the Giant Slayer", "tags": ["friend_card", "plate_friend"],
+      "asset": "fr_jack_giant_slayer",
       "tooltip": "_Beanstalk._ *After Gather cards are revealed:* add *2 resources* to your Location, of the type produced there.",
       "abilities": [{ "key": "after_reveal", "phases": ["boost"],
         "action": ["stat_set:beanstalk@mine.player:1"] }] },
 
     { "key": "fr_the_wood_cutter", "text": "The Wood Cutter", "tags": ["friend_card", "plate_friend"],
+      "asset": "fr_the_wood_cutter",
       "tooltip": "_Sharpened Axe._ *Special Action:* gain *2 Wood*, and place *2 Wood* onto the Forest.",
       "abilities": [{ "key": "axe", "text": "Sharpened Axe", "phases": ["build_turn"],
         "cost": { "acts@mine.player": 1, "exhaust": 1 },

@@ -210,3 +210,34 @@ scroll — so each set is dealt out in the order the cards are printed, and
 | gs_t_circle_tile.jpg | [Qingming Festival Detail 13](https://commons.wikimedia.org/wiki/File%3AQingming_Festival_Detail_13.jpg) | Zhang Zeduan (1085–1145) | Northern Song Dynasty (960–1127) | Public domain |
 | gs_t_pavilion.jpg | [Qingming shanghe tu gate tower](https://commons.wikimedia.org/wiki/File%3AQingming_shanghe_tu_gate_tower.jpg) | Zhang Zeduan | 8 November 2006, 09:39 (UTC) | Public domain |
 | gs_t_tea_house.jpg | [Qingming Festival Detail 15](https://commons.wikimedia.org/wiki/File%3AQingming_Festival_Detail_15.jpg) | Zhang Zeduan | Northern Song Dynasty (960–1127) | Public domain |
+
+## The Grimm Forest
+
+The 19 `gr_*.jpg` files are **Otto Ubbelohde's illustrations to the Grimms'
+*Kinder- und Hausmärchen*** (1907–09) and four of his Hessian landscapes, all
+public domain, downsized to 400px wide and otherwise unaltered. One artist for
+the whole game, and — unlike the Ghost Stories art — **each one is matched to
+its card**: the Friends are their own tales, the Fables are the tale that says
+the same thing, and the three Locations and three houses are the places.
+
+| File | Work | Why this one | Artist | License |
+|---|---|---|---|---|
+| gr_brickyard_board.jpg | [Otto Ubbelohde - Dorfdächer (Goßfelden)](https://commons.wikimedia.org/wiki/File%3AOtto_Ubbelohde_-_Dorfd%C3%A4cher_%28Go%C3%9Ffelden%29.jpg) | the red tiled roofs of Goßfelden | Otto Ubbelohde | Public domain |
+| gr_f_hidden_vault.jpg | [Otto Ubbelohde - Simeliberg](https://commons.wikimedia.org/wiki/File%3AOtto_Ubbelohde_-_Simeliberg.jpg) | *Simeli Mountain*, which opens on a word | Otto Ubbelohde | Public domain |
+| gr_f_little_helpers.jpg | [Otto Ubbelohde - Die Wichtelmänner](https://commons.wikimedia.org/wiki/File%3AOtto_Ubbelohde_-_Die_Wichtelm%C3%A4nner.jpg) | *The Elves and the Shoemaker* | Otto Ubbelohde | Public domain |
+| gr_f_mysterious_stranger.jpg | [Otto Ubbelohde - Das alte Mütterchen](https://commons.wikimedia.org/wiki/File%3AOtto_Ubbelohde_-_Das_alte_M%C3%BCtterchen.jpg) | *The Old Woman*, alone in a night street | Otto Ubbelohde | Public domain |
+| gr_f_powerful_friends.jpg | [Otto Ubbelohde - Die Bremer Stadtmusikanten](https://commons.wikimedia.org/wiki/File%3AOtto_Ubbelohde_-_Die_Bremer_Stadtmusikanten.jpg) | *The Bremen Town Musicians* | Otto Ubbelohde | Public domain |
+| gr_f_search_the_past.jpg | [Otto Ubbelohde - Die Alte im Wald](https://commons.wikimedia.org/wiki/File%3AOtto_Ubbelohde_-_Die_Alte_im_Wald.jpg) | *The Old Woman in the Wood* | Otto Ubbelohde | Public domain |
+| gr_f_spy_network.jpg | [Otto Ubbelohde - Der Räuberbräutigam 2](https://commons.wikimedia.org/wiki/File%3AOtto_Ubbelohde_-_Der_R%C3%A4uberbr%C3%A4utigam_2.jpg) | *The Robber Bridegroom*, the listener behind the cask | Otto Ubbelohde | Public domain |
+| gr_fields_board.jpg | [Otto Ubbelohde Säender Bauer](https://commons.wikimedia.org/wiki/File%3AOtto_Ubbelohde_S%C3%A4ender_Bauer.jpg) | the sower striding his field | Otto Ubbelohde | Public domain |
+| gr_forest_board.jpg | [Otto Ubbelohde - Der heilige Joseph im Walde](https://commons.wikimedia.org/wiki/File%3AOtto_Ubbelohde_-_Der_heilige_Joseph_im_Walde.jpg) | the wood in *St Joseph in the Forest* | Otto Ubbelohde | Public domain |
+| gr_fr_fairy_godmother.jpg | [Otto Ubbelohde - Aschenputtel 2](https://commons.wikimedia.org/wiki/File%3AOtto_Ubbelohde_-_Aschenputtel_2.jpg) | *Cinderella* | Otto Ubbelohde | Public domain |
+| gr_fr_golden_goose.jpg | [Otto Ubbelohde - Die goldene Gans 2](https://commons.wikimedia.org/wiki/File%3AOtto_Ubbelohde_-_Die_goldene_Gans_2.jpg) | *The Golden Goose* | Otto Ubbelohde | Public domain |
+| gr_fr_jack_giant_slayer.jpg | [Otto Ubbelohde - Der Riese und der Schneider](https://commons.wikimedia.org/wiki/File%3AOtto_Ubbelohde_-_Der_Riese_und_der_Schneider.jpg) | *The Giant and the Tailor* | Otto Ubbelohde | Public domain |
+| gr_fr_rumpelstiltskin.jpg | [Otto Ubbelohde - Rumpelstilzchen](https://commons.wikimedia.org/wiki/File%3AOtto_Ubbelohde_-_Rumpelstilzchen.jpg) | *Rumpelstiltskin*, capering by his fire | Otto Ubbelohde | Public domain |
+| gr_fr_seven_dwarfs.jpg | [Otto Ubbelohde - Schneewittchen 3](https://commons.wikimedia.org/wiki/File%3AOtto_Ubbelohde_-_Schneewittchen_3.jpg) | *Snow White*, the dwarfs about her bed | Otto Ubbelohde | Public domain |
+| gr_fr_the_wood_cutter.jpg | [Otto Ubbelohde - Der Bauer und der Teufel](https://commons.wikimedia.org/wiki/File%3AOtto_Ubbelohde_-_Der_Bauer_und_der_Teufel.jpg) | *The Peasant and the Devil*, the man with his axe | Otto Ubbelohde | Public domain |
+| gr_house_brick.jpg | [Otto Ubbelohde Marburg Im Schloß zu Spangenberg](https://commons.wikimedia.org/wiki/File%3AOtto_Ubbelohde_Marburg_Im_Schlo%C3%9F_zu_Spangenberg.jpg) | the stone courtyard at Spangenberg | Otto Ubbelohde | Public domain |
+| gr_house_straw.jpg | [Otto Ubbelohde - Der Räuberbräutigam](https://commons.wikimedia.org/wiki/File%3AOtto_Ubbelohde_-_Der_R%C3%A4uberbr%C3%A4utigam.jpg) | the thatched cottage of *The Robber Bridegroom* | Otto Ubbelohde | Public domain |
+| gr_house_wood.jpg | [Otto Ubbelohde - Das Waldhaus](https://commons.wikimedia.org/wiki/File%3AOtto_Ubbelohde_-_Das_Waldhaus.jpg) | the timbered *Forest House* | Otto Ubbelohde | Public domain |
+| gr_pig.jpg | [Otto Ubbelohde Marburg Schweinehute im Burgwald](https://commons.wikimedia.org/wiki/File%3AOtto_Ubbelohde_Marburg_Schweinehute_im_Burgwald.jpg) | pigs at pasture in the Burgwald | Otto Ubbelohde | Public domain |
