@@ -59,15 +59,32 @@ local pending   = {}
 -- for as long as the card is on screen.
 local chain_at  = {}
 
--- **One picture crosses the bridge per frame.** Bringing a decoded picture back
--- from the page means handing several hundred kilobytes of base64 through
--- emscripten's stdin, which reads it a byte at a time; a frame that found six
--- finished pictures used to drag all six across before it drew anything, so a
--- screenful arrived in one lump after a stall instead of filling in. Asking for
--- one a frame costs nothing when one is waiting and is the whole of the
--- difference when thirty are.
-local ARRIVALS_PER_FRAME = 1
-local arrivals_left = ARRIVALS_PER_FRAME
+-- **A picture crosses a piece at a time, and the frame has a budget.** Bringing
+-- one back from the page means handing several hundred kilobytes of base64
+-- through emscripten's stdin, which reads it a byte at a time — four hundred
+-- thousand calls into wasm for one card.
+--
+-- Pulling a whole picture in one go therefore stops the frame for as long as
+-- that takes, and at two or three frames a second the game is not playable:
+-- the tooltip needs the cursor to rest on one card across two updates, so at
+-- that rate any movement of the mouse resets it and no tooltip ever appears.
+-- That is what this is really about. **The text, the badges and the tooltips
+-- are enough to play with**, and they are worth more than the pictures arriving
+-- sooner.
+--
+-- So no frame spends more than a budget on it, and a picture too big for one
+-- frame is carried across in pieces over several. It costs the same in total —
+-- the bytes are the bytes — but it is spread over frames that still draw.
+-- **Time is the real budget and bytes are the fallback.** How long a kilobyte
+-- costs depends on the machine and the browser, so a byte count is a guess at
+-- the thing actually worth bounding. Where there is a clock to ask, the frame
+-- stops after a slice of it; where there is not — the headless shim, and the
+-- tests, which want the same answer every run — the byte count bounds it
+-- instead. Both are per frame and either one ends the pulling.
+local CHUNK = 8192            -- netlink.lua measured this the best piece size
+local BYTES_PER_FRAME = 6 * CHUNK
+local SLICE = 0.004           -- a quarter of a 60 Hz frame
+local bytes_left, time_left = BYTES_PER_FRAME, SLICE
 
 -- **Installed once, so a poll is a call and not a program.** Every eval is a
 -- fresh parse — the browser cannot cache a string it has not seen before — and
@@ -75,27 +92,35 @@ local arrivals_left = ARRIVALS_PER_FRAME
 -- JavaScript per waiting picture, five times a second. netlink.lua hit the same
 -- wall first and says more about it; this is the same answer.
 --
--- `__rvaReady` reports every finished job at once, so the whole of the polling
--- is one call a frame however many pictures are in the air.
+-- `__rvaReady` reports every finished job at once, with the size of each, so the
+-- whole of the polling is one call a frame however many pictures are in the air
+-- and nothing has to ask how big a thing is before asking for it.
 local HELPERS = [[(function(){
 	var W = window;
 	W.__rvaReady = function(){
 		try {
 			var A = W.__ravelAssets || {}, out = [];
 			for (var k in A) {
-				var s = A[k].status;
-				if (s === "ok" || s === "error") out.push(s.charAt(0) + k);
+				var a = A[k];
+				if (a.status === "ok") out.push("o" + k + ":" + a.data.length);
+				else if (a.status === "error") out.push("e" + k + ":0");
 			}
 			return out.join(",");
 		} catch (e) { return "" }
 	};
-	W.__rvaTake = function(id){
+	W.__rvaTake = function(id, off, len){
 		try {
 			var a = (W.__ravelAssets || {})[id];
 			if (!a) return "";
-			if (a.status === "error") return "!" + String(a.message || "");
-			return a.status === "ok" ? a.data : "";
-		} catch (e) { return "!" + String(e && e.message || e) }
+			if (a.status === "error") return String(a.message || "error");
+			return a.data.substr(off, len);
+		} catch (e) { return "" }
+	};
+	// Let go of it once it is across, or the page keeps every picture's base64
+	// for the life of the tab — tens of megabytes nobody can reach.
+	W.__rvaDrop = function(id){
+		try { delete (W.__ravelAssets || {})[id] } catch (e) {}
+		return "ok";
 	};
 	return "ok";
 })()]]
@@ -108,7 +133,7 @@ local ready_now = {}
 -- Called once at the top of the frame. Nothing below the presentation line has
 -- any business here; it is main.lua's, beside the draw it paces.
 function M.new_frame()
-	arrivals_left = ARRIVALS_PER_FRAME
+	bytes_left, time_left = BYTES_PER_FRAME, SLICE
 	if not (love.js and love.js.eval) then return end
 	if not next(pending) then ready_now = {}; return end
 	if not helpers_up then
@@ -120,7 +145,10 @@ function M.new_frame()
 	if not ok or type(list) ~= "string" then return end
 	ready_now = {}
 	for item in list:gmatch("[^,]+") do
-		ready_now[item:sub(2)] = item:sub(1, 1) == "o" and "ok" or "error"
+		local flag, id, len = item:match("^(%a)(%w+):(%d+)$")
+		if flag then
+			ready_now[id] = { failed = flag == "e", len = tonumber(len) }
+		end
 	end
 end
 
@@ -891,31 +919,63 @@ local function fetch_browser(url, id, max)
 	-- here — no eval, no string, no parse.
 	local state = ready_now[id]
 	if not state then return nil end
-	-- Ready, and waiting only on its turn: one picture may cross per frame, and
-	-- a picture that has arrived should cross on the next frame with room for
-	-- it. Asking for the bytes is the expensive half and this is the whole of
-	-- what paces it.
-	if arrivals_left <= 0 then return nil end
-	arrivals_left = arrivals_left - 1
 
-	local began = (love.timer and love.timer.getTime and love.timer.getTime()) or 0
-	local ok, result = pcall(love.js.eval, ("__rvaTake(%q)"):format(id))
-	if not ok or type(result) ~= "string" or result == "" then return nil end
-
-	pending[id] = nil
-	ready_now[id] = nil
-	if state == "error" or result:sub(1, 1) == "!" then
-		print("asset download failed: " .. url .. " (" .. result:sub(2) .. ")")
+	local function give_up(why)
+		pcall(love.js.eval, ("__rvaDrop(%q)"):format(id))
+		pending[id] = nil
+		ready_now[id] = nil
+		print("asset download failed: " .. url .. " (" .. tostring(why) .. ")")
 		return false
 	end
+	if state.failed then
+		local ok, why = pcall(love.js.eval, ("__rvaTake(%q,0,400)"):format(id))
+		return give_up(ok and why or "the page would not say")
+	end
+
+	-- Carried across in pieces, as many as the frame can still afford. A picture
+	-- bigger than one frame's budget simply takes more frames, and every one of
+	-- them still draws.
+	local job = pending[id]
+	if type(job) ~= "table" then
+		job = { parts = {}, got = 0,
+			began = (love.timer and love.timer.getTime and love.timer.getTime()) or 0 }
+		pending[id] = job
+	end
+	local clock = love.timer and love.timer.getTime
+	while job.got < state.len and bytes_left > 0 and (not clock or time_left > 0) do
+		local want = math.min(CHUNK, state.len - job.got, bytes_left)
+		local at = clock and clock()
+		local ok, piece = pcall(love.js.eval, ("__rvaTake(%q,%d,%d)"):format(id, job.got, want))
+		if at then time_left = time_left - (clock() - at) end
+		-- A short piece means the bridge mangled it — a newline in the payload
+		-- would, and nothing else should — and carrying on would splice a
+		-- corrupt picture together. base64 has no newline in it, so this should
+		-- never fire; if it does, the assumption is what broke.
+		if not ok or type(piece) ~= "string" or #piece ~= want then
+			return give_up(("the bridge returned %s bytes of the %d asked for")
+				:format(type(piece) == "string" and #piece or "no", want))
+		end
+		job.parts[#job.parts + 1] = piece
+		job.got = job.got + want
+		bytes_left = bytes_left - want
+	end
+	if job.got < state.len then return nil end   -- the rest next frame
+
+	local began = job.began
+	local result = table.concat(job.parts)
+	pcall(love.js.eval, ("__rvaDrop(%q)"):format(id))
+	pending[id] = nil
+	ready_now[id] = nil
 	-- Everything below this line used to fail by returning nil or false without
 	-- a word, so a picture that never appeared looked exactly like a picture
 	-- still on its way. The bytes have crossed by now; say what became of them.
 	-- **Timed, because this is the step that can hurt and nobody could see it.**
 	-- The bytes come back through emscripten's stdin, which hands them over one
 	-- at a time: a 300 KB picture is 400 KB of base64 and so four hundred
-	-- thousand calls from JavaScript into wasm, for one card. The numbers go to
-	-- the console so the cost is a measurement rather than an argument.
+	-- thousand calls from JavaScript into wasm, for one card. The crossing is
+	-- wall-clock across every frame it took, not the frame's own cost — the
+	-- budget above is what bounds that — so a long time here is fine and a long
+	-- time *decoding* is not, since decoding cannot be spread.
 	local crossed = (love.timer and love.timer.getTime and love.timer.getTime()) or began
 	local b64 = result:match("^data:[^,]*,(.*)$")
 	if not b64 then
@@ -939,7 +999,7 @@ local function fetch_browser(url, id, max)
 	local done = (love.timer and love.timer.getTime and love.timer.getTime()) or crossed
 	-- Floored, not left to the format: Lua 5.3 and up refuse "%d" on a number
 	-- with a fraction, and the suite runs there as well as under LuaJIT.
-	print(("asset arrived: %s — %d KB across the bridge in %d ms, decoded in %d ms")
+	print(("asset arrived: %s — %d KB across the bridge over %d ms, decoded in %d ms")
 		:format(url, math.floor(#result / 1024), math.floor((crossed - began) * 1000),
 			math.floor((done - crossed) * 1000)))
 	return img

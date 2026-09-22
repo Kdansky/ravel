@@ -201,55 +201,63 @@ function M.test_assets_a_missing_local_file_is_fetched_beside_the_page(check)
 	cards.reset()
 end
 
--- **One picture crosses per frame.** Everything else about the browser fetch is
--- asynchronous, but the step that hands the bytes back is not: they come through
--- emscripten's stdin a byte at a time, so a frame that found several finished at
--- once used to drag them all across before drawing — a stall, then a screenful
--- appearing in one lump.
-function M.test_assets_one_picture_crosses_the_bridge_per_frame(check)
-	local G, was = fixture('{ "a": "one.jpg", "b": "two.jpg" }', '"a"'), declaration.G
+-- **No frame gives a whole picture a whole frame.** The bytes come back through
+-- emscripten's stdin one at a time, so pulling several hundred kilobytes in one
+-- go stops the frame for as long as that takes — and at two or three frames a
+-- second the tooltip never appears, because it needs the cursor to rest on one
+-- card across two updates. A picture is carried across in pieces instead, as
+-- many as the frame can still afford, so the text and the badges stay playable
+-- while the art fills in.
+function M.test_assets_a_big_picture_is_carried_across_over_several_frames(check)
+	local G, was = fixture('{ "a": "one.jpg" }', '"a"'), declaration.G
 	declaration.G = G
 	cards.reset()
-	local ids, takes, sweeps = {}, 0, 0
+	local body = string.rep("A", 200000)
+	local payload = "data:image/jpeg;base64," .. body
+	local id, pulled, this_frame = nil, 0, 0
 	love.js = { eval = function(program)
 		program = tostring(program)
-		local want = program:match('^__rvaTake%("([%x]+)"%)$')
-		if want then takes = takes + 1; return "not a data url" end   -- refused below; the count is the point
+		local who, off, len = program:match('^__rvaTake%("(%w+)",(%d+),(%d+)%)$')
+		if who then
+			off, len = tonumber(off), tonumber(len)
+			pulled = pulled + len
+			this_frame = this_frame + len
+			return payload:sub(off + 1, off + len)
+		end
+		if program:find("__rvaDrop(", 1, true) then return "ok" end
 		if program == "__rvaReady()" then
-			sweeps = sweeps + 1
-			local out = {}
-			for _, id in ipairs(ids) do out[#out + 1] = "o" .. id end
-			return table.concat(out, ",")
+			return id and ("o" .. id .. ":" .. #payload) or ""
 		end
 		if program:find("__rvaReady = function", 1, true) then return "ok" end
-		local id = program:match('var id = "([%x]+)"')
-		if id then ids[#ids + 1] = id end
+		id = program:match('var id = "(%w+)"') or id
 		return "started"
 	end }
 	local seen = love.filesystem.getInfo
 	love.filesystem.getInfo = function() return nil end
 
-	-- Frame one asks for both; nothing is finished yet, so nothing crosses.
 	cards.new_frame()
+	cards.asset_image("a", "card_a")          -- kickoff; the page has nothing yet
+	check("nothing crosses before the page says it is ready", pulled == 0, tostring(pulled))
+
+	cards.new_frame(); this_frame = 0
 	cards.asset_image("a", "card_a")
-	cards.asset_image("b", "card_b")
-	check("both were asked for", #ids == 2, tostring(#ids))
-	check("and neither crossed before the page said it was ready", takes == 0, tostring(takes))
+	local budget = this_frame
+	check("the first frame takes a bite and not the lot", budget > 0 and budget < #payload,
+		budget .. " of " .. #payload)
+	check("and the picture is not ready yet", cards.loading() == 1, tostring(cards.loading()))
 
-	-- Frame two: the sweep reports both finished, and exactly one may cross.
-	cards.new_frame()
-	cards.asset_image("a", "card_a")
-	cards.asset_image("b", "card_b")
-	check("only one of the two crossed in the frame", takes == 1, tostring(takes))
-	check("the one still waiting is counted as loading", cards.loading() == 1, tostring(cards.loading()))
-
-	cards.new_frame()
-	cards.asset_image("b", "card_b")
-	check("and the other crossed on the next one", takes == 2, tostring(takes))
-	check("with nothing left in flight", cards.loading() == 0, tostring(cards.loading()))
-
-	-- The whole of the polling, however many are in the air.
-	check("one sweep per frame and no other question", sweeps == 2, tostring(sweeps))
+	-- Every frame takes the same bite until the last, which takes the remainder.
+	local frames = 1
+	while cards.loading() == 1 and frames < 200 do
+		cards.new_frame(); this_frame = 0
+		cards.asset_image("a", "card_a")
+		frames = frames + 1
+		check("no frame ever takes more than the budget", this_frame <= budget,
+			this_frame .. " > " .. budget)
+	end
+	check("all of it crossed, and only once", pulled == #payload, pulled .. " of " .. #payload)
+	check("over as many frames as the budget needs",
+		frames == math.ceil(#payload / budget), frames .. " frames of " .. budget)
 
 	love.filesystem.getInfo = seen
 	love.js = nil
