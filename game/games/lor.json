@@ -20,18 +20,56 @@
     },
     { "key": "power", "icon": "blade", "display": "offscreen" },
     { "key": "health", "icon": "heart", "display": "offscreen" },
-    { "key": "incoming", "min": 0, "on": ["unit"], "start": 0, "display": "offscreen" }
+    { "key": "incoming", "min": 0, "on": ["unit"], "start": 0, "display": "offscreen" },
+    {
+      "key": "given_power",
+      "min": 0,
+      "on": ["unit"],
+      "start": 0,
+      "buffs": { "power": 1 },
+      "display": "offscreen"
+    },
+    {
+      "key": "given_health",
+      "min": 0,
+      "on": ["unit"],
+      "start": 0,
+      "buffs": { "health": 1 },
+      "display": "offscreen"
+    },
+    {
+      "key": "granted_power",
+      "min": 0,
+      "on": ["unit"],
+      "start": 0,
+      "buffs": { "power": 1 },
+      "display": "offscreen"
+    },
+    {
+      "key": "granted_health",
+      "min": 0,
+      "on": ["unit"],
+      "start": 0,
+      "buffs": { "health": 1 },
+      "display": "offscreen"
+    }
   ],
   "verbs": [
     {
       "key": "damage",
       "does": "stat_damage",
       "tooltip": "Damage — what a strike or a spell takes off a unit, and what Tough answers."
+    },
+    {
+      "key": "cast",
+      "does": "target",
+      "tooltip": "Cast — a spell being aimed, which is the aim a ward answers."
     }
   ],
   "computed_tags": {
     "dead": { "needs": ["health@self < 1"] },
-    "passed": { "needs": ["passed@self >= 1"] }
+    "passed": { "needs": ["passed@self >= 1"] },
+    "any_target": { "any_of": ["unit", "nexus_plate"] }
   },
   "computes": [
     {
@@ -43,7 +81,8 @@
   "styles": {
     "unit": { "fit": "card", "badges": ["power", "health"] },
     "nexus_plate": { "hide": ["cell_outline"], "fit": "card", "badges": ["nexus", "mana"] },
-    "lane": { "hide": ["cell_outline"], "chequer": ["#243248", "#2b3a55"] }
+    "lane": { "hide": ["cell_outline"], "chequer": ["#243248", "#2b3a55"] },
+    "spell": { "fit": "card" }
   },
   "patterns": { "across": { "vectors": [[0, 1], [0, -1]], "class": ["step"] } },
   "tags": {
@@ -130,24 +169,51 @@
       "tags": ["shuffle"],
       "pos": [[0.84, 0.1, 0.98, 0.3], [0.84, 0.7, 0.98, 0.9]],
       "contents": [
-        "plucky_poro:3",
+        "plucky_poro:2",
         "cithria:3",
         "vanguard_defender:3",
-        "vanguard_lookout:3",
+        "vanguard_lookout:1",
         "ruthless_raider:3",
         "loyal_badgerbear:3",
-        "mighty_poro:3",
-        "bull_elnuk:3",
-        "vanguard_cavalry:3",
-        "alpha_wildclaw:3"
+        "mighty_poro:1",
+        "bull_elnuk:2",
+        "vanguard_cavalry:2",
+        "alpha_wildclaw:2",
+        "warning_shot:1",
+        "blades_edge:1",
+        "elixir_of_iron:1",
+        "elixir_of_wrath:1",
+        "radiant_strike:1",
+        "mystic_shot:1",
+        "brothers_bond:1",
+        "death_lotus:1",
+        "glimpse_beyond:1",
+        "deaths_hand:1",
+        "culling_strike:1",
+        "avalanche:1",
+        "bloodsworn_pledge:1",
+        "fury_of_the_north:1",
+        "relentless_pursuit:1",
+        "vengeance:1",
+        "decimate:1",
+        "for_demacia:1"
       ]
+    },
+    {
+      "key": "discard",
+      "label": "Discard",
+      "layout": "stack",
+      "status": "grave",
+      "use": "none",
+      "copies": "per_seat",
+      "pos": [[0.01, 0.01, 0.15, 0.16], [0.01, 0.84, 0.15, 0.99]]
     },
     {
       "key": "hand",
       "layout": "row",
       "visibility": "owner",
       "copies": "per_seat",
-      "pos": [[0.04, 0.01, 0.8, 0.11], [0.04, 0.89, 0.8, 0.99]]
+      "pos": [[0.17, 0.01, 0.82, 0.11], [0.17, 0.89, 0.82, 0.99]]
     },
     {
       "key": "bench",
@@ -156,6 +222,7 @@
       "use": "abilities",
       "copies": "per_seat",
       "grid": [6, 1],
+      "tags": ["in_play"],
       "applies": ["on_bench"],
       "pos": [[0.16, 0.13, 0.8, 0.28], [0.16, 0.72, 0.8, 0.87]]
     },
@@ -172,7 +239,7 @@
       "key": "battle",
       "layout": "grid",
       "grid": [6, 2],
-      "tags": ["lane"],
+      "tags": ["lane", "in_play"],
       "applies": ["in_combat"],
       "pos": [0.16, 0.31, 0.8, 0.69]
     }
@@ -188,6 +255,9 @@
       "key": "round_start",
       "type": "automatic",
       "actions": [
+        "stat_set:given_power@each.anyone.unit:0",
+        "stat_set:given_health@each.anyone.unit:0",
+        "reset:each.anyone.unit:health",
         "draw_from:mine.deck:mine.hand:1",
         "draw_from:enemy.deck:enemy.hand:1",
         "stat_set:mana@each.anyone.player:0",
@@ -220,7 +290,7 @@
       "key": "declare_attack",
       "type": "player_input",
       "label": "Send units into your lanes, then press Done",
-      "zone": "bench",
+      "zone": ["bench", "hand"],
       "actions": ["stat_set:attacking@each.bench:0"],
       "next": [{ "then": "declare_block" }]
     },
@@ -229,8 +299,23 @@
       "type": "player_input",
       "label": "Block what you can, then press Done",
       "seat": "next",
-      "zone": "bench",
-      "next": [{ "then": "strike" }]
+      "zone": ["bench", "hand"],
+      "actions": ["stat_set:passed@each.anyone.pass_button:0"],
+      "next": [{ "then": "combat_response" }]
+    },
+    {
+      "key": "combat_response",
+      "type": "player_input",
+      "label": "Answer the blocks, or pass",
+      "seat": "next",
+      "zone": "hand",
+      "next": [{ "when": "count:passed >= 2", "then": "strike" }, { "then": "combat_hand_over" }]
+    },
+    {
+      "key": "combat_hand_over",
+      "type": "automatic",
+      "actions": ["stat_set:passed@each.enemy.pass_button:0"],
+      "next": [{ "then": "combat_response" }]
     },
     {
       "key": "strike",
@@ -260,7 +345,7 @@
       "key": "after_combat",
       "type": "automatic",
       "actions": [
-        "purge:dead",
+        "destroy:dead",
         "stat_set:attacking@each.battle:0",
         "stat_set:spill@each.battle:0",
         "move:mine.battle:mine.bench",
@@ -324,6 +409,7 @@
       "tags": ["unit", "tough"],
       "card_stats": { "power": 1, "health": 1, "cost": 1, "attacking": 0, "spill": 0 },
       "play": {
+        "phases": ["play"],
         "cost": { "mana": 1 },
         "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
         "action": ["move_to:target", "end_phase"]
@@ -336,6 +422,7 @@
       "tags": ["unit"],
       "card_stats": { "power": 2, "health": 2, "cost": 1, "attacking": 0, "spill": 0 },
       "play": {
+        "phases": ["play"],
         "cost": { "mana": 1 },
         "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
         "action": ["move_to:target", "end_phase"]
@@ -348,6 +435,7 @@
       "tags": ["unit", "tough"],
       "card_stats": { "power": 2, "health": 2, "cost": 2, "attacking": 0, "spill": 0 },
       "play": {
+        "phases": ["play"],
         "cost": { "mana": 2 },
         "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
         "action": ["move_to:target", "end_phase"]
@@ -360,6 +448,7 @@
       "tags": ["unit"],
       "card_stats": { "power": 1, "health": 4, "cost": 2, "attacking": 0, "spill": 0 },
       "play": {
+        "phases": ["play"],
         "cost": { "mana": 2 },
         "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
         "action": ["move_to:target", "end_phase"]
@@ -372,6 +461,7 @@
       "tags": ["unit", "tough", "overwhelm"],
       "card_stats": { "power": 3, "health": 1, "cost": 2, "attacking": 0, "spill": 0 },
       "play": {
+        "phases": ["play"],
         "cost": { "mana": 2 },
         "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
         "action": ["move_to:target", "end_phase"]
@@ -384,6 +474,7 @@
       "tags": ["unit"],
       "card_stats": { "power": 3, "health": 4, "cost": 3, "attacking": 0, "spill": 0 },
       "play": {
+        "phases": ["play"],
         "cost": { "mana": 3 },
         "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
         "action": ["move_to:target", "end_phase"]
@@ -396,6 +487,7 @@
       "tags": ["unit", "overwhelm"],
       "card_stats": { "power": 3, "health": 3, "cost": 3, "attacking": 0, "spill": 0 },
       "play": {
+        "phases": ["play"],
         "cost": { "mana": 3 },
         "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
         "action": ["move_to:target", "end_phase"]
@@ -408,6 +500,7 @@
       "tags": ["unit"],
       "card_stats": { "power": 4, "health": 5, "cost": 4, "attacking": 0, "spill": 0 },
       "play": {
+        "phases": ["play"],
         "cost": { "mana": 4 },
         "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
         "action": ["move_to:target", "end_phase"]
@@ -420,6 +513,7 @@
       "tags": ["unit", "tough"],
       "card_stats": { "power": 5, "health": 5, "cost": 5, "attacking": 0, "spill": 0 },
       "play": {
+        "phases": ["play"],
         "cost": { "mana": 5 },
         "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
         "action": ["move_to:target", "end_phase"]
@@ -432,9 +526,363 @@
       "tags": ["unit", "overwhelm"],
       "card_stats": { "power": 7, "health": 6, "cost": 6, "attacking": 0, "spill": 0 },
       "play": {
+        "phases": ["play"],
         "cost": { "mana": 6 },
         "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
         "action": ["move_to:target", "end_phase"]
+      }
+    },
+    {
+      "key": "warning_shot",
+      "text": "Warning Shot",
+      "asset": "star:3:crimson",
+      "tags": ["spell", "burst"],
+      "tooltip": "Burst. Deal 1 to the enemy Nexus.",
+      "card_stats": { "cost": 0 },
+      "play": {
+        "phases": ["play", "declare_attack", "declare_block", "combat_response"],
+        "cost": { "mana": 0 },
+        "action": ["damage:nexus@enemy.player:1"],
+        "spent": "mine.discard"
+      }
+    },
+    {
+      "key": "blades_edge",
+      "text": "Blade's Edge",
+      "asset": "star:4:crimson",
+      "tags": ["spell", "fast"],
+      "tooltip": "Fast. Deal 1 to anything.",
+      "card_stats": { "cost": 1 },
+      "play": {
+        "phases": ["play", "combat_response"],
+        "cost": { "mana": 1 },
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "anyone",
+          "tags": ["any_target"],
+          "zones": ["in_play", "seat_box"]
+        },
+        "action": ["damage:health@target:1", "damage:nexus@target:1", "destroy:dead", "end_phase"],
+        "spent": "mine.discard"
+      }
+    },
+    {
+      "key": "elixir_of_iron",
+      "text": "Elixir of Iron",
+      "asset": "star:4:cyan",
+      "tags": ["spell", "burst"],
+      "tooltip": "Burst. Give an ally +0|+2 this round.",
+      "card_stats": { "cost": 1 },
+      "play": {
+        "phases": ["play", "declare_attack", "declare_block", "combat_response"],
+        "cost": { "mana": 1 },
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "mine",
+          "tags": ["unit"],
+          "zones": ["in_play"]
+        },
+        "action": ["stat_gain:given_health@target:2"],
+        "spent": "mine.discard"
+      }
+    },
+    {
+      "key": "elixir_of_wrath",
+      "text": "Elixir of Wrath",
+      "asset": "star:4:crimson",
+      "tags": ["spell", "burst"],
+      "tooltip": "Burst. Give an ally +3|+0 this round.",
+      "card_stats": { "cost": 1 },
+      "play": {
+        "phases": ["play", "declare_attack", "declare_block", "combat_response"],
+        "cost": { "mana": 1 },
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "mine",
+          "tags": ["unit"],
+          "zones": ["in_play"]
+        },
+        "action": ["stat_gain:given_power@target:3"],
+        "spent": "mine.discard"
+      }
+    },
+    {
+      "key": "radiant_strike",
+      "text": "Radiant Strike",
+      "asset": "star:4:gold",
+      "tags": ["spell", "burst"],
+      "tooltip": "Burst. Give an ally +1|+1 this round.",
+      "card_stats": { "cost": 1 },
+      "play": {
+        "phases": ["play", "declare_attack", "declare_block", "combat_response"],
+        "cost": { "mana": 1 },
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "mine",
+          "tags": ["unit"],
+          "zones": ["in_play"]
+        },
+        "action": ["stat_gain:given_power@target:1", "stat_gain:given_health@target:1"],
+        "spent": "mine.discard"
+      }
+    },
+    {
+      "key": "mystic_shot",
+      "text": "Mystic Shot",
+      "asset": "star:5:amber",
+      "tags": ["spell", "fast"],
+      "tooltip": "Fast. Deal 2 to anything.",
+      "card_stats": { "cost": 2 },
+      "play": {
+        "phases": ["play", "combat_response"],
+        "cost": { "mana": 2 },
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "anyone",
+          "tags": ["any_target"],
+          "zones": ["in_play", "seat_box"]
+        },
+        "action": ["damage:health@target:2", "damage:nexus@target:2", "destroy:dead", "end_phase"],
+        "spent": "mine.discard"
+      }
+    },
+    {
+      "key": "brothers_bond",
+      "text": "Brothers' Bond",
+      "asset": "star:5:gold",
+      "tags": ["spell", "burst"],
+      "tooltip": "Burst. Grant 2 allies +2|+0.",
+      "card_stats": { "cost": 2 },
+      "play": {
+        "phases": ["play", "declare_attack", "declare_block", "combat_response"],
+        "cost": { "mana": 2 },
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 2,
+          "owner": "mine",
+          "tags": ["unit"],
+          "zones": ["in_play"]
+        },
+        "action": ["stat_gain:granted_power@target:2"],
+        "spent": "mine.discard"
+      }
+    },
+    {
+      "key": "death_lotus",
+      "text": "Death Lotus",
+      "asset": "star:5:crimson",
+      "tags": ["spell", "fast"],
+      "tooltip": "Fast. Deal 1 to ALL battling units.",
+      "card_stats": { "cost": 2 },
+      "play": {
+        "phases": ["play", "combat_response"],
+        "cost": { "mana": 2 },
+        "action": ["damage:health@each.battle:1", "destroy:dead", "end_phase"],
+        "spent": "mine.discard"
+      }
+    },
+    {
+      "key": "glimpse_beyond",
+      "text": "Glimpse Beyond",
+      "asset": "star:5:forest",
+      "tags": ["spell", "fast"],
+      "tooltip": "Fast. Kill an ally to draw 2.",
+      "card_stats": { "cost": 2 },
+      "play": {
+        "phases": ["play", "combat_response"],
+        "cost": { "mana": 2 },
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "mine",
+          "tags": ["unit"],
+          "zones": ["in_play"]
+        },
+        "action": ["destroy:target", "draw_from:mine.deck:mine.hand:2", "end_phase"],
+        "spent": "mine.discard"
+      }
+    },
+    {
+      "key": "deaths_hand",
+      "text": "Death's Hand",
+      "asset": "star:6:crimson",
+      "tags": ["spell", "fast"],
+      "tooltip": "Fast. Deal 2 to an enemy and 1 to the enemy Nexus.",
+      "card_stats": { "cost": 3 },
+      "play": {
+        "phases": ["play", "combat_response"],
+        "cost": { "mana": 3 },
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "enemy",
+          "tags": ["unit"],
+          "zones": ["in_play"]
+        },
+        "action": ["damage:health@target:2", "damage:nexus@enemy.player:1", "destroy:dead", "end_phase"],
+        "spent": "mine.discard"
+      }
+    },
+    {
+      "key": "culling_strike",
+      "text": "Culling Strike",
+      "asset": "star:6:crimson",
+      "tags": ["spell", "fast"],
+      "tooltip": "Fast. Kill a unit with 3 or less Power.",
+      "card_stats": { "cost": 3 },
+      "play": {
+        "phases": ["play", "combat_response"],
+        "cost": { "mana": 3 },
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "anyone",
+          "tags": ["unit"],
+          "zones": ["in_play"],
+          "where": ["power@target <= 3"]
+        },
+        "action": ["destroy:target", "end_phase"],
+        "spent": "mine.discard"
+      }
+    },
+    {
+      "key": "avalanche",
+      "text": "Avalanche",
+      "asset": "star:7:cyan",
+      "tags": ["spell", "slow"],
+      "tooltip": "Slow. Deal 2 to ALL units.",
+      "card_stats": { "cost": 4 },
+      "play": {
+        "phases": ["play"],
+        "cost": { "mana": 4 },
+        "action": ["damage:health@each.anyone.unit:2", "destroy:dead", "end_phase"],
+        "spent": "mine.discard"
+      }
+    },
+    {
+      "key": "bloodsworn_pledge",
+      "text": "Bloodsworn Pledge",
+      "asset": "star:7:crimson",
+      "tags": ["spell", "burst"],
+      "tooltip": "Burst. Grant 2 allies +0|+3.",
+      "card_stats": { "cost": 4 },
+      "play": {
+        "phases": ["play", "declare_attack", "declare_block", "combat_response"],
+        "cost": { "mana": 4 },
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 2,
+          "owner": "mine",
+          "tags": ["unit"],
+          "zones": ["in_play"]
+        },
+        "action": ["stat_gain:granted_health@target:3"],
+        "spent": "mine.discard"
+      }
+    },
+    {
+      "key": "fury_of_the_north",
+      "text": "Fury of the North",
+      "asset": "star:7:cyan",
+      "tags": ["spell", "burst"],
+      "tooltip": "Burst. Give an ally +3|+4 this round.",
+      "card_stats": { "cost": 4 },
+      "play": {
+        "phases": ["play", "declare_attack", "declare_block", "combat_response"],
+        "cost": { "mana": 4 },
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "mine",
+          "tags": ["unit"],
+          "zones": ["in_play"]
+        },
+        "action": ["stat_gain:given_power@target:3", "stat_gain:given_health@target:4"],
+        "spent": "mine.discard"
+      }
+    },
+    {
+      "key": "relentless_pursuit",
+      "text": "Relentless Pursuit",
+      "asset": "star:8:gold",
+      "tags": ["spell", "slow"],
+      "tooltip": "Slow. Rally — take this round's attack back, so you may attack again.",
+      "card_stats": { "cost": 4 },
+      "play": {
+        "phases": ["play"],
+        "cost": { "mana": 4 },
+        "action": ["stat_set:token@mine.player:1", "end_phase"],
+        "spent": "mine.discard"
+      }
+    },
+    {
+      "key": "vengeance",
+      "text": "Vengeance",
+      "asset": "star:9:forest",
+      "tags": ["spell", "fast"],
+      "tooltip": "Fast. Kill a unit.",
+      "card_stats": { "cost": 6 },
+      "play": {
+        "phases": ["play", "combat_response"],
+        "cost": { "mana": 6 },
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "anyone",
+          "tags": ["unit"],
+          "zones": ["in_play"]
+        },
+        "action": ["destroy:target", "end_phase"],
+        "spent": "mine.discard"
+      }
+    },
+    {
+      "key": "decimate",
+      "text": "Decimate",
+      "asset": "star:9:crimson",
+      "tags": ["spell", "slow"],
+      "tooltip": "Slow. Deal 4 to the enemy Nexus.",
+      "card_stats": { "cost": 6 },
+      "play": {
+        "phases": ["play"],
+        "cost": { "mana": 6 },
+        "action": ["damage:nexus@enemy.player:4", "end_phase"],
+        "spent": "mine.discard"
+      }
+    },
+    {
+      "key": "for_demacia",
+      "text": "For Demacia!",
+      "asset": "star:10:gold",
+      "tags": ["spell", "slow"],
+      "tooltip": "Slow. Give allies +3|+3 this round.",
+      "card_stats": { "cost": 6 },
+      "play": {
+        "phases": ["play"],
+        "cost": { "mana": 6 },
+        "action": [
+          "stat_gain:given_power@each.mine.unit:3",
+          "stat_gain:given_health@each.mine.unit:3",
+          "end_phase"
+        ],
+        "spent": "mine.discard"
       }
     },
     {
@@ -460,7 +908,7 @@
         {
           "key": "pass",
           "text": "Pass",
-          "phases": ["play"],
+          "phases": ["play", "combat_response"],
           "action": ["stat_set:passed@self:1", "end_phase"]
         },
         {

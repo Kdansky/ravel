@@ -17,8 +17,10 @@ local flow = require("flow")
 local phase = require("phase")
 local predicate = require("predicate")
 local targeting = require("targeting")
+local tags = require("tags")
 local actions = require("actions")
 local declaration = require("declaration")
+local stats       = require("stats")
 
 local M = {}
 
@@ -80,6 +82,14 @@ local function on_bench(seat, key)
 	end
 end
 
+-- Blocks settle and then both seats are asked again, which is where a fast spell
+-- lives. Two passes in succession carry the lanes into the strike, exactly as
+-- two carry a round to its end — the same pass button, counted the same way.
+local function resolve()
+	flow.activate(button("pass_button", zones.active_seat()), {})
+	flow.activate(button("pass_button", zones.active_seat()), {})
+end
+
 -- One rigged combat: north attacks with `atk`, south blocks with `blk` or lets
 -- it through. Both seats' hands are emptied first, so nothing but the fight can
 -- move. North holds the attack token in round one.
@@ -102,6 +112,7 @@ local function fight(atk_key, blk_key, before)
 	if b then flow.activate(b, { lanes(b)[1] }) end
 	if before then before(a, b) end
 	flow.activate(button("pass_button", "south"), {})
+	resolve()
 	return a, b
 end
 
@@ -111,8 +122,8 @@ function M.test_lor_the_opening_deals_four_and_the_round_deals_one(check)
 	check("both hands hold the opening four plus round one's card",
 		#zone_of("hand", "north").cards == 5 and #zone_of("hand", "south").cards == 5,
 		("%d / %d"):format(#zone_of("hand", "north").cards, #zone_of("hand", "south").cards))
-	check("and both decks are five lighter",
-		#zone_of("deck", "north").cards == 25 and #zone_of("deck", "south").cards == 25,
+	check("and both decks of forty are five lighter",
+		#zone_of("deck", "north").cards == 35 and #zone_of("deck", "south").cards == 35,
 		("%d / %d"):format(#zone_of("deck", "north").cards, #zone_of("deck", "south").cards))
 	check("each seat has a pass button and an attack button of its own, on its own side",
 		#zone_of("controls", "north").cards == 2 and #zone_of("controls", "south").cards == 2)
@@ -406,6 +417,7 @@ function M.test_lor_a_nexus_at_zero_ends_it(check)
 	flow.activate(a, { lanes(a)[1] })
 	flow.activate(button("pass_button", "north"), {})
 	flow.activate(button("pass_button", "south"), {})
+	resolve()
 
 	check("south's nexus falls", stat("south", "nexus") == 0, tostring(stat("south", "nexus")))
 	check("north is written down as the winner",
@@ -465,6 +477,7 @@ function M.test_lor_the_lanes_resolve_left_to_right(check)
 		end
 	end
 	flow.activate(button("pass_button", "south"), {})
+	resolve()
 	actions.on_act = was
 
 	check("all four struck", #acted == 4, tostring(#acted))
@@ -536,6 +549,384 @@ function M.test_lor_each_seat_has_a_nexus_on_the_table(check)
 	for _, e in ipairs(declaration.G.setup_place) do seats[#seats + 1] = e.card end
 	check("and they are still created before the buttons",
 		seats[2] == "north" and seats[3] == "south", table.concat(seats, ","))
+end
+
+-- ---------------------------------------------------------------------------
+-- Spells
+--
+-- A spell is a card in hand with a play and no board to land on: it resolves,
+-- and `spent` files it in the caster's own discard. Nothing in the engine knows
+-- the word — "spell" is a tag this game wears so a rule may one day ask.
+--
+-- The three speeds are a question of *when*, so each is the phase list its
+-- cards carry. Burst leaves the phase alone and the caster keeps the
+-- initiative; fast and slow end it, which is this game's whole notion of
+-- handing over. Text, cost and speed are Riot's, from ideas/lor/data.
+
+local function hand_put(seat, key)
+	local h = zone_of("hand", seat)
+	return cards.create(key, h.id).id
+end
+
+local function rich(n)
+	for e in entity.each("card") do
+		if e.def_key == "north" or e.def_key == "south" then e.stats.mana = n or 10 end
+	end
+end
+
+local function empty_hands()
+	for _, seat in ipairs({ "north", "south" }) do
+		local h = zone_of("hand", seat)
+		for i = #h.cards, 1, -1 do zones.purge_card(h.cards[i]) end
+	end
+end
+
+local function seat_card(seat)
+	for e in entity.each("card") do
+		if e.def_key == seat then return e.id end
+	end
+end
+
+local function in_discard(seat, key)
+	for _, id in ipairs(zone_of("discard", seat).cards) do
+		if entity.get(id).def_key == key then return entity.get(id) end
+	end
+end
+
+-- The two halves of Death's Hand are two lines, and the unit it kills takes the
+-- same road out as one killed by a strike: into its own seat's discard, not the
+-- caster's and not out of the game.
+function M.test_lor_a_spell_resolves_and_is_filed_by_whose_it_is(check)
+	flow.init("lor.json", 5)
+	empty_hands()
+	rich()
+	local poro = bench_put("south", "mighty_poro", 1)
+	check("north casts it at a unit across the table",
+		flow.play_card(hand_put("north", "deaths_hand"), { poro }))
+	check("two damage on the unit", entity.get(poro).stats.health == 1,
+		tostring(entity.get(poro).stats.health))
+	check("and one on the nexus behind it", stat("south", "nexus") == 19,
+		tostring(stat("south", "nexus")))
+	check("three mana spent", stat("north", "mana") == 7, tostring(stat("north", "mana")))
+	check("the spell is in north's discard and nowhere else",
+		in_discard("north", "deaths_hand") ~= nil and #zone_of("discard", "south").cards == 0)
+
+	-- 18 expected this to cost a move of `land` from the battle zone onto the
+	-- unit tag, because combat was the only thing that could write damage. It
+	-- did not: a spell writes through the `damage` verb itself, and Tough is
+	-- about that verb rather than about the step combat happens to use — so a
+	-- keyword written for the lanes answers a spell on the bench for free.
+	flow.init("lor.json", 5)
+	empty_hands()
+	rich()
+	local def = bench_put("south", "vanguard_defender", 1)
+	flow.play_card(hand_put("north", "deaths_hand"), { def })
+	check("tough on a benched unit takes one off a spell too",
+		entity.get(def).stats.health == 1, tostring(entity.get(def).stats.health))
+end
+
+function M.test_lor_a_unit_killed_by_a_spell_lands_in_its_owner_s_discard(check)
+	flow.init("lor.json", 5)
+	empty_hands()
+	rich()
+	local poro = bench_put("south", "mighty_poro", 1)
+	flow.play_card(hand_put("north", "vengeance"), { poro })
+	check("the unit is off the bench", on_bench("south", "mighty_poro") == nil)
+	check("and lying in south's discard, though north killed it",
+		in_discard("south", "mighty_poro") ~= nil and in_discard("north", "mighty_poro") == nil)
+
+	flow.init("lor.json", 5)
+	empty_hands()
+	rich()
+	bench_put("north", "cithria", 1)
+	bench_put("south", "plucky_poro", 1)
+	flow.play_card(hand_put("north", "avalanche"), {})
+	check("a board wipe spares nobody's side", on_bench("north", "cithria") == nil)
+	check("and files each corpse with its own seat",
+		in_discard("north", "cithria") ~= nil and in_discard("south", "plucky_poro") ~= nil)
+end
+
+-- Burst is the one that does not end the phase, and that is the only difference
+-- between it and the other two.
+function M.test_lor_burst_keeps_the_initiative_and_slow_hands_over(check)
+	flow.init("lor.json", 5)
+	empty_hands()
+	rich()
+	local ally = bench_put("north", "cithria", 1)
+	flow.play_card(hand_put("north", "radiant_strike"), { ally })
+	check("after a burst spell north is still up",
+		zones.active_seat() == "north" and phase.current().key == "play")
+
+	flow.play_card(hand_put("north", "decimate"), {})
+	check("after a slow one it is south's move",
+		zones.active_seat() == "south" and phase.current().key == "play", zones.active_seat())
+	check("which also cleared the pass count, as any play does", passed() == 0)
+end
+
+-- The phase list is the speed. Nothing else enforces it and nothing else has to
+-- — which is why blocks settling into a window of their own is what made "fast"
+-- mean anything here at all.
+function M.test_lor_speed_is_the_list_of_phases_a_spell_may_be_cast_in(check)
+	flow.init("lor.json", 5)
+	empty_hands()
+	rich()
+	local atk = bench_put("north", "cithria", 1)
+	local blk = bench_put("south", "cithria", 1)
+	local burst = hand_put("south", "elixir_of_iron")
+	local fast = hand_put("south", "vengeance")
+	local slow = hand_put("south", "avalanche")
+
+	flow.activate(button("attack_button", "north"), {})
+	flow.activate(atk, { lanes(atk)[1] })
+	flow.activate(button("pass_button", "north"), {})
+	check("south is choosing blocks", phase.current().key == "declare_block")
+	check("and may still reach for a burst spell while it does",
+		flow.can_play(burst) and flow.can_play(fast) == false and flow.can_play(slow) == false)
+
+	flow.activate(blk, { lanes(blk)[1] })
+	flow.activate(button("pass_button", "south"), {})
+	check("blocks settle into a window where both seats are asked again",
+		phase.current().key == "combat_response" and zones.active_seat() == "north")
+	flow.activate(button("pass_button", "north"), {})
+	check("where south may cast burst and fast, and not slow",
+		flow.can_play(burst) and flow.can_play(fast) and flow.can_play(slow) == false)
+end
+
+-- The combat trick, which is the whole reason the window exists: two health lent
+-- to a blocker after the blocks are locked in, and the attacker bounces off it.
+function M.test_lor_a_burst_trick_lands_after_the_blocks_are_locked_in(check)
+	flow.init("lor.json", 5)
+	empty_hands()
+	rich()
+	local atk = bench_put("north", "cithria", 1)
+	local blk = bench_put("south", "cithria", 1)
+	flow.activate(button("attack_button", "north"), {})
+	flow.activate(atk, { lanes(atk)[1] })
+	flow.activate(button("pass_button", "north"), {})
+	flow.activate(blk, { lanes(blk)[1] })
+	flow.activate(button("pass_button", "south"), {})
+	flow.activate(button("pass_button", "north"), {})
+
+	check("south answers with the elixir", flow.play_card(hand_put("south", "elixir_of_iron"), { blk }))
+	check("which does not hand the window over", zones.active_seat() == "south")
+	flow.activate(button("pass_button", "south"), {})
+	check("two passes carry the lanes into the strike", phase.current().key == "play")
+	check("the blocker lived on the borrowed health", on_bench("south", "cithria") ~= nil)
+	check("and traded the attacker for nothing", on_bench("north", "cithria") == nil)
+end
+
+-- "Give" lasts a round and "Grant" does not end, so they are two stats rather
+-- than one with a rule about it — which is Runeterra's own distinction, printed
+-- on the cards in those two words.
+function M.test_lor_given_expires_with_the_round_and_granted_does_not(check)
+	flow.init("lor.json", 5)
+	empty_hands()
+	rich()
+	local a = bench_put("north", "cithria", 1)
+	local b = bench_put("north", "cithria", 2)
+	flow.play_card(hand_put("north", "elixir_of_iron"), { a })
+	check("two health lent", stats.current(entity.get(a), "health") == 4,
+		tostring(stats.current(entity.get(a), "health")))
+	flow.play_card(hand_put("north", "bloodsworn_pledge"), { a, b })
+	check("and three granted on top", stats.current(entity.get(a), "health") == 7,
+		tostring(stats.current(entity.get(a), "health")))
+	check("to both of the two allies it named", stats.current(entity.get(b), "health") == 5,
+		tostring(stats.current(entity.get(b), "health")))
+
+	pass()
+	pass()
+	check("the round turned", predicate.total("max:round") == 2)
+	check("the lent health went back and the granted stayed",
+		stats.current(entity.get(a), "health") == 5, tostring(stats.current(entity.get(a), "health")))
+end
+
+-- The trap the round's heal answers: a unit kept alive by borrowed health would
+-- fall over the moment the round called the loan in. Runeterra clears the
+-- damage between rounds too, so the two happen in one place and in that order.
+function M.test_lor_a_round_heals_what_a_spell_hurt(check)
+	flow.init("lor.json", 5)
+	empty_hands()
+	rich()
+	local a = bench_put("south", "cithria", 1)
+	pass()
+	flow.play_card(hand_put("south", "fury_of_the_north"), { a })
+	check("a two-health unit is holding six", stats.current(entity.get(a), "health") == 6,
+		tostring(stats.current(entity.get(a), "health")))
+	pass()
+	flow.play_card(hand_put("north", "deaths_hand"), { a })
+	flow.play_card(hand_put("south", "warning_shot"), {})
+	flow.play_card(hand_put("north", "deaths_hand"), { a })
+	check("four damage into it and it is still standing on two",
+		stats.current(entity.get(a), "health") == 2, tostring(stats.current(entity.get(a), "health")))
+
+	pass()
+	pass()
+	check("the loan is called in and the unit is still there",
+		on_bench("south", "cithria") ~= nil)
+	check("back at what it is printed with", entity.get(a).stats.health == 2,
+		tostring(entity.get(a).stats.health))
+end
+
+-- Rally is the attack token handed back, which the file already had a stat for:
+-- the attack button's cost is the whole of "once a round", so undoing it is one
+-- line and nothing else had to learn the word.
+function M.test_lor_rally_gives_the_attack_back(check)
+	flow.init("lor.json", 5)
+	empty_hands()
+	rich()
+	local a = bench_put("north", "cithria", 1)
+	flow.activate(button("attack_button", "north"), {})
+	flow.activate(a, { lanes(a)[1] })
+	flow.activate(button("pass_button", "north"), {})
+	flow.activate(button("pass_button", "south"), {})
+	resolve()
+	check("north attacked and spent the token",
+		stat("north", "token") == 0 and stat("south", "nexus") == 18,
+		tostring(stat("south", "nexus")))
+	pass()
+
+	check("north casts the rally", flow.play_card(hand_put("north", "relentless_pursuit"), {}))
+	check("which puts the token back", stat("north", "token") == 1)
+	check("and only north's — a rally is not a rule about both seats",
+		stat("south", "token") == 0)
+	pass()
+	check("so north may attack a second time this round",
+		flow.can_activate(button("attack_button", "north")))
+end
+
+-- A "where" is asked of each candidate with that one as @target, so the gate is
+-- the card's own sentence rather than a list the file has to keep in step.
+--
+-- It reads the power the card *has*, not the one printed on it. That cost a fix:
+-- predicate.holds' "each" branch read e.stats[arg] straight where every other
+-- read goes through tags.stat, and a bare @target parses as quant "each" — so
+-- this offered a unit Elixir of Wrath had lifted to 4, while sum:power@target
+-- answered correctly about the same card.
+function M.test_lor_culling_strike_reads_the_power_off_each_candidate(check)
+	flow.init("lor.json", 5)
+	empty_hands()
+	rich()
+	local small = bench_put("north", "mighty_poro", 1)
+	bench_put("north", "alpha_wildclaw", 2)
+	local cull = hand_put("south", "culling_strike")
+	local spec = declaration.G.card_defs.culling_strike.play.target
+	check("three power is within its reach and seven is not",
+		#targeting.candidates(cull, spec) == 1, tostring(#targeting.candidates(cull, spec)))
+	check("and the one it offers is the small one", targeting.candidates(cull, spec)[1] == small)
+
+	-- The buff is the case the read site was getting wrong, and it is the one a
+	-- player meets: three power lifted out of reach is what Elixir of Wrath is
+	-- for, and the spell has to see it.
+	flow.play_card(hand_put("north", "elixir_of_wrath"), { small })
+	check("a spell that lifts its power carries it out of reach",
+		#targeting.candidates(cull, spec) == 0, tostring(#targeting.candidates(cull, spec)))
+	check("and the same question asked the other way agrees",
+		predicate.meets_all({ "sum:power@target <= 3" }, { targets = { small } }) == false)
+
+	pass()
+	pass()
+	check("when the round takes the power back it is killable again",
+		#targeting.candidates(cull, spec) == 1, tostring(#targeting.candidates(cull, spec)))
+
+	-- A new round refills mana to the round number, which is two here.
+	rich()
+	while zones.active_seat() ~= "south" do pass() end
+	check("south kills it outright", flow.play_card(cull, { small }))
+	check("into north's discard", in_discard("north", "mighty_poro") ~= nil)
+end
+
+-- Fast, and about the battlefield rather than the board, so the only moment it
+-- reads anything is the window the blocks open.
+function M.test_lor_death_lotus_reaches_only_what_is_in_the_lanes(check)
+	flow.init("lor.json", 5)
+	empty_hands()
+	rich()
+	local atk = bench_put("north", "cithria", 1)
+	local blk = bench_put("south", "plucky_poro", 1)
+	local home = bench_put("south", "cithria", 2)
+	flow.activate(button("attack_button", "north"), {})
+	flow.activate(atk, { lanes(atk)[1] })
+	flow.activate(button("pass_button", "north"), {})
+	flow.activate(blk, { lanes(blk)[1] })
+	flow.activate(button("pass_button", "south"), {})
+
+	check("north casts it in the window", flow.play_card(hand_put("north", "death_lotus"), {}))
+	check("the attacker took its own one", entity.get(atk).stats.health == 1,
+		tostring(entity.get(atk).stats.health))
+	check("tough kept the blocker whole", entity.get(blk) ~= nil and entity.get(blk).stats.health == 1)
+	check("and the unit that stayed home was never in it",
+		entity.get(home).stats.health == 2, tostring(entity.get(home).stats.health))
+end
+
+-- "Deal 2 to anything" is one aim over two kinds of thing, and a Nexus keeps its
+-- total under a different name from a unit's. The aim is said once, as a union
+-- of the two kinds; the writing is two lines, and a subject names only the cards
+-- carrying its stat, so exactly one of them lands on whatever was picked.
+function M.test_lor_one_aim_reaches_a_unit_or_a_nexus(check)
+	flow.init("lor.json", 5)
+	empty_hands()
+	rich()
+	local mine = bench_put("north", "mighty_poro", 1)
+	local theirs = bench_put("south", "mighty_poro", 1)
+	local shot = hand_put("north", "mystic_shot")
+	local spec = declaration.G.card_defs.mystic_shot.play.target
+	check("both units and both Nexuses answer it, and nothing else does",
+		#targeting.candidates(shot, spec) == 4, tostring(#targeting.candidates(shot, spec)))
+	check("the pass button is not a thing you may shoot",
+		flow.can_activate(button("pass_button", "north")))
+
+	check("it lands on a unit", flow.play_card(shot, { theirs }))
+	check("taking two off its health", entity.get(theirs).stats.health == 1,
+		tostring(entity.get(theirs).stats.health))
+	check("and nothing off either Nexus",
+		stat("north", "nexus") == 20 and stat("south", "nexus") == 20)
+	check("nor off the unit that was not picked", entity.get(mine).stats.health == 3)
+
+	check("a fast spell handed the turn over as it resolved", zones.active_seat() == "south")
+	check("and the same spell lands on a Nexus",
+		flow.play_card(hand_put("south", "mystic_shot"), { seat_card("north") }))
+	check("taking two off that instead", stat("north", "nexus") == 18,
+		tostring(stat("north", "nexus")))
+	check("and leaving every unit standing where it was",
+		entity.get(mine).stats.health == 3 and entity.get(theirs).stats.health == 1)
+end
+
+function M.test_lor_a_spell_can_take_the_last_of_a_nexus(check)
+	flow.init("lor.json", 5)
+	empty_hands()
+	rich()
+	for e in entity.each("card") do
+		if e.def_key == "south" then e.stats.nexus = 4 end
+	end
+	flow.play_card(hand_put("north", "decimate"), {})
+	check("four off a nexus standing on four", stat("south", "nexus") == 0,
+		tostring(stat("south", "nexus")))
+	check("north wins", stat("north", "won") == 1 and phase.current().key == "reveal")
+end
+
+-- Sixteen spells, and every one of them carries exactly one speed.
+function M.test_lor_every_spell_carries_one_speed(check)
+	local G = declaration.G
+	local n, speeds = 0, { burst = 0, fast = 0, slow = 0 }
+	for _, key in ipairs(G.card_list) do
+		local d = G.card_defs[key]
+		if d.tags_set and d.tags_set.spell then
+			n = n + 1
+			local mine = 0
+			for s in pairs(speeds) do
+				if d.tags_set[s] then mine, speeds[s] = mine + 1, speeds[s] + 1 end
+			end
+			check(key .. " is one speed and no other", mine == 1, tostring(mine))
+			check(key .. " says which on its face",
+				(d.tooltip or ""):match("^%u%l+%.") ~= nil, tostring(d.tooltip))
+			check(key .. " is filed in the caster's discard when it is over",
+				d.play.spent == "mine.discard", tostring(d.play.spent))
+		end
+	end
+	check("the deck carries eighteen of them", n == 18, tostring(n))
+	check("spread over all three speeds",
+		speeds.burst > 0 and speeds.fast > 0 and speeds.slow > 0,
+		("%d/%d/%d"):format(speeds.burst, speeds.fast, speeds.slow))
 end
 
 return M

@@ -388,6 +388,24 @@ it twice. `spread` beside `count` is refused — they answer the same question.
 `@opponent` is *the* other seat and only exists in a two-seat game. `enemy` means "not mine"
 and is a pool of any size.
 
+### Deal 2 to anything — a unit **or** a Nexus.
+
+```json
+"computed_tags": { "any_target": { "any_of": ["unit", "nexus_plate"] } },
+"play": { "target": { "verb": "cast", "type": "card", "count": 1, "owner": "anyone",
+                      "tags": ["any_target"], "zones": ["in_play", "seat_box"] },
+          "action": ["damage:health@target:2", "damage:nexus@target:2"] }
+```
+
+**One aim, two lines.** A seat's total and a unit's are different stats — the HUD and the
+end condition read `nexus`, and a unit carries `health` — so the aim is said once as the
+union of the two kinds, and what is written is one line per stat. A subject names only the
+cards **carrying** that stat, so a unit answers the first line and no part of the second,
+and a seat card the other way about. Exactly one lands, and neither line needs an `if`.
+
+The same shape says *"heal an ally or your Nexus 3"*, and anything else whose target may be
+either kind. What it will not do is a number that differs between them; that is two cards.
+
 ---
 
 ## Counters on a card

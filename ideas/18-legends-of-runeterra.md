@@ -1,9 +1,11 @@
 # 18 — Legends of Runeterra
 
-**Milestone 1 plays** — `game/games/lor.json`, tested by
-`tests/integration/lor.lua`. Draw, mana, the pass, the attack token, attackers
-and blockers as lane placement, the strike, the Nexus, and a winner. Tough and
-Overwhelm came with it, because both turned out to be arithmetic.
+**Milestone 2 plays** — `game/games/lor.json`, tested by
+`tests/integration/lor.lua`. Milestone 1 was draw, mana, the pass, the attack
+token, attackers and blockers as lane placement, the strike, the Nexus, and a
+winner; Tough and Overwhelm came with it, because both turned out to be
+arithmetic. Milestone 2 is **spells** — eighteen of them, all three speeds, a
+graveyard, a combat response window, Give and Grant, and Rally.
 
 Reference: [lor/rules.md](lor/rules.md), [lor/decks.md](lor/decks.md),
 [lor/CREDITS.md](lor/CREDITS.md). Card text and names are Riot's.
@@ -13,31 +15,121 @@ two-player card game with a small closed rule set, and it is the first target on
 the ladder that makes ravel a *card game* engine rather than a board game engine
 that also holds cards.
 
+## Spells, and what a speed turned out to be
+
+Eighteen spells, text and cost taken from [lor/data](lor/data) rather than from
+memory — which is the finding, and it cost a whole set: written from recall,
+Blade's Edge was Burst rather than Fast, Vengeance was 7 rather than 6, Elixir
+of Iron gave +0|+3 rather than +0|+2, and Noxian Fervor's second half was aimed
+at the Nexus rather than at anything. The data is in the repository. Read it.
+
+**A speed is a list of phases, and nothing else.** `burst`, `fast` and `slow`
+are tags the cards wear so a rule may one day ask, but what enforces the speed
+is the `phases` each card carries and whether its action ends the phase:
+
+| | may be cast in | ends the phase |
+|---|---|---|
+| Burst | play, declare_attack, declare_block, combat_response | no — the caster keeps the initiative |
+| Fast | play, combat_response | yes |
+| Slow | play | yes |
+
+**Fast meant nothing until blocks had a window after them.** With only `play`,
+`declare_attack` and `declare_block` to name, Fast and Slow were two words for
+one behaviour — and a Fast spell cast during blocking would have ended the
+*blocking* rather than handed the initiative over, because `end_phase` in a
+declaration phase is the Done button. So `combat_response` sits between
+`declare_block` and `strike`: a `player_input` phase that both seats pass out of,
+counted by the same `passed` stat and the same two-in-succession rule the round
+already used, with `combat_hand_over` clearing the other seat's flag exactly as
+`hand_over` does. That is the whole of it — no new engine word, and the pass
+button gained one phase key.
+
+**A spell is spent, not moved.** `play.spent: "mine.discard"` files it however
+the play ends. Units die into the same per-seat `status: "grave"` zone through
+`destroy:dead`, which replaced `purge:dead` in `after_combat` — a unit killed by
+a spell and a unit killed by a strike have to take the same road or only one of
+them sets off what watches.
+
+**Give and Grant are two stats, because Riot prints two words.** `given_power`
+and `given_health` are cleared at round start; `granted_power` and
+`granted_health` are not. All four are buffs, so nothing is written to the
+number they lift and taking one off has no undo path to forget.
+
+**The round heals, and it has to.** A unit kept alive by a borrowed +0|+2 would
+fall over the moment the round called the loan in. LoR clears damage between
+rounds anyway, so `reset:each.anyone.unit:health` sits in `round_start` right
+after the two `given_` stats are zeroed — in that order, so nothing is briefly
+dead in between.
+
+**Rally needed no new word.** The attack button's cost *is* "once a round", so
+Relentless Pursuit is `stat_set:token@mine.player:1` and nothing else learned
+the word.
+
+**What milestone 1 thought spells would cost, they did not.** This file expected
+`land` to move off the battle zone onto the `unit` tag, because combat was the
+only thing that could write damage onto a unit. A spell writes through the
+`damage` verb directly instead, and Tough is a fact about *that verb* rather than
+about the step combat uses — so a keyword written for the lanes answers a spell
+on the bench with no change at all.
+
 ## Left to build
 
-1. **Burst spells** — the ones that resolve immediately, so there is still no
-   stack. This is where a spell targets, and targeting already exists.
-2. **The response stack**, for Fast and Slow. [27](27-reactions-and-the-stack.md)
-   shipped the window; what LoR adds is **speeds**.
-3. **The rest of the keywords**, one at a time, each as a tag with behaviour.
+1. **Deny**, and with it the rest of Fast. `combat_response` is a window, not a
+   stack: a spell resolves as it is cast, so there is no pending spell for
+   *"Stop a Fast spell, Slow spell, or Skill"* to stop. That is
+   [27](27-reactions-and-the-stack.md)'s question, not this one's.
+2. **The rest of the keywords**, one at a time, each as a tag with behaviour.
    The ones that only change combat arithmetic — Quick Attack, Lifesteal — are
    the cheap half; the ones that change *who may block* — Elusive, Fearsome,
    Challenger — are rules about the pairing and want the pairing solid first.
-4. **Champions**, which are `transform` plus a trigger watching the level-up
+   Note that the spells which *grant* a keyword for a round (Ranger's Resolve,
+   Might, Prismatic Barrier) need a way to hand out a tag temporarily, which a
+   computed tag cannot be: it may carry a buff and nothing else.
+3. **Champions**, which are `transform` plus a trigger watching the level-up
    condition, so they land after [01](01-boardgames.md) gap 5.
 
 Also missing and small: spell mana (unspent mana carrying over, capped at three,
-spendable only on spells — it needs the spells it pays for), the mulligan (the
-offer overlay picks exactly one; a mulligan picks a subset), a hand cap of ten,
-decking out, and the round-40 tie.
+spendable only on spells — now that there are spells to pay for), the mulligan
+(the offer overlay picks exactly one; a mulligan picks a subset), a hand cap of
+ten, decking out, and the round-40 tie.
 
 **Stated rather than implied, because a prototype that quietly differs from the
-game is worse than one that says where:** the deck is 30 rather than 40, and
-**the token holder does not act first** though LoR is explicit that they do —
-that is [22](22-the-crew.md)'s `set_active_seat`, now shipped, and not yet wired
-in here. A blocker may meet any attacker rather than only the one across from
-it, which *is* the real rule since the defender chooses the pairing; what it may
-not do is enter an empty lane or the attacker's row, and `where` says so.
+game is worse than one that says where:** the deck is 40 now, but **the token
+holder does not act first** though LoR is explicit that they do — that is
+[22](22-the-crew.md)'s `set_active_seat`, now shipped, and not yet wired in here.
+A blocker may meet any attacker rather than only the one across from it, which
+*is* the real rule since the defender chooses the pairing; what it may not do is
+enter an empty lane or the attacker's row, and `where` says so. There is one
+response window, after blocks, where LoR gives the attacker one before them too.
+
+## Two things the spells found, and both are closed
+
+**"Deal 2 to anything" was not a gap after all.** It looked like one — a Nexus is
+a seat card carrying `nexus`, a unit carries `health`, so one aim writes two
+stats and an action list has no if ([42](42-an-if-inside-an-action-list.md)).
+The answer is that it needs no if: `any_of` says the aim once as a union of the
+two kinds, and a subject names only the cards **carrying** its stat, so the two
+damage lines each land on exactly the half they are about and pass over the
+other. Mystic Shot and Blade's Edge are in the deck, and the shape is in the
+COOKBOOK as *"Deal 2 to anything — a unit **or** a Nexus"*. It also says *"heal
+an ally or your Nexus"*, which is Health Potion and Ritual of Renewal.
+
+**A `where` could not see a buff, and now can.** `predicate.holds` had an `each`
+branch reading `e.stats[arg]` straight where every other read goes through
+`tags.stat`, and a bare `@target` parses as `quant = "each"` — so *"Kill a unit
+with 3 or less Power"* offered a unit Elixir of Wrath had lifted to 4, while
+`sum:power@target <= 3` answered correctly about the same card. Fixed, with the
+buffed case in the Culling Strike test.
+
+**The same mistake was in four other places**, found by grepping for a read of
+`e.stats` outside `tags.lua`: a seat's ordering number in `phase.lua`, the hp
+gate on `run_on_round` and the winner check in `flow.lua`, and the per-card
+ceiling the inspector panel prints. The reads that stay raw are the ones that
+should: the writer in `actions.lua`, the system card's own bookkeeping, a slot's
+row and column, a supply shelf's `stock` (an engine ledger whose write is raw
+too, so a buffed read would let a take through the decrement cannot account
+for), and the counter inside `tags.buff` itself, which would otherwise be a
+bonus deciding its own size.
 
 ## Blocking is placement, and that is the whole of it
 
@@ -158,12 +250,14 @@ wart this file left standing — that the excess is read as a *negative* health 
 is now named rather than clever: `overkill` is `0 - health@across`, declared once
 with a sentence saying why.
 
-## What is still owed, and it is spells
+## What is still owed
 
-`land` lives on `in_combat`, which the *battle* zone grants, so a unit on the
-bench has no way to take damage written onto it. Combat is the only thing that
-deals damage today, so nothing is broken; the first spell that hits a benched
-unit pays for it, and `land` moves onto the `unit` tag at that point.
+**Settled 2026-09-20.** `land` lives on `in_combat`, which the *battle* zone
+grants, so a unit on the bench had no way to take damage written onto it — and
+this file expected the first spell to hit a benched unit to pay for moving
+`land` onto the `unit` tag. It did not. A spell writes `damage:health@target:n`
+through the game's own verb, which is where Tough is hung, so `incoming` and
+`land` stayed a detail of how the lanes resolve.
 
 **What Overwhelm says is still deduced**, and the gap is the shape of every
 keyword after these two:
