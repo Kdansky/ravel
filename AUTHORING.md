@@ -4482,6 +4482,13 @@ say nothing; a card that writes its own block takes none of the tag's. Half a
 moment — the tag's action under the card's own cost — is the sort of thing that
 reads as cleverness and debugs as neither.
 
+**Which is how a card opts out.** `"play": { "action": [] }` is a block of its
+own, so the tag does not fill it in, and a card with nothing to run is not a
+move — the two rules meet, and no third word is needed. Spellstorm's `spell`
+tag carries the cast for all sixty-six; ICE, ASH and CURSE wear the tag, so the
+file still says they are spells, and write the empty play to say they cannot be
+cast.
+
 **Two tags granting `play` is refused, and the card does neither.** Whichever
 won would be the order somebody typed the tags. The validator names both, the
 same way an ambiguous home is no home.

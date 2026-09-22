@@ -22,7 +22,7 @@ local GAME = [==[{
   "title": "Move Count",
   "players": [{ "card": "one" }],
   "zones": [
-    { "key": "hand", "layout": "row", "pos": [0.20, 0.80, 0.50, 0.95] },
+    { "key": "hand", "layout": "row", "grave": "table", "pos": [0.20, 0.80, 0.50, 0.95] },
     { "key": "bag", "layout": "stack", "visibility": "secret", "pos": [0.55, 0.80, 0.65, 0.95] },
     { "key": "table", "layout": "stack", "pos": [0.75, 0.80, 0.85, 0.95] }
   ],
@@ -138,6 +138,28 @@ function M.test_a_random_scope_with_no_count_still_means_one(check)
 		flow.init(name, 1)
 		actions.execute("move:random.hand.gem:table", {})
 		check("one, as it always did", count("table") == 1)
+	end)
+end
+
+-- `destroy` takes the same count in the same slot, and Spellstorm's "discard
+-- two at random" is the one line that needs it: the pool shrinks between the
+-- two picks, so a card is never discarded twice.
+function M.test_destroy_takes_a_count(check)
+	with_game(function(name)
+		flow.init(name, 1)
+		actions.execute("destroy:random.hand.gem:2", {})
+		check("two gems died", count("table") == 2)
+		check("two different ones", count("hand", "gem") == 2)
+		check("the rock was never in scope", count("hand", "rock") == 1)
+	end)
+end
+
+function M.test_destroy_with_no_count_and_a_random_scope_means_one(check)
+	with_game(function(name)
+		flow.init(name, 1)
+		actions.execute("destroy:random.hand.gem", {})
+		check("one, as it always did", count("table") == 1)
+		check("three left", count("hand", "gem") == 3)
 	end)
 end
 

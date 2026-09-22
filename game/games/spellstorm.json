@@ -9,7 +9,6 @@
       "color": "crimson",
       "min": 0,
       "max": 20,
-      "subject": "health@mine.player",
       "on": ["player"],
       "start": 0
     },
@@ -20,7 +19,6 @@
       "color": "violet",
       "min": 0,
       "max": 8,
-      "subject": "shards@mine.player",
       "on": ["player"],
       "start": 0,
       "display": "nonzero"
@@ -32,7 +30,6 @@
       "color": "magenta",
       "min": 0,
       "max": 40,
-      "subject": "mana@mine.player",
       "on": ["player"],
       "start": 2
     },
@@ -43,7 +40,6 @@
       "color": "gold",
       "min": 0,
       "max": 12,
-      "subject": "power@mine.player",
       "on": ["player"],
       "start": 0,
       "display": "nonzero"
@@ -55,7 +51,6 @@
       "color": "amber",
       "min": 1,
       "max": 4,
-      "subject": "tier@mine.player",
       "on": ["player"],
       "start": 1
     },
@@ -66,7 +61,6 @@
       "color": "yellow",
       "min": 0,
       "max": 1,
-      "subject": "initiative@mine.player",
       "on": ["player"],
       "start": 0,
       "display": "nonzero"
@@ -78,7 +72,6 @@
       "color": "indigo",
       "min": 0,
       "max": 4,
-      "subject": "doom@mine.player",
       "on": ["player"],
       "start": 0,
       "display": "nonzero"
@@ -90,7 +83,6 @@
       "color": "teal",
       "min": 0,
       "max": 3,
-      "subject": "energy@mine.player",
       "on": ["player"],
       "start": 0,
       "display": "nonzero"
@@ -102,7 +94,6 @@
       "color": "olive",
       "min": 0,
       "max": 6,
-      "subject": "research@mine.player",
       "on": ["player"],
       "start": 0,
       "display": "nonzero"
@@ -114,7 +105,6 @@
       "color": "orange",
       "min": 0,
       "max": 6,
-      "subject": "fire_el@mine.player",
       "on": ["player"],
       "start": 0,
       "display": "nonzero"
@@ -126,7 +116,6 @@
       "color": "brown",
       "min": 0,
       "max": 6,
-      "subject": "earth_el@mine.player",
       "on": ["player"],
       "start": 0,
       "display": "nonzero"
@@ -138,7 +127,6 @@
       "color": "cyan",
       "min": 0,
       "max": 6,
-      "subject": "water_el@mine.player",
       "on": ["player"],
       "start": 0,
       "display": "nonzero"
@@ -225,7 +213,14 @@
       "on": ["plan"],
       "start": 0
     },
-    { "key": "tier_req", "min": 0, "max": 9, "display": "offscreen" },
+    {
+      "key": "tier_req",
+      "min": 0,
+      "max": 9,
+      "display": "offscreen",
+      "on": ["spell"],
+      "start": 1
+    },
     { "key": "researched", "min": 0, "max": 1, "display": "offscreen" },
     { "key": "sprung", "min": 0, "max": 1, "display": "offscreen" },
     { "key": "guard", "min": 0, "max": 2, "display": "offscreen" },
@@ -319,6 +314,7 @@
     }
   },
   "tags": {
+    "spell": { "play": { "action": ["move_to:mine.commit"] } },
     "shelved": {},
     "takeable": {
       "tooltip": "Gain this card. You may only take a card at or below your Tier.",
@@ -951,8 +947,6 @@
       "asset": "ss_magicdart.jpg",
       "tags": ["fire", "ember", "spell", "basic", "ult"],
       "tooltip": "Gain *1 mana*. If you have *Initiative*, deal *1 damage*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_Fire magic is often banned from use in many parts of the world, due to its unpredictable nature._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["stat_gain:mana@mine.player:1"] },
         {
@@ -969,8 +963,6 @@
       "asset": "ss_block.jpg",
       "tags": ["water", "tide", "spell", "basic"],
       "tooltip": "Gain *Initiative*. *Heal 1* for every *Fire* card revealed this round.\n\n_\"He just needs a little splash, is all he needs.\" - The Splashmaster_",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -989,8 +981,6 @@
       "asset": "ss_powergem.jpg",
       "tags": ["earth", "loam", "spell", "basic", "has_discard"],
       "tooltip": "*Power up*. You may gain a card from the *Storm Cloud* at or below your *Tier*; if you do, it goes to your discard. On discard: *power up*.\n\n_The golden gems of the Spell Storm take time to develop their power._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["power_up:power@mine.player:1"] },
         {
@@ -1007,8 +997,6 @@
       "asset": "ss_fireessence.jpg",
       "tags": ["fire", "ember", "spell", "essence"],
       "tooltip": "Deal *1 damage*. You may gain any *Tier I* or II *Fire* card in the *Storm Cloud*. *VOID* this.\n\n_Fire Magic is generally associated with destruction._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -1028,8 +1016,6 @@
       "asset": "ss_wateressence.jpg",
       "tags": ["water", "tide", "spell", "essence"],
       "tooltip": "Gain *1 mana*. You may gain any *Tier I* or II *Water* card in the *Storm Cloud*. *VOID* this.\n\n_Water Magic is generally associated with healing._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -1049,8 +1035,6 @@
       "asset": "ss_earthessence.jpg",
       "tags": ["earth", "loam", "spell", "essence", "has_discard"],
       "tooltip": "*Power up*. You may gain any *Tier I* or II *Earth* card in the *Storm Cloud*. *VOID* this. On discard: *power up*.\n\n_Earth Magic is generally associated with building._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -1071,8 +1055,6 @@
       "asset": "ss_fireball.jpg",
       "tags": ["fire", "ember", "spell"],
       "tooltip": "Deal *1 damage* and gain an *ASH*. If you have *Initiative*, deal *2 more damage* and lose *Initiative*.\n\n_It is customary to say \"shaboom!\" when one reveals the Fireball card._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -1101,7 +1083,6 @@
       "asset": "ss_fireball2.jpg",
       "tags": ["fire", "ember", "spell"],
       "tooltip": "Deal *2 damage*. If you have *Initiative*, deal *2 more damage*.\n\n_It is customary to say \"shaboom-ya!\" when one reveals the Fireball II card._",
-      "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 3 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["hit:health@opponent:2"] },
@@ -1119,8 +1100,6 @@
       "asset": "ss_flame.jpg",
       "tags": ["fire", "ember", "spell", "ult"],
       "tooltip": "Deal *1 damage*, then resolve and discard a different *Fire* card from your hand.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_You need *magic* water to put a magical flame out._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["hit:health@opponent:1"] },
         {
@@ -1137,8 +1116,6 @@
       "asset": "ss_heartgem.jpg",
       "tags": ["fire", "ember", "spell", "has_discard", "ult"],
       "tooltip": "*Heal 3* and gain a *CURSE*. On discard: take *1 damage*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The Heart Gem has surfaced and disappeared many times throughout history, bringing a deadly curse each time._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -1158,8 +1135,6 @@
       "asset": "ss_lantern.jpg",
       "tags": ["fire", "ember", "spell"],
       "tooltip": "Gain *2 mana*. If your opponent revealed *Water*, *VOID* this, gain a *CURSE* and take *1 damage*.\n\n_Do not keep sentient fire spirits trapped in a lantern, for any reason._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -1185,8 +1160,6 @@
       "asset": "ss_lavabat.jpg",
       "tags": ["fire", "ember", "spell"],
       "tooltip": "Gain *1 mana*. You may move a card from your opponent's discard to your own. Gain *Initiative*.\n\n_Dangerous flaming bats have been known to fly out of the volcanic activity of the Spellstorm._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -1210,8 +1183,6 @@
       "asset": "ss_manafont.jpg",
       "tags": ["fire", "ember", "spell", "has_discard"],
       "tooltip": "*VOID* a *Water* card in the *Storm Cloud*. If you did, gain *3 mana*. On discard: take *1 damage* and gain *1 mana*.\n\n_While there are many theories, no one knows where the magic inside gems originally comes from._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud.water:optional"] }
@@ -1237,7 +1208,6 @@
       "asset": "ss_obsidian.jpg",
       "tags": ["fire", "ember", "spell"],
       "tooltip": "Take *1 damage* and lose *2 mana*. If you did, you may cast your *Ultimate* here without paying its mana cost.\n\n_\"Whenever I close my eyes, I see my twisted reflection in that black mirrored gem.\" - Unknown_",
-      "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["hurt:health@mine.player:1"] },
@@ -1265,7 +1235,6 @@
       "asset": "ss_rapidfire.jpg",
       "tags": ["fire", "ember", "spell"],
       "tooltip": "*Draw a card*. If you have *Initiative*, deal *2 damage* and you may redraw this to your hand.\n\n_When going for a fire-based strategy, it's important to keep the pressure on._",
-      "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["draw_from:mine.deck:mine.hand:1"] },
@@ -1283,8 +1252,6 @@
       "asset": "ss_ruby.jpg",
       "tags": ["fire", "ember", "spell"],
       "tooltip": "Discard the top *3 cards* of your deck. Then either deal *1 damage* per *Fire* card among them, or *VOID* one of them.\n\n_The popular trend of ruby-adorned garments was blamed for the Great Royal Ball Fire of 1976._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -1312,7 +1279,6 @@
       "asset": "ss_shockwave.jpg",
       "tags": ["fire", "ember", "spell"],
       "tooltip": "Your opponent loses *2 Power Tokens* and *discards a card*. You gain *Initiative*. Deal *1 damage*.\n\n_The 1981 hit song \"Shockwave\" is often credited with creating the Bonepunk genre._",
-      "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
         {
@@ -1334,8 +1300,6 @@
       "asset": "ss_swampsilt.jpg",
       "tags": ["fire", "ember", "spell"],
       "tooltip": "*Draw a card*. Whoever has *Initiative* loses it. Give your opponent a *CURSE*.\n\n_The Order's imperial land-grab has much to do with the increasing swampland in their territory._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -1366,7 +1330,6 @@
       "asset": "ss_crossfire.jpg",
       "tags": ["fire", "ember", "spell"],
       "tooltip": "If you have *Initiative*, deal *3 damage*, lose *Initiative*, and put this in your opponent's discard.\n\n_\"The first lesson in using fire magic always must be... how not to burn one's self.\" - B Underbrom, Professor of Fire Magic_",
-      "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
@@ -1389,7 +1352,6 @@
       "asset": "ss_arctite.jpg",
       "tags": ["water", "tide", "spell"],
       "tooltip": "Draw *2 cards*. *Heal 2* and give an *ICE*.\n\n_Pirates have been known to smuggle large amounts of Arctite inside icebergs._",
-      "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 3 },
       "abilities": [
         {
@@ -1411,8 +1373,6 @@
       "asset": "ss_frostmagic.jpg",
       "tags": ["water", "tide", "spell"],
       "tooltip": "*Heal 1*. Lose *1 Power Token*. Give your opponent an *ICE*.\n\n_The Azure Order was focused on water magic until the 1970s, when ice magic suddenly became far more popular._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -1432,7 +1392,6 @@
       "asset": "ss_iceflume.jpg",
       "tags": ["water", "tide", "spell"],
       "tooltip": "Give an *ICE*. You may *VOID* an *ICE* from your hand or discard. Gain *Initiative*.\n\n_\"Watch your step!\" - Unknown_",
-      "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
         {
@@ -1455,8 +1414,6 @@
       "asset": "ss_lapis.jpg",
       "tags": ["water", "tide", "spell"],
       "tooltip": "*Draw a card*. You may discard up to *2 cards*, and *heal 1* for each *Water* card discarded.\n\n_Doctors throughout Omia have used Water Magic to heal the sick for generations._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["draw_from:mine.deck:mine.hand:1"] },
         {
@@ -1473,7 +1430,6 @@
       "asset": "ss_leap.jpg",
       "tags": ["water", "tide", "spell"],
       "tooltip": "Gain *Initiative* and *heal 1*. If your opponent revealed *Fire*, you may *VOID* a card from your hand or discard.\n\n_Azure wizards historically specialized in Water Gems, but they have since taken others from throughout the globe._",
-      "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
         {
@@ -1500,7 +1456,6 @@
       "asset": "ss_moonstone.jpg",
       "tags": ["water", "tide", "spell", "has_discard"],
       "tooltip": "*Heal 4*. On discard: *heal 2*.\n\n_The rare and beautiful Moonstone is one of the most coveted in all of Omia._",
-      "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 3 },
       "abilities": [{ "key": "cast", "text": "Resolve", "action": ["heal:health@mine.player:4"] }],
       "leaves": { "from": "hand", "into": "discard", "action": ["heal:health@mine.player:2"] }
@@ -1511,7 +1466,6 @@
       "asset": "ss_reflect.jpg",
       "tags": ["water", "tide", "spell"],
       "tooltip": "*Draw a card*, gain *Initiative*, *heal 1*. If your opponent revealed *Fire*, they take *2 damage*.\n\n_\"He just needs a little splash, is all he needs.\" - The Splashmaster_",
-      "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
         {
@@ -1538,8 +1492,6 @@
       "asset": "ss_sapphire.jpg",
       "tags": ["water", "tide", "spell", "ult"],
       "tooltip": "*Draw a card*, *heal 1*, and gain an *ASH*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_Many of Omia's most impressive Wizards have a signature move, which some call an \"Ultimate\"._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -1559,8 +1511,6 @@
       "asset": "ss_step.jpg",
       "tags": ["water", "tide", "spell", "has_discard"],
       "tooltip": "If you have *Initiative*, *heal 1*. Otherwise, gain *Initiative*. On discard: gain *Initiative*.\n\n_From the year 366-1182, the Water Kingdom reigned over much of the Eastern Continent._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
         {
@@ -1588,7 +1538,6 @@
       "asset": "ss_twinsapphire.jpg",
       "tags": ["water", "tide", "spell", "ult"],
       "tooltip": "*Draw a card* and *heal 2*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"TWO sapphires?! Wow, thanks!\" - Someone's son_",
-      "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
         {
@@ -1604,8 +1553,6 @@
       "asset": "ss_ultimate.jpg",
       "tags": ["water", "tide", "spell", "ult"],
       "tooltip": "You may *VOID* an *Earth* card from your hand. If you did, gain *3 mana*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"He just needs a little splash, is all he needs.\" - The Splashmaster_",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.earth:optional"] }
@@ -1626,7 +1573,6 @@
       "asset": "ss_wave.jpg",
       "tags": ["water", "tide", "spell"],
       "tooltip": "Gain *3 mana*. Your opponent *discards their hand* and draws a new hand of *4 cards*.\n\n_A wave does not ask what it washes away._",
-      "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
         {
@@ -1648,8 +1594,6 @@
       "asset": "ss_amber.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
       "tooltip": "*Power up*. You must gain two cards from the *Storm Cloud* at or below your *Tier*. On discard: *power up*.\n\n_The Business Demons considered drilling operations at the Spellstorm, but it was deemed too costly._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["power_up:power@mine.player:1"] },
         {
@@ -1666,8 +1610,6 @@
       "asset": "ss_bloodstone.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
       "tooltip": "Gain *1 mana*. Take *1 damage*. You may *VOID* a card from your hand or discard. On discard: gain *1 mana*.\n\n_\"It's best to leave gems that you find in the wild alone, unless you really know what you're doing.\" - Abragail_",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -1685,22 +1627,13 @@
       "asset": "ss_diamond.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
       "tooltip": "If you hold 3 or more other cards, discard 3 of them and *power up 3 times*. On discard: *power up*.\n\n_\"Learned more spells in 1 day at the Spellstorm, than I had in the past 3 years.\" - Azura Spellstorm Scholar_",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
         {
           "key": "cast2",
           "text": "Resolve",
           "needs": ["count:spell@mine.hand >= 3"],
-          "action": [
-            "power_up:power@mine.player:1",
-            "power_up:power@mine.player:1",
-            "power_up:power@mine.player:1",
-            "show:mine.hand",
-            "show:mine.hand",
-            "show:mine.hand"
-          ]
+          "action": ["power_up:power@mine.player:3", "show:mine.hand", "show:mine.hand", "show:mine.hand"]
         }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:1"] },
@@ -1712,8 +1645,6 @@
       "asset": "ss_meteorite.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
       "tooltip": "Take *1 damage*. You may resolve any card in the *Storm Cloud* regardless of tier, then *VOID* it. On discard: take *1 damage*.\n\n_\"Mom! Look! This fell from the sky!\" - A child of Tiya Bannet_",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["hurt:health@mine.player:1"] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
@@ -1729,7 +1660,6 @@
       "asset": "ss_opal.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
       "tooltip": "*Draw a card*, *power up twice*, gain *2 mana*, and you may gain a card from the *Storm Cloud* at or below your *Tier*. On discard: *power up twice*.\n\n_Gems are rocks found deep in the earth that are charged with mysterious power._",
-      "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 3 },
       "abilities": [
         {
@@ -1737,8 +1667,7 @@
           "text": "Resolve",
           "action": [
             "draw_from:mine.deck:mine.hand:1",
-            "power_up:power@mine.player:1",
-            "power_up:power@mine.player:1",
+            "power_up:power@mine.player:2",
             "stat_gain:mana@mine.player:1",
             "stat_gain:mana@mine.player:1"
           ]
@@ -1749,11 +1678,7 @@
           "action": ["activate_zone:rules:by_column:gain_tier"]
         }
       ],
-      "leaves": {
-        "from": "hand",
-        "into": "discard",
-        "action": ["power_up:power@mine.player:1", "power_up:power@mine.player:1"]
-      }
+      "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:2"] }
     },
     {
       "key": "quake",
@@ -1761,8 +1686,6 @@
       "asset": "ss_quake.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
       "tooltip": "Your opponent loses *2 Power Tokens* and gains an *ASH*. You may gain a card from the *Storm Cloud* at or below your *Tier*. On discard: *power up*.\n\n_A huge earthquake that happened in 1951 is attributed to the emergence of the Business Demons._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -1787,7 +1710,6 @@
       "asset": "ss_shatter.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
       "tooltip": "You may *VOID* up to *2 cards* from your hand, and *power up* for each. On discard: *power up*.\n\n_\"That there spellstorm water's FULL-a gold, I tell ya!\" - Prospector_",
-      "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
@@ -1809,8 +1731,6 @@
       "asset": "ss_sift.jpg",
       "tags": ["earth", "loam", "spell"],
       "tooltip": "*Power up*. Look at the top *2 cards* of your deck and put them back in any order: the one you pick is the one you draw next.\n\n_Almost all Earth cards have discard effects._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -1827,8 +1747,6 @@
       "asset": "ss_spiritcrystal.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
       "tooltip": "*Draw a card*. Reveal an *Earth* card from your hand, resolve it and then discard it. On discard: *power up*.\n\n_It's said that Earth magic is the oldest form of magic, which is why so many stones are imbued with powers._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["draw_from:mine.deck:mine.hand:1"] },
         {
@@ -1846,14 +1764,9 @@
       "asset": "ss_threepower.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
       "tooltip": "*Power up twice* and you may gain a card from the *Storm Cloud* at or below your *Tier*. If anyone revealed *Water*, *power up* again. On discard: *power up twice*.\n\n_When you see the \"Gain Card\" icon on a card, keep in mind that you may choose not to gain a card._",
-      "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
-        {
-          "key": "cast",
-          "text": "Resolve",
-          "action": ["power_up:power@mine.player:1", "power_up:power@mine.player:1"]
-        },
+        { "key": "cast", "text": "Resolve", "action": ["power_up:power@mine.player:2"] },
         {
           "key": "cast2",
           "text": "Resolve",
@@ -1866,11 +1779,7 @@
           "action": ["activate_zone:rules:by_column:gain_tier"]
         }
       ],
-      "leaves": {
-        "from": "hand",
-        "into": "discard",
-        "action": ["power_up:power@mine.player:1", "power_up:power@mine.player:1"]
-      }
+      "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:2"] }
     },
     {
       "key": "twopower",
@@ -1878,25 +1787,15 @@
       "asset": "ss_twopower.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
       "tooltip": "*Power up twice* and you may gain a card from the *Storm Cloud* at or below your *Tier*. On discard: *power up twice*.\n\n_When you see the \"Gain Card\" icon on a card, keep in mind that you may choose not to gain a card._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
-        {
-          "key": "cast",
-          "text": "Resolve",
-          "action": ["power_up:power@mine.player:1", "power_up:power@mine.player:1"]
-        },
+        { "key": "cast", "text": "Resolve", "action": ["power_up:power@mine.player:2"] },
         {
           "key": "cast_ask",
           "text": "Resolve",
           "action": ["activate_zone:rules:by_column:gain_tier"]
         }
       ],
-      "leaves": {
-        "from": "hand",
-        "into": "discard",
-        "action": ["power_up:power@mine.player:1", "power_up:power@mine.player:1"]
-      }
+      "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:2"] }
     },
     {
       "key": "ice",
@@ -1904,7 +1803,7 @@
       "asset": "ss_ice.jpg",
       "tags": ["water", "tide", "spell", "junk", "ice", "has_discard"],
       "tooltip": "This can't be played. On discard during *Regroup*: -1 to your *Blast Score*.\n\n_\"Ice cut into a cube shape is kind of like a gem.\" - Beosnook_",
-      "card_stats": { "tier_req": 1 },
+      "play": { "action": [] },
       "abilities": [{ "key": "cast", "text": "Resolve", "action": [] }],
       "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:ice_pen@mine.player:1"] }
     },
@@ -1914,7 +1813,7 @@
       "asset": "ss_ash.jpg",
       "tags": ["earth", "loam", "spell", "junk", "ash", "has_discard"],
       "tooltip": "This can't be played. On discard: lose *1 Power Token*.\n\n_The Spellstorm is a highly volcanic area, often covered in ash._",
-      "card_stats": { "tier_req": 1 },
+      "play": { "action": [] },
       "abilities": [{ "key": "cast", "text": "Resolve", "action": [] }],
       "leaves": { "from": "hand", "into": "discard", "action": ["stat_damage:power@mine.player:1"] }
     },
@@ -1924,7 +1823,7 @@
       "asset": "ss_curse.jpg",
       "tags": ["fire", "ember", "spell", "junk", "curse", "has_discard"],
       "tooltip": "This can't be played. On discard: take *1 damage*.\n\n_\"Curses!\" - H.M.T. Holliganger, Distinguished Professor at the Azura Academy School of Archaeology_",
-      "card_stats": { "tier_req": 1 },
+      "play": { "action": [] },
       "abilities": [{ "key": "cast", "text": "Resolve", "action": [] }],
       "leaves": { "from": "hand", "into": "discard", "action": ["hurt:health@mine.player:1"] }
     },
@@ -1934,7 +1833,6 @@
       "asset": "ss_firedragon.jpg",
       "tags": ["fire", "ember", "spell", "dragon", "ult"],
       "tooltip": "Deal *4 damage*. Gain *2 mana*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_No Dragon is more feared than the destructive and terrible Fire Dragon._",
-      "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
         {
@@ -1954,7 +1852,6 @@
       "asset": "ss_winddragon.jpg",
       "tags": ["fire", "ember", "spell", "dragon", "ult"],
       "tooltip": "Gain *Initiative*. Gain a *Storm Shard*. You may resolve up to two cards from your hand.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The elusive Storm Dragons were considered to be cryptids until very recently._",
-      "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
         {
@@ -1980,7 +1877,6 @@
       "asset": "ss_icedragon.jpg",
       "tags": ["water", "tide", "spell", "dragon", "ult"],
       "tooltip": "*Heal 3*. Gain a *Storm Shard*. Give an *ICE*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The elusive Storm Dragons were considered to be cryptids until very recently._",
-      "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
         {
@@ -2001,7 +1897,6 @@
       "asset": "ss_stormdragon.jpg",
       "tags": ["water", "tide", "spell", "dragon", "ult"],
       "tooltip": "Deal *3 damage* and gain a *Storm Shard*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The elusive Storm Dragons were considered to be cryptids until very recently._",
-      "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
         {
@@ -2017,7 +1912,6 @@
       "asset": "ss_earthdragon.jpg",
       "tags": ["earth", "loam", "spell", "dragon", "ult"],
       "tooltip": "You may gain two cards from the *Storm Cloud* at or below your *Tier*. Deal *2 damage*. Gain a *Storm Shard*. Your opponent gains an *ASH*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The Earth Dragons are known to hoard massive amounts of treasure in caves._",
-      "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
         {
@@ -2092,14 +1986,8 @@
       "asset": "ss_derby_coffee.jpg",
       "tags": ["earth", "loam", "spell", "wizard_spell", "no_void", "ult"],
       "tooltip": "*Power up twice* and you may gain a card from the *Storm Cloud* at or below your *Tier*. If you gained an *Earth* card, gain *Initiative*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"This is gonna be the best coffee run of all time!\"_",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
-        {
-          "key": "cast",
-          "text": "Resolve",
-          "action": ["power_up:power@mine.player:1", "power_up:power@mine.player:1"]
-        },
+        { "key": "cast", "text": "Resolve", "action": ["power_up:power@mine.player:2"] },
         {
           "key": "cast_ask",
           "text": "Resolve",
@@ -2113,8 +2001,6 @@
       "asset": "ss_derby_reckless.jpg",
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void", "ult"],
       "tooltip": "Gain *1 mana* and *power up*. Deal *1 damage*. Gain an *ASH*. If you have *Initiative*, deal *1 more damage*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"I know we can do it if we work together!\"_",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -2199,8 +2085,6 @@
       "asset": "ss_eve_facepunch.jpg",
       "tags": ["water", "tide", "spell", "wizard_spell", "no_void", "ult"],
       "tooltip": "Gain *Initiative*. Steal *1 mana* from your opponent and they *discard a card*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"We use voices to avoid having to use fists. We use fists to avoid having to use bombs.\"_",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -2222,8 +2106,6 @@
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void", "ult"],
       "tooltip": "Discard your hand without triggering any discard effects. Deal *1 damage* per *Earth* card discarded. Draw *2 cards*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Destroying the Omni-Gem was only the first step in our struggle against colonial oppression.\"_",
       "comment": "The two moves are one discard, and the detour is the whole of \"without triggering any discard effects\". An On Discard fires on a card going from a hand to a discard; leaving a hand for the quiet is not that, and leaving the quiet for a discard is not either. The cards are there for the length of one step and this is the only card in the box that needs it.",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -2293,8 +2175,6 @@
       "asset": "ss_abra_deepgems.jpg",
       "tags": ["water", "tide", "spell", "wizard_spell", "no_void", "ult"],
       "tooltip": "*Draw a card* and gain *1 mana*. You may lose *1 Power Token* to resolve and then *VOID* a *Water* card from the *Storm Cloud*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The Water Kingdom's dominance was possible, in part, due to their ability to dredge resources from the deep._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -2319,8 +2199,6 @@
       "asset": "ss_abra_newcurriciulum.jpg",
       "tags": ["earth", "loam", "spell", "wizard_spell", "no_void", "ult"],
       "tooltip": "*Power up* once per *Tier* you have reached. You may *VOID* up to *2 cards* in the *Storm Cloud*, and you may gain one at or below your *Tier*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Can't believe the *garbage* I'm asked to teach sometimes!\"_",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -2389,8 +2267,6 @@
       "asset": "ss_croh_sinking.jpg",
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void", "ult"],
       "tooltip": "Gain *2 mana*. Deal damage equal to your number of *DOOM Tokens*. If the *CURSE* pile is empty, gain a *DOOM Token*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_Long ago, Croh Vosh was betrayed and killed at Dragon Bridge by his longtime ally, Salutaire Ruupart._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -2415,8 +2291,6 @@
       "asset": "ss_croh_undertow.jpg",
       "tags": ["water", "tide", "spell", "wizard_spell", "no_void", "ult"],
       "tooltip": "Your opponent *discards a card*. *Draw a card*. If you hold at least 3 more cards than they do, gain a *DOOM Token*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_Croh has come to the Spellstorm seeking his path to world domination._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -2493,8 +2367,6 @@
       "asset": "ss_omar_beetle.jpg",
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void", "ult"],
       "tooltip": "Discard a *Fire* card from your hand to deal *2 damage*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_A hero to many, Omar is regarded by the powerful as an eco-terrorist._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.fire:optional"] }
@@ -2508,8 +2380,6 @@
       "tags": ["water", "tide", "spell", "first_strike", "wizard_spell", "no_void", "ult"],
       "tooltip": "SPECIAL: this card ALWAYS goes first. Gain *Initiative*. *Draw a card* OR your opponent discards their revealed card (it does not resolve) and they draw.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"...\"_",
       "comment": "\"ALWAYS goes first\" is the order the duel is taken in, and the duel already takes an order off a stat -- so it is a second stat rather than a second rule. `lead` is written at the reveal, when what was played is known and before the group that reads it is entered, and the Shuriken outweighs the Tracker by more than the Tracker can ever be worth. \"It does not resolve\" needs no word at all: going first is what takes the card out of the battle before the seat that played it is up.",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -2583,8 +2453,6 @@
       "asset": "ss_bunny_buddy.jpg",
       "tags": ["earth", "loam", "spell", "wizard_spell", "no_void", "ult"],
       "tooltip": "*Power up* and gain *1 mana*. If your opponent is *Tier I*, they *power up* too. You may resolve a different revealed *Earth* card.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Bunny is wondering if it would be okay to hold your hand.\" - Bunny's Handler_",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -2611,8 +2479,6 @@
       "asset": "ss_bunny_snowday.jpg",
       "tags": ["water", "tide", "spell", "wizard_spell", "no_void", "ult"],
       "tooltip": "*Heal 2*. Give an *ICE* to your opponent if they have none in their discard.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The Stuffies are a species of stuffed animals that have been brought to life by powerful Star magic._",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["heal:health@mine.player:2"] },
         {
@@ -2689,8 +2555,6 @@
       "asset": "ss_oren_potion.jpg",
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void", "ult"],
       "tooltip": "Deal *1 damage*. You may give a non-Wizard card from your hand to your opponent. If you do, gain 2 of the Element matching it.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Think I can hit that old barrel by the hill over there?\"_",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["hit:health@opponent:1"] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
@@ -2711,8 +2575,6 @@
       "asset": "ss_oren_unstable.jpg",
       "tags": ["earth", "loam", "spell", "wizard_spell", "no_void", "ult"],
       "tooltip": "*Power up* and gain *1 mana*. Lower one Element by 2 to raise another by 2. If anyone revealed *Water*, gain 1 *Earth* Element.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Oh, it'll work, trust me. But, uh... you might wanna stand back a bit...\"_",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -2794,8 +2656,6 @@
       "asset": "ss_may_data.jpg",
       "tags": ["earth", "loam", "spell", "wizard_spell", "no_void", "ult"],
       "tooltip": "Lose 1 or *2 Energy* Tokens to *power up* that many times. If you still hold *2 Energy*, your opponent reveals their hand and you choose what they discard.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Yes! I'm in. Now let's see what these idiots have planned next...\"_",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
         {
@@ -2811,8 +2671,6 @@
       "asset": "ss_may_starshot.jpg",
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void", "ult"],
       "tooltip": "*Discard a card* to deal *1 damage*. Gain *1 mana* for each *Energy* Token you have, then lose *2 Energy*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Hey, YOU! Eat this!\"_",
-      "play": { "action": ["move_to:mine.commit"] },
-      "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
@@ -2995,11 +2853,7 @@
           "key": "wx3",
           "text": "Weather",
           "needs": ["tier@mine.player <= 1"],
-          "action": [
-            "power_up:power@mine.player:1",
-            "power_up:power@mine.player:1",
-            "power_up:power@mine.player:1"
-          ]
+          "action": ["power_up:power@mine.player:3"]
         }
       ]
     },
@@ -3116,8 +2970,7 @@
           "action": [
             "draw_from:mine.deck:mine.hand:1",
             "draw_from:mine.deck:mine.hand:1",
-            "power_up:power@mine.player:1",
-            "power_up:power@mine.player:1"
+            "power_up:power@mine.player:2"
           ]
         }
       ]
@@ -3157,8 +3010,7 @@
             "draw_from:mine.deck:mine.hand:1",
             "draw_from:mine.deck:mine.hand:1",
             "stat_gain:mana@mine.player:1",
-            "destroy:random.mine.hand",
-            "destroy:random.mine.hand"
+            "destroy:random.mine.hand:2"
           ]
         }
       ]
@@ -3729,8 +3581,7 @@
       "play": {
         "action": [
           "stat_damage:energy@mine.player:2",
-          "power_up:power@mine.player:1",
-          "power_up:power@mine.player:1",
+          "power_up:power@mine.player:2",
           "activate_zone:rules:by_column:breach"
         ],
         "needs": ["energy@mine.player >= 2"]
@@ -3982,17 +3833,12 @@
         {
           "key": "dry_take_ice",
           "needs": ["count:junk@ice_pile <= 0"],
-          "action": ["destroy:random.mine.hand", "destroy:random.mine.hand", "show:mine.held.ice"]
+          "action": ["destroy:random.mine.hand:2", "show:mine.held.ice"]
         },
         {
           "key": "dry_give_ice",
           "needs": ["count:junk@ice_pile <= 0"],
-          "action": [
-            "destroy:random.enemy.hand",
-            "destroy:random.enemy.hand",
-            "set_priority:enemy.player",
-            "show:mine.held.ice"
-          ]
+          "action": ["destroy:random.enemy.hand:2", "set_priority:enemy.player", "show:mine.held.ice"]
         }
       ],
       "chosen": { "action": ["move:target:ice_pile"] }

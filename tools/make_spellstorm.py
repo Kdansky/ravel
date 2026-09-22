@@ -38,7 +38,13 @@ MANA  = "stat_gain:mana@mine.player:1"
 # token lands rather than between rounds, when a [GAIN] later on the same card
 # had already been judged against the old Tier. Losing Power is not: nothing
 # happens when the track goes down.
-POWER = "power_up:power@mine.player:1"
+#
+# **The count is safe, and it looks as though it should not be.** The track is
+# an `adjusts` whose `instead` walks tier_up after the gain, so "gain 2" checks
+# the track once where two gains of 1 check it twice -- and the track empties
+# at six, which no single card's gain can reach twice. Both spellings leave
+# power 1 / tier 2 from power 5 with wiz_derby in play.
+POWER = lambda n=1: "power_up:power@mine.player:%d" % n
 DRAW  = "draw_from:mine.deck:mine.hand:1"
 # **Healing is a moment with a name**, and the only one this game declares. The
 # engine's own stat_gain is deliberately unwatchable, so a rule that answers
@@ -89,11 +95,11 @@ GAIN_JUNK = lambda kind: ["activate_zone:rules:by_column:dry_take_%s" % kind,
                           "draw_from:%s_pile:mine.discard:1" % kind]
 
 # "Discard a random card", which is a selection and a coin toss and nothing
-# else: `random.` narrows a scope to one of whatever it named, and `move:` obeys
-# it. Two cards is the line twice -- there is no count on a move, and doubling it
-# is exactly what the rule says. Being a move rather than a draw, it fires the
-# On Discard of whatever comes up, which is the point of it being a discard.
-DISCARD_RANDOM = lambda who: "destroy:random.%s.hand" % who
+# else: `random.` narrows a scope to one of whatever it named, and `destroy:`
+# obeys it -- and takes a count, so two cards is one line and the coin is tossed
+# twice inside it. Being a move rather than a draw, it fires the On Discard of
+# whatever comes up, which is the point of it being a discard.
+DISCARD_RANDOM = lambda who, n=1: "destroy:random.%s.hand%s" % (who, ":%d" % n if n > 1 else "")
 
 # Offering the Storm Cloud. `show:` lends the real cards, so what comes back is
 # the card that was on the shelf rather than a copy of it; the `chosen` block on
@@ -191,8 +197,8 @@ BASIC = [
     card("powergem", "Power Gem", EARTH, kind="basic",
          tooltip="Power up. You may gain a card from the Storm Cloud at or below your Tier; if you do, it goes to your discard. On discard: power up.",
          flavour="The golden gems of the Spell Storm take time to develop their power.",
-         cast=[POWER] + GAIN("discard"),
-         disc=[POWER]),
+         cast=[POWER()] + GAIN("discard"),
+         disc=[POWER()]),
 ]
 
 # --- The three Essence cards, seeded into the Storm Cloud at setup ---------
@@ -213,8 +219,8 @@ ESSENCE = [
     card("earthessence", "Earth Essence", EARTH, kind="essence", tier=1,
          tooltip="Power up. You may gain any Tier I or II Earth card in the Storm Cloud. VOID this. On discard: power up.",
          flavour="Earth Magic is generally associated with building.",
-         cast=[POWER, "move_to:void"] + GAIN("earth"),
-         disc=[POWER]),
+         cast=[POWER(), "move_to:void"] + GAIN("earth"),
+         disc=[POWER()]),
 ]
 
 # --- The Spellstorm Deck ---------------------------------------------------
@@ -376,7 +382,7 @@ SPELLS = [
     card("amber", "Amber", EARTH, tier=1,
          tooltip="Power up. You must gain two cards from the Storm Cloud at or below your Tier. On discard: power up.",
          flavour="The Business Demons considered drilling operations at the Spellstorm, but it was deemed too costly.",
-         cast=[POWER] + GAIN("must") + GAIN("must"), disc=[POWER]),
+         cast=[POWER()] + GAIN("must") + GAIN("must"), disc=[POWER()]),
     card("bloodstone", "Bloodstone", EARTH, tier=1,
          tooltip="Gain 1 mana. Take 1 damage. You may VOID a card from your hand or discard. On discard: gain 1 mana.",
          flavour='"It\'s best to leave gems that you find in the wild alone, unless you really know what you\'re doing." - Abragail',
@@ -391,9 +397,9 @@ SPELLS = [
          tooltip="If you hold 3 or more other cards, discard 3 of them and power up 3 times. On discard: power up.",
          flavour='"Learned more spells in 1 day at the Spellstorm, than I had in the past 3 years." - Azura Spellstorm Scholar',
          cast2=("count:spell@mine.hand >= 3",
-                [POWER, POWER, POWER, HAND_PICK, HAND_PICK, HAND_PICK]),
+                [POWER(3), HAND_PICK, HAND_PICK, HAND_PICK]),
          chosen=["move:target:mine.discard"],
-         disc=[POWER]),
+         disc=[POWER()]),
     card("meteorite", "Meteorite", EARTH, tier=1,
          tooltip="Take 1 damage. You may resolve any card in the Storm Cloud regardless of tier, then VOID it. On discard: take 1 damage.",
          flavour='"Mom! Look! This fell from the sky!" - A child of Tiya Bannet',
@@ -403,16 +409,16 @@ SPELLS = [
     card("opal", "Opal", EARTH, tier=3,
          tooltip="Draw a card, power up twice, gain 2 mana, and you may gain a card from the Storm Cloud at or below your Tier. On discard: power up twice.",
          flavour="Gems are rocks found deep in the earth that are charged with mysterious power.",
-         cast=[DRAW, POWER, POWER, MANA, MANA] + GAIN(), disc=[POWER, POWER]),
+         cast=[DRAW, POWER(2), MANA, MANA] + GAIN(), disc=[POWER(2)]),
     card("quake", "Quake", EARTH, tier=1,
          tooltip="Your opponent loses 2 Power Tokens and gains an ASH. You may gain a card from the Storm Cloud at or below your Tier. On discard: power up.",
          flavour="A huge earthquake that happened in 1951 is attributed to the emergence of the Business Demons.",
-         cast=["stat_damage:power@opponent:2"] + GIVE("ash") + GAIN(), disc=[POWER]),
+         cast=["stat_damage:power@opponent:2"] + GIVE("ash") + GAIN(), disc=[POWER()]),
     card("shatter", "Shatter", EARTH, tier=2,
          tooltip="You may VOID up to 2 cards from your hand, and power up for each. On discard: power up.",
          flavour='"That there spellstorm water\'s FULL-a gold, I tell ya!" - Prospector',
-         cast=[OFFER_HAND, OFFER_HAND], chosen=["move:target:void", POWER],
-         chosen_where=VOIDABLE, disc=[POWER]),
+         cast=[OFFER_HAND, OFFER_HAND], chosen=["move:target:void", POWER()],
+         chosen_where=VOIDABLE, disc=[POWER()]),
     # Looking at cards without holding them is what `sifting` is for. The pick
     # goes back last and a deck takes a card on top, so the card you name is the
     # one you draw next and the other sits under it -- which is the whole of "in
@@ -421,24 +427,24 @@ SPELLS = [
     card("sift", "Sift", EARTH, tier=1,
          tooltip="Power up. Look at the top 2 cards of your deck and put them back in any order: the one you pick is the one you draw next.",
          flavour="Almost all Earth cards have discard effects.",
-         cast=[POWER, "draw_from:mine.deck:sifting:2", "show:sifting"],
+         cast=[POWER(), "draw_from:mine.deck:sifting:2", "show:sifting"],
          chosen=["move:sifting:mine.deck", "move:target:mine.deck"]),
     card("spiritcrystal", "Spirit Crystal", EARTH, tier=1,
          tooltip="Draw a card. Reveal an Earth card from your hand, resolve it and then discard it. On discard: power up.",
          flavour="It's said that Earth magic is the oldest form of magic, which is why so many stones are imbued with powers.",
          cast=[DRAW, RESOLVE_FROM_HAND_OF(EARTH)],
          chosen=["copy:target:activate", "destroy:target"],
-         disc=[POWER]),
+         disc=[POWER()]),
     card("threepower", "Three Power", EARTH, tier=2,
          tooltip="Power up twice and you may gain a card from the Storm Cloud at or below your Tier. If anyone revealed Water, power up again. On discard: power up twice.",
          flavour='When you see the "Gain Card" icon on a card, keep in mind that you may choose not to gain a card.',
-         cast=[POWER, POWER] + GAIN(),
-         cast2=("count:water@battle >= 1", [POWER]),
-         disc=[POWER, POWER]),
+         cast=[POWER(2)] + GAIN(),
+         cast2=("count:water@battle >= 1", [POWER()]),
+         disc=[POWER(2)]),
     card("twopower", "Two Power", EARTH, tier=1,
          tooltip="Power up twice and you may gain a card from the Storm Cloud at or below your Tier. On discard: power up twice.",
          flavour='When you see the "Gain Card" icon on a card, keep in mind that you may choose not to gain a card.',
-         cast=[POWER, POWER] + GAIN(), disc=[POWER, POWER]),
+         cast=[POWER(2)] + GAIN(), disc=[POWER(2)]),
 ]
 
 # --- Special cards: the three junk piles and the five Dragons -------------
@@ -510,7 +516,7 @@ WEATHER = [
     # The eight Calm Before the Storm cards, which sit on top of the deck so
     # the first two battles are gentle.
     weather("nice_breeze", "Nice Breeze", "Draw a card, gain 1 mana, power up.",
-            wx=[DRAW, MANA, POWER], calm=True),
+            wx=[DRAW, MANA, POWER()], calm=True),
     weather("crystalflurries", "Crystal Flurries",
             "Draw a card and gain 1 mana. If you reveal Water this round, gain 1 mana.",
             wx=[DRAW, MANA], wy=(REVEALED(WATER), [MANA]), calm=True, copies=2),
@@ -519,10 +525,10 @@ WEATHER = [
             wx=[DRAW], wy=(REVEALED(FIRE), [MANA]), calm=True),
     weather("fallingearth", "Falling Earth",
             "Draw a card. If you reveal Earth this round, power up.",
-            wx=[DRAW], wy=(REVEALED(EARTH), [POWER]), calm=True),
+            wx=[DRAW], wy=(REVEALED(EARTH), [POWER()]), calm=True),
     weather("dustcloud", "Dust Cloud",
             "Draw a card, power up. All players discard a card.",
-            wx=[DRAW, POWER, DISCARD_RANDOM("mine")], calm=True),
+            wx=[DRAW, POWER(), DISCARD_RANDOM("mine")], calm=True),
     # The card the offer queue was built for. The weather phase already runs a
     # weather card's `wx` once per seat, so the offer is written once and every
     # seat is asked in turn: the second ask waits rather than tipping its shelf
@@ -566,7 +572,7 @@ WEATHER = [
             "Draw a card. Whoever has Initiative loses it; whoever gains it gains a CURSE and 1 mana.",
             wx=[DRAW]),
     weather("shootingstar", "Shooting Star", "Draw 2 cards and power up twice.",
-            wx=[DRAW, DRAW, POWER, POWER]),
+            wx=[DRAW, DRAW, POWER(2)]),
     # The other card the offer queue was built for, and the one that needed it
     # most: every player is asked, and the answer is a card out of a hand nobody
     # else may read. VOIDed junk goes back on its own pile rather than into the
@@ -581,7 +587,7 @@ WEATHER = [
                     "move:options.curse:curse_pile"], copies=2),
     weather("tidalwave", "Tidal Wave",
             "Draw 2 cards and gain 1 mana. All players discard 2 cards.",
-            wx=[DRAW, DRAW, MANA, DISCARD_RANDOM("mine"), DISCARD_RANDOM("mine")]),
+            wx=[DRAW, DRAW, MANA, DISCARD_RANDOM("mine", 2)]),
     weather("wildcolorwinds", "Wildcolor Winds",
             "Draw a card. All players draw a card from the Spellstorm Deck into their discard.",
             wx=[DRAW, "draw_from:spellstorm_deck:mine.discard:1"]),
@@ -591,7 +597,7 @@ WEATHER = [
 # those are riders on the flip step rather than one line, so they live here.
 WEATHER_RIDERS = {
     "gemlightomen": [("tier@mine.player == 2", [MANA]),
-                     ("tier@mine.player <= 1", [POWER, POWER, POWER])],
+                     ("tier@mine.player <= 1", [POWER(3)])],
     "ionicatmosphere": [("tier@mine.player >= 2", ["stat_damage:power@mine.player:2"])],
     "lightningstrike": [("health@mine.player >= 9", [SELF_DMG(1)])],
     "magneticwarp": [(HAS_INIT,
@@ -716,10 +722,10 @@ def choice_templates():
         # May's Data Breach: "lose 1 or 2 Energy Tokens, and power up that many
         # times". The card read the 2 as a gate rather than as a choice.
         entry("may_lose1", "Lose 1 Energy", "Lose 1 Energy Token and power up.",
-              ["stat_damage:energy@mine.player:1", POWER, BREACH],
+              ["stat_damage:energy@mine.player:1", POWER(), BREACH],
               needs=["energy@mine.player >= 1"]),
         entry("may_lose2", "Lose 2 Energy", "Lose 2 Energy Tokens and power up twice.",
-              ["stat_damage:energy@mine.player:2", POWER, POWER, BREACH],
+              ["stat_damage:energy@mine.player:2", POWER(2), BREACH],
               needs=["energy@mine.player >= 2"]),
     ]
 
@@ -813,11 +819,11 @@ WIZARDS = [
                card("derby_coffee", "Coffee Run", EARTH, kind="wizard_spell", ult=True,
                     tooltip="Power up twice and you may gain a card from the Storm Cloud at or below your Tier. If you gained an Earth card, gain Initiative.",
                     flavour='"This is gonna be the best coffee run of all time!"',
-                    cast=[POWER, POWER] + GAIN("coffee")),
+                    cast=[POWER(2)] + GAIN("coffee")),
                card("derby_reckless", "Reckless Charge", FIRE, kind="wizard_spell", ult=True,
                     tooltip="Gain 1 mana and power up. Deal 1 damage. Gain an ASH. If you have Initiative, deal 1 more damage.",
                     flavour='"I know we can do it if we work together!"',
-                    cast=[MANA, POWER, DMG(1)] + GAIN_JUNK("ash"),
+                    cast=[MANA, POWER(), DMG(1)] + GAIN_JUNK("ash"),
                     cast2=(HAS_INIT, [DMG(1)])),
            ]),
 
@@ -966,7 +972,7 @@ WIZARDS = [
                card("bunny_buddy", "Buddy System", EARTH, kind="wizard_spell", ult=True,
                     tooltip="Power up and gain 1 mana. If your opponent is Tier I, they power up too. You may resolve a different revealed Earth card.",
                     flavour='"Bunny is wondering if it would be okay to hold your hand." - Bunny\'s Handler',
-                    cast=[POWER, MANA, "show:others.battle.earth:optional"],
+                    cast=[POWER(), MANA, "show:others.battle.earth:optional"],
                     cast2=("tier@opponent <= 1",
                            ["power_up:power@opponent:1"]),
                     chosen=["copy:target:activate"]),
@@ -1018,7 +1024,7 @@ WIZARDS = [
                card("oren_unstable", "Unstable Formula", EARTH, kind="wizard_spell", ult=True,
                     tooltip="Power up and gain 1 mana. Lower one Element by 2 to raise another by 2. If anyone revealed Water, gain 1 Earth Element.",
                     flavour='"Oh, it\'ll work, trust me. But, uh... you might wanna stand back a bit..."',
-                    cast=[POWER, MANA, OFFER_SWAP],
+                    cast=[POWER(), MANA, OFFER_SWAP],
                     cast2=("count:water@battle >= 1", ["stat_gain:earth_el@mine.player:1"])),
            ]),
 
@@ -1069,10 +1075,10 @@ JOURNAL = [
     (4, "Move an ICE, ASH or CURSE from your discard to your opponent's.",
         ["show:mine.discard.junk:optional"],
         {"action": ["move:target:enemy.discard"]}),
-    (5, "Power up.", [POWER], None),
+    (5, "Power up.", [POWER()], None),
     (6, "You may gain a card from the Storm Cloud at or below your Tier.",
         GAIN(), "step"),
-    (7, "Power up.", [POWER], None),
+    (7, "Power up.", [POWER()], None),
     (8, "Draw a card.", [DRAW], None),
 ]
 
@@ -1090,13 +1096,13 @@ POTIONS = [
     ("pot_haste", "Haste Potion", "If you have Initiative, deal 1 damage. Otherwise, gain Initiative.",
      FIRE, 1, False, (HAS_INIT, [DMG(1)]), (NO_INIT, GAIN_INIT)),
     ("pot_purple", "I Call It... Purple Stuff.", "Power up and gain 2 mana.",
-     FIRE, 2, True, (None, [POWER, MANA, MANA]), None),
+     FIRE, 2, True, (None, [POWER(), MANA, MANA]), None),
     ("pot_explosion", "A Slight... Explosion", "Deal 1 damage. Gain 1 of each Element.",
      FIRE, 3, True, (None, [DMG(1), "stat_gain:fire_el@mine.player:1",
                             "stat_gain:earth_el@mine.player:1",
                             "stat_gain:water_el@mine.player:1"]), None),
     ("pot_devils", "Devil's Breath", "Power up. Give an ASH.",
-     EARTH, 1, True, (None, [POWER] + GIVE("ash")), None),
+     EARTH, 1, True, (None, [POWER()] + GIVE("ash")), None),
     # The flag the next potion reads. It is set here and spent there, which is
     # the only way a card in this game reaches forward to the next one.
     ("pot_gasoline", "I Think I Just Drank Gasoline", "Take 1 damage. Your next potion happens twice, and you pay its cost once.",
@@ -1109,7 +1115,7 @@ POTIONS = [
     ("pot_frost", "Frost Bomb", "Your opponent loses 1 mana. Give an ICE.",
      WATER, 2, False, (None, ["stat_damage:mana@opponent:1"] + GIVE("ice")), None),
     ("pot_storm", "Storm Juice", "Draw a card and power up.",
-     WATER, 3, False, (None, [DRAW, POWER]), None),
+     WATER, 3, False, (None, [DRAW, POWER()]), None),
     ("pot_soda", "Health Soda", "Heal 2.",
      WATER, 4, True, (None, [HEAL(2)]), None),
 ]
@@ -1253,24 +1259,23 @@ def spell_template(c):
     t["tooltip"] = tip(text, c["flavour"], c["simplified"])
     if c["comment"]: t["comment"] = c["comment"]
 
-    # A card that can be cast says so by carrying a play block; ICE, ASH and
-    # CURSE carry none, which is the whole of "this can't be played" and needs
-    # no rule anywhere else.
+    # The `spell` tag carries the play, so a card that can be cast writes
+    # nothing; ICE, ASH and CURSE opt out with an empty one, which is the whole
+    # of "this can't be played" and needs no rule anywhere else.
     # No owner is written here. A card dealt into a seat's deck already carries
     # that seat, and one gained from the Storm Cloud is nobody's -- so the pile
     # it is lying in answers for it, which is what a card crossing the table
     # needs: Crossfire posts itself to the other player's discard, and stamping
     # it with the caster on the way out would send it home again the next time
     # they threw it away.
-    if c["kind"] != "junk":
-        t["play"] = {"action": ["move_to:mine.commit"]}
+    if c["kind"] == "junk":
+        t["play"] = {"action": []}
 
-    # `tier_req` is what the Storm Cloud's take tests against your Tier.
+    # `tier_req` is what the Storm Cloud's take tests against your Tier. The
+    # stat starts at 1, so only a card asking for more writes a number.
     stats = {}
-    if c["tier"]: stats["tier_req"] = c["tier"]
-    elif c["kind"] == "junk": stats["tier_req"] = 1
-    else: stats["tier_req"] = 1
-    t["card_stats"] = stats
+    if c["tier"] and c["tier"] != 1: stats["tier_req"] = c["tier"]
+    if stats: t["card_stats"] = stats
 
     # An action list has no cursor, so whatever follows an ask runs before the
     # answer arrives. The asks therefore go at the end -- and there may be more
@@ -1496,7 +1501,7 @@ def rules_templates():
             ("ash",   ["stat_damage:power@mine.player:2"],
                       ["stat_damage:power@opponent:2"]),
             ("curse", [SELF_DMG(1)], [DMG(1)]),
-            ("ice",   [DISCARD_RANDOM("mine")] * 2, [DISCARD_RANDOM("enemy")] * 2)):
+            ("ice",   [DISCARD_RANDOM("mine", 2)], [DISCARD_RANDOM("enemy", 2)])):
         # VOIDing one is a move back onto the pile, which is where a VOIDed junk
         # card goes -- so the pile refills by one and the penalty lands on top.
         # Which one is VOIDed is the holder's choice, and it is a real one: every
@@ -1680,7 +1685,7 @@ def rules_templates():
     out.append(rules_card(
         "r_research", "Did Her Research",
         "At the start of each battle, Abragail powers up.",
-        [ability("bstart", [POWER], when=["count:abra@mine.wizard >= 1"])]))
+        [ability("bstart", [POWER()], when=["count:abra@mine.wizard >= 1"])]))
 
     return out
 
@@ -2218,43 +2223,31 @@ def build():
         "players": [{"card": "seat_one"}, {"card": "seat_two"}],
         "stats": [
             {"key": "health", "label": "Health", "icon": "heart", "color": "crimson",
-             "min": 0, "max": 20, "subject": "health@mine.player",
-             "on": ["player"], "start": 0},
+             "min": 0, "max": 20, "on": ["player"], "start": 0},
             {"key": "shards", "label": "Storm Shards", "icon": "diamond",
-             "color": "violet", "min": 0, "max": 8,
-             "subject": "shards@mine.player", "on": ["player"], "start": 0, "display": "nonzero"},
+             "color": "violet", "min": 0, "max": 8, "on": ["player"], "start": 0, "display": "nonzero"},
             {"key": "mana", "label": "Mana", "icon": "orb", "color": "magenta",
-             "min": 0, "max": 40, "subject": "mana@mine.player",
-             "on": ["player"], "start": 2},
+             "min": 0, "max": 40, "on": ["player"], "start": 2},
             {"key": "power", "label": "Power", "icon": "coin", "color": "gold",
-             "min": 0, "max": 12, "subject": "power@mine.player",
-             "on": ["player"], "start": 0, "display": "nonzero"},
+             "min": 0, "max": 12, "on": ["player"], "start": 0, "display": "nonzero"},
             {"key": "tier", "label": "Tier", "icon": "banner", "color": "amber",
-             "min": 1, "max": 4, "subject": "tier@mine.player",
-             "on": ["player"], "start": 1},
+             "min": 1, "max": 4, "on": ["player"], "start": 1},
             {"key": "initiative", "label": "Initiative", "icon": "arrow",
-             "color": "yellow", "min": 0, "max": 1,
-             "subject": "initiative@mine.player", "on": ["player"], "start": 0, "display": "nonzero"},
+             "color": "yellow", "min": 0, "max": 1, "on": ["player"], "start": 0, "display": "nonzero"},
             {"key": "doom", "label": "Doom", "icon": "fist", "color": "indigo",
-             "min": 0, "max": 4, "subject": "doom@mine.player",
-             "on": ["player"], "start": 0, "display": "nonzero"},
+             "min": 0, "max": 4, "on": ["player"], "start": 0, "display": "nonzero"},
             {"key": "energy", "label": "Energy", "icon": "shield", "color": "teal",
-             "min": 0, "max": 3, "subject": "energy@mine.player",
-             "on": ["player"], "start": 0, "display": "nonzero"},
+             "min": 0, "max": 3, "on": ["player"], "start": 0, "display": "nonzero"},
             {"key": "research", "label": "Research", "icon": "leaf",
-             "color": "olive", "min": 0, "max": 6,
-             "subject": "research@mine.player", "on": ["player"], "start": 0, "display": "nonzero"},
+             "color": "olive", "min": 0, "max": 6, "on": ["player"], "start": 0, "display": "nonzero"},
             # Oren's Chemistry Board: three beakers, 0 to 6, that his potions
             # are paid out of and that go back to 3 when his Ultimate ends.
             {"key": "fire_el", "label": "Fire", "icon": "pot", "color": "orange",
-             "min": 0, "max": 6, "subject": "fire_el@mine.player",
-             "on": ["player"], "start": 0, "display": "nonzero"},
+             "min": 0, "max": 6, "on": ["player"], "start": 0, "display": "nonzero"},
             {"key": "earth_el", "label": "Earth", "icon": "pot", "color": "brown",
-             "min": 0, "max": 6, "subject": "earth_el@mine.player",
-             "on": ["player"], "start": 0, "display": "nonzero"},
+             "min": 0, "max": 6, "on": ["player"], "start": 0, "display": "nonzero"},
             {"key": "water_el", "label": "Water", "icon": "pot", "color": "cyan",
-             "min": 0, "max": 6, "subject": "water_el@mine.player",
-             "on": ["player"], "start": 0, "display": "nonzero"},
+             "min": 0, "max": 6, "on": ["player"], "start": 0, "display": "nonzero"},
 
             # What the Ultimate costs, badged on the character card.
             {"key": "ult_cost", "label": "Ultimate", "icon": "orb", "color": "magenta", "min": 0, "max": 40},
@@ -2289,8 +2282,10 @@ def build():
             {"key": "battle_round", "min": 0, "max": 9, "display": "offscreen",
              "on": ["plan"], "start": 0},
             # Read off the card on the shelf rather than the player: what it
-            # costs in Tier to take it.
-            {"key": "tier_req", "min": 0, "max": 9, "display": "offscreen"},
+            # costs in Tier to take it. Carried by exactly the 66 spells and by
+            # nothing else, so `on` is a check rather than an approximation, and
+            # the commonest requirement is its default -- 46 cards stop saying 1.
+            {"key": "tier_req", "min": 0, "max": 9, "display": "offscreen", "on": ["spell"], "start": 1},
             # A Research Token, read off the journal space it sits on.
             {"key": "researched", "min": 0, "max": 1, "display": "offscreen"},
             # A Trap that has been revealed. It stays where it lies and does
@@ -2366,6 +2361,11 @@ def build():
                       "badges": ["health", "mana", "tier", "power", "shards", "initiative"]},
         },
         "tags": {
+            # Casting is the same move for all 66 of them: onto your own commit
+            # spot, where the battle reads it. Said once here rather than 63
+            # times; the three junk cards opt out with an empty play, which is
+            # already what "this can't be cast" means.
+            "spell": {"play": {"action": ["move_to:mine.commit"]}},
             # What a card on a shelf does: it comes to your hand, if your Tier
             # reaches it, and the shelf refills behind it. An ability rather than
             # a play, because an ability's "needs" is read where a granted play's

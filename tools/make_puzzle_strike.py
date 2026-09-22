@@ -845,7 +845,6 @@ def stats():
         else:
             s["label"] = label
             s["icon"] = icon
-            s["subject"] = "%s@mine.player" % key
             if colour:
                 s["color"] = colour
         return s
