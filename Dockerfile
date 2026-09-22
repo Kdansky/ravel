@@ -25,6 +25,15 @@ COPY docker-entrypoint.sh /docker-entrypoint.sh
 
 RUN chmod +x /docker-entrypoint.sh
 
+# Precompressed for gzip_static. The runtime is 5 MB of wasm and JS that is the
+# same for every visitor and for the life of the image, so it is gzipped once
+# here rather than once per request — which on a Raspberry Pi is the difference
+# between a second of CPU per visitor and none. love.wasm alone goes 4.7 MB to
+# 1.6. game.love is packed at run time and is already a zip, so it is not here.
+RUN find /usr/share/nginx/html/11.5 /usr/share/nginx/html/lovejs \
+	-type f \( -name '*.js' -o -name '*.wasm' -o -name '*.css' \) \
+	-exec gzip -9 -k {} +
+
 # game/ is expected at /workspace/game via a volume mount (see docker-compose.yml).
 # The entrypoint packs it into game.love on startup and repacks on every file change.
 WORKDIR /workspace

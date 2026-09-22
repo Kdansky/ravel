@@ -36,8 +36,12 @@ pack_game() {
   echo "Packed $GAME_DIR -> $OUTPUT"
 }
 
+# `-exec ... +` and not `-exec ... \;`: the semicolon runs one stat per file,
+# and this runs once a second over three hundred of them. On the desktop that
+# was 0.15s a scan; on the Pi the scans ran back to back and simply ate a core,
+# with nginx serving a 21 MB game.love out of what was left.
 fingerprint_game() {
-  find "$GAME_DIR" -type f ! -name '.DS_Store' -exec stat -c '%n %Y %s' {} \; | sort | sha1sum | awk '{print $1}'
+  find "$GAME_DIR" -type f ! -name '.DS_Store' -exec stat -c '%n %Y %s' {} + | sort | sha1sum | awk '{print $1}'
 }
 
 # Deliberately outside "set -e": one transient failure — a file the editor is
