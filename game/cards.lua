@@ -97,9 +97,58 @@ local bytes_left, time_left = BYTES_PER_FRAME, SLICE
 -- and nothing has to ask how big a thing is before asking for it.
 local HELPERS = [[(function(){
 	var W = window;
+	W.__ravelAssets = W.__ravelAssets || {};
+	// The fetch, installed once instead of sent per picture. It used to be two
+	// kilobytes of freshly generated JavaScript for every card — three hundred
+	// and twenty-nine fresh parses on one game — and it went out in the middle
+	// of drawing. Now it is a call.
+	W.__rvaStart = function(url, id, max){
+		try {
+			if (W.__ravelAssets[id]) return "dup";
+			W.__ravelAssets[id] = { status: "pending" };
+			var asIs = function(blob){
+				return new Promise(function(res, rej){
+					var fr = new FileReader();
+					fr.onload = function(){ res(fr.result) };
+					fr.onerror = function(){ rej(fr.error) };
+					fr.readAsDataURL(blob);
+				});
+			};
+			var shrink = function(src, type){
+				var s = Math.min(1, max / Math.max(src.width, src.height));
+				var c = document.createElement("canvas");
+				c.width = Math.max(1, Math.round(src.width * s));
+				c.height = Math.max(1, Math.round(src.height * s));
+				c.getContext("2d").drawImage(src, 0, 0, c.width, c.height);
+				return c.toDataURL(type === "image/jpeg" ? "image/jpeg" : "image/png", 0.85);
+			};
+			var native = function(t){ return t === "image/jpeg" || t === "image/png" };
+			var handle = function(bm, blob){
+				if (native(blob.type) && Math.max(bm.width, bm.height) <= max) return asIs(blob);
+				return shrink(bm, blob.type);
+			};
+			var decode = function(blob){
+				if (W.createImageBitmap) {
+					return createImageBitmap(blob).then(function(bm){ return handle(bm, blob) });
+				}
+				return new Promise(function(res, rej){
+					var u = URL.createObjectURL(blob), im = new Image();
+					im.onload = function(){ var d = handle(im, blob); URL.revokeObjectURL(u); res(d) };
+					im.onerror = function(){ URL.revokeObjectURL(u); rej(new Error("the browser could not decode it")) };
+					im.src = u;
+				});
+			};
+			fetch(url, { credentials: "same-origin" })
+				.then(function(r){ if (!r.ok) throw new Error("http " + r.status); return r.blob() })
+				.then(decode)
+				.then(function(durl){ W.__ravelAssets[id] = { status: "ok", data: durl } })
+				.catch(function(e){ W.__ravelAssets[id] = { status: "error", message: String(e && e.message || e) } });
+			return "started";
+		} catch (e) { W.__ravelAssets[id] = { status: "error", message: String(e && e.message || e) }; return "!" }
+	};
 	W.__rvaReady = function(){
 		try {
-			var A = W.__ravelAssets || {}, out = [];
+			var A = W.__ravelAssets, out = [];
 			for (var k in A) {
 				var a = A[k];
 				if (a.status === "ok") out.push("o" + k + ":" + a.data.length);
@@ -110,7 +159,7 @@ local HELPERS = [[(function(){
 	};
 	W.__rvaTake = function(id, off, len){
 		try {
-			var a = (W.__ravelAssets || {})[id];
+			var a = W.__ravelAssets[id];
 			if (!a) return "";
 			if (a.status === "error") return String(a.message || "error");
 			return a.data.substr(off, len);
@@ -119,37 +168,30 @@ local HELPERS = [[(function(){
 	// Let go of it once it is across, or the page keeps every picture's base64
 	// for the life of the tab — tens of megabytes nobody can reach.
 	W.__rvaDrop = function(id){
-		try { delete (W.__ravelAssets || {})[id] } catch (e) {}
+		try { delete W.__ravelAssets[id] } catch (e) {}
 		return "ok";
 	};
 	return "ok";
 })()]]
 
 local helpers_up = false
--- Which jobs the page says are finished, refreshed once a frame. A job not in
--- here is still on its way; nothing else is asked about it.
-local ready_now = {}
+-- Pictures a draw has asked for but the page has not been told about yet. The
+-- draw only writes the name down; the next frame's pump starts the fetch.
+local wanted = {}
+-- Pictures that are across and decoded, waiting for a draw to collect them.
+-- `false` is one that will never arrive.
+local arrived = {}
+
+-- **The whole of the frame's business with the page, done before it draws.**
+-- Declared here and written further down, beside the fetch it drives; said out
+-- loud here because this is where the budget it spends is.
+local pump
 
 -- Called once at the top of the frame. Nothing below the presentation line has
 -- any business here; it is main.lua's, beside the draw it paces.
 function M.new_frame()
 	bytes_left, time_left = BYTES_PER_FRAME, SLICE
-	if not (love.js and love.js.eval) then return end
-	if not next(pending) then ready_now = {}; return end
-	if not helpers_up then
-		local ok, answer = pcall(love.js.eval, HELPERS)
-		helpers_up = ok and answer == "ok"
-		if not helpers_up then return end
-	end
-	local ok, list = pcall(love.js.eval, "__rvaReady()")
-	if not ok or type(list) ~= "string" then return end
-	ready_now = {}
-	for item in list:gmatch("[^,]+") do
-		local flag, id, len = item:match("^(%a)(%w+):(%d+)$")
-		if flag then
-			ready_now[id] = { failed = flag == "e", len = tonumber(len) }
-		end
-	end
+	pump()
 end
 
 -- How many pictures are on their way, for the corner that says so. Counted
@@ -181,6 +223,8 @@ function M.reset()
 	img_cache = {}
 	pending   = {}
 	chain_at  = {}
+	wanted    = {}
+	arrived   = {}
 end
 
 -- Give a card a stat it does not have yet, from what the game file wrote.
@@ -859,124 +903,38 @@ end
 -- Fetching to a blob first is what keeps the canvas untainted — an <img>
 -- pointed straight at another origin poisons toDataURL, which is the usual way
 -- this trick fails.
+-- **Nothing here talks to the page.** A draw asks whether a picture is ready and
+-- is answered from a table: an Image if it is, false if it never will be, nil
+-- if it is still coming. The first ask also writes the name down, and `pump`
+-- below does all the talking, once, at the top of the next frame.
+--
+-- That separation is the point. Every one of these calls used to be able to
+-- evaluate two kilobytes of fresh JavaScript or drag a picture across stdin, in
+-- the middle of drawing a card — so the cost of the art landed in the middle of
+-- the frame, in whatever order the zones happened to be drawn, and the tooltip
+-- (which asks for a picture too) could spend the budget the board was waiting
+-- for. Now drawing is drawing.
 local function fetch_browser(url, id, max)
+	local got = arrived[id]
+	if got ~= nil then
+		arrived[id] = nil
+		return got
+	end
 	if not pending[id] then
-		pending[id] = true   -- the page holds the state; this only says "asked for"
-		local kickoff = string.format([[(function(){
-			window.__ravelAssets = window.__ravelAssets || {};
-			var id = "%s";
-			if (window.__ravelAssets[id]) return "dup";
-			window.__ravelAssets[id] = { status: "pending" };
-			var MAX = %d;
-			var asIs = function(blob){
-				return new Promise(function(res, rej){
-					var fr = new FileReader();
-					fr.onload = function(){ res(fr.result); };
-					fr.onerror = function(){ rej(fr.error); };
-					fr.readAsDataURL(blob);
-				});
-			};
-			var shrink = function(src, type){
-				var s = Math.min(1, MAX / Math.max(src.width, src.height));
-				var c = document.createElement("canvas");
-				c.width = Math.max(1, Math.round(src.width * s));
-				c.height = Math.max(1, Math.round(src.height * s));
-				c.getContext("2d").drawImage(src, 0, 0, c.width, c.height);
-				return c.toDataURL(type === "image/jpeg" ? "image/jpeg" : "image/png", 0.85);
-			};
-			var native = function(t){ return t === "image/jpeg" || t === "image/png"; };
-			var handle = function(bm, blob){
-				if (native(blob.type) && Math.max(bm.width, bm.height) <= MAX) return asIs(blob);
-				return shrink(bm, blob.type);
-			};
-			var decode = function(blob){
-				if (window.createImageBitmap) {
-					return createImageBitmap(blob).then(function(bm){ return handle(bm, blob); });
-				}
-				return new Promise(function(res, rej){
-					var u = URL.createObjectURL(blob), im = new Image();
-					im.onload = function(){
-						var d = handle(im, blob);
-						URL.revokeObjectURL(u);
-						res(d);
-					};
-					im.onerror = function(){ URL.revokeObjectURL(u); rej(new Error("the browser could not decode it")); };
-					im.src = u;
-				});
-			};
-			fetch("%s", { credentials: "same-origin" })
-				.then(function(r){ if (!r.ok) throw new Error("http " + r.status); return r.blob(); })
-				.then(decode)
-				.then(function(durl){ window.__ravelAssets[id] = { status: "ok", data: durl }; })
-				.catch(function(e){ window.__ravelAssets[id] = { status: "error", message: String(e && e.message || e) }; });
-			return "started";
-		})()]], id, max, js_escape(url))
-		pcall(love.js.eval, kickoff)
+		pending[id] = true            -- in flight, in the sense that we mean to
+		wanted[id] = { url = url, max = max }
 	end
+	return nil
+end
 
-	-- **Nothing is asked about a job that is not finished.** The frame's one
-	-- sweep said which are, so a picture still on its way costs nothing at all
-	-- here — no eval, no string, no parse.
-	local state = ready_now[id]
-	if not state then return nil end
-
-	local function give_up(why)
-		pcall(love.js.eval, ("__rvaDrop(%q)"):format(id))
-		pending[id] = nil
-		ready_now[id] = nil
-		print("asset download failed: " .. url .. " (" .. tostring(why) .. ")")
-		return false
-	end
-	if state.failed then
-		local ok, why = pcall(love.js.eval, ("__rvaTake(%q,0,400)"):format(id))
-		return give_up(ok and why or "the page would not say")
-	end
-
-	-- Carried across in pieces, as many as the frame can still afford. A picture
-	-- bigger than one frame's budget simply takes more frames, and every one of
-	-- them still draws.
-	local job = pending[id]
-	if type(job) ~= "table" then
-		job = { parts = {}, got = 0,
-			began = (love.timer and love.timer.getTime and love.timer.getTime()) or 0 }
-		pending[id] = job
-	end
-	local clock = love.timer and love.timer.getTime
-	while job.got < state.len and bytes_left > 0 and (not clock or time_left > 0) do
-		local want = math.min(CHUNK, state.len - job.got, bytes_left)
-		local at = clock and clock()
-		local ok, piece = pcall(love.js.eval, ("__rvaTake(%q,%d,%d)"):format(id, job.got, want))
-		if at then time_left = time_left - (clock() - at) end
-		-- A short piece means the bridge mangled it — a newline in the payload
-		-- would, and nothing else should — and carrying on would splice a
-		-- corrupt picture together. base64 has no newline in it, so this should
-		-- never fire; if it does, the assumption is what broke.
-		if not ok or type(piece) ~= "string" or #piece ~= want then
-			return give_up(("the bridge returned %s bytes of the %d asked for")
-				:format(type(piece) == "string" and #piece or "no", want))
-		end
-		job.parts[#job.parts + 1] = piece
-		job.got = job.got + want
-		bytes_left = bytes_left - want
-	end
-	if job.got < state.len then return nil end   -- the rest next frame
-
-	local began = job.began
-	local result = table.concat(job.parts)
-	pcall(love.js.eval, ("__rvaDrop(%q)"):format(id))
-	pending[id] = nil
-	ready_now[id] = nil
-	-- Everything below this line used to fail by returning nil or false without
-	-- a word, so a picture that never appeared looked exactly like a picture
-	-- still on its way. The bytes have crossed by now; say what became of them.
+-- Turn one finished transfer into an Image, or into a reason it is not one.
+local function decode_arrival(url, result, began)
 	-- **Timed, because this is the step that can hurt and nobody could see it.**
-	-- The bytes come back through emscripten's stdin, which hands them over one
-	-- at a time: a 300 KB picture is 400 KB of base64 and so four hundred
-	-- thousand calls from JavaScript into wasm, for one card. The crossing is
-	-- wall-clock across every frame it took, not the frame's own cost — the
-	-- budget above is what bounds that — so a long time here is fine and a long
-	-- time *decoding* is not, since decoding cannot be spread.
-	local crossed = (love.timer and love.timer.getTime and love.timer.getTime()) or began
+	-- The crossing is wall-clock across every frame it took, not any one frame's
+	-- cost — the budget is what bounds that — so a long time crossing is fine
+	-- and a long time *decoding* is not, since decoding cannot be spread.
+	local clock = love.timer and love.timer.getTime
+	local crossed = clock and clock() or began
 	local b64 = result:match("^data:[^,]*,(.*)$")
 	if not b64 then
 		print("asset unusable: not a data URL, starts " .. string.format("%q", result:sub(1, 40)))
@@ -986,8 +944,8 @@ local function fetch_browser(url, id, max)
 		print("asset unusable: this build has no love.data.decode")
 		return false
 	end
-	local ok2, bytes = pcall(love.data.decode, "string", "base64", b64)
-	if not ok2 then
+	local ok, bytes = pcall(love.data.decode, "string", "base64", b64)
+	if not ok then
 		print("asset unusable: base64 would not decode (" .. tostring(bytes) .. ")")
 		return false
 	end
@@ -996,13 +954,82 @@ local function fetch_browser(url, id, max)
 		print(("asset unusable: %d bytes decoded, %s"):format(#bytes, tostring(why)))
 		return false
 	end
-	local done = (love.timer and love.timer.getTime and love.timer.getTime()) or crossed
+	local done = clock and clock() or crossed
 	-- Floored, not left to the format: Lua 5.3 and up refuse "%d" on a number
 	-- with a fraction, and the suite runs there as well as under LuaJIT.
 	print(("asset arrived: %s — %d KB across the bridge over %d ms, decoded in %d ms")
 		:format(url, math.floor(#result / 1024), math.floor((crossed - began) * 1000),
 			math.floor((done - crossed) * 1000)))
 	return img
+end
+
+-- One call at the top of the frame, and the only place the page is spoken to:
+-- start what the last frame asked for, ask once what has finished, and carry
+-- across as much of it as the budget allows.
+function pump()
+	if not (love.js and love.js.eval) then return end
+	if not (next(wanted) or next(pending)) then return end
+	if not helpers_up then
+		local ok, answer = pcall(love.js.eval, HELPERS)
+		helpers_up = ok and answer == "ok"
+		if not helpers_up then return end
+	end
+
+	for id, w in pairs(wanted) do
+		pcall(love.js.eval, ('__rvaStart("%s","%s",%d)')
+			:format(js_escape(w.url), id, w.max))
+		pending[id] = { url = w.url, parts = {}, got = 0,
+			began = (love.timer and love.timer.getTime and love.timer.getTime()) or 0 }
+	end
+	wanted = {}
+
+	local ok, list = pcall(love.js.eval, "__rvaReady()")
+	if not ok or type(list) ~= "string" or list == "" then return end
+
+	local clock = love.timer and love.timer.getTime
+	for item in list:gmatch("[^,]+") do
+		local flag, id, len = item:match("^(%a)(%w+):(%d+)$")
+		local job = flag and pending[id]
+		-- A job the desktop owns is a thread, not a table of pieces; the two
+		-- platforms share `pending` and exactly one of them ever runs.
+		if type(job) == "table" and job.parts then
+			local function give_up(why)
+				pcall(love.js.eval, ("__rvaDrop(%q)"):format(id))
+				pending[id], arrived[id] = nil, false
+				print("asset download failed: " .. tostring(job.url) .. " (" .. tostring(why) .. ")")
+			end
+			if flag == "e" then
+				local okm, why = pcall(love.js.eval, ("__rvaTake(%q,0,400)"):format(id))
+				give_up(okm and why or "the page would not say")
+			else
+				local total, broke = tonumber(len), false
+				while job.got < total and bytes_left > 0 and (not clock or time_left > 0) do
+					local want = math.min(CHUNK, total - job.got, bytes_left)
+					local at = clock and clock()
+					local okp, piece = pcall(love.js.eval,
+						("__rvaTake(%q,%d,%d)"):format(id, job.got, want))
+					if at then time_left = time_left - (clock() - at) end
+					-- A short piece means the bridge mangled it — a newline in
+					-- the payload would, and nothing else should — and carrying
+					-- on would splice a corrupt picture together.
+					if not okp or type(piece) ~= "string" or #piece ~= want then
+						give_up(("the bridge returned %s bytes of the %d asked for")
+							:format(type(piece) == "string" and #piece or "no", want))
+						broke = true
+						break
+					end
+					job.parts[#job.parts + 1] = piece
+					job.got = job.got + want
+					bytes_left = bytes_left - want
+				end
+				if not broke and job.got >= total then
+					pcall(love.js.eval, ("__rvaDrop(%q)"):format(id))
+					pending[id] = nil
+					arrived[id] = decode_arrival(job.url, table.concat(job.parts), job.began)
+				end
+			end
+		end
+	end
 end
 
 -- Load (and cache) the asset image for a card def, returns nil if missing

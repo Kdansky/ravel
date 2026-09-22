@@ -181,12 +181,20 @@ function M.test_assets_a_missing_local_file_is_fetched_beside_the_page(check)
 	local seen = love.filesystem.getInfo
 	love.filesystem.getInfo = function() return nil end   -- as if the bundle held no art
 
+	-- Drawing only writes the name down. Nothing is said to the page here.
 	local got = cards.asset_image("face", "hero")
 	check("the picture is not ready on the frame that asks for it", got == nil)
-	check("the page was asked for it, exactly once", #asked == 1, tostring(#asked))
-	check("and asked at the path nginx serves the directory from",
-		asked[1] ~= nil and asked[1]:find('fetch("/assets/crown_royal.jpg"', 1, true) ~= nil,
-		tostring(asked[1]):sub(1, 120))
+	check("and drawing said nothing to the page at all", #asked == 0, tostring(#asked))
+
+	-- The next frame's pump installs the helpers and starts the fetch.
+	cards.new_frame()
+	local started
+	for _, program in ipairs(asked) do
+		started = started or program:match('^__rvaStart%("([^"]+)"')
+	end
+	check("the page was asked to fetch it", started ~= nil, table.concat(asked, " | "):sub(1, 120))
+	check("at the path nginx serves the directory from", started == "/assets/crown_royal.jpg",
+		tostring(started))
 
 	-- The other half of the rule: a file that *is* in the bundle never goes near
 	-- the network, which is what keeps the desktop off this path entirely.
@@ -194,6 +202,7 @@ function M.test_assets_a_missing_local_file_is_fetched_beside_the_page(check)
 	cards.reset()
 	asked = {}
 	cards.asset_image("face", "hero2")
+	cards.new_frame()
 	check("a picture in the bundle is not fetched", #asked == 0, tostring(#asked))
 
 	love.js = nil
@@ -214,7 +223,9 @@ function M.test_assets_a_big_picture_is_carried_across_over_several_frames(check
 	cards.reset()
 	local body = string.rep("A", 200000)
 	local payload = "data:image/jpeg;base64," .. body
-	local id, pulled, this_frame = nil, 0, 0
+	-- `ready` lags the start by a sweep, as a real fetch does: the page cannot
+	-- answer "finished" in the same breath it is asked to begin.
+	local id, pulled, this_frame, ready = nil, 0, 0, false
 	love.js = { eval = function(program)
 		program = tostring(program)
 		local who, off, len = program:match('^__rvaTake%("(%w+)",(%d+),(%d+)%)$')
@@ -226,21 +237,21 @@ function M.test_assets_a_big_picture_is_carried_across_over_several_frames(check
 		end
 		if program:find("__rvaDrop(", 1, true) then return "ok" end
 		if program == "__rvaReady()" then
-			return id and ("o" .. id .. ":" .. #payload) or ""
+			if not (id and ready) then ready = id ~= nil; return "" end
+			return "o" .. id .. ":" .. #payload
 		end
-		if program:find("__rvaReady = function", 1, true) then return "ok" end
-		id = program:match('var id = "(%w+)"') or id
-		return "started"
+		id = program:match('^__rvaStart%("[^"]*","(%w+)"') or id
+		return "ok"
 	end }
 	local seen = love.filesystem.getInfo
 	love.filesystem.getInfo = function() return nil end
 
-	cards.new_frame()
-	cards.asset_image("a", "card_a")          -- kickoff; the page has nothing yet
+	cards.asset_image("a", "card_a")          -- a draw: writes the name down
+	cards.new_frame()                         -- the pump starts it; nothing is ready
 	check("nothing crosses before the page says it is ready", pulled == 0, tostring(pulled))
 
-	cards.new_frame(); this_frame = 0
-	cards.asset_image("a", "card_a")
+	this_frame = 0
+	cards.new_frame()
 	local budget = this_frame
 	check("the first frame takes a bite and not the lot", budget > 0 and budget < #payload,
 		budget .. " of " .. #payload)
@@ -249,8 +260,8 @@ function M.test_assets_a_big_picture_is_carried_across_over_several_frames(check
 	-- Every frame takes the same bite until the last, which takes the remainder.
 	local frames = 1
 	while cards.loading() == 1 and frames < 200 do
-		cards.new_frame(); this_frame = 0
-		cards.asset_image("a", "card_a")
+		this_frame = 0
+		cards.new_frame()
 		frames = frames + 1
 		check("no frame ever takes more than the budget", this_frame <= budget,
 			this_frame .. " > " .. budget)
