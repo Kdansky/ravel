@@ -22,7 +22,10 @@ engine runs headless under a 20-line `love` shim.
 ## Module map
 
 Dependencies point downward only. Nothing below the line may require anything
-above it.
+above it, and `tests/integration/layering.lua` is where that stops being a
+wish: it reads the requires out of the files — a lazy one inside a function
+counts, since hiding a dependency is not removing it — pins the floor by name,
+and holds a list of the cycles still standing so the number can only go down.
 
 ```
 main ─ input routing, love callbacks, hot-reload watch
@@ -38,10 +41,12 @@ validate ─ whole-file checks: schema, references, conflicts
 actions ─ the op vocabulary (HANDLERS table)
 phase ─ phase stack, routing, round/fresh flags, and the group a frame is running inside
 targeting ─ who may be targeted (candidates), plus the live selection
+auras ─ what a verb aimed at a number comes to, once every `adjusts` has spoken
 predicate ─ the one condition evaluator: subjects, scopes, comparisons
-zones ─ zone membership, seats, slots, moving/destroying cards
+zones ─ zone membership, seats, slots, moving/destroying cards, which places a word reaches
 geometry ─ grid arithmetic: which squares a pattern reaches from a square
 cards ─ template helpers, live editing, image cache
+stats ─ the whole of a number: stored, current, its floor and ceiling, and the clamp
 tags ─ what a card is (declared, granted by its zone, computed) and whose it is
 declaration ─ JSON → G, plus the injected system zone, player/system cards, seats
 entity ─ the flat array     log ─ event record     json ─ decode/encode
@@ -66,6 +71,26 @@ packet back into readable text — `luajit packet.lua '<blob>'`), `tests/run.lua
 (logic suite), `tests/render_smoke.lua` (draw-path crash test), `tools/`
 (game-file generators — output belongs in `game/games/`, the generator is the
 source).
+
+### The floor, and the one thing that points up
+
+`tags` answers **what a card is** and knows nothing above itself. `stats`
+answers **what a number on it comes to** — stored plus whatever the tags shift
+it by — and owns the floor, the ceiling and the clamp, so *"the ceiling rises
+with a buff"* is written once instead of once in the reader and once in the
+writer. `auras` answers **what a verb aimed at that number comes to**, and sits
+*above* `predicate` because an aura reads scopes and conditions; it lived in
+`tags.lua` until that split forced three requires to be written inside the
+functions that used them.
+
+The one genuine upward call is a **computed tag**: its membership is a
+condition, and conditions are `predicate`'s language — while `predicate` asks,
+constantly, what a card is tagged. No arrangement of modules deletes that; a tag
+may be defined by a number and a number may be shifted by a tag. What the graph
+can do is keep it out of the requires, so `tags` declares a named slot
+(`tags.asks`) and `predicate` installs the one implementation at load. The
+recursion guards (`resolving`, `busy`) are the seatbelt; the validator refuses
+the shapes that would need them.
 
 ## What lives where
 

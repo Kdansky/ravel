@@ -7,6 +7,7 @@ local zones       = require("zones")
 local tags        = require("tags")
 local geometry    = require("geometry")
 local declaration = require("declaration")
+local stats       = require("stats")
 
 local M = {}
 
@@ -294,7 +295,7 @@ function M.entities_in_scope(scope, ctx, owner, quant)
 		-- it survived this long. A seatless game has no active seat and every
 		-- player card answers to nobody, so it is unchanged.
 		local active, seen = zones.active_seat(), {}
-		for _, id in ipairs(tags.find_targets({ "player" }, tags.IN_PLAY)) do
+		for _, id in ipairs(zones.find_targets({ "player" }, zones.IN_PLAY)) do
 			local e = entity.get(id)
 			seen[id] = true
 			if M.seat_of(e) == active then out[#out + 1] = e end
@@ -317,7 +318,7 @@ function M.entities_in_scope(scope, ctx, owner, quant)
 		local seats = declaration.G.seat_list or {}
 		if #seats == 2 then
 			local active = zones.active_seat()
-			for _, id in ipairs(tags.find_targets({ "player" }, tags.IN_PLAY)) do
+			for _, id in ipairs(zones.find_targets({ "player" }, zones.IN_PLAY)) do
 				local e = entity.get(id)
 				local seat = M.seat_of(e)
 				if seat ~= nil and seat ~= active then out[#out + 1] = e end
@@ -557,7 +558,7 @@ function M.entities_in_scope(scope, ctx, owner, quant)
 			-- exactly what bare "count:<tag>" has always meant. A card in hand
 			-- is not on the board and must not be reachable by "@beast"; name
 			-- the zone (@hand) when that is what you want.
-			for _, id in ipairs(tags.find_targets({ scope }, tags.IN_PLAY)) do
+			for _, id in ipairs(zones.find_targets({ scope }, zones.IN_PLAY)) do
 				out[#out + 1] = entity.get(id)
 			end
 		end
@@ -598,7 +599,7 @@ function M.ordered(out, quant)
 	local word, stat = tostring(quant or ""):match("^([%w_]+):([%w_]+)$")
 	if not (word and ORDERED[word]) then return out end
 	local n = {}
-	for i, e in ipairs(out) do n[e.id] = { i = i, v = tags.stat(e, stat) } end
+	for i, e in ipairs(out) do n[e.id] = { i = i, v = stats.current(e, stat) } end
 	table.sort(out, function(a, b)
 		local x, y = n[a.id], n[b.id]
 		if x.v ~= y.v then
@@ -711,13 +712,13 @@ function M.total(subject, ctx)
 	-- the default scope below.
 	if not p.scope then
 		if p.fn == "count" then
-			return #tags.find_targets({ p.arg }, tags.IN_PLAY)
+			return #zones.find_targets({ p.arg }, zones.IN_PLAY)
 		elseif p.fn == "tagged" or p.fn == "not_tagged" then
-			local any = #tags.find_targets({ p.arg }, tags.IN_PLAY) > 0
+			local any = #zones.find_targets({ p.arg }, zones.IN_PLAY) > 0
 			return (p.fn == "tagged") == any and 1 or 0
 		elseif p.fn == "card" then
 			local n = 0
-			for _, id in ipairs(tags.find_targets({}, tags.IN_PLAY)) do
+			for _, id in ipairs(zones.find_targets({}, zones.IN_PLAY)) do
 				if entity.get(id).def_key == p.arg then n = n + 1 end
 			end
 			return n
@@ -757,7 +758,7 @@ function M.total(subject, ctx)
 		-- Through tags.stat, so a buff a tag is holding open counts as part of
 		-- the number. Every condition, compute, cost and amount in the game
 		-- arrives here, which is what makes one read site enough.
-		local v = tags.stat(e, p.arg)
+		local v = stats.current(e, p.arg)
 		sum = sum + v
 		if best == nil or v > best then best = v end
 		if least == nil or v < least then least = v end
@@ -1080,8 +1081,13 @@ function M.holds(c, ctx)
 	if p and p.fn == nil and p.quant == "each" then
 		local ents = M.entities_in_scope(p.scope, ctx, p.owner, p.quant)
 		if #ents == 0 or #M.bearers(p, ctx, ents) == 0 then return false end
+		-- Through tags.stat, as every other read is. Reading e.stats here asked
+		-- about the number stored rather than the number the card has, so
+		-- "kill a unit with 3 or less power" still offered one a buff had
+		-- lifted to four — while sum:power@target, going the ordinary way,
+		-- answered correctly about the same card.
 		for _, e in ipairs(ents) do
-			if not COMPARE[c.op](tonumber((e.stats or {})[p.arg]) or 0, r) then return false end
+			if not COMPARE[c.op](stats.current(e, p.arg), r) then return false end
 		end
 		return true
 	end
@@ -1108,6 +1114,32 @@ function M.meets_all(list, ctx)
 		if not M.holds(s, ctx) then return false end
 	end
 	return true
+end
+
+-- **Filling tags.asks.** A computed tag is defined by a condition, so the answer
+-- to "does this card wear it" is a condition asked about that card — which is
+-- this module's job and not tags.lua's. Installed here rather than required
+-- there, so the dependency runs one way: tags knows nothing above it, and the
+-- one upward call it makes is this named slot.
+--
+-- **Read as the card's own side.** Every other condition in the engine is asked
+-- at a moment somebody owns — a play, an ability, an answer — so `mine` means
+-- the seat that is acting. This one is asked at no moment at all: the renderer
+-- drawing a number on the opponent's turn comes through here, and so does every
+-- count of the board. Left ambient, `mine` would name whoever happens to be up,
+-- which is a card reading *the other player's* buildings for half the game. So
+-- the seat is held, as zones.as_seat does for an answer — the difference being
+-- that there is nothing here to hold it *around*, so the read is what gets
+-- anchored.
+--
+-- Every subject wants its @self: a bare stat means the seat that is up, and this
+-- is asked about a particular card, so the card is the ctx.
+function tags.asks(needs, e)
+	local worn
+	zones.as_seat(M.seat_of(e), function()
+		worn = M.meets_all(needs, { card_id = e.id })
+	end)
+	return worn
 end
 
 return M

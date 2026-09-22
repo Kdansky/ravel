@@ -2,6 +2,7 @@ local declaration = require("declaration")
 local entity      = require("entity")
 local predicate   = require("predicate")
 local zones       = require("zones")
+local stats       = require("stats")
 
 local M = {}
 
@@ -36,7 +37,7 @@ end
 -- arithmetic counts as nought rather than as missing.
 local function seat_stat(seat, stat)
 	for e in entity.each("card") do
-		if e.def_key == seat and e.zone_id then return e.stats[stat] or 0 end
+		if e.def_key == seat and e.zone_id then return stats.current(e, stat) end
 	end
 	return 0
 end

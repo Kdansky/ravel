@@ -3,6 +3,24 @@ local declaration = require("declaration")
 
 local M = {}
 
+-- **The one thing a tag has to ask upwards, and the only way it does.**
+-- A computed tag's membership is a *condition*, and conditions are predicate's
+-- language — while predicate asks, constantly, what a card is tagged. That is a
+-- real mutual recursion in the feature and no arrangement of modules deletes it:
+-- a tag may be defined by a number, and a number may be shifted by a tag. What a
+-- module graph *can* do is stop it being a cycle in the requires, so the
+-- dependency runs one way and the recursion is a named interface with one
+-- implementation, installed once at load.
+--
+-- The guards below are what make it safe; the validator refuses the shapes that
+-- would need them.
+--
+-- Answers "no" until predicate fills it in. Nothing asks about a computed tag
+-- before the engine is loaded, and a defined answer beats a nil call.
+function M.asks(needs, e)
+    return false
+end
+
 -- A computed tag asked about while it is being worked out. Cheaper than the
 -- validator's cycle walk and not a substitute for it: this is the seatbelt,
 -- exactly as `busy` is for buffs, so a bad file gets a defined answer instead of
@@ -59,23 +77,8 @@ function M.entity_has(e, tag)
         -- and this is asked about a particular card. The card is the ctx, so
         -- @self is it.
         --
-        -- Required here rather than at the top of the file: predicate is built
-        -- on tags, so naming it up there would be a cycle. By the time anything
-        -- asks about a tag, both are loaded.
-        --
-        -- **Read as the card's own side.** Every other condition in the engine is
-        -- asked at a moment somebody owns -- a play, an ability, an answer -- so
-        -- "mine" means the seat that is acting. This one is asked at no moment at
-        -- all: the renderer drawing a number on the opponent's turn comes through
-        -- here, and so does every count of the board. Left ambient, "mine" would
-        -- name whoever happens to be up, which is a card reading *the other
-        -- player's* buildings for half the game. So the seat is held, as
-        -- zones.as_seat does for an answer -- the difference being that there is
-        -- nothing here to hold it *around*, so the read is what gets anchored.
-        local predicate = require("predicate")
-        require("zones").as_seat(predicate.seat_of(e), function()
-            worn = predicate.meets_all(cd.needs, { card_id = e.id })
-        end)
+        -- Asked through the seam at the top of this file, not through a require.
+        worn = M.asks(cd.needs, e)
     end
     resolving[tag] = nil
     return worn
@@ -142,99 +145,6 @@ function M.stat_max(e, key)
     return hi + M.buff(e, key)
 end
 
--- **What is done to a card, as against what it is.** `M.buff` above answers the
--- first; this answers the second, and they sit together because they are the two
--- halves of the same sentence — a tag says what a number *is*, and a tag says
--- what a verb aimed at it *comes to*.
---
--- Every `adjusts` watching this verb and this stat, from every aura in play that
--- covers this card and whose own `needs` hold, handed to `fn` with the context it
--- was judged in. Two words read the one index the same way — `shift` sums what
--- the aura says the number comes to, `instead` collects what it says happens in
--- the change's place — and walking it twice was how the pair drifted apart the
--- last time there were two copies of it.
---
--- `n` is how big the change is, as a player reads it: "3 damage" is 3, never the
--- negative the engine carries. Bound as `amount`, so an aura can ask about the
--- size of what it is watching and hand it on — *draw for each point of wasted
--- healing* is one number, and there is nowhere else for it to come from. A cost
--- has no size at the moment it is judged, so resist passes nothing and the name
--- is simply not bound there.
-local function watching(card_id, verb, stat, source_id, n, fn)
-    local list = verb and declaration.G.adjust_index[verb .. ":" .. stat]
-    if not list or not card_id then return end
-    local predicate = require("predicate")
-    for _, entry in ipairs(list) do
-        local ad = entry.adjust
-        for _, holder in ipairs(M.find_targets({ entry.tag }, M.IN_PLAY)) do
-            -- Held as the aura's own side, for entity_has's reason: an aura is
-            -- read whenever anything asks what a number comes to, which is no
-            -- moment and so has no seat of its own. Around the whole body, so
-            -- that who it covers and whether it applies are both answered from
-            -- the card the aura is printed on.
-            local seat = predicate.seat_of(entity.get(holder))
-            require("zones").as_seat(seat, function()
-                -- "self" is the whole of a keyword and does not go the long way round
-                -- through a scope; anything else is read from the card holding the
-                -- aura, so an anthem says who it covers in the words a scope already
-                -- uses.
-                local covered = holder == card_id
-                if not covered and ad.covers ~= "self" then
-                    local sc = predicate.parse_scope(ad.covers)
-                    for _, c in ipairs(sc and predicate.entities_in_scope(sc.name,
-                        { card_id = holder }, sc.owner, sc.quant) or {}) do
-                        if c.id == card_id then covered = true; break end
-                    end
-                end
-                local sub = { card_id = holder, targets = { card_id }, source = source_id,
-                    let = n and { amount = n } or nil }
-                if covered and entity.get(holder) and predicate.meets_all(ad.needs, sub) then
-                    fn(ad, sub, seat)
-                end
-            end)
-        end
-    end
-end
-
--- The signed sum of what the watching auras say the number comes to. Signed, and
--- nothing is clamped here: what "may not change the sign" means depends on what
--- is being shifted — a delta may not turn harm into help, a price may not fall
--- below free — and neither rule belongs to the summing.
---
--- One function because there was one word and two copies of it: damage went
--- through `actions.adjusted` and a cost through `flow.resisted`, walking the same
--- index the same way, and the pair had already drifted far enough that one built
--- a set of covered cards and the other a boolean.
-function M.shift(card_id, verb, stat, source_id, size)
-    local n = 0
-    watching(card_id, verb, stat, source_id, size, function(ad, sub)
-        -- An aura that answers with an `instead` is not saying a size, and has
-        -- nothing to add to a total it was never about.
-        if ad.by ~= nil then
-            local predicate = require("predicate")
-            n = n + (tonumber(ad.by) or predicate.total(tostring(ad.by), sub))
-        end
-    end)
-    return n
-end
-
--- **What happens in place of the change.** The other thing an aura may say about
--- a verb it watches: not that the number arrives different, but that it does not
--- arrive at all and this happens instead. *Whenever you would normally heal
--- damage, ignore all healing and give 1 CURSE instead* is not healing less, so no
--- `by` reaches it.
---
--- One entry per aura that spoke, each with the action list, the context it was
--- judged in — the aura as @self, the card that would have changed as @target —
--- and the side to run it as, which is the holder's for `watching`'s reason.
-function M.instead(card_id, verb, stat, source_id, size)
-    local out = {}
-    watching(card_id, verb, stat, source_id, size, function(ad, sub, seat)
-        if ad.instead then out[#out + 1] = { action = ad.instead, ctx = sub, seat = seat } end
-    end)
-    return out
-end
-
 -- Whose *piece* this is: the seat written on it when it was placed, or failing
 -- that the seat of the per-seat zone it lies in.
 --
@@ -281,46 +191,5 @@ end
 -- ongoing effects laid face up in front of one player could not be counted,
 -- sacrificed or asked to act. A sentinel rather than a key, so no zone can
 -- collide with it by being called the wrong thing.
-M.IN_PLAY = {}
-
--- Return array of card entity IDs matching ALL filter_tags.
--- zone_set: {layout=true} restricts which zones to search; M.IN_PLAY means
--- wherever cards are in play; nil = anywhere cards can be used at all.
--- Whether a named set reaches this zone by a tag it wears. The key is the
--- narrow reading and comes first; this is the wide one, so a spec may name what
--- several places have in common instead of listing them. Codex is the case: a
--- spell that lands on anything in play named six zone keys, and did so in
--- ninety-seven blocks that a seventh zone would all have had to be found in.
-function M.zone_tagged(z, zone_set)
-    for word in pairs(z.tags or {}) do
-        -- zones.place_word is the one rule: a word the engine reads off a zone
-        -- is behaviour and a word naming a style is a look, and neither names a
-        -- class of places. Read through it rather than restated, so the scope
-        -- half and the target half cannot drift.
-        if zone_set[word] and require("zones").place_word(word) then return true end
-    end
-    return false
-end
-
-function M.find_targets(filter_tags, zone_set)
-    local res = {}
-    for e in entity.each("card") do
-        local z = entity.get(e.zone_id)
-        if z and z.use ~= "none" then
-            local zone_ok
-            if zone_set == M.IN_PLAY then zone_ok = z.status == "board"
-            else zone_ok = not zone_set or zone_set[z.layout] or zone_set[z.key]
-                or M.zone_tagged(z, zone_set) end
-            if zone_ok then
-                local match = true
-                for _, tag in ipairs(filter_tags) do
-                    if not M.entity_has(e, tag) then match = false; break end
-                end
-                if match then res[#res + 1] = e.id end
-            end
-        end
-    end
-    return res
-end
 
 return M

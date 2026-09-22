@@ -8,6 +8,7 @@ local tags        = require("tags")
 local rich        = require("richtext")
 local label       = require("label")
 local log         = require("log")
+local stats       = require("stats")
 
 local M = {}
 
@@ -100,10 +101,10 @@ local function blocks(c, def)
 		-- What the rules will read, buffs and all. The panel is the place a
 		-- player checks a number they doubt, so it is the last place that may
 		-- show the printed one.
-		local v = c.stats and c.stats[key] and tags.stat(c, key)
+		local v = c.stats and c.stats[key] and stats.current(c, key)
 		if v and key:sub(-4) ~= "_max" and not BOOKKEEPING[key] and declaration.stat_shown(key, v) then
 			local sd  = declaration.G.stat_defs[key]
-			local max = c.stats[key .. "_max"]
+			local max = c.stats[key .. "_max"] and stats.ceiling(c, key)
 			rows[#rows + 1] = { sd and sd.label or key, max and (v .. "/" .. max) or tostring(v) }
 		end
 	end
@@ -118,7 +119,7 @@ local function blocks(c, def)
 	end
 	table.sort(undeclared)
 	for _, key in ipairs(undeclared) do
-		local v, max = tags.stat(c, key), c.stats[key .. "_max"]
+		local v, max = stats.current(c, key), c.stats[key .. "_max"] and stats.ceiling(c, key)
 		rows[#rows + 1] = { key:sub(1, 1):upper() .. key:sub(2),
 			max and (v .. "/" .. max) or tostring(v) }
 	end

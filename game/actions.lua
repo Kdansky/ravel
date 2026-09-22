@@ -9,6 +9,8 @@ local log         = require("log")
 local geometry    = require("geometry")
 local rng         = require("rng")
 local tags        = require("tags")
+local stats       = require("stats")
+local auras       = require("auras")
 
 local M = {}
 
@@ -184,33 +186,8 @@ local function count_and_pos(p, i, default, ctx)
 	return default, a
 end
 
--- The floor and the ceiling a stat is held between on this card: its own if it
--- declared one, the global "stats" entry's otherwise, and nothing at all if
--- neither said — a stat with no ceiling grows, and one with no floor may go
--- negative, which is what lets a blocker carry its own overkill.
-local function bounds(e, key)
-	local def = declaration.G.stat_defs[key] or EMPTY
-	local lo  = e.stat_min and e.stat_min[key]
-	local hi  = e.stat_max and e.stat_max[key]
-	if lo == nil then lo = def.min end
-	if hi == nil then hi = def.max end
-	-- **The ceiling rises with a buff, the floor does not.** A 1/1 handed +1/+1
-	-- has to be able to reach 2, or the buff is clamped away before it is worth
-	-- anything; and it has to be able to reach 0, or two damage leaves it alive
-	-- at the one point it was printed with. Those are the two ends, and they
-	-- want different treatment.
-	if hi ~= nil then hi = hi + tags.buff(e, key) end
-	return lo, hi
-end
-
-local function clamped(e, key, v)
-	local lo, hi = bounds(e, key)
-	if lo and v < lo then v = lo end
-	if hi and v > hi then v = hi end
-	return v
-end
-
--- Change a stat on an entity, held between its floor and its ceiling.
+-- Change a stat on an entity, held between its floor and its ceiling — which
+-- stats.lua works out, and is the whole of what moved out of here.
 -- **What a verb lands for, once everything with an opinion has spoken.** A tag
 -- may say that a verb aimed at cards it covers arrives for a different number:
 -- armour takes one off damage, and takes nothing off poison, because the game
@@ -226,7 +203,7 @@ end
 -- while damaged" reads the hp this damage has not yet come off.
 local function adjusted(e, key, verb, delta, ctx)
 	if delta == 0 then return delta end
-	local shift = tags.shift(e.id, verb, key, ctx and ctx.card_id, math.abs(delta))
+	local shift = auras.shift(e.id, verb, key, ctx and ctx.card_id, math.abs(delta))
 	if shift == 0 then return delta end
 	-- The clamp is this caller's, not the sum's: a delta may not turn harm into
 	-- help, so it is the *size* that is held at nought and the sign that is put
@@ -251,7 +228,7 @@ local instead_depth = 0
 -- one heal that never happened, because "instead" is about the change and the
 -- change is only cancelled once.
 local function replaced(e, key, delta, ctx, verb)
-	local swaps = tags.instead(e.id, verb, key, ctx and ctx.card_id, math.abs(delta))
+	local swaps = auras.instead(e.id, verb, key, ctx and ctx.card_id, math.abs(delta))
 	if #swaps == 0 or instead_depth >= INSTEAD_LIMIT then return false end
 	instead_depth = instead_depth + 1
 	for _, s in ipairs(swaps) do
@@ -278,8 +255,8 @@ local function change_stat(e, key, delta, ctx, verb)
 	-- printed value returns intact when the tag goes.
 	delta = adjusted(e, key, verb, delta, ctx)
 	local buff = tags.buff(e, key)
-	local old  = (e.stats[key] or 0) + buff
-	local v    = clamped(e, key, old + delta)
+	local old  = stats.current(e, key)
+	local v    = stats.clamp(e, key, old + delta)
 	e.stats[key] = v - buff
 	if v ~= old then
 		local txt = string.format("%+d %s", v - old, key)
@@ -325,7 +302,7 @@ local function drain(p, n, ctx)
 	local left = n
 	for _, e in ipairs(ents) do
 		if left <= 0 then break end
-		local take = math.min(tags.stat(e, p.arg), left)
+		local take = math.min(stats.current(e, p.arg), left)
 		if take > 0 then
 			change_stat(e, p.arg, -take, ctx)
 			left = left - take

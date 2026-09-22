@@ -14,6 +14,7 @@ local art         = require("art")
 local predicate   = require("predicate")
 local rich        = require("richtext")
 local label       = require("label")
+local stats       = require("stats")
 
 local M = {}
 
@@ -747,9 +748,9 @@ end
 -- saw a buffed one would be the screen disagreeing with the board. Nil stays
 -- nil — a buff never gives a card a stat it has not got.
 local function shown_stat(card_e, key)
-	local stats = card_e and card_e.stats
-	if not (stats and stats[key]) then return stats and stats[key] end
-	return tags.stat(card_e, key)
+	local own = card_e and card_e.stats
+	if not (own and own[key]) then return own and own[key] end
+	return stats.current(card_e, key)
 end
 
 local function badge_keys(look, card_e)
@@ -884,7 +885,7 @@ local function draw_card_face(pl, card_e, show_text, vis)
 		-- width for a two-character number. A row shares the bottom edge and
 		-- the title gives way from the start; a column's claim on it is decided
 		-- below, once the title has a height.
-		local stats = card_e.stats
+		local own = card_e.stats
 		local down  = look.badge_run == "down"
 		local keys  = badge_keys(look, card_e)
 		local bf    = badge_font(pl, look, #keys)
@@ -898,9 +899,9 @@ local function draw_card_face(pl, card_e, show_text, vis)
 				row_w = row_w + w + (i > 1 and 2 * S or 0)
 			end
 		end
-		if #keys == 0 and stats and stats.hp then
+		if #keys == 0 and own and stats.hp then
 			local hp = shown_stat(card_e, "hp")
-			row_w = badge_size("hp", hp .. "/" .. (tags.stat_max(card_e, "hp") or hp), bf)
+			row_w = badge_size("hp", hp .. "/" .. (stats.ceiling(card_e, "hp") or hp), bf)
 		end
 		local badge_w = down and 0 or row_w
 
@@ -1093,8 +1094,8 @@ end
 -- Without it the row sits on the bottom edge, which is where the title is on a
 -- compact card and so is the same place.
 local function draw_card_stats_overlay(pl, card_e, by)
-	local stats = card_e and card_e.stats
-	if not stats then return end
+	local own = card_e and card_e.stats
+	if not own then return end
 	local look   = cards.style(card_e)
 	local badges = type(look.badges) == "table" and look.badges or nil
 
@@ -1115,7 +1116,7 @@ local function draw_card_stats_overlay(pl, card_e, by)
 		end
 	elseif stats.hp then
 		local hp     = shown_stat(card_e, "hp")
-		local hp_max = tags.stat_max(card_e, "hp") or hp
+		local hp_max = stats.ceiling(card_e, "hp") or hp
 		local ratio  = hp_max > 0 and hp / hp_max or 0
 		local colour = ratio > 0.6 and { 0.25, 0.95, 0.35 }
 			or ratio > 0.3 and { 1.00, 0.82, 0.15 }
@@ -1824,15 +1825,15 @@ local function draw_card_detail(card_e)
 			y = prose(story, info_x, y, info_w, "left", { 0.68, 0.78, 0.94 }) + 14 * S
 		end
 
-		local stats = card_e.stats
-		if stats and next(stats) then
+		local own = card_e.stats
+		if own and next(own) then
 			love.graphics.setColor(0.55, 0.70, 0.90)
 			print_at("Stats:", info_x, y)
 			y = y + main_font:getHeight() + 4 * S
 			local caps = card_e.stat_max or {}
-			for k in pairs(stats) do
-				local v   = tags.stat(card_e, k)
-				local hi  = caps[k] and tags.stat_max(card_e, k)
+			for k in pairs(own) do
+				local v   = stats.current(card_e, k)
+				local hi  = caps[k] and stats.ceiling(card_e, k)
 				local val = hi and (v .. "/" .. hi) or tostring(v)
 				love.graphics.setColor(0.78, 0.92, 1.00)
 				print_at("  " .. k .. ": " .. val, info_x, y)

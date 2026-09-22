@@ -17,6 +17,7 @@ local phase   = require("phase")
 local flow    = require("flow")
 local actions = require("actions")
 local reactions = require("reactions")
+local stats     = require("stats")
 
 local M = {}
 
@@ -285,24 +286,24 @@ function M.test_puzzle_strike_a_sale_makes_the_bank_cheaper_for_a_turn(check)
 	local tags = require("tags")
 	local two  = find_in("bank", "gem_2")
 	local one  = find_in("bank", "gem_1")
-	check("a two-gem is priced at three to start with", tags.stat(two, "price") == 3,
-		tostring(tags.stat(two, "price")))
+	check("a two-gem is priced at three to start with", stats.current(two, "price") == 3,
+		tostring(stats.current(two, "price")))
 
 	local sale = zones.add(zone_of("hand", "south"), "sale_prices")
 	seat_card("south").stats.act_brown = 1
 	check("the sale is played", flow.play_card(sale.id, {}))
-	check("and the two-gem now costs two", tags.stat(two, "price") == 2,
-		tostring(tags.stat(two, "price")))
+	check("and the two-gem now costs two", stats.current(two, "price") == 2,
+		tostring(stats.current(two, "price")))
 	check("with nothing written on the chip", two.stats.price == 3, tostring(two.stats.price))
 	-- The whole of "to a minimum of 1": the mark goes only on chips that can
 	-- afford to lose a coin, and it is decided against the printed price before
 	-- any of them is cheaper.
-	check("while a chip already at one is left alone", tags.stat(one, "price") == 1,
-		tostring(tags.stat(one, "price")))
+	check("while a chip already at one is left alone", stats.current(one, "price") == 1,
+		tostring(stats.current(one, "price")))
 
 	actions.execute("stat_set:on_sale@each.bank:0", {})
-	check("and the sale is over when the turn is", tags.stat(two, "price") == 3,
-		tostring(tags.stat(two, "price")))
+	check("and the sale is over when the turn is", stats.current(two, "price") == 3,
+		tostring(stats.current(two, "price")))
 end
 
 -- The opponent's choice, and it really is theirs: priority crosses the table

@@ -19,6 +19,8 @@ local reactions   = require("reactions")
 local tags        = require("tags")
 local validate    = require("validate")
 local log         = require("log")
+local stats       = require("stats")
+local auras       = require("auras")
 
 local M = {}
 
@@ -493,7 +495,11 @@ local function run_on_round()
 	for e in entity.each("card") do
 		local def = cards.def(e)
 		local z   = entity.get(e.zone_id)
-		if def.on_round and z and z.status == "board" and (e.stats.hp or 1) > 0 then
+		-- Through tags.stat, so a card standing up on borrowed health acts. The
+		-- nil check stays separate: a card with no hp at all is not ruined, it
+		-- is a card the question is not about.
+		if def.on_round and z and z.status == "board"
+			and (e.stats.hp == nil or stats.current(e, "hp") > 0) then
 			actions.run(def.on_round, { card_id = e.id, targets = {} })
 		end
 	end
@@ -799,7 +805,7 @@ local function resisted(stat, ctx)
 	local more = 0
 	-- Every chosen target is asked, so aiming at two resisting things costs two.
 	for _, aimed in ipairs(ctx.targets) do
-		more = more + tags.shift(aimed, ctx.verb, stat, ctx.card_id)
+		more = more + auras.shift(aimed, ctx.verb, stat, ctx.card_id)
 	end
 	-- Signed, and the clamp belongs to the caller. An aura that made a cost
 	-- *dearer* was the only one the arithmetic here allowed, because clamping the
@@ -888,7 +894,7 @@ local function sacrifice_pool(tag, ctx)
 		return c and { c.id } or {}
 	end
 	local mine, out = zones.active_seat(), {}
-	for _, id in ipairs(tags.find_targets({ tag }, tags.IN_PLAY)) do
+	for _, id in ipairs(zones.find_targets({ tag }, zones.IN_PLAY)) do
 		local owner = tags.owner_of(entity.get(id))
 		if owner == nil or owner == mine then out[#out + 1] = id end
 	end
@@ -1007,7 +1013,7 @@ local function plans(cost, ctx, budget)
 	local rem = {}
 	local function left_on(stat, e)
 		local k = stat .. "#" .. e.id
-		if rem[k] == nil then rem[k] = tags.stat(e, stat) end
+		if rem[k] == nil then rem[k] = stats.current(e, stat) end
 		return rem[k]
 	end
 	-- Sorted by id, the order drain has always taken a pool in, so a plan nobody
@@ -1772,7 +1778,7 @@ end
 local function victor()
 	local seats = declaration.G.seat_set or {}
 	for e in entity.each("card") do
-		if seats[e.def_key] and e.zone_id and (e.stats.won or 0) > 0 then return e.def_key end
+		if seats[e.def_key] and e.zone_id and stats.current(e, "won") > 0 then return e.def_key end
 	end
 end
 

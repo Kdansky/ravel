@@ -19,6 +19,7 @@ local actions   = require("actions")
 local predicate = require("predicate")
 local tags      = require("tags")
 local net       = require("net")
+local stats     = require("stats")
 
 local M = {}
 
@@ -90,8 +91,8 @@ function M.test_buff_a_printed_tag_shifts_the_stat(check)
 		flow.init(name, 3)
 		check("the plain unit reads its printed attack", predicate.total("atk@each.unit") == 3,
 			predicate.total("atk@each.unit"))
-		check("the elite one reads one higher", tags.stat(find("champ"), "atk") == 2,
-			tags.stat(find("champ"), "atk"))
+		check("the elite one reads one higher", stats.current(find("champ"), "atk") == 2,
+			stats.current(find("champ"), "atk"))
 		check("and the number on the card never moved", find("champ").stats.atk == 1,
 			find("champ").stats.atk)
 	end)
@@ -103,11 +104,11 @@ function M.test_buff_a_zone_grants_and_takes_it_back(check)
 	with_game(function(name)
 		flow.init(name, 3)
 		local g = find("grunt")
-		check("on the field it is a 1", tags.stat(g, "atk") == 1)
+		check("on the field it is a 1", stats.current(g, "atk") == 1)
 		zones.move_card(g.id, zones.find_id("ring"))
-		check("in the ring it is a 4", tags.stat(g, "atk") == 4, tags.stat(g, "atk"))
+		check("in the ring it is a 4", stats.current(g, "atk") == 4, stats.current(g, "atk"))
 		zones.move_card(g.id, zones.find_id("field"))
-		check("and back on the field a 1 again", tags.stat(g, "atk") == 1, tags.stat(g, "atk"))
+		check("and back on the field a 1 again", stats.current(g, "atk") == 1, stats.current(g, "atk"))
 		check("with nothing left on the card", g.stats.atk == 1, g.stats.atk)
 	end)
 end
@@ -119,11 +120,11 @@ function M.test_buff_lifts_the_ceiling_with_it(check)
 		flow.init(name, 3)
 		local g = find("grunt")
 		zones.move_card(g.id, zones.find_id("ring"))
-		check("it is a 2 of 2", tags.stat(g, "hp") == 2 and tags.stat_max(g, "hp") == 2,
-			tags.stat(g, "hp") .. "/" .. tostring(tags.stat_max(g, "hp")))
+		check("it is a 2 of 2", stats.current(g, "hp") == 2 and stats.ceiling(g, "hp") == 2,
+			stats.current(g, "hp") .. "/" .. tostring(stats.ceiling(g, "hp")))
 		actions.execute("stat_gain:hp@self:5", { card_id = g.id })
 		check("healing clamps at the lifted ceiling, not the printed one",
-			tags.stat(g, "hp") == 2, tags.stat(g, "hp"))
+			stats.current(g, "hp") == 2, stats.current(g, "hp"))
 	end)
 end
 
@@ -135,7 +136,7 @@ function M.test_buff_damage_comes_off_the_buffed_total(check)
 		local g = find("grunt")
 		zones.move_card(g.id, zones.find_id("ring"))
 		actions.execute("stat_damage:hp@self:2", { card_id = g.id })
-		check("two damage kills a buffed 1/1", tags.entity_has(g, "dead"), tags.stat(g, "hp"))
+		check("two damage kills a buffed 1/1", tags.entity_has(g, "dead"), stats.current(g, "hp"))
 	end)
 end
 
@@ -148,9 +149,9 @@ function M.test_buff_leaving_remembers_what_was_taken(check)
 		local g = find("grunt")
 		zones.move_card(g.id, zones.find_id("ring"))
 		actions.execute("stat_damage:hp@self:1", { card_id = g.id })
-		check("in the ring it is still standing", not tags.entity_has(g, "dead"), tags.stat(g, "hp"))
+		check("in the ring it is still standing", not tags.entity_has(g, "dead"), stats.current(g, "hp"))
 		zones.move_card(g.id, zones.find_id("field"))
-		check("out of it, the wound is all that is left", tags.stat(g, "hp") == 0, tags.stat(g, "hp"))
+		check("out of it, the wound is all that is left", stats.current(g, "hp") == 0, stats.current(g, "hp"))
 		check("so it is dead", tags.entity_has(g, "dead"))
 	end)
 end
@@ -162,9 +163,9 @@ function M.test_buff_a_computed_tag_may_carry_one(check)
 	with_game(function(name)
 		flow.init(name, 3)
 		local c = find("champ")
-		check("unhurt, the elite is a 2", tags.stat(c, "atk") == 2, tags.stat(c, "atk"))
+		check("unhurt, the elite is a 2", stats.current(c, "atk") == 2, stats.current(c, "atk"))
 		actions.execute("stat_gain:wounds@self:1", { card_id = c.id })
-		check("hurt, it is a 4", tags.stat(c, "atk") == 4, tags.stat(c, "atk"))
+		check("hurt, it is a 4", stats.current(c, "atk") == 4, stats.current(c, "atk"))
 		check("having never been written to", c.stats.atk == 1, c.stats.atk)
 	end)
 end
@@ -193,7 +194,7 @@ function M.test_buff_a_write_addresses_the_printed_number(check)
 		local c = find("champ")
 		actions.execute("stat_set:atk@self:5", { card_id = c.id })
 		check("the card is printed at five", c.stats.atk == 5, c.stats.atk)
-		check("and reads six, the buff untouched", tags.stat(c, "atk") == 6, tags.stat(c, "atk"))
+		check("and reads six, the buff untouched", stats.current(c, "atk") == 6, stats.current(c, "atk"))
 	end)
 end
 
@@ -205,10 +206,56 @@ function M.test_buff_survives_a_round_trip(check)
 		zones.move_card(find("grunt").id, zones.find_id("ring"))
 		local snap = net.snapshot()
 		flow.init(name, 3)
-		check("a fresh game has the plain unit", tags.stat(find("grunt"), "atk") == 1)
+		check("a fresh game has the plain unit", stats.current(find("grunt"), "atk") == 1)
 		net.apply_full(snap)
-		check("and the restored one is still raging", tags.stat(find("grunt"), "atk") == 4,
-			tags.stat(find("grunt"), "atk"))
+		check("and the restored one is still raging", stats.current(find("grunt"), "atk") == 4,
+			stats.current(find("grunt"), "atk"))
+	end)
+end
+
+-- A read is a read, whichever door it comes through. Four places in the engine
+-- reached past tags.stat into e.stats and so answered about the number *stored*
+-- rather than the number the card has: a condition quantified over "each", the
+-- hp gate on a round action, the winner check, and the ceiling the inspector
+-- prints. Pinned here rather than at each of the four, because what is true is
+-- the rule and not the call sites.
+function M.test_buff_a_condition_over_each_reads_the_buffed_number(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		-- Champ is a printed 1 attack wearing +1, so the two readings differ and
+		-- the comparison can only be answering one of them.
+		check("asked one at a time, every unit is at least its buffed attack",
+			predicate.meets_all({ "atk@each.unit >= 1" }, {}))
+		check("and the elite one is over the printed number it stores",
+			predicate.meets_all({ "atk@each.unit <= 1" }, {}) == false)
+		check("which is what the pooled spelling says about the same board",
+			predicate.meets_all({ "max:atk@each.unit <= 1" }, {}) == false)
+
+		-- The same word, aimed rather than scoped: a bare @target parses as
+		-- "each", which is how this got past everything for so long.
+		local champ = find("champ")
+		check("a target subject agrees with a scoped one",
+			predicate.meets_all({ "atk@target <= 1" }, { targets = { champ.id } }) == false)
+		check("and still answers yes where it should",
+			predicate.meets_all({ "atk@target <= 2" }, { targets = { champ.id } }))
+	end)
+end
+
+-- A ceiling rises with the value it bounds, so the panel a player checks a
+-- number in must not print 2/1 for a card standing on a borrowed point.
+function M.test_buff_the_ceiling_the_panel_prints_rises_too(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local ring = zones.find("ring")
+		local grunt = find("grunt")
+		check("a plain unit is at its printed one", stats.current(grunt, "hp") == 1
+			and stats.ceiling(grunt, "hp") == 1)
+		zones.move_card(grunt.id, ring.id)
+		check("in the ring it holds two", stats.current(grunt, "hp") == 2,
+			stats.current(grunt, "hp"))
+		check("and the ceiling went with it, so nothing reads over its own maximum",
+			stats.ceiling(grunt, "hp") == 2, stats.ceiling(grunt, "hp"))
+		check("while the number stored is untouched", grunt.stats.hp == 1, grunt.stats.hp)
 	end)
 end
 

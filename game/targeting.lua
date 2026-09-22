@@ -87,7 +87,7 @@ local function find_slots(zone_set, fill)
 	for z in entity.each("zone") do
 		if z.layout == "grid" and z.slots then
 			local zone_ok = not zone_set or zone_set[z.key] or zone_set[z.layout]
-				or tags.zone_tagged(z, zone_set)
+				or zones.zone_tagged(z, zone_set)
 			if zone_ok then
 				for _, slot_id in pairs(z.slots) do
 					local slot = entity.get(slot_id)
@@ -128,7 +128,7 @@ end
 local function find_zones(zone_set)
 	local res = {}
 	for z in entity.each("zone") do
-		local named = zone_set and (zone_set[z.key] or tags.zone_tagged(z, zone_set))
+		local named = zone_set and (zone_set[z.key] or zones.zone_tagged(z, zone_set))
 		if named and z.display ~= "offscreen" then res[#res + 1] = z.id end
 	end
 	return res
@@ -168,7 +168,7 @@ function M.candidates(card_id, spec)
 	local out = kind == "slot" and (spec.moves and find_moves(card_id, spec.moves)
 			or find_slots(zone_set, spec.fill))
 		or kind == "zone" and find_zones(zone_set)
-		or tags.find_targets(spec.tags or {}, zone_set)
+		or zones.find_targets(spec.tags or {}, zone_set)
 	-- "Choose an enemy creature" is the same word the scopes use, so the
 	-- player-chooses case needs no syntax of its own. Naming zones implies one
 	-- too: "zones": ["red", "red_discard"] means *my* red expedition and the

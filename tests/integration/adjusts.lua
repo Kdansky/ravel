@@ -13,6 +13,7 @@ local entity  = require("entity")
 local flow    = require("flow")
 local zones   = require("zones")
 local actions = require("actions")
+local auras   = require("auras")
 
 local M = {}
 
@@ -224,7 +225,7 @@ function M.test_adjusts_the_sum_is_signed_and_unclamped(check)
 	with_game(function(name)
 		flow.init(name, 3)
 		local tags = require("tags")
-		local function shift(who, verb, stat) return tags.shift(find(who).id, verb, stat, nil) end
+		local function shift(who, verb, stat) return auras.shift(find(who).id, verb, stat, nil) end
 
 		check("armour takes one off damage", shift("knight", "damage", "hp") == -1,
 			tostring(shift("knight", "damage", "hp")))

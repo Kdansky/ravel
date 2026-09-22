@@ -34,7 +34,7 @@ local fx          = require("fx")
 local debugserver = require("debugserver")
 local validate    = require("validate")
 local log         = require("log")
-local tags        = require("tags")
+local stats       = require("stats")
 
 -- The offer that is open, if one is: the only hidden zone a click may reach.
 -- Mirrors what render draws for an overlay phase, and per_seat resolves to the
@@ -405,7 +405,7 @@ function love.load()
 	-- A number the game hides says nothing as it changes. It is seen if its row is listed either side of the change —
 	-- a `nonzero` stat appearing or going away is news — or if the card wears it as a badge.
 	actions.on_stat_change = function(e, key, delta, ctx)
-		local v = tags.stat(e, key)
+		local v = stats.current(e, key)
 		local badges = e.kind == "card" and cards.style(e).badges
 		local badged = false
 		for _, b in ipairs(type(badges) == "table" and badges or {}) do badged = badged or b == key end

@@ -1322,4 +1322,51 @@ function M.slot_at(x, y, open_id)
 	end
 end
 
+-- **Which places a named set reaches, and which cards are lying in them.**
+-- Here rather than in tags.lua, where these lived: the question is about
+-- zones, `place_word` below is the rule they turn on, and reaching for it
+-- from tags.lua was the last thing making a tag depend on a zone. A tag now
+-- knows nothing but what a card is.
+M.IN_PLAY = {}
+
+-- Return array of card entity IDs matching ALL filter_tags.
+-- zone_set: {layout=true} restricts which zones to search; M.IN_PLAY means
+-- wherever cards are in play; nil = anywhere cards can be used at all.
+-- Whether a named set reaches this zone by a tag it wears. The key is the
+-- narrow reading and comes first; this is the wide one, so a spec may name what
+-- several places have in common instead of listing them. Codex is the case: a
+-- spell that lands on anything in play named six zone keys, and did so in
+-- ninety-seven blocks that a seventh zone would all have had to be found in.
+function M.zone_tagged(z, zone_set)
+    for word in pairs(z.tags or {}) do
+        -- zones.place_word is the one rule: a word the engine reads off a zone
+        -- is behaviour and a word naming a style is a look, and neither names a
+        -- class of places. Read through it rather than restated, so the scope
+        -- half and the target half cannot drift.
+        if zone_set[word] and M.place_word(word) then return true end
+    end
+    return false
+end
+
+function M.find_targets(filter_tags, zone_set)
+    local res = {}
+    for e in entity.each("card") do
+        local z = entity.get(e.zone_id)
+        if z and z.use ~= "none" then
+            local zone_ok
+            if zone_set == M.IN_PLAY then zone_ok = z.status == "board"
+            else zone_ok = not zone_set or zone_set[z.layout] or zone_set[z.key]
+                or M.zone_tagged(z, zone_set) end
+            if zone_ok then
+                local match = true
+                for _, tag in ipairs(filter_tags) do
+                    if not tags.entity_has(e, tag) then match = false; break end
+                end
+                if match then res[#res + 1] = e.id end
+            end
+        end
+    end
+    return res
+end
+
 return M

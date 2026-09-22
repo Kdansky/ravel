@@ -12,6 +12,7 @@ local flow    = require("flow")
 local actions = require("actions")
 local declaration = require("declaration")
 local tags    = require("tags")
+local stats       = require("stats")
 
 local M = {}
 
@@ -686,11 +687,11 @@ function M.test_codex_slots(check)
 	check("it starts at its printed attack", unit.stats.atk == 2, tostring(unit.stats.atk))
 
 	use(unit, "go_patrol", { posts.slots[2] })
-	check("the elite square lends it a point", tags.stat(unit, "atk") == 3, tostring(tags.stat(unit, "atk")))
+	check("the elite square lends it a point", stats.current(unit, "atk") == 3, tostring(stats.current(unit, "atk")))
 	check("without writing on the card", unit.stats.atk == 2, tostring(unit.stats.atk))
 	check("and it knows which post it took", unit.stats.slot == 2, tostring(unit.stats.slot))
 	zones.move_card(unit.id, zones.find_id("army", "mine"))
-	check("leaving takes both back", tags.stat(unit, "atk") == 2 and unit.stats.slot == 0,
+	check("leaving takes both back", stats.current(unit, "atk") == 2 and unit.stats.slot == 0,
 		tostring(unit.stats.atk) .. "/" .. tostring(unit.stats.slot))
 
 	local lead = summon("mad_man", "army")
@@ -951,7 +952,7 @@ end
 
 -- What a stat reads, buffs and all. Half of what follows is a number nothing
 -- ever wrote down, so asking the card its own stat would answer the wrong thing.
-local function read(c, key) return tags.stat(entity.get(c.id), key) end
+local function read(c, key) return stats.current(entity.get(c.id), key) end
 
 -- Readiness is its own word rather than a tag, so a test asks it the way a card
 -- would: through a condition.
@@ -1430,8 +1431,8 @@ function M.test_codex_a_rune_is_worth_its_points(check)
 	actions.run({ "stat_gain:plus@self:2" }, { card_id = cub.id })
 	check("two runes are +2/+2", read(cub, "atk") == 4 and read(cub, "hp") == 4,
 		read(cub, "atk") .. "/" .. read(cub, "hp"))
-	check("and the ceiling came with them", tags.stat_max(entity.get(cub.id), "hp") == 4,
-		tostring(tags.stat_max(entity.get(cub.id), "hp")))
+	check("and the ceiling came with them", stats.ceiling(entity.get(cub.id), "hp") == 4,
+		tostring(stats.ceiling(entity.get(cub.id), "hp")))
 
 	actions.run({ "stat_damage:plus@self:1" }, { card_id = cub.id })
 	check("taking one off takes its point with it",
