@@ -1221,4 +1221,28 @@ function M.image(e)
 	return M.asset_image(asset, def_key, type(e) == "table" and e or nil)
 end
 
+-- The card a player most recently played or activated. One at a time, and it
+-- lingers until the next thing a player does — which is exactly the window en
+-- passant needs, and closes it the instant the opponent does anything at all
+-- rather than one turn later.
+--
+-- A mark on the card rather than a pointer somewhere, because the question a
+-- rule asks is "is *this* one it" — about the occupant of some square it is
+-- considering — and only a mark composes that way. Being an ordinary stat, it
+-- rides undo with everything else: snapshots deep-copy the entities.
+--
+-- Set from the two player intents and nowhere else. Dealing, drawing and an
+-- automatic phase's actions are not somebody acting, and would clobber it
+-- between turns.
+function M.mark_acted(card_id)
+	for e in entity.each("card") do
+		if e.stats and e.stats.last_acted then e.stats.last_acted = nil end
+	end
+	local c = card_id and entity.get(card_id)
+	if c then
+		c.stats = c.stats or {}
+		c.stats.last_acted = 1
+	end
+end
+
 return M

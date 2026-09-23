@@ -35,7 +35,8 @@ stage ─ one click's visible steps, in order, played back a beat at a time
 anim ─ flight tweens    fx ─ particles/shake/floats
 art ─ procedural placeholder shapes (its pure `parse` is shared with validate)
 ────────────────────────────────────────────────────────────── presentation
-flow ─ THE game driver: init/settle/play/activate/undo, legality, the stack
+flow ─ THE game driver: init/settle/play/activate/undo, legality, the player's moves
+stack ─ the response window: records, priority, forced answers, resolving (flow re-exports it)
 costs ─ what a cost comes to, every way it can be paid, and paying it (flow re-exports it)
 reactions ─ who may answer an event, and whether a window opens at all
 validate ─ whole-file checks: schema, references, conflicts
@@ -169,7 +170,7 @@ Treat it as disposable.
    holds what a player was *offered*; flow decides what the rules allow, so a
    script or the debug API is bound by exactly the same checks the GUI is.
 3. **`settle` is the only driver.** It loops: pending `load_game` → the response
-   window (`flow.react_step`: a seat must answer → stop; a record resolved →
+   window (`stack.react_step`: a seat must answer → stop; a record resolved →
    loop) → end
    conditions (deferred while an overlay is open) → round boundaries
    (counter, ready, every card's `turn.action` — always before the new round's phases act) →
@@ -351,7 +352,7 @@ open a window, because a hand and the bag behind it are the same place from
 across the table. Opening on what is publicly possible costs a pass now and then
 and keeps the prompt from being evidence about a hidden hand.
 
-`flow.react_step` is the scheduler and runs inside `settle`: it returns
+`stack.react_step` is the scheduler and runs inside `settle`: it returns
 `waiting` (a seat must answer), `resolved` (a record ran) or `idle` (no stack —
 every existing game). An interjected phase counts as `waiting`, because a phase
 pushed for the answering seat is part of resolving the record that opened it.
