@@ -799,7 +799,7 @@ end
 --
 -- It reads the power the card *has*, not the one printed on it. That cost a fix:
 -- predicate.holds' "each" branch read e.stats[arg] straight where every other
--- read goes through tags.stat, and a bare @target parses as quant "each" — so
+-- read goes through stats.current, and a bare @target parses as quant "each" — so
 -- this offered a unit Elixir of Wrath had lifted to 4, while sum:power@target
 -- answered correctly about the same card.
 function M.test_lor_culling_strike_reads_the_power_off_each_candidate(check)

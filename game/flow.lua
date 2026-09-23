@@ -496,7 +496,7 @@ local function run_on_round()
 	for e in entity.each("card") do
 		local def = cards.def(e)
 		local z   = entity.get(e.zone_id)
-		-- Through tags.stat, so a card standing up on borrowed health acts. The
+		-- Through stats.current, so a card standing up on borrowed health acts. The
 		-- nil check stays separate: a card with no hp at all is not ruined, it
 		-- is a card the question is not about.
 		if def.on_round and z and z.status == "board"

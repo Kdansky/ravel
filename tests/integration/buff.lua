@@ -214,7 +214,7 @@ function M.test_buff_survives_a_round_trip(check)
 end
 
 -- A read is a read, whichever door it comes through. Four places in the engine
--- reached past tags.stat into e.stats and so answered about the number *stored*
+-- reached past stats.current into e.stats and so answered about the number *stored*
 -- rather than the number the card has: a condition quantified over "each", the
 -- hp gate on a round action, the winner check, and the ceiling the inspector
 -- prints. Pinned here rather than at each of the four, because what is true is

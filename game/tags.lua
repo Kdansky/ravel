@@ -127,24 +127,6 @@ function M.buff(e, key)
     return n
 end
 
--- What a stat *is*, as against what is stored on the card. Everything that
--- asks the board a question comes through here; only the writer in actions.lua
--- touches `e.stats` directly, and it stores the base back after clamping.
-function M.stat(e, key)
-    if not (e and e.stats) then return 0 end
-    return (tonumber(e.stats[key]) or 0) + M.buff(e, key)
-end
-
--- A ceiling rises with the value it bounds. Without this a 1/1 handed +1/+1
--- would be clamped straight back to 1 and the buff would do nothing at all —
--- and `damaged` (below its own maximum) would call a freshly buffed card hurt.
-function M.stat_max(e, key)
-    local hi = e and e.stat_max and e.stat_max[key]
-    if hi == nil then hi = (declaration.G.stat_defs[key] or {}).max end
-    if hi == nil then return nil end
-    return hi + M.buff(e, key)
-end
-
 -- Whose *piece* this is: the seat written on it when it was placed, or failing
 -- that the seat of the per-seat zone it lies in.
 --

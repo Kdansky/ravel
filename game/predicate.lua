@@ -755,7 +755,7 @@ function M.total(subject, ctx)
 	-- here" would have said 0 about a board with nothing above -1 on it.
 	local sum, best, least = 0, nil, nil
 	for _, e in ipairs(M.bearers(p, ctx, ents)) do
-		-- Through tags.stat, so a buff a tag is holding open counts as part of
+		-- Through stats.current, so a buff a tag is holding open counts as part of
 		-- the number. Every condition, compute, cost and amount in the game
 		-- arrives here, which is what makes one read site enough.
 		local v = stats.current(e, p.arg)
@@ -1081,7 +1081,7 @@ function M.holds(c, ctx)
 	if p and p.fn == nil and p.quant == "each" then
 		local ents = M.entities_in_scope(p.scope, ctx, p.owner, p.quant)
 		if #ents == 0 or #M.bearers(p, ctx, ents) == 0 then return false end
-		-- Through tags.stat, as every other read is. Reading e.stats here asked
+		-- Through stats.current, as every other read is. Reading e.stats here asked
 		-- about the number stored rather than the number the card has, so
 		-- "kill a unit with 3 or less power" still offered one a buff had
 		-- lifted to four — while sum:power@target, going the ordinary way,

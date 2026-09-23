@@ -181,9 +181,8 @@ Treat it as disposable.
    (`flow.on_reset`, `actions.on_stat_change`, `anim.on_land`) that the
    presentation layer assigns. `cards.image` is the one deliberate exception:
    it touches `love.graphics.newImage` directly (and, for `http(s)://` asset
-   URLs, a `love.thread` worker over luasocket — its browser branch calls
-   `love.js.eval`, which **does not exist** in the runtime this repo serves,
-   so that path has never done anything; see Deployment) because it
+   URLs, a `love.thread` worker over luasocket, and in the browser
+   `love.js.eval` — see Deployment) because it
    is itself presentation-only —
    nothing in flow's state graph depends on whether an image loaded — and
    every call is behind checks that no-op cleanly under the headless shim.
