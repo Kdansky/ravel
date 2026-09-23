@@ -660,7 +660,7 @@
       "grid": [5, 5],
       "status": "board",
       "use": "abilities",
-      "pos": [0.21, 0.02, 0.78, 0.98],
+      "pos": [0.2725, 0.15, 0.6925, 0.85],
       "tooltip": "Nine village tiles in the middle, three ghost spaces along each edge, and a plaque in each corner that counts the board beside it."
     },
     {
@@ -669,7 +669,7 @@
       "layout": "stack",
       "visibility": "secret",
       "tags": ["shuffle"],
-      "pos": [0.8, 0.02, 0.88, 0.14],
+      "pos": [0.85, 0.02, 0.92, 0.18],
       "contents": [
         "g_ghoul",
         "g_walking_corpse",
@@ -735,7 +735,7 @@
       "layout": "stack",
       "visibility": "secret",
       "tags": ["shuffle"],
-      "pos": [0.9, 0.02, 0.99, 0.14],
+      "pos": [0.925, 0.02, 0.995, 0.18],
       "contents": [
         "i_howling",
         "i_uncatch",
@@ -756,14 +756,14 @@
       "layout": "stack",
       "status": "grave",
       "use": "none",
-      "pos": [0.8, 0.16, 0.88, 0.28]
+      "pos": [0.85, 0.2, 0.92, 0.34]
     },
     {
       "key": "shrine",
       "label": "Buddhas",
       "layout": "row",
       "status": "board",
-      "pos": [0.9, 0.16, 0.99, 0.28],
+      "pos": [0.925, 0.2, 0.995, 0.34],
       "tooltip": "The two Buddha figurines live on the Buddhist Temple tile until somebody asks for one."
     },
     {
@@ -772,7 +772,7 @@
       "layout": "row",
       "status": "board",
       "use": "none",
-      "pos": [0.8, 0.3, 0.99, 0.41]
+      "pos": [0.85, 0.36, 0.995, 0.48]
     },
     {
       "key": "curse",
@@ -780,7 +780,7 @@
       "layout": "row",
       "status": "board",
       "use": "none",
-      "pos": [0.8, 0.43, 0.88, 0.54]
+      "pos": [0.85, 0.5, 0.92, 0.64]
     },
     {
       "key": "circle",
@@ -788,7 +788,7 @@
       "layout": "row",
       "status": "board",
       "use": "none",
-      "pos": [0.9, 0.43, 0.99, 0.54],
+      "pos": [0.925, 0.5, 0.995, 0.64],
       "tooltip": "The token standing on the Circle of Prayer makes every ghost of its colour one easier to exorcise, for every Taoist."
     },
     {
@@ -797,7 +797,7 @@
       "layout": "row",
       "status": "supply",
       "use": "abilities",
-      "pos": [0.8, 0.56, 0.99, 0.67],
+      "pos": [0.85, 0.66, 0.995, 0.82],
       "contents": ["tao_yellow:4", "tao_green:4", "tao_red:4", "tao_blue:4", "tao_black:4"]
     },
     {
@@ -805,7 +805,7 @@
       "label": "Arriving",
       "layout": "row",
       "use": "abilities",
-      "pos": [0.8, 0.69, 0.99, 0.82],
+      "pos": [0.005, 0.8, 0.115, 0.98],
       "tooltip": "The ghost just drawn, waiting to be placed."
     },
     {
@@ -848,10 +848,10 @@
       "status": "board",
       "copies": "per_seat",
       "pos": [
-        [0.005, 0.02, 0.048, 0.128],
-        [0.005, 0.138, 0.048, 0.246],
-        [0.005, 0.256, 0.048, 0.364],
-        [0.005, 0.374, 0.048, 0.482]
+        [0.12, 0.86, 0.1905, 0.98],
+        [0.12, 0.15, 0.2675, 0.286],
+        [0.12, 0.02, 0.1905, 0.14],
+        [0.6975, 0.15, 0.845, 0.286]
       ]
     },
     {
@@ -861,10 +861,10 @@
       "use": "abilities",
       "copies": "per_seat",
       "pos": [
-        [0.052, 0.02, 0.078, 0.07],
-        [0.052, 0.138, 0.078, 0.188],
-        [0.052, 0.256, 0.078, 0.306],
-        [0.052, 0.374, 0.078, 0.424]
+        [0.1955, 0.86, 0.259, 0.98],
+        [0.12, 0.291, 0.2675, 0.4066],
+        [0.1955, 0.02, 0.259, 0.14],
+        [0.6975, 0.291, 0.845, 0.4066]
       ],
       "tooltip": "Your Taoist, before it takes its place on the central tile."
     },
@@ -875,10 +875,10 @@
       "status": "board",
       "copies": "per_seat",
       "pos": [
-        [0.082, 0.02, 0.199, 0.07],
-        [0.082, 0.138, 0.199, 0.188],
-        [0.082, 0.256, 0.199, 0.306],
-        [0.082, 0.374, 0.199, 0.424]
+        [0.264, 0.86, 0.5177, 0.98],
+        [0.12, 0.4116, 0.2675, 0.568],
+        [0.264, 0.02, 0.5177, 0.14],
+        [0.6975, 0.4116, 0.845, 0.568]
       ]
     },
     {
@@ -889,10 +889,10 @@
       "use": "none",
       "copies": "per_seat",
       "pos": [
-        [0.052, 0.074, 0.12, 0.124],
-        [0.052, 0.192, 0.12, 0.242],
-        [0.052, 0.31, 0.12, 0.36],
-        [0.052, 0.428, 0.12, 0.478]
+        [0.5228, 0.86, 0.6779, 0.98],
+        [0.12, 0.573, 0.2675, 0.709],
+        [0.5228, 0.02, 0.6779, 0.14],
+        [0.6975, 0.573, 0.845, 0.709]
       ],
       "tooltip": "Tokens put behind this exorcism. They come back if you walk away from it."
     },
@@ -904,10 +904,10 @@
       "use": "abilities",
       "copies": "per_seat",
       "pos": [
-        [0.124, 0.074, 0.199, 0.124],
-        [0.124, 0.192, 0.199, 0.242],
-        [0.124, 0.31, 0.199, 0.36],
-        [0.124, 0.428, 0.199, 0.478]
+        [0.6829, 0.86, 0.845, 0.98],
+        [0.12, 0.714, 0.2675, 0.85],
+        [0.6829, 0.02, 0.845, 0.14],
+        [0.6975, 0.714, 0.845, 0.85]
       ]
     },
     {
@@ -916,7 +916,7 @@
       "layout": "row",
       "status": "board",
       "tags": ["optional"],
-      "pos": [0.005, 0.5, 0.199, 0.98],
+      "pos": [0.005, 0.02, 0.115, 0.78],
       "tooltip": "What the Taoist whose turn it is may do. One tray for the table, because only one of them is ever up."
     }
   ],

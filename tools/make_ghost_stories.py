@@ -317,54 +317,49 @@ def computes():
 # Zones
 
 
-# Four seat bands down the left, and the shared action tray under them. The
-# tray is one zone and not one per seat: the buttons are all about whoever is
-# *up* — `mine.player` — and only one seat is ever up, so four copies would be
-# thirty-two cards where eight say the same thing.
-def band(i):
-    top = 0.02 + i * 0.118
-    return top, top + 0.108
-
-
+# Each seat sits at the side of the village its board is on, so the four make a ring round the table. The action tray is
+# one zone down the left and not one per seat: the buttons are all about whoever is *up* — `mine.player` — and only one
+# seat is ever up, so four copies would be thirty-two cards where eight say the same thing. The ghost arriving sits at
+# the tray's foot rather than under the decks, because the corner below them is the undo button's.
 def zones():
     z = [
         {"key": "table", "label": "The village and the four boards", "layout": "grid",
          "grid": [5, 5], "status": "board", "use": "abilities",
-         "pos": [0.21, 0.02, 0.78, 0.98],
+         "pos": [0.2725, 0.15, 0.6925, 0.85],
          "tooltip": "Nine village tiles in the middle, three ghost spaces along each edge, "
                     "and a plaque in each corner that counts the board beside it."},
 
         {"key": "deck", "label": "Ghosts", "layout": "stack", "visibility": "secret",
-         "tags": ["shuffle"], "pos": [0.80, 0.02, 0.88, 0.14],
+         "tags": ["shuffle"], "pos": [0.85, 0.02, 0.92, 0.18],
          "contents": ["g_" + g[0] for g in G],
          "tooltip": "Fifty-five ghosts. The incarnation of Wu-Feng comes off the urn "
                     "when ten are left, which is where the rulebook buries it."},
         {"key": "urn", "label": "Wu-Feng", "layout": "stack", "visibility": "secret",
-         "tags": ["shuffle"], "pos": [0.90, 0.02, 0.99, 0.14],
+         "tags": ["shuffle"], "pos": [0.925, 0.02, 0.995, 0.18],
          "contents": ["i_" + i[0] for i in INC],
          "tooltip": "Ten incarnations, one of which will be drawn when the deck is down "
                     "to its last ten cards. Which one is nobody's business until then."},
         {"key": "hell", "label": "Hell", "layout": "stack", "status": "grave", "use": "none",
-         "pos": [0.80, 0.16, 0.88, 0.28]},
+         "pos": [0.85, 0.20, 0.92, 0.34]},
         {"key": "shrine", "label": "Buddhas", "layout": "row", "status": "board",
-         "pos": [0.90, 0.16, 0.99, 0.28],
+         "pos": [0.925, 0.20, 0.995, 0.34],
          "tooltip": "The two Buddha figurines live on the Buddhist Temple tile until "
                     "somebody asks for one."},
 
         {"key": "dice", "label": "Tao dice", "layout": "row", "status": "board", "use": "none",
-         "pos": [0.80, 0.30, 0.99, 0.41]},
+         "pos": [0.85, 0.36, 0.995, 0.48]},
         {"key": "curse", "label": "Curse die", "layout": "row", "status": "board", "use": "none",
-         "pos": [0.80, 0.43, 0.88, 0.54]},
+         "pos": [0.85, 0.50, 0.92, 0.64]},
         {"key": "circle", "label": "Circle of Prayer", "layout": "row", "status": "board",
-         "use": "none", "pos": [0.90, 0.43, 0.99, 0.54],
+         "use": "none", "pos": [0.925, 0.50, 0.995, 0.64],
          "tooltip": "The token standing on the Circle of Prayer makes every ghost of its "
                     "colour one easier to exorcise, for every Taoist."},
 
         {"key": "box", "label": "Tao tokens", "layout": "row", "status": "supply",
          "use": "abilities",
-         "pos": [0.80, 0.56, 0.99, 0.67],
+         "pos": [0.85, 0.66, 0.995, 0.82],
          "contents": ["tao_%s:4" % c for c in TAO_KEYS]},
-        {"key": "arriving", "label": "Arriving", "layout": "row", "use": "abilities", "pos": [0.80, 0.69, 0.99, 0.82],
+        {"key": "arriving", "label": "Arriving", "layout": "row", "use": "abilities", "pos": [0.005, 0.80, 0.115, 0.98],
          "tooltip": "The ghost just drawn, waiting to be placed."},
     ]
     for n in (1, 2, 3):
@@ -376,27 +371,23 @@ def zones():
               "contents": ["c_%s:%d" % (k, n) for k, _, n in CURSE]})
     z.append({"key": "rules", "layout": "stack", "display": "offscreen"})
 
-    for i in range(4):
-        y0, y1 = band(i)
-        rects = lambda x0, x1, a, b: [x0, y0 + a, x1, y0 + b]
-        if i == 0:
-            z += [
-                {"key": "seat_home", "label": "{owner}", "layout": "stack", "status": "board",
-                 "copies": "per_seat", "pos": []},
-                {"key": "figure", "layout": "stack", "status": "board", "use": "abilities",
-                 "copies": "per_seat", "pos": [],
-                 "tooltip": "Your Taoist, before it takes its place on the central tile."},
-                {"key": "tao", "label": "Tao", "layout": "row", "status": "board",
-                 "copies": "per_seat", "pos": []},
-                {"key": "spent", "label": "Committed", "layout": "row", "status": "board",
-                 "use": "none", "copies": "per_seat", "pos": [],
-                 "tooltip": "Tokens put behind this exorcism. They come back if you "
-                            "walk away from it."},
-                {"key": "held", "label": "Held", "layout": "row", "status": "board",
-                 "use": "abilities", "copies": "per_seat", "pos": []},
-            ]
+    z += [
+        {"key": "seat_home", "label": "{owner}", "layout": "stack", "status": "board",
+         "copies": "per_seat", "pos": []},
+        {"key": "figure", "layout": "stack", "status": "board", "use": "abilities",
+         "copies": "per_seat", "pos": [],
+         "tooltip": "Your Taoist, before it takes its place on the central tile."},
+        {"key": "tao", "label": "Tao", "layout": "row", "status": "board",
+         "copies": "per_seat", "pos": []},
+        {"key": "spent", "label": "Committed", "layout": "row", "status": "board",
+         "use": "none", "copies": "per_seat", "pos": [],
+         "tooltip": "Tokens put behind this exorcism. They come back if you "
+                    "walk away from it."},
+        {"key": "held", "label": "Held", "layout": "row", "status": "board",
+         "use": "abilities", "copies": "per_seat", "pos": []},
+    ]
     z.append({"key": "choices", "label": "{active} may", "layout": "row", "status": "board",
-              "tags": ["optional"], "pos": [0.005, 0.50, 0.199, 0.98],
+              "tags": ["optional"], "pos": [0.005, 0.02, 0.115, 0.78],
               "tooltip": "What the Taoist whose turn it is may do. One tray for the "
                          "table, because only one of them is ever up."})
     # One rect per seat, in the order the seats are declared.
@@ -406,17 +397,28 @@ def zones():
     return z
 
 
+# Five zones in a line along each side: across the top and bottom the whole middle is theirs, and down the sides the
+# board's own height, so the side seats stack where the others sit abreast. Seats go south, west, north, east. Each
+# zone's share of its line, across and then down: a pawn in a strip fifty pixels high needs more of the line than it
+# does laid flat.
+SEAT_ZONES = [("seat_home", 10, 20), ("figure", 9, 17), ("tao", 36, 23), ("spent", 22, 20), ("held", 23, 20)]
+
+
 def _seat_rect(key, i):
-    y0, _ = band(i)
-    spans = {
-        "seat_home": (0.005, 0.048, 0.000, 0.108),
-        "figure":    (0.052, 0.078, 0.000, 0.050),
-        "tao":       (0.082, 0.199, 0.000, 0.050),
-        "spent":     (0.052, 0.120, 0.054, 0.104),
-        "held":      (0.124, 0.199, 0.054, 0.104),
-    }
-    x0, x1, a, b = spans[key]
-    return [x0, round(y0 + a, 4), x1, round(y0 + b, 4)]
+    across = i % 2 == 0
+    lo, hi = (0.12, 0.845) if across else (0.15, 0.85)
+    at = lo
+    for k, flat, tall in SEAT_ZONES:
+        n = (hi - lo - 0.02) * (flat if across else tall) / 100
+        if k == key:
+            break
+        at += n + 0.005
+    a, b = round(at, 4), round(at + n, 4)
+    if across:
+        y0, y1 = (0.86, 0.98) if i == 0 else (0.02, 0.14)
+        return [a, y0, b, y1]
+    x0, x1 = (0.12, 0.2675) if i == 1 else (0.6975, 0.845)
+    return [x0, a, x1, b]
 
 
 # --------------------------------------------------------------------------
