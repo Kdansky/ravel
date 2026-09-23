@@ -108,58 +108,11 @@ wall of fifty-one.] Worth confirming against the screenshot harness before
 building anything: the draft may only look bad because the two draft buttons in
 the same row are 23px squares, which is the gap above and not this one.
 
-## Still open — which end of a card the title lives at
+## Closed — which end of a card the title lives at
 
-*From `todo.md`: "Codex: card titles and icons are at the bottom, which causes
-space issues. Titles should probably be at the top, and all icons at the bottom?
-Though where do we put costs? They are traditionally left top. So title in the
-centre?"*
-
-Today `render.lua` puts the whole text band — title, then body — at the
-**bottom**, badges in its bottom-left corner or as a column beside it, and only
-the cost badge at the top-left (`draw_cost_badge`). Codex is where that runs out:
-its cards carry the most badges of any game and the longest text, and the title
-has to give way to the badge run in the same band (`badge_w` is subtracted from
-the title's width before `fit_title` is called, and subtracted a second time when
-a column would collide).
-
-Three things have to be decided together, because they share one band:
-
-- **Where the title goes.** Top is the printed-card convention and is what the
-  note leans to; the cost badge already owns the top-left, so a top title is
-  centred in what the cost leaves, which is the same give-way arithmetic moved
-  to the other end rather than deleted. [Assumption: "title in the centre" in
-  the note means horizontally centred in a top band, not vertically centred on
-  the card face — a title across the art would not read on a picture.]
-- **Whether the badges all go to the bottom.** They are the half of the note
-  that buys the space back: a title alone at the top and a badge row alone at
-  the bottom is two bands that never negotiate, and `badge_font`'s
-  `room = pl.h - title height` stops being a correction.
-- **Whether this is a style word or a change for every game.** Twenty-one games
-  draw through this path. [Assumption: it wants a word on a style rather than a
-  new default, because a checkers man hides its title entirely and a Spellstorm
-  seat card has been sized to the current band — but the word has to be agreed
-  before anything is written, and a bare `title: "top"` is probably too narrow
-  a question to be asking once.]
-
-**Looked, 2026-09-23** (debug server: `load codex.json`, `pick pick_zane` twice,
-`screenshot`). A Codex card's picture is the **printed card scan** — title,
-cost, rules text and attack/health are all already on the art. What the engine
-draws on top duplicates them: the cost badge sits over the printed cost, and the
-bottom band prints the title a second time, over the printed rules text. On a
-**unit** the badge run (atk, hp) wins the band and the title is dropped
-entirely; on a **spell** there are no badges, so the title is drawn large across
-the printed text ("Scorch", "Charge"). So in Codex the collision is between the
-engine's text and the *picture's* text, not between title and badges.
-
-That changes the question for Codex alone: `hide: ["title"]` already exists
-(checkers uses it) and would give the printed face back with no new word. The
-badges still earn their place, since they show live values a buff or damage has
-changed. The original question — title at the top, badges at the bottom, as a
-style word — still stands for games whose art is a picture and not a printed
-card, but Codex is no longer its customer. [Assumption: every Codex card has a
-scanned face; the handful without art would lose their only label, so any hide
-must be limited to cards that have a picture.]
+Closed unbuilt 2026-09-23. Codex was the only customer, and its art is the printed card scan, so the engine's title
+collides with the printed text rather than with the badges. Reopen if a game whose art is a picture, not a printed
+card, runs out of room in the bottom band.
 
 ## Still open — a question asked over a network
 
