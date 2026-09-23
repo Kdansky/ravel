@@ -35,7 +35,8 @@ stage ─ one click's visible steps, in order, played back a beat at a time
 anim ─ flight tweens    fx ─ particles/shake/floats
 art ─ procedural placeholder shapes (its pure `parse` is shared with validate)
 ────────────────────────────────────────────────────────────── presentation
-flow ─ THE game driver: init/settle/play/activate/undo, costs, legality, the stack
+flow ─ THE game driver: init/settle/play/activate/undo, legality, the stack
+costs ─ what a cost comes to, every way it can be paid, and paying it (flow re-exports it)
 reactions ─ who may answer an event, and whether a window opens at all
 validate ─ whole-file checks: schema, references, conflicts
 actions ─ the op vocabulary (HANDLERS table)
