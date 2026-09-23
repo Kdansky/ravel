@@ -221,7 +221,8 @@ end
 -- that each replace the other's verb would hand the change back and forth for
 -- ever, and a file that does it is a bug rather than a game — so the chain is cut
 -- rather than diagnosed, and the change the last aura would have refused lands.
-local INSTEAD_LIMIT = 200
+-- A hundred, because each step nests a pcall and Lua 5.4 allows two hundred C levels.
+local INSTEAD_LIMIT = 100
 local instead_depth = 0
 
 -- **A verb that does something else entirely.** `adjusted` above changes what a

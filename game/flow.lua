@@ -22,6 +22,8 @@ local log         = require("log")
 local stats       = require("stats")
 local costs       = require("costs")
 
+local unpack = table.unpack or unpack
+
 local M = {}
 
 -- Asked by every interface, and answered by the planner.

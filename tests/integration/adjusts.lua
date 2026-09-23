@@ -286,14 +286,14 @@ end
 
 -- Two auras that each replace the other's verb hand one change back and forth for
 -- ever. A file that does it is a bug rather than a game, so the chain is cut
--- rather than diagnosed: after two hundred substitutions the change the last aura
+-- rather than diagnosed: after a hundred substitutions the change the last aura
 -- would have refused is allowed to land, and the stack survives.
 function M.test_adjusts_instead_does_not_go_round_for_ever(check)
 	with_game(function(name)
 		flow.init(name, 3)
 		require("cards").create("mirror", zones.find_id("field"))
 		hit("damage", "mirror", 1)
-		check("it came back at all", find("mirror").stats.tally > 50,
+		check("it came back at all", find("mirror").stats.tally >= 50,
 			tostring(find("mirror").stats.tally))
 	end)
 end

@@ -17,6 +17,8 @@ local flow    = require("flow")
 local actions = require("actions")
 local predicate = require("predicate")
 
+local unpack = table.unpack or unpack
+
 local M = {}
 
 local function seat_card(key)

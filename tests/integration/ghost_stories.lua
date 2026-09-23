@@ -22,6 +22,8 @@ local phase = require("phase")
 local flow = require("flow")
 local tags = require("tags")
 
+local unpack = table.unpack or unpack
+
 local M = {}
 
 local SEATS = { "south", "west", "north", "east" }

@@ -19,6 +19,8 @@ local actions = require("actions")
 local reactions = require("reactions")
 local stats     = require("stats")
 
+local unpack = table.unpack or unpack
+
 local M = {}
 
 local function zone_of(key, seat)
