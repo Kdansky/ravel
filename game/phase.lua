@@ -101,7 +101,8 @@ end
 
 function M.push(key)
 	local pd = G.phase_by_key[key]
-	assert(pd, "Unknown phase: " .. tostring(key))
+	-- A phase nobody declared is a typo the validator reports, and pushing nothing leaves the game where it was.
+	if not pd then return end
 	-- A push is always an arrival: whatever is underneath is a different phase,
 	-- or the same one being entered a second time over the top of itself.
 	stack[#stack + 1] = enter(pd, true, nil)

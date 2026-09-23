@@ -329,7 +329,8 @@ end
 local fire_arrives
 
 function M.add(z, def_key)
-	if not z then return nil end
+	-- A name no card has is a typo the validator reports; one fewer card is the cost, not the game.
+	if not (z and declaration.G.card_defs[def_key]) then return nil end
 	if z.status == "supply" then
 		local e = face_card(z, def_key)
 		if not e then
@@ -1225,14 +1226,20 @@ M.MENU_W = 0.10
 -- A shelf's "pos" is another zone's key, meaning "wherever that one is". Read
 -- off the host's *def* rather than its entity, so the two may be built in any
 -- order; when both exist per seat, seat n sits on seat n's rect.
+-- Where a zone off the board sits: declaration's own default for one.
+local OFFSCREEN = { 0.42, -0.40, 0.58, -0.08 }
+
 local function rect_of(z)
-	if type(z.pos) ~= "string" then return z.pos end
-	local host = (declaration.G.zone_defs or {})[z.pos]
-	local p = host and host.pos
-	if type(p) ~= "table" or type(p[1]) ~= "table" then return p end
-	for i, seat in ipairs(declaration.G.seat_list or {}) do
-		if seat == z.seat then return p[i] end
+	local p = z.pos
+	if type(p) == "string" then
+		local host = (declaration.G.zone_defs or {})[p]
+		p = host and host.pos
+		if type(p) == "table" and type(p[1]) == "table" then p = p[(declaration.G.seat_index or {})[z.seat]] end
 	end
+	-- A rect the file got wrong — a list of them on a shared zone, a seat with none, a host that does not
+	-- exist — puts the zone out of sight rather than stopping the game. The validator says which.
+	if type(p) == "table" and type(p[1]) == "number" then return p end
+	return OFFSCREEN
 end
 
 -- Which of a shelf's zones is showing: the first holding a card, and failing
@@ -1253,7 +1260,7 @@ function M.resize()
 	local W, H = love.graphics.getDimensions()
 	local board = W / (1 + M.MENU_W)
 	for z in entity.each("zone") do
-		local p = rect_of(z) or z.pos
+		local p = rect_of(z)
 		z.place = {
 			x = p[1] * board,
 			y = p[2] * H,

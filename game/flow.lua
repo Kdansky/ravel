@@ -431,7 +431,8 @@ local function deal(ph)
 		end
 		local pcs = type(ph.pass_card) == "table" and ph.pass_card or { ph.pass_card }
 		for _, key in ipairs(pcs) do
-			cards.create(key, to.id)
+			-- A card nobody declared is a typo the validator reports, and a hand without it is still a hand.
+			if declaration.G.card_defs[key] then cards.create(key, to.id) end
 		end
 	end
 end

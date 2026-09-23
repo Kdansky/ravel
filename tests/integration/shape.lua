@@ -141,7 +141,11 @@ local MISTAKES = {
 	{ "a target's zones written as one word", { "", "", "[0.2, 0.4, 0.5, 0.55]", "",
 		'{ "target": { "zones": "field" }, "action": ["stat_damage:hp@target:1"] }' }, "zones" },
 	{ "an action that is not a string", { "", "", "[0.2, 0.4, 0.5, 0.55]", "", '{ "action": [3, "end_phase"] }' }, "entry 1" },
+	{ "a card nobody declared in a zone's contents", { "", ', "zapp"', "[0.2, 0.4, 0.5, 0.55]", "", PLAY }, "zapp" },
+	{ "a zone placed on a zone that does not exist", { "", "", '"nowhere"', "", PLAY }, "nowhere" },
 	{ "a rect missing a corner", { "", "", "[0.2, 0.4, 0.5]", "", PLAY }, "pos" },
+	{ "a push to a phase nobody declared", { "", "", "[0.2, 0.4, 0.5, 0.55]", "",
+		'{ "action": ["push_phase:nowhere"] }' }, "nowhere" },
 }
 
 function M.test_shape_old_crashes_load_and_play(check)
