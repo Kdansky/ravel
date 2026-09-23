@@ -1217,16 +1217,19 @@ local function pay(cost, ctx, payment)
 	end
 end
 
-local function playable(def, ctx)
-	return def ~= nil and M.can_afford(def.cost, ctx) and predicate.meets_all(def.needs, ctx)
-end
-
 -- A card is playable when its cost is affordable and its needs are met.
 -- Escape hatch: a needs-gated card becomes playable when nothing else in its
 -- zone is, so a mandatory play can never soft-lock a hand. The gates leave
 -- ctx.targets unset: nothing has been chosen yet, and a cost the targets would
 -- pay cannot be judged until they are.
-function M.can_play(card_id)
+--
+-- Every gate but the hatch, and apart from it the needs: whether the card could
+-- be played at all, and whether its needs hold. The hatch asks this of the rest
+-- of the hand, because a card that blocks it has to be one the player can
+-- actually play — asked less, a card with nothing to run or one for another
+-- phase held the hatch shut while being unplayable itself, and the hand had no
+-- move at all.
+local function gates(card_id)
 	local c   = entity.get(card_id)
 	local def = c and cards.def(c)
 	if not def or not reachable(c) or not in_play_zone(c) or not on_top(c) then return false end
@@ -1242,7 +1245,7 @@ function M.can_play(card_id)
 	-- that may still refuse it is the asking card saying which of them it will
 	-- take — "trash their *largest gem*" opens the whole hand and accepts one
 	-- card out of it, and without this the whole hand was acceptable.
-	if choosing(c) then return pickable(c) end
+	if choosing(c) then return pickable(c), true end
 	-- A window is open, so the only move is to answer it. The same shape as the
 	-- overlay lock in activate below — a pending question locks other actions —
 	-- and it bites only the seat holding priority, since nobody else is reachable
@@ -1273,7 +1276,12 @@ function M.can_play(card_id)
 	-- An imaginary card is not the card, it is the card happening again, and a
 	-- copy is free by definition — nobody paid for it twice at the table.
 	if not c.imaginary and not M.can_afford(def.cost, ctx) then return false end
-	if predicate.meets_all(def.needs, ctx) then return true end
+	return true, predicate.meets_all(def.needs, ctx), z
+end
+
+function M.can_play(card_id)
+	local ok, met, z = gates(card_id)
+	if not ok or met then return ok and met end
 	-- A zone tagged "optional" holds buttons, not a hand: nothing in it ever has
 	-- to be played, so there is no soft-lock for the hatch below to break, and
 	-- opening it would offer a move the rules had just refused. Chess's castling
@@ -1298,8 +1306,9 @@ function M.can_play(card_id)
 		for _, cid in ipairs(z and z.cards or {}) do pool[#pool + 1] = cid end
 	end
 	for _, cid in ipairs(pool) do
-		if cid ~= card_id and playable(cards.def(entity.get(cid)), { card_id = cid }) then
-			return false
+		if cid ~= card_id then
+			local other, fine = gates(cid)
+			if other and fine then return false end
 		end
 	end
 	return true
