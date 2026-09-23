@@ -1,4 +1,5 @@
-local json = require("json")
+local json  = require("json")
+local shape = require("shape")
 
 local M = {}
 M.G        = {}   -- current game definition; templates may be edited live (see cards.edit)
@@ -14,69 +15,8 @@ M.TEMPLATE_FIELDS = {
 	"style_defs", "dynamic_styles", "seat_index", "prompt",
 }
 
--- A card is written as a list of moments, and read as a flat def.
---
--- A moment is a block naming when something happens, holding the vocabulary of
--- that moment: "challenge" carries the condition a trial asks and the two action
--- lists it chooses between. Position is what disambiguates, so one word can mean
--- one thing — `needs` is a gate wherever it appears, and the block says what it
--- gates.
---
--- The engine keeps flat names. This table maps one to the other, so every read
--- site downstream is untouched by a change to what an author writes, and the
--- golden traces are what prove a move was faithful. Turning a document into
--- engine data is what this file is for.
---
--- Entries arrive here as each moment migrates, and not before: a block the
--- parser accepted while the validator rejected it would be worse than no block.
-local MOMENTS = {
-	play      = { cost = "cost", needs = "needs", target = "target", phases = "phases",
-		action = "on_play", spent = "spent", compute = "compute" },
-	challenge = { needs = "requires", pass = "on_pass", fail = "on_fail" },
-	-- Three gates and a side. "needs" is whether the aim may be made at all,
-	-- asked of every candidate before a player may point; "when" is whether the
-	-- card answers the aim that was. An Illusion is targetable by everything and
-	-- dies only to some of it, so one list could not have said both.
-	--
-	-- "whose" is the side, in a reaction's own word, and it gates the whole block
-	-- rather than either half: Codex writes Invisible as "to *opponents* without a
-	-- detector" and Mindparry as "*opponents* can't aim spells at your units", so
-	-- the one-sidedness is a property of the ward and not a clause inside it.
-	-- Written as a condition it would be repeated in every one-sided ward and got
-	-- wrong once. Default "anyone", since Untargetable, Illusion and every zone's
-	-- accepts are about the aim and not about who made it.
-	receive   = { needs = "accepts", when = "on_receive_needs", action = "on_receive",
-		whose = "receive_whose" },
-	-- The arrival counterpart to a card's "leaves", on the zone that receives.
-	-- Separate from "receive" and not a field on it: "receive" fires on every
-	-- landing in any zone -- which is what a discard stamping its owner wants
-	-- -- and this fires only when a card comes *into play*, which is what an
-	-- arrival trigger means. One word each rather than a mode on one word.
-	arrives   = { needs = "arrives_needs", action = "on_arrives" },
-	round     = { action = "on_round" },
-	chosen    = { where = "chosen_where", action = "on_chosen" },
-	-- A card on its way out, which is the moment a card game keeps most of its
-	-- triggers at and the engine had no word for. `into` is the zone it landed
-	-- in, and naming one is how death, exile and bounce are told apart without
-	-- the engine learning what any of them means: they are one sentence pointed
-	-- at three different places.
-	--
-	-- `from` is which departure is meant. Left out it is leaving *play*, which
-	-- is what a card that dies does; naming a zone makes it leaving that zone,
-	-- which is what a card discarded out of a hand does. Both are "leaves", and
-	-- a game with no board at all -- a whole hand of them -- had no way to say
-	-- the second until this existed, so it wrote the trigger as an ability and
-	-- then had to keep every other rule from running it.
-	--
-	-- `needs` is the same word every other block carries, and it is here for the
-	-- same reason: a departure a rule cares about is often only *some* of them.
-	-- "Dies on your turn" and "dies on anybody else's" are one moment with a
-	-- condition on it, and without this the only gate a leaving card had was
-	-- arithmetic — an amount that comes to zero, which says nothing about a rule
-	-- that chooses or moves.
-	leaves    = { from = "leaves_from", into = "leaves_into", needs = "leaves_needs",
-		action = "on_leaves" },
-}
+-- The moment blocks and the flat names they become. See shape.lua.
+local MOMENTS = shape.MOMENTS
 M.MOMENTS = MOMENTS
 
 -- How a piece may move: a list of rules, each naming patterns and saying what
@@ -763,6 +703,7 @@ function M.read(filename, pp)
 	assert(data, "Cannot read game file: " .. filename)
 	local ok, top = pcall(json.decode, data)
 	assert(ok, "Bad JSON in " .. filename .. ": " .. tostring(top))
+	assert(type(top) == "table", "Bad JSON in " .. filename .. ": a game file is an object, { ... }")
 	-- The engine's own column, merged into every game whether or not it asked.
 	-- It is a module rather than something drawn beside the board, so its
 	-- buttons are cards in a zone: the inspector reads them, the network carries
@@ -792,7 +733,9 @@ end
 
 function M.parse(filename)
 	local include_problems = {}
-	local parsed, _, came_from = M.read(filename, include_problems)
+	local read, _, came_from = M.read(filename, include_problems)
+	-- Every known field the type it is meant to be, before anything reads one.
+	local parsed = shape.clean(read, include_problems)
 
 	local G = {
 		title          = parsed.title or "Ravel",
@@ -862,32 +805,6 @@ function M.parse(filename)
 		return list
 	end
 
-	-- **Anything the engine writes onto a game file wears "ravel_".** The two it
-	-- writes are ravel_fired (which end condition has gone off) and
-	-- ravel_menu_for (the card standing in for one ability in a chooser), and a
-	-- file that says either is refused rather than quietly overwritten.
-	--
-	-- Said as a prefix and not as a list, so the rule is one a reader can apply
-	-- without looking anything up: a word starting with ravel_ is the engine's,
-	-- everywhere and in every section. It is what lets SCHEMA.json be exactly
-	-- what a game file may contain — bookkeeping used to be listed among the
-	-- fields, described as "never authored", which is a distinction a document
-	-- can make and a reader has to remember.
-	--
-	-- Checked here rather than in the validator because this is the last place
-	-- the authored file exists on its own: by the time the validator runs, the
-	-- engine's own ravel_ fields are on it and the two cannot be told apart.
-	local function refuse_reserved(node, at, depth)
-		if type(node) ~= "table" or depth > 12 then return end
-		for k, v in pairs(node) do
-			if type(k) == "string" and k:sub(1, 6) == "ravel_" then
-				pp[#pp + 1] = ("%s writes '%s', which is the engine's to write: every field"):format(at, k)
-					.. " starting with \"ravel_\" is bookkeeping, and a game file says none of them"
-			end
-			refuse_reserved(v, type(k) == "string" and (at .. " " .. k) or at, depth + 1)
-		end
-	end
-	refuse_reserved(parsed, "this file", 0)
 
 	local sections = {}
 	for k in pairs(KNOWN_SECTIONS) do sections[#sections + 1] = k end

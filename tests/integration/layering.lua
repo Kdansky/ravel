@@ -43,7 +43,7 @@ end
 -- state and require nothing themselves, so they cannot be half of a cycle.
 local UTIL = { json = true, table_ext = true, log = true, rng = true }
 
--- The bottom of the engine, where everything else is built. These four are worth
+-- The bottom of the engine, where everything else is built. These five are worth
 -- pinning by name because every question the board is asked passes through them,
 -- so a cycle here is a cycle in nearly every call.
 --
@@ -53,7 +53,8 @@ local UTIL = { json = true, table_ext = true, log = true, rng = true }
 -- kept two copies of "the ceiling rises with a buff" in step by luck.
 local FLOOR = {
 	entity      = {},
-	declaration = { entity = true },
+	shape       = {},
+	declaration = { entity = true, shape = true },
 	tags        = { entity = true, declaration = true },
 	stats       = { declaration = true, tags = true },
 }

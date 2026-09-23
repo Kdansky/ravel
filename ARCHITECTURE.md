@@ -49,6 +49,7 @@ cards ─ template helpers, live editing, image cache
 stats ─ the whole of a number: stored, current, its floor and ceiling, and the clamp
 tags ─ what a card is (declared, granted by its zone, computed) and whose it is
 declaration ─ JSON → G, plus the injected system zone, player/system cards, seats
+shape ─ every field of the raw file held to its type before parse reads it
 entity ─ the flat array     log ─ event record     json ─ decode/encode
 rng ─ the engine's own PRNG (never the host's, below this line)
 ```
@@ -193,10 +194,13 @@ Treat it as disposable.
    problems at load (but never blocks them — warnings don't stop content
    from running, so the *runtime* must be safe on its own); loops are
    budgeted. Concretely: `json.lua` is a hand-rolled recursive-descent
-   parser, never `load`/`loadstring` over untrusted text; stat-bearing
-   values (`card_stats`, a seat's `stats`) are coerced with `tonumber(v) or 0`
-   at the point they're written, so a malformed value can never reach
-   arithmetic as a string and throw; `predicate.met`/`meets_all` coerce and
+   parser, never `load`/`loadstring` over untrusted text; **`shape.lua`
+   holds every known field of the merged file to its type before
+   `declaration.parse` reads it**, reporting and leaving out a value of the
+   wrong type, so nothing past parse meets a string where a number goes or
+   one word where a list goes — which is what `tests/fuzz.lua` checks; a
+   name that points at nothing (a card, a phase, a host zone) is skipped
+   where it is used; `predicate.met`/`meets_all` coerce and
    type-check before every comparison and fail closed (false) rather than
    erroring on a malformed condition; `load_game:` and local `asset` paths
    are restricted to a bare filename (no `..`, no path separators — see
@@ -503,7 +507,8 @@ map, not a new dialect) over a bespoke check.
 **A new card/phase/zone field**: parse nothing — defs are carried whole from
 JSON. Read it where it matters, add it to the validator's known-field tables
 (`CARD_FIELDS` etc. — otherwise every file using it gets an "unknown field"
-warning), document it. If it affects playability, surface it in
+warning), give it a type in `shape.lua` (`tests/integration/shape.lua` fails
+until you do, since an untyped field reaches the engine unchecked), document it. If it affects playability, surface it in
 `flow.can_play` so all interfaces agree.
 
 **A new validator message**: add a case to the `CASES` table in

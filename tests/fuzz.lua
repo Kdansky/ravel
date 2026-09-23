@@ -6,7 +6,8 @@
 -- Each iteration takes a shipped game, replaces one to three values anywhere in it
 -- with something of the wrong type, loads it and plays random legal moves. A
 -- crash is reported once per source line, with the mutation that caused it and
--- the first frames inside the engine. Silent on success; exits 1 on any crash.
+-- the first frames inside the engine, and an iteration taking over ten seconds is
+-- reported as slow. Silent on success; exits 1 on any crash.
 -- Seeds are independent, so several may run side by side.
 
 require("headless")
@@ -73,6 +74,7 @@ for it = 1, iters do
 	local f = io.open("game/games/" .. tmp, "w")
 	f:write(json.encode(doc))
 	f:close()
+	local started = os.clock()
 	local ok, err = xpcall(function()
 		flow.init(tmp, it)
 		for _ = 1, 60 do
@@ -81,6 +83,11 @@ for it = 1, iters do
 			moves[math.random(#moves)]()
 		end
 	end, function(e) return debug.traceback(e, 2) end)
+	-- A hang is a crash that takes longer to notice: loops on content are meant to be budgeted.
+	if os.clock() - started > 10 then
+		say(("slow: %.0f s"):format(os.clock() - started))
+		say("    " .. name .. " " .. table.concat(said, "  "))
+	end
 	if not ok then
 		local first = tostring(err):match("^[^\n]*")
 		local at = first:match("^([^:]+:%d+)") or first
