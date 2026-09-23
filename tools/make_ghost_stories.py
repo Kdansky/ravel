@@ -600,7 +600,7 @@ def plaques():
                  "needs": ["count:taoist@mine.attached_to.watchman >= 1",
                            "haunted@watchman == 0", "acted@mine.player == 0"],
                  "action": ["stat_set:haunt@%s:0" % pat,
-                            "stat_set:acted@mine.player:1", "end_phase"]},
+                            "spend_action"]},
             ],
         })
     return out
@@ -610,7 +610,7 @@ def _villager(key, needs, action, target=None):
     rule = {"key": "ask", "phases": ["yang_act"],
             "needs": ["count:taoist@mine.attached_to.self >= 1", "haunted@self == 0",
                       "acted@mine.player == 0"] + needs,
-            "action": action + ["stat_set:acted@mine.player:1", "end_phase"]}
+            "action": action + ["spend_action"]}
     if target:
         rule["target"] = target
     return rule
@@ -728,7 +728,7 @@ def ghost_card(key, name, colour, res, left, mid, right, incarnation=False):
     rules = [{
         "key": "exorcise", "phases": ["yang_exorcise"], "compute": powers,
         "needs": ["count:taoist@mine.attached_to.orthogonal >= 1"] + needs,
-        "action": ["stat_set:dying@self:1", "end_phase"],
+        "action": ["drive_out"],
     }]
 
     arrive = []
@@ -839,7 +839,7 @@ def placement():
             {"key": "place_home", "phases": ["yin_place"],
              "target": {"type": "slot", "count": 1, "zones": ["table"], "fill": "empty",
                         "where": ON_BOARD[name]},
-             "action": ["move_to:target", "stat_set:fresh@self:1", "end_phase"]},
+             "action": ["place_ghost"]},
         ]}
     # A black ghost goes to whoever is playing, so its home board is whichever
     # one the active seat sits behind: four rules, one per seat, and only one of
@@ -850,7 +850,7 @@ def placement():
                       "needs": ["side@mine.player == %d" % side],
                       "target": {"type": "slot", "count": 1, "zones": ["table"],
                                  "fill": "empty", "where": ON_BOARD[name]},
-                      "action": ["move_to:target", "stat_set:fresh@self:1", "end_phase"]})
+                      "action": ["place_ghost"]})
     t["black_ghost"] = {"abilities": black}
     t["multi_ghost"] = {"abilities": [dict(b, key=b["key"]) for b in black]}
     return t
@@ -875,7 +875,7 @@ def anywhere_rules():
             "needs": ["side@mine.player == %d" % side, "aims:place_home == 0",
                       "aims:place_home_%s == 0" % name],
             "target": {"type": "slot", "count": 1, "zones": ["table"], "fill": "empty"},
-            "action": ["move_to:target", "stat_set:fresh@self:1", "end_phase"]})
+            "action": ["place_ghost"]})
     out += [
         # A Buddha standing on the space eats whatever is laid on it, and goes
         # back to the temple having done its one job.
@@ -951,7 +951,7 @@ def buttons():
         btn("roll_dice", "Attempt an exorcism",
             {"phases": ["yang_act"], "needs": ["acted@mine.player == 0"],
              "action": roll_tao() + ["stat_set:exorcising@mine.player:1",
-                                     "stat_set:acted@mine.player:1", "end_phase"]},
+                                     "spend_action"]},
             "Roll the three Tao dice, then commit tokens and name a ghost you face."),
         btn("give_up", "Leave it be",
             {"phases": ["yang_exorcise"],
@@ -1162,6 +1162,18 @@ def setup():
     return {"place": place}
 
 
+# The game's own actions, each written once.
+VERBS = [
+    # Marked rather than removed: the sweep after the exorcism resolves the dead.
+    {"key": "drive_out", "tooltip": "This ghost is exorcised.",
+     "action": ["stat_set:dying@self:1", "end_phase"]},
+    {"key": "place_ghost", "tooltip": "The ghost takes the chosen space, and has only just arrived.",
+     "action": ["move_to:target", "stat_set:fresh@self:1", "end_phase"]},
+    {"key": "spend_action", "tooltip": "The Taoist has used their action for this Yang phase.",
+     "action": ["stat_set:acted@mine.player:1", "end_phase"]},
+]
+
+
 def build():
     t = tags()
     t.update(placement())
@@ -1169,6 +1181,7 @@ def build():
     return {
         "title": "Ghost Stories",
         "seed": 9,
+        "verbs": VERBS,
         "comment": "Antoine Bauza's cooperative game, four seats at Initiation level. "
                    "The village and the four player boards are one 5x5 grid, which is "
                    "what makes 'the space in front of your tile' a pattern rather than a "
