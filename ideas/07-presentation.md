@@ -142,8 +142,24 @@ Three things have to be decided together, because they share one band:
   before anything is written, and a bare `title: "top"` is probably too narrow
   a question to be asking once.]
 
-Look at a real Codex hand before choosing. The screenshot harness is the cheap
-half of this item and the decision is the whole of the rest.
+**Looked, 2026-09-23** (debug server: `load codex.json`, `pick pick_zane` twice,
+`screenshot`). A Codex card's picture is the **printed card scan** — title,
+cost, rules text and attack/health are all already on the art. What the engine
+draws on top duplicates them: the cost badge sits over the printed cost, and the
+bottom band prints the title a second time, over the printed rules text. On a
+**unit** the badge run (atk, hp) wins the band and the title is dropped
+entirely; on a **spell** there are no badges, so the title is drawn large across
+the printed text ("Scorch", "Charge"). So in Codex the collision is between the
+engine's text and the *picture's* text, not between title and badges.
+
+That changes the question for Codex alone: `hide: ["title"]` already exists
+(checkers uses it) and would give the printed face back with no new word. The
+badges still earn their place, since they show live values a buff or damage has
+changed. The original question — title at the top, badges at the bottom, as a
+style word — still stands for games whose art is a picture and not a printed
+card, but Codex is no longer its customer. [Assumption: every Codex card has a
+scanned face; the handful without art would lose their only label, so any hide
+must be limited to cards that have a picture.]
 
 ## Still open — a question asked over a network
 
