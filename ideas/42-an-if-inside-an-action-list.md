@@ -106,3 +106,41 @@ question — acting and then asking is about the offer queue, not about a gate.
 - **`or`.** Already refused, on [31](31-either-of-two.md), for its own reasons.
   A gate here is a condition in the one vocabulary, with whatever that
   vocabulary can say and nothing more.
+
+## The gate `activate_zone` reads, which is this track under another name
+
+From the inbox (2026-09-23): *"Runeterra's `by_column` gating (a rules column
+whose abilities run only where their `needs` pass) is an if inside an action
+list in disguise and breaks with how `needs` works everywhere else (asked
+before, deciding legality). Remove it at some point."*
+
+`actions.lua`'s `activate_zone` handler runs each ability only
+`if predicate.meets_all(a.needs, c)`. Everywhere else a `needs` is asked
+*before* — may this be played, may this be aimed — and a failed one means the
+move is not offered. Here it is asked *during* a resolution the phase has already
+committed to, and a failed one means the rule silently skips. Same word, two
+meanings. The handler's own comment still says it honours an ability's `when`,
+which is the name the field had before the validator folded it into `needs`
+(`validate.lua` refuses `when` on an ability by name) — so the doc drifted and
+the double meaning is what that fold left behind.
+
+LoR's `spill` (Overwhelm, and the unblocked attacker's damage to the nexus) is
+the named case. [Assumption: the pattern is not LoR's alone. Counted as an
+ability keyed to a step some `activate_zone …:by_column:<step>` names *and*
+carrying a `needs`: Spellstorm 93, Ghost Stories 63, Codex 36, Grimm 28,
+Arnak 1, LoR at least 2 (its cards sit where the quick count missed them).
+Roughly 220 abilities, so "remove it" is a migration across six games and four
+generators, not a deletion.]
+
+[Assumption: the removal waits on this track's grammar decision. Once an action
+list can carry its own `if`, each gated step ability moves its `needs` into its
+action, `activate_zone` stops reading `needs` at all, and the validator refuses a
+`needs` on an ability only a phase ever runs — the same refusal that keeps a
+condition about the targets out of a `needs`. Until then there is nowhere for the
+gate to go.] [Assumption: "`by_column` gating" means the gate, not the order —
+`by_column` as a column-first ordering is unaffected, and the gate applies with
+or without an order named.]
+
+This also widens the recommendation above: with ~220 gates to carry, option 1's
+declaration-per-gate costs one `computes` key per distinct condition, which is
+worth counting before the grammar is chosen.
