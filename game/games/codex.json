@@ -42,8 +42,8 @@
       ]
     },
     {
-      "key": "sideline",
-      "tooltip": "Sideline a unit: it is exhausted, disabled, and taken off patrol.",
+      "key": "disable",
+      "tooltip": "Disable a unit: it is exhausted, does not ready during its next ready step, and leaves its post.",
       "action": [
         "exhaust:param1",
         "stat_set:disabled@param1:1",
@@ -7588,7 +7588,7 @@
             "zones": ["fighters"]
           },
           "action": [
-            "sideline:target",
+            "disable:target",
             "draw_from:enemy.deck:enemy.hand:1"
           ]
         }
@@ -7712,7 +7712,7 @@
           ]
         },
         "action": [
-          "sideline:target",
+          "disable:target",
           "move:target:enemy.army"
         ],
         "spent": "mine.discard"
@@ -7902,7 +7902,7 @@
             ]
           },
           "action": [
-            "sideline:target"
+            "disable:target"
           ]
         }
       ]
@@ -8595,7 +8595,7 @@
           "zones": ["fielded"]
         },
         "action": [
-          "sideline:target",
+          "disable:target",
           "stat_gain:plus@target:1",
           "draw_from:mine.deck:mine.hand:1"
         ],
@@ -12658,7 +12658,7 @@
           },
           "action": [
             "ready:self",
-            "sideline:target"
+            "disable:target"
           ]
         }
       ]
@@ -13424,7 +13424,7 @@
         },
         "action": [
           "harm:hp@target:3",
-          "sideline:target",
+          "disable:target",
           "activate_zone:rules_death"
         ]
       }
@@ -15252,7 +15252,7 @@
           ]
         },
         "action": [
-          "sideline:target"
+          "disable:target"
         ]
       }
     },

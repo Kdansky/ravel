@@ -10,14 +10,15 @@ was already the caller, and a body change being the verb's change is what makes
 
 ## Left
 
-- **Move the games onto it.** `activate_zone:` call sites today: Spellstorm
-  117, Codex 101, Ghost Stories 65, Grimm 21, Puzzle Strike 10, Splendor 5.
-  Spellstorm, Ghost Stories, Puzzle Strike and Splendor are written by their
-  `make_*.py`, so the change goes there. The runs copied rather than put in a
-  rules zone are the cheapest first customers: Puzzle Strike's *"this character
-  is chosen"* ×20, Codex's *"enters play"* ×17 and *sideline* ×7, Spellstorm's
-  *drink the potion* ×7. [Assumption: one game per commit, Codex's sideline
-  first because [37](37-codex.md) already asks for that word.]
+- **Moved so far** (each checked by seeded bot games reaching the same states):
+  Puzzle Strike `crash_gems`, `pick_fighter`; Codex `deploy`, `summon_hero`,
+  `leave_patrol`, `disable`; Spellstorm `drink`, `take_initiative`,
+  `lose_initiative`, `gain_<kind>`; Ghost Stories `drive_out`, `place_ghost`,
+  `spend_action`. Splendor and Grimm have only short or gated runs, and were left.
+- **A parameter is a whole word**, so Spellstorm's `GIVE(kind)` and
+  `GAIN_JUNK(kind)` — `activate_zone:rules:by_column:dry_give_<kind>` then a draw
+  off `<kind>_pile` — cannot be one verb over the kind. Either pass both names
+  (`give_junk:dry_give_ice:ice_pile`), or leave them; they are 30 call sites.
 - **A routine behind a `needs`.** `r_dry_ash`/`_curse`/`_ice` and every other
   rules card whose abilities are gated stay as rules zones: a body has no if,
   and `needs` on a verb was turned down because an ability's `needs` is asked

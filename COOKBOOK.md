@@ -1059,19 +1059,19 @@ something says so itself:
 "tags": { "spent": { "buffs": { "atk": -1 } } }
 ```
 
-### Sideline it. (Several steps with a name of their own, written once.)
+### Disable it. (Several steps with a name of their own, written once.)
 
 ```json
-"verbs": [{ "key": "sideline", "tooltip": "Sideline <a unit>: spent, disabled, off its slot.",
+"verbs": [{ "key": "disable", "tooltip": "Disable <a unit>: spent, not readying next turn, off its slot.",
             "action": ["exhaust:param1", "stat_set:disabled@param1:1", "stat_set:slot@param1:0"] }],
-"play": { "target": { "type": "card", "tags": ["unit"], "count": 1 }, "action": ["sideline:target"] }
+"play": { "target": { "type": "card", "tags": ["unit"], "count": 1 }, "action": ["disable:target"] }
 ```
 
 `param1`, `param2` … are the call's arguments in order, counted from 1; the last takes the rest
 of the string, colons and all. The body runs as the caller, so `@self` is the card that said
-`sideline`. The call writes arguments by position, so the tooltip says what each one is.
+`disable`. The call writes arguments by position, so the tooltip says what each one is.
 
-Also: a verb announces itself, so a reaction may answer `"to": "sideline"`. A routine that runs
+Also: a verb announces itself, so a reaction may answer `"to": "disable"`. A routine that runs
 only when a `needs` holds is still a rules zone of invisible cards, called with
 `activate_zone:rules:by_column:<key>` — a body has no if.
 

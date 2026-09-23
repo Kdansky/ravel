@@ -4812,13 +4812,13 @@ performed by name:
 
 ```json
 "verbs": [
-  { "key": "sideline", "tooltip": "Sideline a unit: spent, disabled, off its slot.",
+  { "key": "disable", "tooltip": "Disable a unit: spent, not readying next turn, off its slot.",
     "action": ["exhaust:param1", "stat_set:disabled@param1:1", "stat_set:slot@param1:0"] },
   { "key": "burn", "tooltip": "Burn — who, then how much.",
     "action": ["stat_damage:hp@param1:param2"] }
 ],
 "cards": [{ "key": "ambush", "text": "Ambush",
-  "play": { "target": { "type": "card", "count": 1 }, "action": ["sideline:target", "burn:enemy.player:2"] } }]
+  "play": { "target": { "type": "card", "count": 1 }, "action": ["disable:target", "burn:enemy.player:2"] } }]
 ```
 
 **Arguments go by position.** `param1`, `param2` … are the call's arguments in
@@ -4838,7 +4838,7 @@ armour watching `damage` still stops. An `instead` replaces one change, not the
 whole verb.
 
 Like every declared verb it **announces itself**, so a reaction may answer
-`"to": "sideline"`.
+`"to": "disable"`.
 
 What it will not do: return a value (that is `computes`), branch, or repeat. A
 routine gated by a `needs` is still a rules zone called with

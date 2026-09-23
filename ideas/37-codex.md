@@ -35,12 +35,11 @@ the top of it is not what that survey guessed.
 - **Swift strike — 6 cards, 4 new.** A blow struck before the exchange rather
   than in it. Ferocity and The Art of War already say so on the card.
 
-Sideline is the one of the three that is not Codex's own: the same four steps
-(`exhaust:target`, `stat_set:disabled@target:1`, `stat_set:slot@target:0`,
-`stat_set:guard@target:0`) appear 7 times here, and Spellstorm and Puzzle Strike
-each copy a run of their own the same way. It is
-[41](41-a-name-for-a-list-of-actions.md), and wants solving there rather than as
-a Codex word.
+The four steps written 7 times here were not sideline but **disable** —
+exhausted, not readying, off its post — and are the verb `disable` now, with
+`leave_patrol` (the slot and guard back to 0) the half every sideline, bounce and
+steal shares. Sideline itself is `leave_patrol` and a move to the army, still
+written inline.
 
 ## Blue's gaps, grouped
 
