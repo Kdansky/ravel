@@ -984,15 +984,27 @@ def gem_cards():
 # lines are the same line: emit puts the crash up to be answered, and if nobody
 # answers it, it simply happened. A game with no counter-crash in it pays
 # nothing for the word being there.
+#
+# The breaking is the verb `crash_gems`, declared once in build(); what a chip
+# adds to it — coins, or no announcement at all — stays on the chip.
 def crash_action(n_targets, bonus):
-    return [
-        "stat_set:crashed@mine.player:sum:value@target",
-        "stat_set:broke@mine.player:max:value@target",
-        "purge:target",
-        "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
-        "stat_gain:money@mine.player:%d" % bonus,
-        "emit:crash",
-    ]
+    return ["crash_gems"] + (["stat_gain:money@mine.player:%d" % bonus] if bonus else []) + ["emit:crash"]
+
+
+VERBS = [
+    {"key": "crash_gems", "tooltip": "Crash the chosen gems: they break into 1-gems, sent to the opponent's gem pile.",
+     "action": ["stat_set:crashed@mine.player:sum:value@target",
+                "stat_set:broke@mine.player:max:value@target",
+                "purge:target",
+                "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player"]},
+    # Played from the roster by whoever is choosing, so @self is the character.
+    {"key": "pick_fighter", "tooltip": "Take this character: a crash gem and six 1-gems into your bag, and its name.",
+     "action": ["take:bank.crash_gem:mine.bag:1",
+                "take:bank.gem_1:mine.bag:6",
+                "set_name:mine.player:text@self",
+                "stat_gain:picked@mine.player:1",
+                "set_owner:self:mine.player"]},
+]
 
 
 def purple_cards():
@@ -2057,14 +2069,9 @@ def character_cards():
     out = []
     for key, name, colour, tip, chips in CHARACTERS:
         deal = ["create:mine.bag:%s:1" % c for c in chips]
-        deal.append("take:bank.crash_gem:mine.bag:1")
-        deal.append("take:bank.gem_1:mine.bag:6")
         out.append({"key": "char_" + key, "text": name, "tags": ["character_card", "immutable"],
                     "asset": "star:6:%s" % colour, "tooltip": tip,
-                    "play": {"action": deal + ["set_name:mine.player:text@self",
-                                              "stat_gain:picked@mine.player:1",
-                                              "set_owner:self:mine.player"],
-                             "spent": "mine.fighter"}})
+                    "play": {"action": deal + ["pick_fighter"], "spent": "mine.fighter"}})
     return out
 
 
@@ -2247,6 +2254,7 @@ def phases():
 def build():
     return {
         "title": "Puzzle Strike",
+        "verbs": VERBS,
         "stats": stats(),
         "styles": styles(),
         # The bank holds ten Puzzle chips; "the rest" is however many of them

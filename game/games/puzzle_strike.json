@@ -1,5 +1,28 @@
 {
   "title": "Puzzle Strike",
+  "verbs": [
+    {
+      "key": "crash_gems",
+      "tooltip": "Crash the chosen gems: they break into 1-gems, sent to the opponent's gem pile.",
+      "action": [
+        "stat_set:crashed@mine.player:sum:value@target",
+        "stat_set:broke@mine.player:max:value@target",
+        "purge:target",
+        "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player"
+      ]
+    },
+    {
+      "key": "pick_fighter",
+      "tooltip": "Take this character: a crash gem and six 1-gems into your bag, and its name.",
+      "action": [
+        "take:bank.crash_gem:mine.bag:1",
+        "take:bank.gem_1:mine.bag:6",
+        "set_name:mine.player:text@self",
+        "stat_gain:picked@mine.player:1",
+        "set_owner:self:mine.player"
+      ]
+    }
+  ],
   "stats": [
     {
       "key": "pile",
@@ -715,14 +738,7 @@
           "owner": "anyone",
           "count": 1
         },
-        "action": [
-          "stat_set:crashed@mine.player:sum:value@target",
-          "stat_set:broke@mine.player:max:value@target",
-          "purge:target",
-          "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
-          "stat_gain:money@mine.player:1",
-          "emit:crash"
-        ],
+        "action": ["crash_gems", "stat_gain:money@mine.player:1", "emit:crash"],
         "spent": "mine.table"
       },
       "card_stats": { "plus_pow": 1, "price": 5 }
@@ -744,14 +760,7 @@
           "min": 1,
           "max": 2
         },
-        "action": [
-          "stat_set:crashed@mine.player:sum:value@target",
-          "stat_set:broke@mine.player:max:value@target",
-          "purge:target",
-          "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
-          "stat_gain:money@mine.player:2",
-          "emit:crash"
-        ],
+        "action": ["crash_gems", "stat_gain:money@mine.player:2", "emit:crash"],
         "spent": "mine.table"
       },
       "card_stats": { "plus_pow": 2, "price": 9 }
@@ -1386,14 +1395,7 @@
             "owner": "mine",
             "count": 1
           },
-          "action": [
-            "stat_set:crashed@mine.player:sum:value@target",
-            "stat_set:broke@mine.player:max:value@target",
-            "purge:target",
-            "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
-            "stat_gain:money@mine.player:0",
-            "emit:crash"
-          ]
+          "action": ["crash_gems", "emit:crash"]
         }
       ],
       "tooltip": "Ongoing: After you red-attack, you may crash a gem in your gem pile. Discard if an opponent skips his action phase.\n\nDEV: the crash after your own attack is built. \"Discard if an opponent skips his action phase\" is not: a phase *going by* announces its own beginning and end, not what somebody declined to do inside it.",
@@ -1850,10 +1852,7 @@
           "max": 2
         },
         "action": [
-          "stat_set:crashed@mine.player:sum:value@target",
-          "stat_set:broke@mine.player:max:value@target",
-          "purge:target",
-          "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
+          "crash_gems",
           "stat_gain:money@mine.player:2",
           "move_to:mine.table",
           "take:bank.wound:mine.discard:1",
@@ -1875,10 +1874,7 @@
             "max": 2
           },
           "action": [
-            "stat_set:crashed@mine.player:sum:value@target",
-            "stat_set:broke@mine.player:max:value@target",
-            "purge:target",
-            "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
+            "crash_gems",
             "stat_gain:money@mine.player:2",
             "take:bank.wound:mine.discard:1",
             "take:bank.wound:mine.discard:1",
@@ -2243,15 +2239,7 @@
           "owner": "anyone",
           "count": 1
         },
-        "action": [
-          "draw_from:mine.bag:mine.hand:1",
-          "stat_set:crashed@mine.player:sum:value@target",
-          "stat_set:broke@mine.player:max:value@target",
-          "purge:target",
-          "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
-          "stat_gain:money@mine.player:0",
-          "emit:crash"
-        ],
+        "action": ["draw_from:mine.bag:mine.hand:1", "crash_gems", "emit:crash"],
         "spent": "mine.table"
       },
       "card_stats": { "plus_draw": 1 }
@@ -2422,14 +2410,7 @@
           "owner": "anyone",
           "count": 2
         },
-        "action": [
-          "stat_set:crashed@mine.player:sum:value@target",
-          "stat_set:broke@mine.player:max:value@target",
-          "purge:target",
-          "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
-          "stat_gain:money@mine.player:0",
-          "emit:crash"
-        ],
+        "action": ["crash_gems", "emit:crash"],
         "spent": "mine.table"
       },
       "tooltip": "Crash exactly two 1-gems. (You don't get +$1.)"
@@ -2520,14 +2501,7 @@
           "owner": "anyone",
           "count": 1
         },
-        "action": [
-          "stat_set:crashed@mine.player:sum:value@target",
-          "stat_set:broke@mine.player:max:value@target",
-          "purge:target",
-          "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
-          "stat_gain:money@mine.player:0",
-          "emit:crash"
-        ],
+        "action": ["crash_gems", "emit:crash"],
         "spent": "mine.table"
       },
       "tooltip": "Choose one: Crash a 1-gem in your gem pile — OR — exchange this with a Crash Gem in any player's discard pile.\n\nDEV: the crash is built. The exchange is not: a discard is a stack, and a stack offers only the card on top of it — so there is no way to point at a Crash Gem lying in one. With one branch left there is no choice to open."
@@ -2835,14 +2809,7 @@
           "owner": "anyone",
           "count": 1
         },
-        "action": [
-          "stat_set:crashed@mine.player:sum:value@target",
-          "stat_set:broke@mine.player:max:value@target",
-          "purge:target",
-          "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
-          "stat_gain:money@mine.player:0",
-          "emit:crash"
-        ],
+        "action": ["crash_gems", "emit:crash"],
         "spent": "mine.table"
       },
       "reactions": [
@@ -2857,14 +2824,7 @@
             "owner": "anyone",
             "count": 1
           },
-          "action": [
-            "stat_set:crashed@mine.player:sum:value@target",
-            "stat_set:broke@mine.player:max:value@target",
-            "purge:target",
-            "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
-            "stat_gain:money@mine.player:0",
-            "emit:crash"
-          ],
+          "action": ["crash_gems", "emit:crash"],
           "spent": "mine.discard"
         },
         {
@@ -2879,14 +2839,7 @@
             "owner": "anyone",
             "count": 1
           },
-          "action": [
-            "stat_set:crashed@mine.player:sum:value@target",
-            "stat_set:broke@mine.player:max:value@target",
-            "purge:target",
-            "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
-            "stat_gain:money@mine.player:0",
-            "emit:crash"
-          ],
+          "action": ["crash_gems", "emit:crash"],
           "spent": "mine.discard"
         }
       ],
@@ -3261,11 +3214,7 @@
           "create:mine.bag:hex_of_murkwood:1",
           "create:mine.bag:bubble_shield:1",
           "create:mine.bag:protective_ward:1",
-          "take:bank.crash_gem:mine.bag:1",
-          "take:bank.gem_1:mine.bag:6",
-          "set_name:mine.player:text@self",
-          "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine.player"
+          "pick_fighter"
         ],
         "spent": "mine.fighter"
       }
@@ -3281,11 +3230,7 @@
           "create:mine.bag:playing_with_fire:1",
           "create:mine.bag:burning_vigor:1",
           "create:mine.bag:unstable_power:1",
-          "take:bank.crash_gem:mine.bag:1",
-          "take:bank.gem_1:mine.bag:6",
-          "set_name:mine.player:text@self",
-          "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine.player"
+          "pick_fighter"
         ],
         "spent": "mine.fighter"
       }
@@ -3301,11 +3246,7 @@
           "create:mine.bag:dragon_form:1",
           "create:mine.bag:rigorous_training:1",
           "create:mine.bag:purge_bad_habits:1",
-          "take:bank.crash_gem:mine.bag:1",
-          "take:bank.gem_1:mine.bag:6",
-          "set_name:mine.player:text@self",
-          "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine.player"
+          "pick_fighter"
         ],
         "spent": "mine.fighter"
       }
@@ -3321,11 +3262,7 @@
           "create:mine.bag:double_take:1",
           "create:mine.bag:bag_of_tricks:1",
           "create:mine.bag:speed_of_the_fox:1",
-          "take:bank.crash_gem:mine.bag:1",
-          "take:bank.gem_1:mine.bag:6",
-          "set_name:mine.player:text@self",
-          "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine.player"
+          "pick_fighter"
         ],
         "spent": "mine.fighter"
       }
@@ -3341,11 +3278,7 @@
           "create:mine.bag:living_on_the_edge:1",
           "create:mine.bag:pandas_bargain:1",
           "create:mine.bag:jackpot:1",
-          "take:bank.crash_gem:mine.bag:1",
-          "take:bank.gem_1:mine.bag:6",
-          "set_name:mine.player:text@self",
-          "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine.player"
+          "pick_fighter"
         ],
         "spent": "mine.fighter"
       }
@@ -3361,11 +3294,7 @@
           "create:mine.bag:reversal:1",
           "create:mine.bag:martial_mastery:1",
           "create:mine.bag:versatile_style:1",
-          "take:bank.crash_gem:mine.bag:1",
-          "take:bank.gem_1:mine.bag:6",
-          "set_name:mine.player:text@self",
-          "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine.player"
+          "pick_fighter"
         ],
         "spent": "mine.fighter"
       }
@@ -3381,11 +3310,7 @@
           "create:mine.bag:stone_wall:1",
           "create:mine.bag:big_rocks:1",
           "create:mine.bag:strength_of_earth:1",
-          "take:bank.crash_gem:mine.bag:1",
-          "take:bank.gem_1:mine.bag:6",
-          "set_name:mine.player:text@self",
-          "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine.player"
+          "pick_fighter"
         ],
         "spent": "mine.fighter"
       }
@@ -3401,11 +3326,7 @@
           "create:mine.bag:pilebunker:1",
           "create:mine.bag:no_more_lies:1",
           "create:mine.bag:troublesome_rhetoric:1",
-          "take:bank.crash_gem:mine.bag:1",
-          "take:bank.gem_1:mine.bag:6",
-          "set_name:mine.player:text@self",
-          "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine.player"
+          "pick_fighter"
         ],
         "spent": "mine.fighter"
       }
@@ -3421,11 +3342,7 @@
           "create:mine.bag:burst_of_speed:1",
           "create:mine.bag:chromatic_orb:1",
           "create:mine.bag:creative_thoughts:1",
-          "take:bank.crash_gem:mine.bag:1",
-          "take:bank.gem_1:mine.bag:6",
-          "set_name:mine.player:text@self",
-          "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine.player"
+          "pick_fighter"
         ],
         "spent": "mine.fighter"
       }
@@ -3441,11 +3358,7 @@
           "create:mine.bag:research_development:1",
           "create:mine.bag:future_sight:1",
           "create:mine.bag:its_time_for_the_past:1",
-          "take:bank.crash_gem:mine.bag:1",
-          "take:bank.gem_1:mine.bag:6",
-          "set_name:mine.player:text@self",
-          "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine.player"
+          "pick_fighter"
         ],
         "spent": "mine.fighter"
       }
@@ -3461,11 +3374,7 @@
           "create:mine.bag:two_truths:1",
           "create:mine.bag:flagstone_tax:1",
           "create:mine.bag:patriot_mirror:1",
-          "take:bank.crash_gem:mine.bag:1",
-          "take:bank.gem_1:mine.bag:6",
-          "set_name:mine.player:text@self",
-          "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine.player"
+          "pick_fighter"
         ],
         "spent": "mine.fighter"
       }
@@ -3481,11 +3390,7 @@
           "create:mine.bag:wartime_tactics:1",
           "create:mine.bag:double_slash:1",
           "create:mine.bag:riposte:1",
-          "take:bank.crash_gem:mine.bag:1",
-          "take:bank.gem_1:mine.bag:6",
-          "set_name:mine.player:text@self",
-          "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine.player"
+          "pick_fighter"
         ],
         "spent": "mine.fighter"
       }
@@ -3501,11 +3406,7 @@
           "create:mine.bag:crash_bomb:1",
           "create:mine.bag:maximum_anarchy:1",
           "create:mine.bag:crash_potato:1",
-          "take:bank.crash_gem:mine.bag:1",
-          "take:bank.gem_1:mine.bag:6",
-          "set_name:mine.player:text@self",
-          "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine.player"
+          "pick_fighter"
         ],
         "spent": "mine.fighter"
       }
@@ -3521,11 +3422,7 @@
           "create:mine.bag:healing_touch:1",
           "create:mine.bag:radiant_healing:1",
           "create:mine.bag:saving_grace:1",
-          "take:bank.crash_gem:mine.bag:1",
-          "take:bank.gem_1:mine.bag:6",
-          "set_name:mine.player:text@self",
-          "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine.player"
+          "pick_fighter"
         ],
         "spent": "mine.fighter"
       }
@@ -3541,11 +3438,7 @@
           "create:mine.bag:shadow_plague:1",
           "create:mine.bag:burnbarrow:1",
           "create:mine.bag:shadowswarm:1",
-          "take:bank.crash_gem:mine.bag:1",
-          "take:bank.gem_1:mine.bag:6",
-          "set_name:mine.player:text@self",
-          "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine.player"
+          "pick_fighter"
         ],
         "spent": "mine.fighter"
       }
@@ -3561,11 +3454,7 @@
           "create:mine.bag:acrobatics:1",
           "create:mine.bag:surgical_strike:1",
           "create:mine.bag:stunlock:1",
-          "take:bank.crash_gem:mine.bag:1",
-          "take:bank.gem_1:mine.bag:6",
-          "set_name:mine.player:text@self",
-          "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine.player"
+          "pick_fighter"
         ],
         "spent": "mine.fighter"
       }
@@ -3581,11 +3470,7 @@
           "create:mine.bag:giant_growth:1",
           "create:mine.bag:beast_unleashed:1",
           "create:mine.bag:more_shiny:1",
-          "take:bank.crash_gem:mine.bag:1",
-          "take:bank.gem_1:mine.bag:6",
-          "set_name:mine.player:text@self",
-          "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine.player"
+          "pick_fighter"
         ],
         "spent": "mine.fighter"
       }
@@ -3601,11 +3486,7 @@
           "create:mine.bag:pleasure_and_pain:1",
           "create:mine.bag:mistress_command:1",
           "create:mine.bag:always_in_control:1",
-          "take:bank.crash_gem:mine.bag:1",
-          "take:bank.gem_1:mine.bag:6",
-          "set_name:mine.player:text@self",
-          "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine.player"
+          "pick_fighter"
         ],
         "spent": "mine.fighter"
       }
@@ -3621,11 +3502,7 @@
           "create:mine.bag:rocket_punch:1",
           "create:mine.bag:upgrade:1",
           "create:mine.bag:cog_engine:1",
-          "take:bank.crash_gem:mine.bag:1",
-          "take:bank.gem_1:mine.bag:6",
-          "set_name:mine.player:text@self",
-          "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine.player"
+          "pick_fighter"
         ],
         "spent": "mine.fighter"
       }
@@ -3641,11 +3518,7 @@
           "create:mine.bag:deathstrike_dragon:1",
           "create:mine.bag:bonecracker:1",
           "create:mine.bag:into_oblivion:1",
-          "take:bank.crash_gem:mine.bag:1",
-          "take:bank.gem_1:mine.bag:6",
-          "set_name:mine.player:text@self",
-          "stat_gain:picked@mine.player:1",
-          "set_owner:self:mine.player"
+          "pick_fighter"
         ],
         "spent": "mine.fighter"
       }
