@@ -2228,7 +2228,7 @@
           "needs": ["ult_free@mine.player <= 0"],
           "cost": { "mana@mine.player": 6 },
           "action": [
-            "activate_zone:rules:by_column:croh_redraw",
+            "copy:everywhere.croh_redraw:activate:sum:doom@mine.player",
             "activate_zone:rules:by_column:croh_doom"
           ]
         },
@@ -2238,7 +2238,7 @@
           "in": "wizard",
           "cost": { "ult_free@mine.player": 1 },
           "action": [
-            "activate_zone:rules:by_column:croh_redraw",
+            "copy:everywhere.croh_redraw:activate:sum:doom@mine.player",
             "activate_zone:rules:by_column:croh_doom"
           ]
         }
@@ -4052,60 +4052,12 @@
       ]
     },
     {
-      "key": "r_croh_redraw_1",
-      "text": "DOOM Token 1",
-      "tags": ["immutable"],
-      "tooltip": "With 1 or more *DOOM Tokens*, Croh takes a card from his discard or draws.",
+      "key": "r_croh_redraw",
+      "text": "DOOM Token",
+      "tags": ["immutable", "croh_redraw"],
+      "tooltip": "For each *DOOM Token*, Croh takes a card from his discard or draws.",
       "asset": "auto",
-      "abilities": [
-        {
-          "key": "croh_redraw",
-          "needs": ["doom@mine.player >= 1"],
-          "action": ["options:croh_take,croh_draw:optional"]
-        }
-      ]
-    },
-    {
-      "key": "r_croh_redraw_2",
-      "text": "DOOM Token 2",
-      "tags": ["immutable"],
-      "tooltip": "With 2 or more *DOOM Tokens*, Croh takes a card from his discard or draws.",
-      "asset": "auto",
-      "abilities": [
-        {
-          "key": "croh_redraw",
-          "needs": ["doom@mine.player >= 2"],
-          "action": ["options:croh_take,croh_draw:optional"]
-        }
-      ]
-    },
-    {
-      "key": "r_croh_redraw_3",
-      "text": "DOOM Token 3",
-      "tags": ["immutable"],
-      "tooltip": "With 3 or more *DOOM Tokens*, Croh takes a card from his discard or draws.",
-      "asset": "auto",
-      "abilities": [
-        {
-          "key": "croh_redraw",
-          "needs": ["doom@mine.player >= 3"],
-          "action": ["options:croh_take,croh_draw:optional"]
-        }
-      ]
-    },
-    {
-      "key": "r_croh_redraw_4",
-      "text": "DOOM Token 4",
-      "tags": ["immutable"],
-      "tooltip": "With 4 or more *DOOM Tokens*, Croh takes a card from his discard or draws.",
-      "asset": "auto",
-      "abilities": [
-        {
-          "key": "croh_redraw",
-          "needs": ["doom@mine.player >= 4"],
-          "action": ["options:croh_take,croh_draw:optional"]
-        }
-      ]
+      "abilities": [{ "key": "croh_redraw", "action": ["options:croh_take,croh_draw:optional"] }]
     },
     {
       "key": "r_doom",
@@ -4321,10 +4273,7 @@
       { "card": "r_breach", "zone": "rules" },
       { "card": "r_gain", "zone": "rules" },
       { "card": "r_starshot", "zone": "rules" },
-      { "card": "r_croh_redraw_1", "zone": "rules" },
-      { "card": "r_croh_redraw_2", "zone": "rules" },
-      { "card": "r_croh_redraw_3", "zone": "rules" },
-      { "card": "r_croh_redraw_4", "zone": "rules" },
+      { "card": "r_croh_redraw", "zone": "rules" },
       { "card": "r_doom", "zone": "rules" },
       { "card": "r_curriculum", "zone": "rules" },
       { "card": "r_round_over", "zone": "rules" },

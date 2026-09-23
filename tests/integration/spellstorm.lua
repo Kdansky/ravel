@@ -2494,9 +2494,8 @@ end
 -- Croh's DOOOOOOOOOM!: "For each DOOM Token you have, you may redraw a card of
 -- your choice from your discard to your hand OR `[DRAW]`."
 --
--- A number of questions worked out from a stat, which has no other spelling: an
--- action list is written once and a stat is read as it runs. One rules card per
--- token he might hold, each gated on holding that many.
+-- A number of questions worked out from a stat: the Ultimate copies one rules
+-- card's ability as many times as doom reads.
 function M.test_spellstorm_croh_asks_once_per_doom_token(check)
 	opening(3, "croh", "eve")
 	become("seat_one")
@@ -2509,7 +2508,7 @@ function M.test_spellstorm_croh_asks_once_per_doom_token(check)
 	end
 	local deck = #zone_of("deck", "seat_one").cards
 
-	actions.execute("activate_zone:rules:by_column:croh_redraw", {})
+	actions.execute("copy:everywhere.croh_redraw:activate:sum:doom@mine.player", {})
 	local asked = 0
 	for _ = 1, 6 do
 		if phase.current().key ~= "options" then break end

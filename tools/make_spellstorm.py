@@ -914,7 +914,7 @@ WIZARDS = [
            "DOOOOOOOOOM!",
            "For each DOOM Token you have, take a card of your choice from your discard"
            " or draw one. If you have none, gain a DOOM Token.",
-           ["activate_zone:rules:by_column:croh_redraw",
+           ["copy:everywhere.croh_redraw:activate:sum:doom@mine.player",
             "activate_zone:rules:by_column:croh_doom"],
            keywords=["accursed"],
            blurb="An undead Lich back from a thousand-year slumber. Enormous health, but he cannot heal -- healing becomes a CURSE for his opponent instead.",
@@ -1655,15 +1655,13 @@ def rules_templates():
         "May deals 1 more damage if the card she discarded was Tier II.",
         [ability("starshot", [DMG(1)], when=["sum:tier_req@options == 2"])]))
 
-    # One card per DOOM Token he might hold, so the Ultimate asks exactly as many
-    # times as he has. A number of questions worked out from a stat has no other
-    # spelling: an action list is written once and a stat is read at run time.
-    for n in range(1, 5):
-        out.append(rules_card(
-            "r_croh_redraw_%d" % n, "DOOM Token %d" % n,
-            "With %d or more DOOM Tokens, Croh takes a card from his discard or draws." % n,
-            [ability("croh_redraw", ["options:croh_take,croh_draw:optional"],
-                     when=["doom@mine.player >= %d" % n])]))
+    # Asked once per DOOM Token: the Ultimate copies this ability as many times as
+    # the stat reads, so the rule holds whatever doom's ceiling is.
+    out.append(rules_card(
+        "r_croh_redraw", "DOOM Token",
+        "For each DOOM Token, Croh takes a card from his discard or draws.",
+        [ability("croh_redraw", ["options:croh_take,croh_draw:optional"])],
+        tags=["croh_redraw"]))
 
     # Croh gains DOOM Tokens only from failure states -- having none, or an
     # empty CURSE pile -- which is the trap his whole design is built around.

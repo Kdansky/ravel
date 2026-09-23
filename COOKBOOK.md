@@ -1032,6 +1032,25 @@ The box answers, rather than the card on top of it becoming clickable. No `targe
 
 `copy:<scope>:activate` runs its ability list instead.
 
+### For each DOOM Token you have, take a card from your discard or draw one.
+
+```json
+"action": ["copy:everywhere.croh_redraw:activate:sum:doom@mine.player"]
+```
+
+with the rule it repeats on an offscreen card tagged `croh_redraw`:
+
+```json
+{ "key": "r_croh_redraw", "tags": ["immutable", "croh_redraw"],
+  "abilities": [{ "key": "croh_redraw", "action": ["options:croh_take,croh_draw:optional"] }] }
+```
+
+`copy`'s last argument is an amount, so it reads a stat as the line runs: three tokens, three
+runs; none, none. Don't write one card per point gated at `>= 1`, `>= 2` …: that is right only
+while the stat's `max` stays where it was when the cards were counted. A run that opens a question
+is fine — each queues behind the one already open, and an answer's own question queues behind
+those.
+
 ### Exhaust every enemy unit.
 
 ```json

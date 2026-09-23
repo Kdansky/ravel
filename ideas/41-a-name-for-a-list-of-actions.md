@@ -25,7 +25,5 @@ was already the caller, and a body change being the verb's change is what makes
   *before* anything runs and decides whether it is a move at all — a verb's would
   be asked halfway through a list. Wants its own design; the `by_column`
   gating itself is in `todo.md`.
-- **Once per point of something.** `r_croh_redraw_1..4` is *"once per point of
-  Doom"* as four cards. A repeat by an amount is its own word.
 - **The 18 phase hooks** are a moment rather than a call, and stay out of this
   track.
