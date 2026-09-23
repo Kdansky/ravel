@@ -899,6 +899,25 @@ local CASES = {
 	{ "a compute still spelled \"from\"", '"from" is now "value"',
 		function(g) g.compute_list = { "spare" }
 			g.compute_defs = { spare = { key = "spare", from = "hp - 1" } } end },
+	-- a verb with a body
+	{ "a body counting from param0", "arguments count from param1",
+		function(g) g.verb_defs.burn = { key = "burn", action = { "stat_damage:hp@param0:1" } }; g.verb_list = { "burn" } end },
+	{ "a body skipping an argument", "writes param2 but never param1",
+		function(g) g.verb_defs.burn = { key = "burn", action = { "stat_damage:hp@param2:1" } }; g.verb_list = { "burn" } end },
+	{ "a verb both renaming and running a list", 'says both "does" and "action"',
+		function(g) g.verb_defs.burn = { key = "burn", does = "stat_damage", action = { "end_phase" } }
+			g.verb_list = { "burn" } end },
+	{ "a body verb called with too few arguments", "'burn' takes 2 arguments and is given 1",
+		function(g) g.verb_defs.burn = { key = "burn", action = { "stat_damage:hp@param1:param2" } }
+			g.verb_list = { "burn" }
+			g.card_defs.c_flee.on_play = { "burn:self" } end },
+	{ "a body verb that performs itself", "'spin' performs itself",
+		function(g) g.verb_defs.spin = { key = "spin", action = { "spin" } }; g.verb_list = { "spin" }
+			g.card_defs.c_flee.on_play = { "spin" } end },
+	{ "a body checked as it expands at the call", "(in 'burn')",
+		function(g) g.verb_defs.burn = { key = "burn", action = { "stat_damage:param1@self:1" } }
+			g.verb_list = { "burn" }
+			g.card_defs.c_flee.on_play = { "burn:gold" } end },
 }
 
 -- The verb check runs last for a reason: what a game emits is only known once

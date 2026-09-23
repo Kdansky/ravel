@@ -406,6 +406,21 @@ and a seat card the other way about. Exactly one lands, and neither line needs a
 The same shape says *"heal an ally or your Nexus 3"*, and anything else whose target may be
 either kind. What it will not do is a number that differs between them; that is two cards.
 
+### Burn: damage that armour does not stop, and fireproofing does.
+
+```json
+"verbs": [{ "key": "burn", "action": ["stat_damage:hp@param1:param2"],
+            "tooltip": "Burn <who> for <how much>." }],
+"tags": { "fireproof": { "adjusts": [
+  { "key": "fireproof", "verb": "burn", "stat": "hp", "covers": "self", "by": -1 }] } },
+"play": { "target": { "type": "card", "tags": ["unit"], "count": 1 }, "action": ["burn:target:3"] }
+```
+
+A verb with an `action` is the game's own action, and every engine stat change in it is the
+verb's: fireproofing watches `burn` and adjusts the `stat_damage` inside it. A declared verb
+written in the body keeps its own name — `["damage:hp@param1:param2"]` is burn that armour
+*does* stop.
+
 ---
 
 ## Counters on a card
@@ -1043,6 +1058,22 @@ something says so itself:
 "computed_tags": { "spent": { "needs": ["exhausted@self"] } },
 "tags": { "spent": { "buffs": { "atk": -1 } } }
 ```
+
+### Sideline it. (Several steps with a name of their own, written once.)
+
+```json
+"verbs": [{ "key": "sideline", "tooltip": "Sideline <a unit>: spent, disabled, off its slot.",
+            "action": ["exhaust:param1", "stat_set:disabled@param1:1", "stat_set:slot@param1:0"] }],
+"play": { "target": { "type": "card", "tags": ["unit"], "count": 1 }, "action": ["sideline:target"] }
+```
+
+`param1`, `param2` … are the call's arguments in order, counted from 1; the last takes the rest
+of the string, colons and all. The body runs as the caller, so `@self` is the card that said
+`sideline`. The call writes arguments by position, so the tooltip says what each one is.
+
+Also: a verb announces itself, so a reaction may answer `"to": "sideline"`. A routine that runs
+only when a `needs` holds is still a rules zone of invisible cards, called with
+`activate_zone:rules:by_column:<key>` — a body has no if.
 
 ---
 

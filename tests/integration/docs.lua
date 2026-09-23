@@ -328,6 +328,8 @@ local RUNS = { action = true, actions = true, pass = true, fail = true, ["then"]
 -- passed over quietly, so a third cannot arrive without somebody deciding it
 -- should: their verbs are held, their field names are held by nothing.
 local NO_TABLE = { abilities = true, reactions = true }
+-- The verbs the fragment being read declares itself, which its actions may perform like any engine verb.
+local declared = {}
 
 local function walk(where, def, fields, found)
 	if type(def) ~= "table" then return end
@@ -341,7 +343,7 @@ local function walk(where, def, fields, found)
 		if RUNS[k] and type(v) == "table" then
 			for _, str in ipairs(v) do
 				local op = type(str) == "string" and str:match("^[^:]+")
-				if op and not actions.ops()[op] then
+				if op and not actions.ops()[op] and not declared[op] then
 					found[#found + 1] = where .. "." .. k .. ": '" .. op .. "' is no action"
 				end
 			end
@@ -486,6 +488,10 @@ function M.test_docs_every_fragment_uses_words_the_engine_reads(check)
 			abridged = abridged + 1
 		else
 			for _, frag in ipairs(objs) do
+				declared = {}
+				for _, v in ipairs(type(frag.verbs) == "table" and frag.verbs or {}) do
+					if type(v) == "table" and v.key then declared[v.key] = true end
+				end
 				local best, name
 				for _, r in ipairs(readings(frag)) do
 					local found = { checked = 0 }

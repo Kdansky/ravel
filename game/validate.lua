@@ -252,7 +252,7 @@ local RETIRED       = { activate = true, ends_after = true, zone_empty = true,
 	stat = true, less_than = true, less_than_stat = true, less_than_max = true,
 	at_least = true, equals = true, all_of = true }
 
-local VERB_FIELDS   = { key = true, does = true, tooltip = true, effect = true }
+local VERB_FIELDS   = { key = true, does = true, action = true, tooltip = true, effect = true }
 local ADJUST_FIELDS = { key = true, verb = true, stat = true, covers = true, needs = true, by = true,
 	instead = true }
 -- Stats the engine writes on a card for itself. A game declaring one gets it
@@ -1359,6 +1359,7 @@ function M.check(G)
 	-- after a colon, and a colon is also what separates an action's arguments.
 	local ORDERING = { lowest = true, highest = true }
 
+	local expanding = {}
 	local check_action
 	function check_action(where, str)
 		local p = {}
@@ -1378,6 +1379,21 @@ function M.check(G)
 		if vd then
 			used_verbs[op] = true
 			op = vd.does
+		end
+		-- A verb with a body is checked as what it expands to at this call, since `param1` on its own is no zone and no
+		-- stat. `expanding` is the verbs whose bodies are being walked right now, so one that reaches itself is a cycle.
+		if vd and type(vd.action) == "table" then
+			local lines, want = actions.expand(vd, p)
+			if not lines then
+				warn("%s: '%s' takes %d arguments and is given %d", where, p[1], want, #p - 1)
+			elseif expanding[p[1]] then
+				warn("%s: '%s' performs itself, so it never finishes", where, p[1])
+			else
+				expanding[p[1]] = true
+				for _, line in ipairs(lines) do check_action(where .. " (in '" .. p[1] .. "')", line) end
+				expanding[p[1]] = nil
+			end
+			return
 		end
 		local spec = actions.spec(op)
 		if not spec then
@@ -3562,6 +3578,20 @@ function M.check(G)
 	-- that replaces the hit. Asked before the loop above had read them, a verb
 	-- used once and only there read as a verb nothing used.
 	local ADJUSTABLE = { stat_damage = true, stat_gain = true, target = true }
+	-- A body's arguments count from param1, and one it skips is an argument every call has to write for nothing.
+	local function gap(body)
+		local seen, n = {}, 0
+		for _, line in ipairs(type(body) == "table" and body or {}) do
+			for w in tostring(line):gmatch("%f[%w_]param(%d+)%f[^%w_]") do
+				local d = tonumber(w)
+				if d == 0 then return "writes param0, but arguments count from param1" end
+				seen[d], n = true, math.max(n, d)
+			end
+		end
+		for i = 1, n do
+			if not seen[i] then return ("writes param%d but never param%d"):format(n, i) end
+		end
+	end
 	for _, key in ipairs(G.verb_list) do
 		local vd    = G.verb_defs[key]
 		local where = "verb '" .. tostring(key) .. "'"
@@ -3574,9 +3604,13 @@ function M.check(G)
 		if actions.spec(key) then
 			warn("%s: the engine already has an action by that name — a game's word for a moment has "
 				.. "to be its own, or which one an action meant would be a lookup", where)
-		elseif vd.does == nil then
-			warn('%s: needs a "does" saying which action carries it, like "stat_damage"', where)
-		elseif not ADJUSTABLE[vd.does] then
+		elseif vd.does == nil and vd.action == nil then
+			warn('%s: needs a "does" saying which action carries it, like "stat_damage", or an "action" list it stands for', where)
+		elseif vd.does ~= nil and vd.action ~= nil then
+			warn('%s: says both "does" and "action" — it renames one engine verb or it runs a list, never both', where)
+		elseif vd.action ~= nil and gap(vd.action) then
+			warn("%s: %s", where, gap(vd.action))
+		elseif vd.action == nil and not ADJUSTABLE[vd.does] then
 			warn("%s: stands for '%s', which is not a verb an aura may watch%s — a named moment is one "
 				.. "something can answer, and only %s can be adjusted so far", where, tostring(vd.does),
 				suggest(vd.does, ADJUSTABLE), "stat_damage, stat_gain and target")

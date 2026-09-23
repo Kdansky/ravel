@@ -246,6 +246,8 @@ end
 
 local function change_stat(e, key, delta, ctx, verb)
 	if not e or not e.stats then return end
+	-- An engine verb inside a declared verb's body changes the stat as that verb. A declared one keeps its own name.
+	if not (verb and declaration.G.verb_defs[verb]) then verb = ctx and ctx.within end
 	-- A verb's look belongs to the verb, so every card performing it gets it. Played before an aura has its say: a
 	-- blow a shield soaks still arrived.
 	local vd = verb and declaration.G.verb_defs[verb]
@@ -1760,12 +1762,62 @@ end
 -- It exists because the announcement belongs to the *action*. `emit` can hold
 -- what somebody wrote after it; a verb that announces itself has to hold itself,
 -- and a second spelling is the only place to put "and now it happens".
+
+-- A body's `param1`, `param2` … are the call's arguments in order, matched as whole words so `param1` is never the front
+-- of `param10`. The last takes the rest of the string, so an argument may carry colons of its own. Returns the lines
+-- ready to run, or nil and how many arguments the body wants.
+local PARAM = "%f[%w_]param(%d+)%f[^%w_]"
+
+function M.expand(vd, p)
+	local n = 0
+	for _, line in ipairs(vd.action) do
+		for d in line:gmatch(PARAM) do n = math.max(n, tonumber(d)) end
+	end
+	if #p - 1 < n then return nil, n end
+	local args = {}
+	for i = 1, n - 1 do args[i] = p[i + 1] end
+	if n > 0 then args[n] = table.concat(p, ":", n + 1) end
+	local out = {}
+	for i, line in ipairs(vd.action) do out[i] = (line:gsub(PARAM, function(d) return args[tonumber(d)] end)) end
+	return out
+end
+
+-- How deep one body may call another's before the engine stops. The validator refuses a verb that performs itself
+-- where it can see it; this is for the one it cannot, and a file that does it is a bug rather than a game.
+local BODY_LIMIT = 100
+local body_depth = 0
+
+-- **A declared verb with a body is the game's own action.** It runs as the caller, so `@self` is the card performing
+-- it, and every stat change its engine verbs make is the verb's change — `within` is what lets an aura watching `burn`
+-- adjust the stat_damage burn is made of. `verb` was taken: it is the kind of aim a `verb:` condition asks about.
+local function perform(p, ctx)
+	local vd = declaration.G.verb_defs[p[1]]
+	if not (vd and vd.action) then
+		local h = HANDLERS[vd and vd.does or p[1]]
+		if h then h(p, ctx) end
+		return
+	end
+	local list, want = M.expand(vd, p)
+	if not list then
+		content_error(("%s: takes %d arguments and was given %d"):format(p[1], want, #p - 1))
+		return
+	end
+	if body_depth >= BODY_LIMIT then
+		content_error(p[1] .. ": performs itself, over and over")
+		return
+	end
+	local c = {}
+	for k, v in pairs(ctx or {}) do c[k] = v end
+	c.within = p[1]
+	body_depth = body_depth + 1
+	M.run(list, c)
+	body_depth = body_depth - 1
+end
+
 HANDLERS["land"] = function(p, ctx)
 	local rest = {}
 	for i = 2, #p do rest[i - 1] = p[i] end
-	local vd = declaration.G.verb_defs[rest[1]]
-	local h  = HANDLERS[vd and vd.does or rest[1]]
-	if h then h(rest, ctx) end
+	perform(rest, ctx)
 end
 
 -- **A game's verb is a moment, and naming it is the whole of saying it out
@@ -1793,8 +1845,7 @@ function M.execute(str, ctx)
 	-- own name in p[1] — which is how the handler can tell an aura that this
 	-- was poison and not a sword, when both are a stat_damage to hp.
 	local vd = declaration.G.verb_defs[p[1]]
-	local h  = HANDLERS[vd and vd.does or p[1]]
-	if not h then
+	if not (vd and vd.action or HANDLERS[vd and vd.does or p[1]]) then
 		content_error("Unknown action: " .. str)
 		return
 	end
@@ -1802,7 +1853,7 @@ function M.execute(str, ctx)
 	if vd and M.on_emit and M.on_emit(p[1], subject, { "land:" .. str }, ctx and ctx.card_id, ctx) then
 		return
 	end
-	h(p, ctx)
+	perform(p, ctx)
 end
 
 -- **A list does not run in the background of its own question.** `show:` and
@@ -1833,7 +1884,7 @@ local function park(list, from, ctx)
 	local a = last_ask.after
 	a[#a + 1] = { action = rest, seat = zones.active_seat(),
 		card = ctx and ctx.card_id or nil, targets = ctx and ctx.targets or nil,
-		event = ctx and ctx.event or nil, let = ctx and ctx.let or nil }
+		event = ctx and ctx.event or nil, let = ctx and ctx.let or nil, within = ctx and ctx.within or nil }
 end
 
 function M.run(list, ctx)

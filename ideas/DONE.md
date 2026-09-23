@@ -1449,6 +1449,27 @@ collapse — a different change.
 *round from the next seat*, which is right for a follow and wrong for a group
 meant to open with the seat a previous phase named. No game is blocked on it.
 
+# The game's own action — a verb with a body · shipped
+
+A declared verb may carry `action` in place of `does`: a list of actions, with
+`param1`, `param2` … filled from the call by position (`actions.expand`). It runs
+as the caller, and every engine stat change in it goes through `change_stat` as
+the verb — `ctx.within` — so an aura watching `burn` adjusts the `stat_damage`
+burn is made of. A declared verb in the body keeps its own name.
+
+- **Why in `verbs`:** a new section was the alternative, and [38](38-repeated-shapes.md)
+  had refused one. The verb already announced itself and already ran as the
+  caller; a body only had to be allowed.
+- **Why positional:** the call is positional either way, as engine verbs are.
+  Names would have added a `takes` list to keep in step with every call site.
+- **Trap:** `ctx.verb` was already taken — it is the kind of aim a `verb:`
+  condition reads — hence `within`. And a parked tail (`show:`/`options:` in a
+  body) carries `within` through `flow`, or the changes after the question stop
+  being the verb's.
+- **The validator** checks a body as it expands at each call, since `param1` on
+  its own is no zone and no stat; it refuses `param0`, a skipped number, too few
+  arguments and a verb that performs itself.
+
 # Bugs found on the way, and what they bought
 
 Recorded because each was invisible to a green test suite, and the fix in each
