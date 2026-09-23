@@ -102,37 +102,46 @@ card, in its own tooltip.
   **Community Service** and **Lawful Search** look at a hand but not at the
   choice of a discard pile instead.
 
-## One hero a side is the beginner's game; three is the real one
+## Three heroes a side: what the 3-hero rules still want
 
-The file deals **one spec per seat**. `pick_hero` is a `player_input` ending on
-`picked@mine.player >= 1`, and each of the eighteen `pick_*` cards does the
-whole deal in its own `play`: ten starter cards into `mine.deck`, twelve spec
-cards into `mine.codex` at tech 2, the hero into `mine.command`. The rulebook's
-own game is three specs of one colour, so three heroes, and the eighteen picks
-become six colours [Assumption: this is mono-colour — the box also allows three
-specs mixed across colours, which is a later variant and a different pick].
+The pick is six colours, each dealing its starter ten, three specs' codex and
+three heroes (mono-colour; the rulebook's mixed-colour team is a later variant).
+`hero_wait` and `ripe` are each hero's own, levels are gated on
+`not_self@mine.command`, and summoning is capped by the `hero_limit` compute —
+1, 2 with tech II, 3 with tech III. The one-hero beginner's game is gone.
 
-Three things in the file assume the one:
+**The engine question answered no, and did not need to be asked.** An `each`
+cannot read the card it stands on: `stat_set` works its amount out once, before
+the sweep (`actions.lua`, `HANDLERS["stat_set"]`). `ripe` moved into an `upkeep`
+ability on the `hero` tag instead, which the upkeep walk already runs on every
+hero in play, as itself.
 
-- **The starter deck is per colour, not per spec.** Zane, Drakk and Jaina share
-  the red ten, so three picks as written would create three copies of it. The
-  ten have to leave the spec card for whatever names the colour.
-- **`hero_wait` is on the player.** A hero dying sets
-  `stat_set:hero_wait@owner_of.self:2` and `main` ticks
-  `stat_damage:hero_wait@mine.player:1`, which every hero's summon reads as
-  `hero_wait@mine.player == 0`. With one hero the player *is* the hero; with
-  three, one death locks the other two out. It moves onto the hero card, and
-  the tick becomes an `each` over `mine.command`.
-- **`ripe` is read off the whole side.**
-  `stat_set:ripe@each.mine.hero:max:level@mine.hero` gives every hero the
-  highest level any of them has. Per-hero is what it meant, and whether an
-  `each` can read the card it is standing on — `level@self` inside the sweep —
-  is the one engine question here. [Assumption: it cannot today; every other
-  `each` in this file writes a constant or a side-wide measure.]
+Left, from the rulebook's *Codex 3-Hero Game* pages (pp. 10–11):
 
-The codex itself needs nothing: it is a `supply` with shelves, and thirty-six
-cards on three specs' worth of shelves is the same zone. Tech'ing two a turn is
-already `teched`.
+- **Tech II declares a spec.** *"When you start building your tech II
+  building, declare which spec it's going to be. You have a mini-card for each
+  spec, and you'll place the mini-card of the spec you want to build on your
+  base. Your tech II (and then later your tech III) buildings are tied to that
+  spec and they can only produce units, upgrades, and buildings that match that
+  spec. Once you make this choice, it's locked in for the rest of the game."*
+  Today `t2_ok` and `t3_ok` read only whether the building stands, so all three
+  specs' tech II and III are buildable. The largest gap left, and a balance
+  one. [Assumption: a per-spec tech II building (`tech_2_anarchy`, …) chosen at
+  *raise*, with `t2_ok` an `any_of` over one computed tag per spec — 18 tags,
+  no new word; *rebuild* must raise the same spec again.]
+- **Tech lab** — *"When you build the tech lab, you get to unlock a spec … Now
+  you can build stuff from EITHER of those specs."* **Heroes' hall** — *"simply
+  allows you to have one more hero in play than usual."* Both add-ons; neither
+  card is in the file. The hall is `+ count:hall@mine.addon` on `hero_limit`.
+- **A hero's death levels one opposing hero twice.** *"The active player
+  chooses which hero if there are multiple opposing heroes, and they can only
+  choose a hero that actually can level up at least once."* Modelled as two
+  `xp` on the opposing seat, which may be split across heroes — a stated
+  simplification.
+- **"This card is in play"** has no spelling of its own: a hero's 109 level
+  and ability gates read `not_self@mine.command`, which is true because a hero
+  is only ever in command or in play. Belongs with
+  [17](17-conditions-as-expressions.md)'s readability row (README 70).
 
 ## Six ways into the codex, and five of them are one missing word
 

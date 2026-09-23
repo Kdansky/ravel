@@ -102,16 +102,17 @@ local function summon(def_key, zone_key)
 end
 
 function M.test_codex_setup(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 
 	check("south holds its ten starting cards", count_in("hand") + count_in("deck") == 10,
 		tostring(count_in("hand") + count_in("deck")))
 	check("and five of them are in hand", count_in("hand") == 5, tostring(count_in("hand")))
-	check("the codex is twelve kinds", count_in("codex") == 12, tostring(count_in("codex")))
-	check("two copies of each", stock_in("codex") == 24, tostring(stock_in("codex")))
+	check("the codex is three specs of twelve kinds", count_in("codex") == 36, tostring(count_in("codex")))
+	check("two copies of each", stock_in("codex") == 72, tostring(stock_in("codex")))
 	check("the base stands at twenty", in_zone("base").stats.integrity == 20,
 		tostring(in_zone("base").stats.integrity))
-	check("the hero waits in the command zone", in_zone("command", "zane") ~= nil)
+	check("all three heroes wait in the command zone", in_zone("command", "zane") and in_zone("command", "drakk")
+		and in_zone("command", "jaina") and count_in("command") == 3)
 	check("south got four gold from four workers", seat("south").stats.gold == 4,
 		tostring(seat("south").stats.gold))
 	check("the turn opened in the main phase", phase.current().key == "main", phase.current().key)
@@ -120,7 +121,7 @@ end
 -- A worker is a card turned face down, and it is the one cost paid in cards
 -- rather than numbers that the game asks for every single turn.
 function M.test_codex_worker(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local button = in_zone("controls", "hire_worker")
 	local card   = entity.get(zones.find("hand").cards[1])
 
@@ -135,7 +136,7 @@ end
 -- hers back, and the dead are swept to their owners' discard piles by the rules
 -- zone the action list ends on.
 function M.test_codex_combat(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local mine  = summon("mad_man", "army")                 -- 1/1
 	local yours = post("tiger_cub", "enemy", 1)  -- 2/2, and 1 armor as leader
 	
@@ -156,7 +157,7 @@ end
 -- ground unit may not reach a flier, so a flying squad leader is one it walks
 -- past rather than one it is stuck on.
 function M.test_codex_patrol_rules(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local ground = summon("mad_man", "army")
 	local flier  = post("shoddy_glider", "enemy", 1)
 
@@ -177,7 +178,7 @@ end
 -- nothing to aim at in the leader post, so `aims:strike_lead` is zero and it is
 -- free to go round without a compute anywhere saying why.
 function M.test_codex_unattackable_by_tech_0(check)
-	start("pick_calamandra", "pick_argagarg")
+	start("pick_green", "pick_green")
 	local cub  = summon("tiger_cub", "mine.army")          -- tech 0
 	local bear = summon("barkcoat_bear", "mine.army")      -- tech 2
 	local snake = post("tiny_basilisk", "enemy", 1)
@@ -207,7 +208,7 @@ end
 -- nothing in the engine learned a word: who may be walked past has always been a
 -- count of reasons, and "their patroller is tech 0 and I ignore those" is one more.
 function M.test_codex_unstoppable_by_tech_0(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local ground = summon("mad_man", "army")
 	local tiger  = summon("predator_tiger", "army")
 	local lead   = post("nautical_dog", "enemy", 1)   -- tech 0
@@ -224,7 +225,7 @@ end
 -- The other four posts are the same rule said again, and they are a *count*
 -- rather than a yes/no: two tech 0 patrollers are two walked past.
 function M.test_codex_unstoppable_counts_the_other_posts(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local ground = summon("mad_man", "army")
 	local tiger  = summon("predator_tiger", "army")
 	post("nautical_dog", "enemy", 3)
@@ -241,7 +242,7 @@ end
 -- run, and "origin" puts each of them back where it stood — which for a
 -- patroller is its own slot and not the army.
 function M.test_codex_combat_happens_in_a_zone(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local mine  = summon("tiger_cub", "army")               -- 2/2
 	local yours = post("mad_man", "enemy", 3)   -- 1/1, and the scavenger post lends nothing
 
@@ -258,7 +259,7 @@ end
 -- A patroller that survives keeps its post. Under the old action list the
 -- attacker was posted to the army whatever it had been doing.
 function M.test_codex_a_patroller_keeps_its_slot(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local mine  = summon("mad_man", "army")                -- 1/1
 	local yours = post("bombaster", "enemy", 3) -- survives a 1
 	yours.stats.slot = 3
@@ -272,7 +273,7 @@ end
 -- Overpower: what the blow had left over goes past the patroller to the base.
 -- It needs a step, because there is nothing left over until the blow has landed.
 function M.test_codex_overpower(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local ram   = summon("crashbarrow", "army")           -- 6/2, overpower
 	local guard = post("mad_man", "enemy", 1)  -- 1/1
 	guard.stats.slot = 1
@@ -286,7 +287,7 @@ end
 
 -- Overpower is only for patrollers, so a unit standing in the army soaks it all.
 function M.test_codex_overpower_stops_at_the_army(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local ram  = summon("crashbarrow", "army")
 	local prey = summon("mad_man", "enemy.army")
 	local base = in_zone("enemy.base")
@@ -300,7 +301,7 @@ end
 -- reading the card across it — a sentence an action list on the attacker had
 -- nowhere to put.
 function M.test_codex_deathtouch(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local snake = summon("tiny_basilisk", "army")        -- 1/2, deathtouch
 	local ogre  = summon("bloodrage_ogre", "enemy.army") -- 3/2
 
@@ -312,7 +313,7 @@ end
 
 -- Long-range: the defender never gets to swing back.
 function M.test_codex_long_range(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local ship = summon("doubleshot_archer", "army")  -- 4/3, long-range
 	local prey = summon("bloodrage_ogre", "enemy.army")  -- 3/2
 
@@ -326,7 +327,7 @@ end
 -- Frenzy is +1 ATK on your turn, and it is added to a per-combat number rather
 -- than to the printed one, so nothing has to be put back afterwards.
 function M.test_codex_frenzy(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local dog  = summon("nautical_dog", "army")       -- 1/1, frenzy 1
 	local prey = summon("tiger_cub", "enemy.army")    -- 2/2
 
@@ -340,7 +341,7 @@ end
 -- "Attacks:" is an ability at the aim step, which is the whole reason the steps
 -- exist: it has to run after the target is chosen and before the damage lands.
 function M.test_codex_attacks_trigger(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local archer = summon("doubleshot_archer", "army")
 	local prey   = summon("tiger_cub", "enemy.army")
 	local base   = in_zone("enemy.base")
@@ -354,7 +355,7 @@ end
 -- A trigger that fires on the far side of the damage, which needs the step
 -- after "land" and cannot be written before it.
 function M.test_codex_kills_trigger(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local man   = summon("gunpoint_taxman", "army")       -- 3/3
 	local guard = post("mad_man", "enemy", 1)  -- 1/1
 	guard.stats.slot = 1
@@ -371,7 +372,7 @@ end
 -- "+4 ATK when attacking buildings" — nothing could ask what a strike was
 -- aimed at until the target stood in the same zone as the attacker.
 function M.test_codex_siege_bonus(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local tank = summon("steam_tank", "army")   -- 3/6
 	local base = in_zone("enemy.base")
 
@@ -383,7 +384,7 @@ end
 -- A ground defender with no anti-air cannot touch a flier, even the one that is
 -- hitting it. The same condition reads on both sides of the fight.
 function M.test_codex_a_flier_takes_nothing_back(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local bird = summon("shoddy_glider", "army")           -- 3/1, flying
 	local prey = summon("bloodrage_ogre", "enemy.army")    -- 3/2, ground
 
@@ -396,7 +397,7 @@ end
 -- The squad leader's armor is spent by the first blow and does not come back
 -- when it walks home from the duel. Only the upkeep refreshes it.
 function M.test_codex_the_leaders_armor_is_spent_once(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local first  = summon("mad_man", "army")
 	local second = summon("mad_man", "army")
 	local lead   = post("tiger_cub", "enemy", 1)
@@ -419,7 +420,7 @@ end
 -- five zones of one square each have no neighbours. The row is asked before
 -- anybody moves, because the defender leaves it the moment the fight starts.
 function M.test_codex_sparkshot(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local hawk  = summon("huntress", "army")          -- 3/3, sparkshot
 	local left  = post("bombaster", "enemy", 2)       -- 2/2 + the elite point
 	local mid   = post("bombaster", "enemy", 3)
@@ -441,7 +442,7 @@ end
 -- A gap in the row breaks adjacency, which is the rulebook's own wording and
 -- something the pattern gets for nothing.
 function M.test_codex_sparkshot_skips_a_gap(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local hawk = summon("huntress", "army")
 	local mid  = post("bombaster", "enemy", 3)
 	local gap  = post("bombaster", "enemy", 5)
@@ -455,7 +456,7 @@ end
 -- Arrival fatigue is a stat the turn's opening sets, not a rule the engine
 -- knows: a unit played this turn has not been readied yet.
 function M.test_codex_arrival(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	summon("tiger_cub", "enemy.army")
 	local fresh = summon("mad_man", "army")
 	fresh.stats.ready_since = 0
@@ -469,7 +470,7 @@ end
 -- in the discard and cycle back; only a token leaves the game, and it leaves by
 -- the death sweep that already sweeps tokens rather than by a word of its own.
 function M.test_codex_ephemeral_dies(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	summon("crashbarrow", "army")
 	summon("shark", "army")
 	summon("steam_tank", "army").stats.fleeting = 1
@@ -485,7 +486,7 @@ end
 -- max(0, a - b) used once, which is the only arithmetic the grammar has.
 function M.test_codex_draw(check)
 	for _, case in ipairs({ { 0, 2 }, { 1, 3 }, { 2, 4 }, { 3, 5 }, { 5, 5 } }) do
-		start("pick_zane", "pick_argagarg")
+		start("pick_red", "pick_green")
 		local hand = zones.find("hand")
 		while #hand.cards > case[1] do
 			zones.move_card(hand.cards[#hand.cards], zones.find("discard").id)
@@ -500,7 +501,7 @@ end
 -- A tech building is raised into a site and finishes at the start of the next
 -- turn, which is what "it doesn't finish until the end of your turn" costs.
 function M.test_codex_tech(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local build = in_zone("controls", "build_t1")
 	check("six workers are needed", not offers(build, "raise"))
 	seat("south").stats.workers = 6
@@ -514,7 +515,7 @@ end
 -- Teching is the deckbuilding, and it is a `show:` of the codex answered by the
 -- button's own `chosen` block: the real card moves, face down, into the discard.
 function M.test_codex_teching(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	flow.activate(in_zone("controls", "end_turn").id, {})
 	flow.settle()
 	check("the tech phase came round", phase.current().key == "tech", phase.current().key)
@@ -535,7 +536,7 @@ end
 -- rule naming the codex at the site that does it. That is the whole of Rambasa
 -- Twin's "return this to your codex", and of a trashed worker going nowhere.
 function M.test_codex_a_trash_goes_home_to_the_box(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local function shelf(key)
 		local c = in_zone("codex", key)
 		return c and (c.stats or {}).stock or 0
@@ -560,7 +561,7 @@ end
 -- Dies as "put into your discard pile from play", and only workers and the
 -- tokens are trashed. A tech building is not a deck card and stays a trash.
 function M.test_codex_a_wrecked_building_is_discarded(check)
-	start("pick_drakk", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local mine = summon("rickety_mine", "structures")
 	mine.stats.integrity = 0
 	actions.run({ "activate_zone:rules_death" }, {})
@@ -585,7 +586,7 @@ end
 -- and not a death — the same answer the rubble rule already gives it. Sent to a
 -- grave it would land in the discard and be drawn as if it were a spell.
 function M.test_codex_a_scrapped_addon_leaves_the_game(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	require("cards").create("tower", zones.find_id("addon", "mine"))
 	flow.activate(in_zone("controls", "sacrifice_addon").id, {})
 	flow.settle()
@@ -634,7 +635,7 @@ end
 -- The hero waits in a zone that is not in play, which is what lets "do I have a
 -- hero" be one condition and the summon be an ability on the hero itself.
 function M.test_codex_hero(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local hero = in_zone("command", "zane")
 	check("a hero in the command zone is not in play", not offers(hero, "lvl2"))
 	check("but it may be summoned", offers(hero, "summon"))
@@ -656,7 +657,7 @@ end
 -- One turn each way: the seat changes, the building finishes, and the gold
 -- arrives — all of it written on the phase rather than known by the engine.
 function M.test_codex_turn(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	seat("south").stats.workers = 6
 	use(in_zone("controls", "build_t1"), "raise")
 
@@ -681,7 +682,7 @@ end
 -- square it stands on and kept as a mark of its own, because the fight takes it
 -- out of the row and the square stops answering.
 function M.test_codex_slots(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local posts = zones.find("patrol", "mine")
 	local unit  = summon("tiger_cub", "army")
 	check("it starts at its printed attack", unit.stats.atk == 2, tostring(unit.stats.atk))
@@ -705,7 +706,7 @@ end
 -- Burning the base down is the only way to win, and it is an end condition
 -- rather than anything the combat knows about.
 function M.test_codex_ending(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local base = entity.get(zones.find_id("base", "enemy")).cards[1]
 	entity.get(base).stats.integrity = 2
 	local ram = summon("crashbarrow", "army")   -- 6 attack
@@ -723,7 +724,7 @@ end
 -- A spell needs a hero and lands in the discard however it ends, which is what
 -- `spent` is for: no action list has to remember to put its own card away.
 function M.test_codex_spell(check)
-	start("pick_jaina", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local hero = in_zone("command", "jaina")
 	local spell = require("cards").create("fire_dart", zones.find_id("hand", "mine"))
 	local prey  = summon("tiger_cub", "enemy.army")
@@ -745,7 +746,7 @@ end
 -- codex narrowed by `chosen.where`, "choose one" is an `options:` list of two
 -- cards, and a coin flip is a two-card deck read from the top.
 function M.test_codex_search(check)
-	start("pick_calamandra", "pick_argagarg")
+	start("pick_green", "pick_green")
 	local hero = in_zone("command", "calamandra")
 	use(hero, "summon")
 	flow.settle()
@@ -755,7 +756,7 @@ function M.test_codex_search(check)
 	check("the search is offered at max level", offers(hero, "call_tiger"))
 	use(hero, "call_tiger")
 	flow.settle()
-	check("the whole codex comes up", count_in("options") == 12, tostring(count_in("options")))
+	check("the whole codex comes up", count_in("options") == 36, tostring(count_in("options")))
 
 	local tiger
 	for _, cid in ipairs(zones.find("options").cards) do
@@ -768,11 +769,11 @@ function M.test_codex_search(check)
 	flow.settle()
 	check("the tiger walked out of the codex onto the table",
 		in_zone("army", key) ~= nil, tostring(key))
-	check("and the rest went home", stock_in("codex") == 23, tostring(stock_in("codex")))
+	check("and the rest went home", stock_in("codex") == 71, tostring(stock_in("codex")))
 end
 
 function M.test_codex_options(check)
-	start("pick_calamandra", "pick_argagarg")
+	start("pick_green", "pick_green")
 	local hero = in_zone("command", "calamandra")
 	use(hero, "summon")
 	flow.settle()
@@ -795,7 +796,7 @@ end
 -- answer — no word beside "cost", and the dearer half is simply not on the table
 -- until it can be paid for.
 function M.test_codex_an_answer_may_have_a_price(check)
-	start("pick_calamandra", "pick_argagarg")
+	start("pick_green", "pick_green")
 	use(in_zone("command", "calamandra"), "summon")
 	flow.settle()
 	seat("south").stats.gold = 5
@@ -815,7 +816,7 @@ function M.test_codex_an_answer_may_have_a_price(check)
 end
 
 function M.test_codex_coin(check)
-	start("pick_drakk", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local mine = summon("rickety_mine", "structures")
 	seat("south").stats.gold = 0
 	flow.activate(mine.id, {})
@@ -827,7 +828,7 @@ end
 -- Knocking a tech building down costs its owner two off the base, which the
 -- death sweep reads off the zone rather than off the card.
 function M.test_codex_tech_falls(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local theirs = summon("tech_1", "enemy.tech")
 	local ram = summon("crashbarrow", "army")   -- 6 attack, tech I has 5
 	local base = entity.get(entity.get(zones.find_id("base", "enemy")).cards[1])
@@ -846,7 +847,7 @@ end
 -- that spends one has always measured it; what showed one printed the string,
 -- so every card in this game wore "price@self" where its price belonged.
 function M.test_codex_measured_cost_reads_as_a_number(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local dog = require("cards").create("nautical_dog", zones.find_id("hand", "mine"))
 	local def = declaration.G.card_defs.nautical_dog
 
@@ -868,7 +869,7 @@ end
 -- pointed at three zones. `@self` is the departing card, which is the thing a
 -- reaction cannot give: an emit names the emitter.
 function M.test_codex_dies_moment(check)
-	start("pick_drakk", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local bomber = post("crash_bomber", "enemy", 1)   -- 2/2, theirs
 	local ram    = summon("crashbarrow", "army")                 -- 6 attack, mine
 	local mybase = entity.get(entity.get(zones.find_id("base", "mine")).cards[1])
@@ -890,7 +891,7 @@ end
 -- the whole reason this is a moment the engine fires rather than a zone a rules
 -- card remembers to walk.
 function M.test_codex_dies_on_every_route_out(check)
-	start("pick_jaina", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local hero = in_zone("command", "jaina")
 	use(hero, "summon")
 	flow.settle()
@@ -911,7 +912,7 @@ end
 -- game knows anything about being watched. The watcher is theirs, so the point
 -- it deals lands on the base its own side is not standing in front of.
 function M.test_codex_a_witness_answers_a_death(check)
-	start("pick_drakk", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local watcher = summon("captured_bugblatter", "enemy.army")  -- 4/2, watching only
 	local ox      = summon("land_octopus", "army")               -- 8/7, does the killing
 	local prey    = post("tiger_cub", "enemy", 1)     -- 2/2
@@ -932,7 +933,7 @@ end
 -- discard says nothing at all about being returned to a hand. The bomber is
 -- theirs, because its own owner's turn is the half it stays quiet for.
 function M.test_codex_leaves_only_where_it_says(check)
-	start("pick_drakk", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local bomber = summon("crash_bomber", "enemy.army")
 	local mybase = entity.get(entity.get(zones.find_id("base", "mine")).cards[1])
 
@@ -977,7 +978,7 @@ end
 -- by — is the bookkeeping `buffs` exists to avoid, and it cannot be used here
 -- because a buff's amount is a plain number and these are four different ones.
 function M.test_codex_a_bonus_that_lasts_the_turn(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	take_the_field("zane")
 	local dog = summon("mad_man", "mine.army")
 	local charge = require("cards").create("charge", zones.find_id("hand", "mine"))
@@ -998,7 +999,7 @@ end
 -- absorbing a blow *writes* to the card's own number — under a buff that write
 -- goes negative, and the debt would follow the treant off the post.
 function M.test_codex_a_post_that_changes_the_card(check)
-	start("pick_zane", "pick_midori")
+	start("pick_red", "pick_green")
 	local tree = summon("ironbark_treant", "mine.army")
 
 	check("in the army it reads what is printed",
@@ -1017,7 +1018,7 @@ end
 -- through the same column, which is what puts the second one at the caster's own
 -- upkeep — "until your next upkeep" without a word for a duration.
 function M.test_codex_ferocity_lasts_until_the_next_upkeep(check)
-	start("pick_calamandra", "pick_argagarg")
+	start("pick_green", "pick_green")
 	take_the_field("calamandra")
 	local cub = summon("tiger_cub", "mine.army")
 	local roar = require("cards").create("ferocity", zones.find_id("hand", "mine"))
@@ -1037,7 +1038,7 @@ end
 -- The elephant's first attack each turn is free of its readiness, and its second
 -- is not. "romp" is the one look, spent in the duel's own kills column.
 function M.test_codex_rampaging_elephant(check)
-	start("pick_calamandra", "pick_argagarg")
+	start("pick_green", "pick_green")
 	take_the_field("calamandra")
 	local bull = summon("rampaging_elephant", "mine.army")
 	actions.run({ "activate_zone:mine.army:by_column:upkeep" }, {})
@@ -1058,7 +1059,7 @@ end
 -- readiness; `disabled` keeps it spent past the next ready step, because the
 -- upkeep readies what is *rousable* rather than every kind of card it can name.
 function M.test_codex_disable(check)
-	start("pick_bigby", "pick_argagarg")
+	start("pick_blue", "pick_green")
 	take_the_field("bigby")
 	local prey = post("tiger_cub", "enemy", 1)
 	local cuffs = require("cards").create("arrest", zones.find_id("hand", "mine"))
@@ -1081,7 +1082,7 @@ end
 -- One line where four stood: the scope names what is spent rather than every kind
 -- of card that can be, so printing a fifth kind needs no fifth line.
 function M.test_codex_the_upkeep_readies_what_is_spent(check)
-	start("pick_bigby", "pick_argagarg")
+	start("pick_blue", "pick_green")
 	local unit = summon("tiger_cub", "mine.army")
 	local hall = require("cards").create("flagstone_garrison", zones.find_id("structures", "mine"))
 	actions.run({ "exhaust:mine.exhaustable" }, {})
@@ -1099,7 +1100,7 @@ end
 -- answered, and the game stopped with a legal move on the table.
 function M.test_codex_the_engine_seat_can_answer_an_unaimable_offer(check)
 	local opponent = require("opponent")
-	start("pick_vir", "pick_argagarg")
+	start("pick_purple", "pick_green")
 	-- The codex holds Assimilate, which aims at a building or an ongoing spell.
 	-- Nothing of theirs is on the table, so it can point at nothing at all.
 	actions.run({ "show:mine.codex" }, {})
@@ -1123,7 +1124,7 @@ end
 -- A rune lent for the turn, recorded the way every other lending already is:
 -- what was given is remembered on its own stat and handed back at the turn's end.
 function M.test_codex_a_rune_may_be_lent_for_a_turn(check)
-	start("pick_orpal", "pick_argagarg")
+	start("pick_black", "pick_green")
 	take_the_field("orpal")
 	local prey = summon("gigadon", "enemy.army")
 	local spell = require("cards").create("deteriorate", zones.find_id("hand", "mine"))
@@ -1148,7 +1149,7 @@ end
 -- tag says what it is worth, the way a counter does — so "the four lowest tech
 -- units" is destroy's own count over a pool put in order.
 function M.test_codex_tech_level_is_a_number_the_tag_carries(check)
-	start("pick_jaina", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local cub  = summon("tiger_cub", "mine.army")        -- tech 0
 	local horse = summon("centaur", "mine.army")         -- tech 1
 	local tiger = summon("stalking_tiger", "mine.army")  -- tech 2
@@ -1160,7 +1161,7 @@ function M.test_codex_tech_level_is_a_number_the_tag_carries(check)
 end
 
 function M.test_codex_obliterate_takes_the_lowest_tech(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local gun = summon("pirate_gunship", "mine.army")    -- obliterate 2
 	summon("stalking_tiger", "enemy.army")               -- tech 2, should survive
 	summon("tiger_cub", "enemy.army")                    -- tech 0, should go
@@ -1181,7 +1182,7 @@ end
 -- arriving when the last goes. Fading is the same clock on the table, and what
 -- happens at nought is a death rather than an arrival. Neither wanted a word.
 function M.test_codex_forecast_arrives_when_its_clock_runs_out(check)
-	start("pick_vir", "pick_argagarg")
+	start("pick_purple", "pick_green")
 	seat("south").stats.gold = 20
 	local card = require("cards").create("plasmodium", zones.find_id("hand", "mine"))
 	flow.play_card(card.id, {})
@@ -1205,7 +1206,7 @@ function M.test_codex_forecast_arrives_when_its_clock_runs_out(check)
 end
 
 function M.test_codex_fading_leaves_when_its_clock_runs_out(check)
-	start("pick_prynn", "pick_argagarg")
+	start("pick_purple", "pick_green")
 	seat("south").stats.gold = 20
 	local card = require("cards").create("fading_argonaut", zones.find_id("hand", "mine"))
 	flow.play_card(card.id, {})
@@ -1224,7 +1225,7 @@ end
 -- own: a rune put on by an exhausting ability, a disable written into a spell,
 -- and a ward lent by a unit standing on the table.
 function M.test_codex_white_sparring_partner(check)
-	start("pick_grave", "pick_argagarg")
+	start("pick_white", "pick_green")
 	local coach = summon("sparring_partner", "mine.army")
 	local cub   = summon("tiger_cub", "mine.army")
 	for _, u in ipairs(flow.usable_abilities(coach.id)) do
@@ -1238,7 +1239,7 @@ end
 -- Reversal is three damage and a disable in one spell, which is the pair of words
 -- exhaust: and "disabled" working together where neither alone would do.
 function M.test_codex_white_reversal(check)
-	start("pick_grave", "pick_argagarg")
+	start("pick_white", "pick_green")
 	take_the_field("grave")
 	local prey = post("ironbark_treant", "enemy", 3)
 	local spell = require("cards").create("reversal", zones.find_id("hand", "mine"))
@@ -1255,7 +1256,7 @@ end
 -- A ward that is not printed on the card wearing it: the Monk stands, and every
 -- unit on its side refuses a spell for as long as it does.
 function M.test_codex_white_mindparry(check)
-	start("pick_grave", "pick_argagarg")
+	start("pick_white", "pick_green")
 	local cub = summon("tiger_cub", "mine.army")
 	check("ordinarily a spell may aim at it", not tags.entity_has(entity.get(cub.id), "parried"))
 	summon("mindparry_monk", "mine.army")
@@ -1266,7 +1267,7 @@ end
 -- of it is worth and the rest is arithmetic: a rune put on is a unit read lower,
 -- and enough of them is a unit that is dead without anything having killed it.
 function M.test_codex_black_runes_subtract(check)
-	start("pick_orpal", "pick_argagarg")
+	start("pick_black", "pick_green")
 	local prey = summon("tiger_cub", "enemy.army")          -- 2/2
 	actions.run({ "stat_gain:minus@self:1" }, { card_id = prey.id })
 	check("one rune is -1/-1", read(prey, "atk") == 1 and read(prey, "hp") == 1,
@@ -1277,7 +1278,7 @@ end
 
 -- The hero writes it, and so does anything that says its damage lands as runes.
 function M.test_codex_orpal_damages_in_runes(check)
-	start("pick_orpal", "pick_argagarg")
+	start("pick_black", "pick_green")
 	take_the_field("orpal")
 	local hero = in_zone("army", "orpal")
 	hero.stats.ready_since = 1                         -- past the turn it arrived
@@ -1294,7 +1295,7 @@ end
 -- An anthem that subtracts, written as every other anthem is: a computed tag that
 -- asks about the rest of the board, and "others" is what keeps it off itself.
 function M.test_codex_abomination_shrinks_everyone_else(check)
-	start("pick_orpal", "pick_argagarg")
+	start("pick_black", "pick_green")
 	local cub  = summon("tiger_cub", "mine.army")
 	local abom = summon("abomination", "mine.army")
 	check("everything else is a point smaller", read(cub, "atk") == 1, tostring(read(cub, "atk")))
@@ -1306,15 +1307,15 @@ end
 -- life), a keyword a card only sometimes has, and a walk-past reason keyed on a
 -- number rather than a tag.
 function M.test_codex_blue_deals(check)
-	start("pick_bigby", "pick_onimaru")
+	start("pick_blue", "pick_blue")
 	check("the blue starter is ten cards", count_in("hand") + count_in("deck") == 10,
 		tostring(count_in("hand") + count_in("deck")))
-	check("and the codex is twenty-four", stock_in("codex") == 24, tostring(stock_in("codex")))
+	check("and the codex is seventy-two", stock_in("codex") == 72, tostring(stock_in("codex")))
 	check("Bigby is in command", in_zone("command", "bigby") ~= nil)
 end
 
 function M.test_codex_blue_arrivals(check)
-	start("pick_bigby", "pick_onimaru")
+	start("pick_blue", "pick_blue")
 	take_the_field("bigby")
 	local scribe = require("cards").create("scribe", zones.find_id("hand", "mine"))
 	local held = count_in("hand")
@@ -1339,7 +1340,7 @@ end
 -- Two deaths that are not deaths, both written as a rules_death column that runs
 -- before the sweep — which is the only place a card can be caught on its way out.
 function M.test_codex_blue_second_chances(check)
-	start("pick_onimaru", "pick_argagarg")
+	start("pick_blue", "pick_green")
 	local knight = summon("brave_knight", "mine.army")
 	knight.stats.hp = 0
 	actions.run({ "activate_zone:rules_death" }, {})
@@ -1362,7 +1363,7 @@ end
 -- A keyword a card has only while a number holds, and one that reads a number on
 -- the *other* side. Both are computed tags, which is what makes them free.
 function M.test_codex_blue_conditional_keywords(check)
-	start("pick_onimaru", "pick_argagarg")
+	start("pick_blue", "pick_green")
 	local shot = summon("bluecoat_musketeer", "mine.army")
 	check("at one attack it is long-range", tags.entity_has(entity.get(shot.id), "ranged"))
 	shot.stats.atk = 2
@@ -1379,7 +1380,7 @@ end
 -- `stat_damage` and is therefore unreachable; a spell says `harm`, and an
 -- `adjusts` on the upgrade answers it.
 function M.test_codex_a_named_damage_can_be_answered(check)
-	start("pick_jaina", "pick_argagarg")
+	start("pick_red", "pick_green")
 	take_the_field("jaina")
 	local beef = summon("gigadon", "enemy.army")
 	local dart = require("cards").create("fire_dart", zones.find_id("hand", "mine"))
@@ -1390,7 +1391,7 @@ function M.test_codex_a_named_damage_can_be_answered(check)
 	check("a dart is three", before - read(beef, "hp") == 3,
 		before .. "->" .. read(beef, "hp"))
 
-	start("pick_jaina", "pick_argagarg")
+	start("pick_red", "pick_green")
 	take_the_field("jaina")
 	require("cards").create("hotter_fire", zones.find_id("ongoing", "mine"))
 	local beef2 = summon("gigadon", "enemy.army")
@@ -1407,13 +1408,13 @@ end
 -- nothing else can say "the side this card is on". That reads right for every
 -- Codex anthem, since all of them are about attacking.
 function M.test_codex_an_anthem_reads_from_the_seat_that_is_up(check)
-	start("pick_calamandra", "pick_argagarg")
+	start("pick_green", "pick_green")
 	local cub = summon("tiger_cub", "mine.army")
 	check("no stealth before the spell", read(cub, "sneak") == 0, tostring(read(cub, "sneak")))
 	require("cards").create("behind_the_ferns", zones.find_id("ongoing", "mine"))
 	check("and stealth once it is down", read(cub, "sneak") == 1, tostring(read(cub, "sneak")))
 
-	start("pick_drakk", "pick_argagarg")
+	start("pick_red", "pick_green")
 	take_the_field("drakk")
 	local ogre = summon("bloodrage_ogre", "mine.army")
 	check("no frenzy from a first-level Drakk", read(ogre, "rage") == 0, tostring(read(ogre, "rage")))
@@ -1426,7 +1427,7 @@ end
 -- nothing took the shift back off. It is one fact now, and the bonus is a reading
 -- of it, so moving a rune is a thing a card can say.
 function M.test_codex_a_rune_is_worth_its_points(check)
-	start("pick_argagarg", "pick_midori")
+	start("pick_green", "pick_green")
 	local cub = summon("tiger_cub", "mine.army")           -- 2/2
 	actions.run({ "stat_gain:plus@self:2" }, { card_id = cub.id })
 	check("two runes are +2/+2", read(cub, "atk") == 4 and read(cub, "hp") == 4,
@@ -1444,7 +1445,7 @@ end
 -- 1 of 4; move a rune off and the ceiling drops under the damage, which is the
 -- rulebook's answer and was unreachable while the shift was a stored number.
 function M.test_codex_a_rune_removed_can_kill(check)
-	start("pick_argagarg", "pick_midori")
+	start("pick_green", "pick_green")
 	local cub = summon("tiger_cub", "mine.army")
 	actions.run({ "stat_gain:plus@self:2", "stat_damage:hp@self:3" }, { card_id = cub.id })
 	check("hurt but standing", read(cub, "hp") == 1, tostring(read(cub, "hp")))
@@ -1458,7 +1459,7 @@ end
 
 -- Two cards were waiting on exactly that: both move a rune rather than make one.
 function M.test_codex_a_rune_may_be_moved(check)
-	start("pick_argagarg", "pick_midori")
+	start("pick_green", "pick_green")
 	take_the_field("argagarg")
 	local shambler = summon("spore_shambler", "mine.army")
 	local cub      = summon("tiger_cub", "mine.army")
@@ -1476,7 +1477,7 @@ end
 -- A counter that means something needs no tag to say so: "feathered" was a
 -- computed tag whose whole job was turning a number into a shift.
 function M.test_codex_a_feather_is_a_counter(check)
-	start("pick_argagarg", "pick_midori")
+	start("pick_green", "pick_green")
 	local cub = summon("tiger_cub", "mine.army")
 	check("grounded", read(cub, "alt") == 0, tostring(read(cub, "alt")))
 	actions.run({ "stat_gain:feather@self:1" }, { card_id = cub.id })
@@ -1489,7 +1490,7 @@ end
 -- Two cards were waiting on that: one asks whether there is a rune already, and
 -- one hands out overpower to whatever is wearing one.
 function M.test_codex_runes_are_a_number(check)
-	start("pick_argagarg", "pick_midori")
+	start("pick_green", "pick_green")
 	take_the_field("argagarg")
 	local cub = summon("tiger_cub", "mine.army")
 	local favour = require("cards").create("forests_favor", zones.find_id("hand", "mine"))
@@ -1516,7 +1517,7 @@ end
 -- taker's end of turn: "set_owner" names a seat or "mine", and only the seat
 -- getting the unit back can say "mine" about it.
 function M.test_codex_a_kidnapping_ends(check)
-	start("pick_drakk", "pick_argagarg")
+	start("pick_red", "pick_green")
 	take_the_field("drakk")
 	local theirs = summon("tiger_cub", "enemy.army")
 	local kidnap = require("cards").create("kidnapping", zones.find_id("hand", "mine"))
@@ -1536,7 +1537,7 @@ end
 -- ongoing row and never enters the duel, so the rule is asked of the fighter
 -- and reaches back through "attached_to".
 function M.test_codex_an_attachment_speaks_in_combat(check)
-	start("pick_argagarg", "pick_midori")
+	start("pick_green", "pick_green")
 	take_the_field("argagarg")
 	local bear   = summon("barkcoat_bear", "mine.army")
 	local spirit = require("cards").create("spirit_of_the_panda", zones.find_id("hand", "mine"))
@@ -1555,7 +1556,7 @@ end
 -- should join *this* seat, so each player's own upkeep decides it and neither
 -- has to name the other's chair.
 function M.test_codex_the_horselord_walks(check)
-	start("pick_midori", "pick_argagarg")
+	start("pick_green", "pick_green")
 	local horse = summon("dothram_horselord", "enemy.army")
 	summon("gigadon", "mine.army")
 
@@ -1568,7 +1569,7 @@ end
 -- everything else at the end of the turn. A continuous count is not sayable;
 -- a count taken at a moment is, and the moment the card is about is the attack.
 function M.test_codex_war_drums_beat_at_upkeep(check)
-	start("pick_drakk", "pick_argagarg")
+	start("pick_red", "pick_green")
 	take_the_field("drakk")
 	require("cards").create("war_drums", zones.find_id("ongoing", "mine"))
 	local dog = summon("mad_man", "mine.army")
@@ -1585,7 +1586,7 @@ end
 -- and asks afterwards whether the mark is still standing — the same "mark" the
 -- sparkshot column uses, cleared on the way out.
 function M.test_codex_a_kill_can_be_answered(check)
-	start("pick_jaina", "pick_argagarg")
+	start("pick_red", "pick_green")
 	seat("south").stats.gold = 20
 	local house = require("cards").create("firehouse", zones.find_id("structures", "mine"))
 	local weak  = require("cards").create("wisp", zones.find_id("army", "enemy"))
@@ -1608,7 +1609,7 @@ end
 -- one carries its own cost. Declining is the offer's own "No choice" button,
 -- since the plain half of this card is doing nothing.
 function M.test_codex_a_dearer_half_is_offered_only_when_it_can_be_paid(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	require("cards").create("tech_2", zones.find_id("tech", "mine"))
 	local me, them = seat("south"), seat("north")
 	me.stats.gold = 4
@@ -1635,7 +1636,7 @@ end
 -- a place. On its owner's turn the bomber is quiet; on anybody else's it goes off
 -- in the face of whoever is up.
 function M.test_codex_a_departure_may_ask_a_question(check)
-	start("pick_drakk", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local mine   = summon("crash_bomber", "mine.army")
 	local mybase = base_of("mine")
 
@@ -1655,7 +1656,7 @@ end
 -- is how many times a card was pointed at, so nothing carries an amount beside
 -- the list — "@target" already means every pick, in the order they were made.
 function M.test_codex_damage_divides_by_being_aimed_twice(check)
-	start("pick_jaina", "pick_argagarg")
+	start("pick_red", "pick_green")
 	take_the_field("jaina")
 	local z = zones.find("patrol", "enemy")
 	local a = require("cards").create("gigadon", z.id)
@@ -1684,7 +1685,7 @@ end
 -- it already holds, because "up to two units" means two different ones.
 function M.test_codex_only_a_spread_aim_takes_a_card_twice(check)
 	local targeting = require("targeting")
-	start("pick_jaina", "pick_argagarg")
+	start("pick_red", "pick_green")
 	take_the_field("jaina")
 	local prey = summon("gigadon", "enemy.army")
 	seat("south").stats.gold = 20
@@ -1710,7 +1711,7 @@ end
 -- condition decide who is wearing it. Overpower is an ability, so the computed
 -- tag carries "abilities" — it joins the card's own and its zone's in one list.
 function M.test_codex_a_keyword_can_be_lent(check)
-	start("pick_argagarg", "pick_midori")
+	start("pick_green", "pick_green")
 	local runner = summon("tiger_cub", "mine.army")
 	runner.stats.plus = 1
 	check("a rune alone is not the grant", not tags.entity_has(entity.get(runner.id), "runed"))
@@ -1742,7 +1743,7 @@ end
 -- the mimic's borrowed flight is the flier it is looking for, which is a question
 -- that needs its own answer — and the validator refuses that shape outright.
 function M.test_codex_a_card_reads_the_rest_of_the_board(check)
-	start("pick_midori", "pick_argagarg")
+	start("pick_green", "pick_green")
 	local mimic = summon("wandering_mimic", "mine.army")
 	check("alone it is grounded", read(mimic, "alt") == 0, tostring(read(mimic, "alt")))
 	check("and unseen", read(mimic, "sneak") == 0, tostring(read(mimic, "sneak")))
@@ -1765,7 +1766,7 @@ end
 -- else carries the tag, and wear one that grants what the tag grants. Nothing
 -- has to be counted into a stat first.
 function M.test_codex_a_keyword_with_no_number_is_copied_too(check)
-	start("pick_midori", "pick_argagarg")
+	start("pick_green", "pick_green")
 	local mimic = summon("wandering_mimic", "mine.army")
 	local before = #require("cards").abilities(entity.get(mimic.id))
 	check("nobody to copy", not tags.entity_has(entity.get(mimic.id), "mimic_over"))
@@ -1790,7 +1791,7 @@ end
 -- then. "hasty" is the union every play block asks about now — the printed word
 -- or the copied one — and an ordinary hasty card notices nothing.
 function M.test_codex_haste_is_asked_as_a_union(check)
-	start("pick_midori", "pick_argagarg")
+	start("pick_green", "pick_green")
 	seat("south").stats.gold = 20
 	require("cards").create("tech_2", zones.find_id("tech", "mine"))
 
@@ -1808,7 +1809,7 @@ function M.test_codex_haste_is_asked_as_a_union(check)
 	check("with a hasty card out there, it attacks at once",
 		quick.stats.ready_since == 1, tostring(quick.stats.ready_since))
 
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	seat("south").stats.gold = 20
 	local dog = require("cards").create("mad_man", zones.find_id("hand", "mine"))
 	flow.play_card(dog.id, {})
@@ -1831,7 +1832,7 @@ function M.test_codex_a_ward_is_a_keyword(check)
 		return seen
 	end
 
-	start("pick_jaina", "pick_argagarg")
+	start("pick_red", "pick_green")
 	take_the_field("jaina")
 	summon("moss_ancient", "enemy.army")
 	summon("gigadon", "enemy.army")
@@ -1840,7 +1841,7 @@ function M.test_codex_a_ward_is_a_keyword(check)
 	check("an ordinary unit may be darted", can.gigadon == true)
 	check("one wearing the word may not", can.moss_ancient == nil)
 
-	start("pick_midori", "pick_argagarg")
+	start("pick_green", "pick_green")
 	take_the_field("midori")
 	local mimic = summon("wandering_mimic", "enemy.army")
 	local blast = require("cards").create("fire_dart", zones.find_id("hand", "mine"))
@@ -1870,7 +1871,7 @@ end
 -- had not been told: the validator refused the shape, and the tooltip quoted the
 -- number with nothing bound, so a hand said nought and the pile took seven.
 function M.test_codex_a_price_may_be_worked_out(check)
-	start("pick_argagarg", "pick_midori")
+	start("pick_green", "pick_green")
 	require("cards").create("tech_2", zones.find_id("tech", "mine"))
 	seat("south").stats.gold = 20
 	local beast = require("cards").create("gigadon", zones.find_id("hand", "mine"))
@@ -1895,7 +1896,7 @@ end
 -- Overpower for one turn: the keyword's ability under a computed tag, worn while
 -- a stat says so and handed back where every other lent thing is.
 function M.test_codex_overpower_can_be_lent_for_a_turn(check)
-	start("pick_argagarg", "pick_midori")
+	start("pick_green", "pick_green")
 	take_the_field("argagarg")
 	local cub = summon("tiger_cub", "mine.army")
 	check("it does not rampage on its own", not tags.entity_has(entity.get(cub.id), "rampaging"))
@@ -1922,7 +1923,7 @@ end
 -- Armour piercing is not a number on the attacker, it is the armour step not
 -- happening: the column asks whether the thing across it goes straight through.
 function M.test_codex_armour_can_be_pierced(check)
-	start("pick_calamandra", "pick_argagarg")
+	start("pick_green", "pick_green")
 	take_the_field("calamandra")
 	local tree = post("ironbark_treant", "enemy", 1)
 	tree.stats.guard = 3
@@ -1932,7 +1933,7 @@ function M.test_codex_armour_can_be_pierced(check)
 	flow.settle()
 	check("armour eats it first", read(tree, "hp") == hp, tostring(read(tree, "hp")))
 
-	start("pick_calamandra", "pick_argagarg")
+	start("pick_green", "pick_green")
 	take_the_field("calamandra")
 	local tree2 = post("ironbark_treant", "enemy", 1)
 	tree2.stats.guard = 3
@@ -1955,7 +1956,7 @@ end
 -- taking a post is what gives it up.
 function M.test_codex_invisible_is_a_ward_with_a_condition(check)
 	local targeting = require("targeting")
-	start("pick_jaina", "pick_argagarg")
+	start("pick_red", "pick_green")
 	take_the_field("jaina")
 	local tiger = summon("stalking_tiger", "enemy.army")
 	local dart  = require("cards").create("fire_dart", zones.find_id("hand", "mine"))
@@ -1990,7 +1991,7 @@ end
 -- own owner that sentence names nobody, and the rule had to move to the ward.
 function M.test_codex_invisible_does_not_hide_from_its_owner(check)
 	local targeting = require("targeting")
-	start("pick_calamandra", "pick_argagarg")
+	start("pick_green", "pick_green")
 	take_the_field("calamandra")
 	local tiger = summon("stalking_tiger", "mine.army")
 	local dart  = require("cards").create("fire_dart", zones.find_id("hand", "mine"))
@@ -2011,7 +2012,7 @@ end
 -- refused its own side and let the other through, which is the card backwards.
 function M.test_codex_mindparry_stops_the_opponent_and_not_its_own_side(check)
 	local targeting = require("targeting")
-	start("pick_grave", "pick_argagarg")
+	start("pick_white", "pick_green")
 	local cub  = summon("tiger_cub", "mine.army")
 	summon("mindparry_monk", "mine.army")
 	local dart = require("cards").create("fire_dart", zones.find_id("hand", "mine"))
@@ -2032,7 +2033,7 @@ end
 -- a union of computed tags is for: each tier asks its own, "buildable" says any.
 function M.test_codex_a_tier_gate_is_a_union(check)
 	local targeting = require("targeting")
-	start("pick_calamandra", "pick_argagarg")
+	start("pick_green", "pick_green")
 	take_the_field("calamandra")
 	in_zone("mine.army", "calamandra").stats.ripe = 5
 	seat("south").stats.gold = 20
@@ -2068,7 +2069,7 @@ end
 -- draw a card" went off when damage killed it and said nothing when Zarramonde
 -- did — one rule, two roads, and only one of them worked.
 function M.test_codex_an_effect_kills_the_same_way_damage_does(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	actions.execute("create:mine.deck:nautical_dog:6", {})
 	local before = count_in("mine.hand")
 	summon("gorgon", "mine.army")
@@ -2080,17 +2081,17 @@ end
 
 -- A hero is the case that needed the grave to be answered per kind: it goes back
 -- to its own command zone to wait, not to the discard the units go to. And the
--- wait is the *hero's* seat's, which the column could not say — it wrote "mine",
--- and a hero killed on somebody else's turn put the clock on the wrong player.
+-- wait is the *hero's* own, not its seat's: with three heroes a side, one death
+-- must not lock the other two out of being summoned.
 function M.test_codex_a_killed_hero_goes_home_to_wait(check)
-	start("pick_zane", "pick_argagarg")
-	local them = summon("drakk", "enemy.army")
+	start("pick_red", "pick_green")
+	local them = in_zone("enemy.command", "midori")
+	zones.move_card(them.id, zones.find_id("army", "north"))
 	actions.execute("destroy:enemy.army.hero", {})
-	check("the hero fell back to their command zone", in_zone("enemy.command", "drakk") ~= nil)
-	check("and the clock is on its own player, not on whoever killed it",
-		seat("north").stats.hero_wait == 2, tostring(seat("north").stats.hero_wait))
-	check("while the killer waits for nothing", seat("south").stats.hero_wait == 0,
-		tostring(seat("south").stats.hero_wait))
+	check("the hero fell back to their command zone", in_zone("enemy.command", "midori") ~= nil)
+	check("and the clock is on the hero that died", them.stats.hero_wait == 2, tostring(them.stats.hero_wait))
+	check("not on the heroes beside it", in_zone("enemy.command", "argagarg").stats.hero_wait == 0)
+	check("nor on whoever killed it", in_zone("command", "zane").stats.hero_wait == 0)
 end
 
 -- The death column used to say every rule twice, once as "mine" and once as
@@ -2099,7 +2100,7 @@ end
 -- so the card keeps its place in the column and both sides are answered before
 -- the next rule starts — which is the whole reason the halves could go.
 function M.test_codex_the_death_column_answers_both_sides(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	post("nautical_dog", "mine", 3).stats.hp = 0
 	post("nautical_dog", "enemy", 3).stats.hp = 0
 	post("nautical_dog", "mine", 4).stats.hp = 0
@@ -2125,7 +2126,7 @@ end
 -- count can ask, and "the highest level among my blood heroes is at most three"
 -- was only ever a way of saying "this one is".
 function M.test_codex_drakk_falls_low(check)
-	start("pick_drakk", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local him = summon("drakk", "army")
 	him.stats.life, him.stats.level = 0, 2
 	local theirs = entity.get(entity.get(zones.find_id("base", "enemy")).cards[1])
@@ -2135,7 +2136,7 @@ function M.test_codex_drakk_falls_low(check)
 	check("falling before level four cost them one", theirs.stats.integrity == 19,
 		tostring(theirs.stats.integrity))
 
-	start("pick_drakk", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local grown = summon("drakk", "army")
 	grown.stats.life, grown.stats.level = 0, 4
 	theirs = entity.get(entity.get(zones.find_id("base", "enemy")).cards[1])
@@ -2149,7 +2150,7 @@ end
 -- The gold was always per claim and the draw was not, which no reading of the
 -- card supports. Folding the halves made the two agree.
 function M.test_codex_every_claim_is_paid(check)
-	start("pick_zane", "pick_argagarg")
+	start("pick_red", "pick_green")
 	for _ = 1, 2 do
 		local c = summon("nautical_dog", "army")
 		c.stats.hp, c.stats.insured = 0, 1
@@ -2171,7 +2172,7 @@ end
 -- Boost 3 already uses, a rules card whose own cost decides whether it may be
 -- taken — so the spell always casts and the giving is a question asked after.
 function M.test_codex_a_sacrifice_you_cannot_make_still_casts(check)
-	start("pick_midori", "pick_argagarg")
+	start("pick_green", "pick_green")
 	summon("midori", "army")
 	actions.run({ "create:mine.hand:circle_of_life:1" }, {})
 	local spell = in_zone("hand", "circle_of_life")
@@ -2194,7 +2195,7 @@ end
 -- off the spell — "show:" runs the asker's own "chosen", and the asker is the
 -- card standing in the offer.
 function M.test_codex_the_sacrifice_pays_and_opens_the_codex(check)
-	start("pick_midori", "pick_argagarg")
+	start("pick_green", "pick_green")
 	summon("midori", "army")
 	local victim = summon("wisp", "army")
 	actions.run({ "create:mine.hand:circle_of_life:1" }, {})
@@ -2216,7 +2217,7 @@ end
 -- ability, which is why the write half needed a "when" of its own: "needs" would
 -- have refused the aim instead of answering it, and Codex aims with "attack" too.
 function M.test_codex_an_illusion_dies_of_being_aimed_at(check)
-	start("pick_jaina", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local hero  = in_zone("command", "jaina")
 	local spell = require("cards").create("fire_dart", zones.find_id("hand", "mine"))
 	local aven  = summon("spectral_aven", "enemy.army")
@@ -2237,7 +2238,7 @@ end
 -- have got wrong if the write half answered every aim: Codex's combat is a
 -- target spec too.
 function M.test_codex_an_illusion_survives_being_attacked(check)
-	start("pick_jaina", "pick_argagarg")
+	start("pick_red", "pick_green")
 	local tiger = summon("spectral_tiger", "enemy.army")   -- 5/5
 	local cub   = summon("tiger_cub", "army")              -- 2/2
 	use(cub, "strike_free", { tiger.id })
@@ -2246,6 +2247,39 @@ function M.test_codex_an_illusion_survives_being_attacked(check)
 		tostring(entity.get(tiger.id).zone_id))
 	check("and took the fight rather than the keyword",
 		entity.get(tiger.id).stats.hp == 3, tostring(entity.get(tiger.id).stats.hp))
+end
+
+-- The rulebook's own game: three heroes of one colour. Each hero is its own
+-- clock and its own level, and how many may stand at once is the tech built.
+function M.test_codex_three_heroes_a_side(check)
+	start("pick_red", "pick_green")
+	seat("south").stats.gold = 20
+	seat("south").stats.xp = 9
+	local zane, drakk = in_zone("command", "zane"), in_zone("command", "drakk")
+	use(zane, "summon")
+	flow.settle()
+	check("one hero may be summoned at the start", in_zone("army", "zane") ~= nil)
+	check("but not a second without tech II", not offers(drakk, "summon"))
+	check("a hero in command cannot level", not offers(drakk, "lvl2"))
+	check("though the one in play can", offers(zane, "lvl2"))
+
+	require("cards").create("tech_2", zones.find_id("tech"))
+	check("tech II lets a second stand", offers(drakk, "summon"))
+	use(drakk, "summon")
+	flow.settle()
+	check("and it does", in_zone("army", "drakk") ~= nil)
+	check("a third waits on tech III", not offers(in_zone("command", "jaina"), "summon"))
+
+	zane.stats.level = 6
+	actions.execute("activate_zone:mine.army:by_column:upkeep", {})
+	check("ripe is each hero's own level", zane.stats.ripe == 6 and drakk.stats.ripe == 1,
+		zane.stats.ripe .. " and " .. drakk.stats.ripe)
+
+	local jaina = in_zone("command", "jaina")
+	jaina.stats.hero_wait = 2
+	actions.execute("stat_damage:hero_wait@each.mine.command:1", {})
+	check("a hero's wait ticks where it waits", jaina.stats.hero_wait == 1, tostring(jaina.stats.hero_wait))
+	check("and holds it back meanwhile", not offers(jaina, "summon"))
 end
 
 return M

@@ -460,7 +460,7 @@
       "min": 0,
       "max": 9,
       "on": [
-        "player"
+        "hero"
       ],
       "start": 0,
       "display": "offscreen"
@@ -1340,6 +1340,11 @@
   },
   "computes": [
     {
+      "key": "hero_limit",
+      "value": "1 + count:t2@mine.tech + count:t3@mine.tech",
+      "tooltip": "How many heroes you may have in play: one, two with a tech II building, three with tech III."
+    },
+    {
       "key": "watching",
       "value": "count:detector@enemy.addon * (1 - sum:spotted@opponent)",
       "tooltip": "A detector that still has its one look left."
@@ -1554,8 +1559,14 @@
       "zone": "army",
       "grave": "command",
       "leaves": { "into": "command",
-        "action": ["stat_set:hero_wait@owner_of.self:2"] },
+        "action": ["stat_set:hero_wait@self:2"] },
       "abilities": [
+        {
+          "key": "upkeep",
+          "phases": [],
+          "text": "Max level at the start of the turn",
+          "action": ["stat_set:ripe@self:sum:level@self"]
+        },
         {
           "key": "attacks",
           "phases": [],
@@ -2829,7 +2840,7 @@
           0.35
         ]
       ],
-      "tooltip": "Your hero waits here to be summoned, and comes back here when it dies."
+      "tooltip": "Your three heroes wait here to be summoned, and each comes back here when it dies."
     },
     {
       "key": "deck",
@@ -3003,9 +3014,9 @@
       "key": "pick_hero",
       "type": "player_input",
       "zone": "hand",
-      "label": "Choose your hero",
+      "label": "Choose your colour",
       "actions": [
-        "options:pick_zane,pick_drakk,pick_jaina,pick_midori,pick_calamandra,pick_argagarg,pick_bigby,pick_onimaru,pick_sirus,pick_vandy,pick_orpal,pick_garth,pick_grave,pick_setsuki,pick_garus,pick_vir,pick_prynn,pick_maxg"
+        "options:pick_red,pick_green,pick_blue,pick_black,pick_white,pick_purple"
       ],
       "ends_when": "picked@mine.player >= 1"
     },
@@ -3032,13 +3043,12 @@
         "ready:mine.rousable",
         "stat_damage:disabled@each.mine.fighter:1",
         "stat_set:ready_since@each.mine.fighter:1",
-        "stat_set:ripe@each.mine.hero:max:level@mine.hero",
         "stat_set:spotted@opponent:0",
         "stat_set:spells@mine.player:0",
         "stat_set:rush@mine.player:0",
         "stat_set:hired@mine.player:1",
         "stat_set:teched@mine.player:2",
-        "stat_damage:hero_wait@mine.player:1",
+        "stat_damage:hero_wait@each.mine.command:1",
         "move:mine.site.tech_building:mine.tech",
         "move:mine.site.attachment:mine.addon",
         "stat_gain:gold@mine.player:sum:workers@mine.player",
@@ -6502,9 +6512,10 @@
           "cost": {
             "gold@mine.player": 2
           },
+          "compute": ["hero_limit"],
           "needs": [
-            "count:hero@mine.hero == 0",
-            "hero_wait@mine.player == 0"
+            "count:hero@mine.hero < hero_limit",
+            "hero_wait@self == 0"
           ],
           "action": [
             "reset:self",
@@ -6521,7 +6532,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 1"
           ],
           "action": [
@@ -6538,7 +6549,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 2"
           ],
           "action": [
@@ -6555,7 +6566,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 3"
           ],
           "action": [
@@ -6574,7 +6585,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 4"
           ],
           "action": [
@@ -6591,7 +6602,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 5"
           ],
           "action": [
@@ -6610,7 +6621,7 @@
             "exhaust": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self >= 6"
           ],
           "target": {
@@ -6675,9 +6686,10 @@
           "cost": {
             "gold@mine.player": 2
           },
+          "compute": ["hero_limit"],
           "needs": [
-            "count:hero@mine.hero == 0",
-            "hero_wait@mine.player == 0"
+            "count:hero@mine.hero < hero_limit",
+            "hero_wait@self == 0"
           ],
           "action": [
             "summon_hero"
@@ -6693,7 +6705,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 1"
           ],
           "action": [
@@ -6710,7 +6722,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 2"
           ],
           "action": [
@@ -6727,7 +6739,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 3"
           ],
           "action": [
@@ -6746,7 +6758,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 4"
           ],
           "action": [
@@ -6763,7 +6775,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 5"
           ],
           "action": [
@@ -6807,9 +6819,10 @@
           "cost": {
             "gold@mine.player": 2
           },
+          "compute": ["hero_limit"],
           "needs": [
-            "count:hero@mine.hero == 0",
-            "hero_wait@mine.player == 0"
+            "count:hero@mine.hero < hero_limit",
+            "hero_wait@self == 0"
           ],
           "action": [
             "summon_hero"
@@ -6825,7 +6838,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 1"
           ],
           "action": [
@@ -6842,7 +6855,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 2"
           ],
           "action": [
@@ -6859,7 +6872,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 3"
           ],
           "action": [
@@ -6878,7 +6891,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 4"
           ],
           "action": [
@@ -6895,7 +6908,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 5"
           ],
           "action": [
@@ -6912,7 +6925,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 6"
           ],
           "action": [
@@ -6931,7 +6944,7 @@
             "exhaust": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self >= 4",
             "level@self <= 6"
           ],
@@ -6959,7 +6972,7 @@
             "exhaust": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self >= 7"
           ],
           "target": {
@@ -7009,9 +7022,10 @@
           "cost": {
             "gold@mine.player": 2
           },
+          "compute": ["hero_limit"],
           "needs": [
-            "count:hero@mine.hero == 0",
-            "hero_wait@mine.player == 0"
+            "count:hero@mine.hero < hero_limit",
+            "hero_wait@self == 0"
           ],
           "action": [
             "summon_hero"
@@ -7027,7 +7041,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 1"
           ],
           "action": [
@@ -7044,7 +7058,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 2"
           ],
           "action": [
@@ -7061,7 +7075,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 3"
           ],
           "action": [
@@ -7078,7 +7092,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 4"
           ],
           "action": [
@@ -7097,7 +7111,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 5"
           ],
           "action": [
@@ -7114,7 +7128,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 6"
           ],
           "action": [
@@ -7131,7 +7145,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 7"
           ],
           "action": [
@@ -7175,9 +7189,10 @@
           "cost": {
             "gold@mine.player": 2
           },
+          "compute": ["hero_limit"],
           "needs": [
-            "count:hero@mine.hero == 0",
-            "hero_wait@mine.player == 0"
+            "count:hero@mine.hero < hero_limit",
+            "hero_wait@self == 0"
           ],
           "action": [
             "summon_hero"
@@ -7193,7 +7208,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 1"
           ],
           "action": [
@@ -7210,7 +7225,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 2"
           ],
           "action": [
@@ -7229,7 +7244,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 3"
           ],
           "action": [
@@ -7246,7 +7261,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 4"
           ],
           "action": [
@@ -7266,7 +7281,7 @@
             "exhaust": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self >= 5"
           ],
           "action": [
@@ -7315,9 +7330,10 @@
           "cost": {
             "gold@mine.player": 2
           },
+          "compute": ["hero_limit"],
           "needs": [
-            "count:hero@mine.hero == 0",
-            "hero_wait@mine.player == 0"
+            "count:hero@mine.hero < hero_limit",
+            "hero_wait@self == 0"
           ],
           "action": [
             "summon_hero",
@@ -7334,7 +7350,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 1"
           ],
           "action": [
@@ -7351,7 +7367,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 2"
           ],
           "action": [
@@ -7370,7 +7386,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 3"
           ],
           "action": [
@@ -7387,7 +7403,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 4"
           ],
           "action": [
@@ -7407,7 +7423,7 @@
             "exhaust": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self >= 3"
           ],
           "target": {
@@ -9106,9 +9122,10 @@
           "cost": {
             "gold@mine.player": 2
           },
+          "compute": ["hero_limit"],
           "needs": [
-            "count:hero@mine.hero == 0",
-            "hero_wait@mine.player == 0"
+            "count:hero@mine.hero < hero_limit",
+            "hero_wait@self == 0"
           ],
           "action": [
             "summon_hero"
@@ -9124,7 +9141,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 1"
           ],
           "action": [
@@ -9141,7 +9158,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 2"
           ],
           "action": [
@@ -9160,7 +9177,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 3"
           ],
           "action": [
@@ -9177,7 +9194,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 4"
           ],
           "action": [
@@ -9196,7 +9213,7 @@
             "exhaust": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self >= 3",
             "level@self <= 4"
           ],
@@ -9228,7 +9245,7 @@
             "exhaust": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self >= 5"
           ],
           "action": [
@@ -9270,9 +9287,10 @@
           "cost": {
             "gold@mine.player": 2
           },
+          "compute": ["hero_limit"],
           "needs": [
-            "count:hero@mine.hero == 0",
-            "hero_wait@mine.player == 0"
+            "count:hero@mine.hero < hero_limit",
+            "hero_wait@self == 0"
           ],
           "action": [
             "summon_hero"
@@ -9288,7 +9306,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 1"
           ],
           "action": [
@@ -9305,7 +9323,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 2"
           ],
           "action": [
@@ -9322,7 +9340,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 3"
           ],
           "action": [
@@ -9339,7 +9357,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 4"
           ],
           "action": [
@@ -9358,7 +9376,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 5"
           ],
           "action": [
@@ -9375,7 +9393,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 6"
           ],
           "action": [
@@ -9392,7 +9410,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 7"
           ],
           "action": [
@@ -9435,7 +9453,7 @@
             "exhaust": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self >= 8"
           ],
           "action": [
@@ -9476,9 +9494,10 @@
           "cost": {
             "gold@mine.player": 2
           },
+          "compute": ["hero_limit"],
           "needs": [
-            "count:hero@mine.hero == 0",
-            "hero_wait@mine.player == 0"
+            "count:hero@mine.hero < hero_limit",
+            "hero_wait@self == 0"
           ],
           "action": [
             "summon_hero",
@@ -9495,7 +9514,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 1"
           ],
           "action": [
@@ -9512,7 +9531,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 2"
           ],
           "action": [
@@ -9531,7 +9550,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 3"
           ],
           "action": [
@@ -9548,7 +9567,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 4"
           ],
           "action": [
@@ -9567,7 +9586,7 @@
             "gold@mine.player": 2
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "count:mirror@mine.army <= 1"
           ],
           "action": [
@@ -15921,9 +15940,10 @@
           "cost": {
             "gold@mine.player": 2
           },
+          "compute": ["hero_limit"],
           "needs": [
-            "count:hero@mine.hero == 0",
-            "hero_wait@mine.player == 0"
+            "count:hero@mine.hero < hero_limit",
+            "hero_wait@self == 0"
           ],
           "action": [
             "summon_hero"
@@ -15939,7 +15959,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 1"
           ],
           "action": [
@@ -15956,7 +15976,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 2"
           ],
           "action": [
@@ -15975,7 +15995,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 3"
           ],
           "action": [
@@ -15992,7 +16012,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 4"
           ],
           "action": [
@@ -16035,9 +16055,10 @@
           "cost": {
             "gold@mine.player": 2
           },
+          "compute": ["hero_limit"],
           "needs": [
-            "count:hero@mine.hero == 0",
-            "hero_wait@mine.player == 0"
+            "count:hero@mine.hero < hero_limit",
+            "hero_wait@self == 0"
           ],
           "action": [
             "summon_hero"
@@ -16053,7 +16074,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 1"
           ],
           "action": [
@@ -16070,7 +16091,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 2"
           ],
           "action": [
@@ -16087,7 +16108,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 3"
           ],
           "action": [
@@ -16106,7 +16127,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 4"
           ],
           "action": [
@@ -16123,7 +16144,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 5"
           ],
           "action": [
@@ -16179,9 +16200,10 @@
           "cost": {
             "gold@mine.player": 2
           },
+          "compute": ["hero_limit"],
           "needs": [
-            "count:hero@mine.hero == 0",
-            "hero_wait@mine.player == 0"
+            "count:hero@mine.hero < hero_limit",
+            "hero_wait@self == 0"
           ],
           "action": [
             "summon_hero"
@@ -16197,7 +16219,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 1"
           ],
           "action": [
@@ -16214,7 +16236,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 2"
           ],
           "action": [
@@ -16231,7 +16253,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 3"
           ],
           "action": [
@@ -16250,7 +16272,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 4"
           ],
           "action": [
@@ -16267,7 +16289,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 5"
           ],
           "action": [
@@ -16284,7 +16306,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 6"
           ],
           "action": [
@@ -16304,7 +16326,7 @@
             "exhaust": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self <= 3"
           ],
           "action": [
@@ -16321,7 +16343,7 @@
             "sacrifice:skeleton": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self >= 4"
           ],
           "action": [
@@ -16435,9 +16457,10 @@
           "cost": {
             "gold@mine.player": 2
           },
+          "compute": ["hero_limit"],
           "needs": [
-            "count:hero@mine.hero == 0",
-            "hero_wait@mine.player == 0"
+            "count:hero@mine.hero < hero_limit",
+            "hero_wait@self == 0"
           ],
           "action": [
             "summon_hero"
@@ -16453,7 +16476,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 1"
           ],
           "action": [
@@ -16470,7 +16493,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 2"
           ],
           "action": [
@@ -16489,7 +16512,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 3"
           ],
           "action": [
@@ -16506,7 +16529,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 4"
           ],
           "action": [
@@ -16523,7 +16546,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 5"
           ],
           "action": [
@@ -16540,7 +16563,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 6"
           ],
           "action": [
@@ -16584,7 +16607,7 @@
             "sword@self": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self >= 7"
           ],
           "target": {
@@ -16637,9 +16660,10 @@
           "cost": {
             "gold@mine.player": 2
           },
+          "compute": ["hero_limit"],
           "needs": [
-            "count:hero@mine.hero == 0",
-            "hero_wait@mine.player == 0"
+            "count:hero@mine.hero < hero_limit",
+            "hero_wait@self == 0"
           ],
           "action": [
             "summon_hero"
@@ -16655,7 +16679,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 1"
           ],
           "action": [
@@ -16672,7 +16696,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 2"
           ],
           "action": [
@@ -16689,7 +16713,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 3"
           ],
           "action": [
@@ -16708,7 +16732,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 4"
           ],
           "action": [
@@ -16725,7 +16749,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 5"
           ],
           "action": [
@@ -16780,9 +16804,10 @@
           "cost": {
             "gold@mine.player": 2
           },
+          "compute": ["hero_limit"],
           "needs": [
-            "count:hero@mine.hero == 0",
-            "hero_wait@mine.player == 0"
+            "count:hero@mine.hero < hero_limit",
+            "hero_wait@self == 0"
           ],
           "action": [
             "summon_hero"
@@ -16798,7 +16823,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 1"
           ],
           "action": [
@@ -16815,7 +16840,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 2"
           ],
           "action": [
@@ -16832,7 +16857,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 3"
           ],
           "action": [
@@ -16849,7 +16874,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 4"
           ],
           "action": [
@@ -16868,7 +16893,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 5"
           ],
           "action": [
@@ -16885,7 +16910,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 6"
           ],
           "action": [
@@ -16902,7 +16927,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 7"
           ],
           "action": [
@@ -16945,9 +16970,10 @@
           "cost": {
             "gold@mine.player": 2
           },
+          "compute": ["hero_limit"],
           "needs": [
-            "count:hero@mine.hero == 0",
-            "hero_wait@mine.player == 0"
+            "count:hero@mine.hero < hero_limit",
+            "hero_wait@self == 0"
           ],
           "action": [
             "summon_hero"
@@ -16963,7 +16989,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 1"
           ],
           "action": [
@@ -16980,7 +17006,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 2"
           ],
           "action": [
@@ -16997,7 +17023,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 3"
           ],
           "action": [
@@ -17014,7 +17040,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 4"
           ],
           "action": [
@@ -17033,7 +17059,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 5"
           ],
           "action": [
@@ -17050,7 +17076,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 6"
           ],
           "action": [
@@ -17069,7 +17095,7 @@
             "exhaust": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self >= 7"
           ],
           "action": [
@@ -17112,9 +17138,10 @@
           "cost": {
             "gold@mine.player": 2
           },
+          "compute": ["hero_limit"],
           "needs": [
-            "count:hero@mine.hero == 0",
-            "hero_wait@mine.player == 0"
+            "count:hero@mine.hero < hero_limit",
+            "hero_wait@self == 0"
           ],
           "action": [
             "summon_hero",
@@ -17131,7 +17158,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 1"
           ],
           "action": [
@@ -17148,7 +17175,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 2"
           ],
           "action": [
@@ -17165,7 +17192,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 3"
           ],
           "action": [
@@ -17184,7 +17211,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 4"
           ],
           "action": [
@@ -17201,7 +17228,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 5"
           ],
           "action": [
@@ -17218,7 +17245,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 6"
           ],
           "action": [
@@ -17273,9 +17300,10 @@
           "cost": {
             "gold@mine.player": 2
           },
+          "compute": ["hero_limit"],
           "needs": [
-            "count:hero@mine.hero == 0",
-            "hero_wait@mine.player == 0"
+            "count:hero@mine.hero < hero_limit",
+            "hero_wait@self == 0"
           ],
           "action": [
             "summon_hero"
@@ -17291,7 +17319,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 1"
           ],
           "action": [
@@ -17308,7 +17336,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 2"
           ],
           "action": [
@@ -17327,7 +17355,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 3"
           ],
           "action": [
@@ -17344,7 +17372,7 @@
             "xp@mine.player": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self == 4"
           ],
           "action": [
@@ -17363,7 +17391,7 @@
             "exhaust": 1
           },
           "needs": [
-            "count:hero@mine.hero >= 1",
+            "not_self@mine.command",
             "level@self >= 3"
           ],
           "action": [
@@ -17374,13 +17402,11 @@
       ]
     },
     {
-      "key": "pick_zane",
-      "text": "Captain Zane — Anarchy",
-      "tags": [
-        "immutable"
-      ],
+      "key": "pick_red",
+      "text": "Red — Anarchy, Blood, Fire",
+      "tags": ["immutable"],
       "asset": "star:5:crimson",
-      "tooltip": "Red. Wild, fast and destructive: haste, stolen units, and a gunship.",
+      "tooltip": "Captain Zane — Wild, fast and destructive: haste, stolen units, and a gunship. Drakk Ramhorn — Ogres, contraptions and a pirate gang: throw bodies at the problem. Jaina Stormborne — Burn: reach past the patrol zone and finish with a dragon.",
       "play": {
         "action": [
           "create:mine.deck:nautical_dog:1",
@@ -17406,30 +17432,6 @@
           "create:mine.codex:surprise_attack:2",
           "create:mine.codex:maximum_anarchy:2",
           "create:mine.command:zane:1",
-          "stat_gain:picked@mine.player:1"
-        ]
-      }
-    },
-    {
-      "key": "pick_drakk",
-      "text": "Drakk Ramhorn — Blood",
-      "tags": [
-        "immutable"
-      ],
-      "asset": "star:6:maroon",
-      "tooltip": "Red. Ogres, contraptions and a pirate gang: throw bodies at the problem.",
-      "play": {
-        "action": [
-          "create:mine.deck:nautical_dog:1",
-          "create:mine.deck:mad_man:1",
-          "create:mine.deck:bombaster:1",
-          "create:mine.deck:careless_musketeer:1",
-          "create:mine.deck:bloodrage_ogre:1",
-          "create:mine.deck:makeshift_rambaster:1",
-          "create:mine.deck:bloodburn:1",
-          "create:mine.deck:scorch:1",
-          "create:mine.deck:charge:1",
-          "create:mine.deck:pillage:1",
           "create:mine.codex:crash_bomber:2",
           "create:mine.codex:rickety_mine:2",
           "create:mine.codex:captured_bugblatter:2",
@@ -17443,30 +17445,6 @@
           "create:mine.codex:kidnapping:2",
           "create:mine.codex:war_drums:2",
           "create:mine.command:drakk:1",
-          "stat_gain:picked@mine.player:1"
-        ]
-      }
-    },
-    {
-      "key": "pick_jaina",
-      "text": "Jaina Stormborne — Fire",
-      "tags": [
-        "immutable"
-      ],
-      "asset": "star:7:orange",
-      "tooltip": "Red. Burn: reach past the patrol zone and finish with a dragon.",
-      "play": {
-        "action": [
-          "create:mine.deck:nautical_dog:1",
-          "create:mine.deck:mad_man:1",
-          "create:mine.deck:bombaster:1",
-          "create:mine.deck:careless_musketeer:1",
-          "create:mine.deck:bloodrage_ogre:1",
-          "create:mine.deck:makeshift_rambaster:1",
-          "create:mine.deck:bloodburn:1",
-          "create:mine.deck:scorch:1",
-          "create:mine.deck:charge:1",
-          "create:mine.deck:pillage:1",
           "create:mine.codex:firebat:2",
           "create:mine.codex:lobber:2",
           "create:mine.codex:bamstamper_lizzo:2",
@@ -17485,13 +17463,11 @@
       }
     },
     {
-      "key": "pick_midori",
-      "text": "Master Midori — Balance",
-      "tags": [
-        "immutable"
-      ],
+      "key": "pick_green",
+      "text": "Green — Balance, Feral, Growth",
+      "tags": ["immutable"],
       "asset": "star:4:forest",
-      "tooltip": "Green. Odd shapes and a tyrannosaur: answers for everything.",
+      "tooltip": "Master Midori — Odd shapes and a tyrannosaur: answers for everything. Calamandra Moss — Big animals, and tigers that arrive out of the codex. Argagarg Garg — Runes, tokens and steady growth into an enormous ancient.",
       "play": {
         "action": [
           "create:mine.deck:ironbark_treant:1",
@@ -17517,30 +17493,6 @@
           "create:mine.codex:nature_reclaims:2",
           "create:mine.codex:final_showdown:2",
           "create:mine.command:midori:1",
-          "stat_gain:picked@mine.player:1"
-        ]
-      }
-    },
-    {
-      "key": "pick_calamandra",
-      "text": "Calamandra Moss — Feral",
-      "tags": [
-        "immutable"
-      ],
-      "asset": "star:5:olive",
-      "tooltip": "Green. Big animals, and tigers that arrive out of the codex.",
-      "play": {
-        "action": [
-          "create:mine.deck:ironbark_treant:1",
-          "create:mine.deck:merfolk_prospector:1",
-          "create:mine.deck:playful_panda:1",
-          "create:mine.deck:rich_earth:1",
-          "create:mine.deck:spore_shambler:1",
-          "create:mine.deck:tiger_cub:1",
-          "create:mine.deck:verdant_tree:1",
-          "create:mine.deck:young_treant:1",
-          "create:mine.deck:forests_favor:1",
-          "create:mine.deck:rampant_growth:1",
           "create:mine.codex:centaur:2",
           "create:mine.codex:huntress:2",
           "create:mine.codex:barkcoat_bear:2",
@@ -17554,30 +17506,6 @@
           "create:mine.codex:murkwood_allies:2",
           "create:mine.codex:feral_strike:2",
           "create:mine.command:calamandra:1",
-          "stat_gain:picked@mine.player:1"
-        ]
-      }
-    },
-    {
-      "key": "pick_argagarg",
-      "text": "Argagarg Garg — Growth",
-      "tags": [
-        "immutable"
-      ],
-      "asset": "star:8:teal",
-      "tooltip": "Green. Runes, tokens and steady growth into an enormous ancient.",
-      "play": {
-        "action": [
-          "create:mine.deck:ironbark_treant:1",
-          "create:mine.deck:merfolk_prospector:1",
-          "create:mine.deck:playful_panda:1",
-          "create:mine.deck:rich_earth:1",
-          "create:mine.deck:spore_shambler:1",
-          "create:mine.deck:tiger_cub:1",
-          "create:mine.deck:verdant_tree:1",
-          "create:mine.deck:young_treant:1",
-          "create:mine.deck:forests_favor:1",
-          "create:mine.deck:rampant_growth:1",
           "create:mine.codex:galina_glimmer:2",
           "create:mine.codex:giant_panda:2",
           "create:mine.codex:artisan_mantis:2",
@@ -21321,13 +21249,11 @@
       }
     },
     {
-      "key": "pick_bigby",
-      "text": "Bigby Hayes — Law",
-      "tags": [
-        "immutable"
-      ],
+      "key": "pick_blue",
+      "text": "Blue — Law, Peace, Truth",
+      "tags": ["immutable"],
       "asset": "star:5:blue",
-      "tooltip": "Blue. Order: tax, arrest, and a gryphon that ends it.",
+      "tooltip": "Bigby Hayes — Order: tax, arrest, and a gryphon that ends it. General Onimaru — An army that grows every time you play a unit. Sirus Quince — Illusions: cheap, huge, and gone the moment they are pointed at.",
       "play": {
         "action": [
           "create:mine.deck:bluecoat_musketeer:1",
@@ -21353,30 +21279,6 @@
           "create:mine.codex:jurisdiction:2",
           "create:mine.codex:judgment_day:2",
           "create:mine.command:bigby:1",
-          "stat_gain:picked@mine.player:1"
-        ]
-      }
-    },
-    {
-      "key": "pick_onimaru",
-      "text": "General Onimaru — Peace",
-      "tags": [
-        "immutable"
-      ],
-      "asset": "star:8:blue",
-      "tooltip": "Blue. An army that grows every time you play a unit.",
-      "play": {
-        "action": [
-          "create:mine.deck:bluecoat_musketeer:1",
-          "create:mine.deck:building_inspector:1",
-          "create:mine.deck:jail:1",
-          "create:mine.deck:porkhand_magistrate:1",
-          "create:mine.deck:reputable_newsman:1",
-          "create:mine.deck:spectral_aven:1",
-          "create:mine.deck:traffic_director:1",
-          "create:mine.deck:arrest:1",
-          "create:mine.deck:lawful_search:1",
-          "create:mine.deck:manufactured_truth:1",
           "create:mine.codex:overeager_cadet:2",
           "create:mine.codex:brave_knight:2",
           "create:mine.codex:air_hammer:2",
@@ -21390,30 +21292,6 @@
           "create:mine.codex:generals_hammer:2",
           "create:mine.codex:the_art_of_war:2",
           "create:mine.command:onimaru:1",
-          "stat_gain:picked@mine.player:1"
-        ]
-      }
-    },
-    {
-      "key": "pick_sirus",
-      "text": "Sirus Quince — Truth",
-      "tags": [
-        "immutable"
-      ],
-      "asset": "star:5:blue",
-      "tooltip": "Blue. Illusions: cheap, huge, and gone the moment they are pointed at.",
-      "play": {
-        "action": [
-          "create:mine.deck:bluecoat_musketeer:1",
-          "create:mine.deck:building_inspector:1",
-          "create:mine.deck:jail:1",
-          "create:mine.deck:porkhand_magistrate:1",
-          "create:mine.deck:reputable_newsman:1",
-          "create:mine.deck:spectral_aven:1",
-          "create:mine.deck:traffic_director:1",
-          "create:mine.deck:arrest:1",
-          "create:mine.deck:lawful_search:1",
-          "create:mine.deck:manufactured_truth:1",
           "create:mine.codex:spectral_flagbearer:2",
           "create:mine.codex:spectral_hound:2",
           "create:mine.codex:eyes_of_the_chancellor:2",
@@ -21505,13 +21383,11 @@
       ]
     },
     {
-      "key": "pick_vandy",
-      "text": "Vandy Anadrose — Demonology",
-      "tags": [
-        "immutable"
-      ],
+      "key": "pick_black",
+      "text": "Black — Demonology, Disease, Necromancy",
+      "tags": ["immutable"],
       "asset": "star:5:indigo",
-      "tooltip": "Black. Demons, sacrifices, and a 15/15 at the end of it.",
+      "tooltip": "Vandy Anadrose — Demons, sacrifices, and a 15/15 at the end of it. Orpal Gloor — Everything they own gets a little smaller, and then it dies. Garth Torken — Skeletons, and more of them every time something dies.",
       "play": {
         "action": [
           "create:mine.deck:graveyard:1",
@@ -21537,30 +21413,6 @@
           "create:mine.codex:shadow_blade:2",
           "create:mine.codex:soul_stone:2",
           "create:mine.command:vandy:1",
-          "stat_gain:picked@mine.player:1"
-        ]
-      }
-    },
-    {
-      "key": "pick_orpal",
-      "text": "Orpal Gloor — Disease",
-      "tags": [
-        "immutable"
-      ],
-      "asset": "star:6:indigo",
-      "tooltip": "Black. Everything they own gets a little smaller, and then it dies.",
-      "play": {
-        "action": [
-          "create:mine.deck:graveyard:1",
-          "create:mine.deck:jandra_the_negator:1",
-          "create:mine.deck:pestering_haunt:1",
-          "create:mine.deck:poisonblade_rogue:1",
-          "create:mine.deck:skeletal_archery:1",
-          "create:mine.deck:skeleton_javelineer:1",
-          "create:mine.deck:thieving_imp:1",
-          "create:mine.deck:deteriorate:1",
-          "create:mine.deck:sacrifice_the_weak:1",
-          "create:mine.deck:summon_skeletons:1",
           "create:mine.codex:crypt_crawler:2",
           "create:mine.codex:plague_spitter:2",
           "create:mine.codex:abomination:2",
@@ -21574,30 +21426,6 @@
           "create:mine.codex:sickness:2",
           "create:mine.codex:spreading_plague:2",
           "create:mine.command:orpal:1",
-          "stat_gain:picked@mine.player:1"
-        ]
-      }
-    },
-    {
-      "key": "pick_garth",
-      "text": "Garth Torken — Necromancy",
-      "tags": [
-        "immutable"
-      ],
-      "asset": "star:7:indigo",
-      "tooltip": "Black. Skeletons, and more of them every time something dies.",
-      "play": {
-        "action": [
-          "create:mine.deck:graveyard:1",
-          "create:mine.deck:jandra_the_negator:1",
-          "create:mine.deck:pestering_haunt:1",
-          "create:mine.deck:poisonblade_rogue:1",
-          "create:mine.deck:skeletal_archery:1",
-          "create:mine.deck:skeleton_javelineer:1",
-          "create:mine.deck:thieving_imp:1",
-          "create:mine.deck:deteriorate:1",
-          "create:mine.deck:sacrifice_the_weak:1",
-          "create:mine.deck:summon_skeletons:1",
           "create:mine.codex:bone_collector:2",
           "create:mine.codex:hooded_executioner:2",
           "create:mine.codex:blackhand_resurrector:2",
@@ -21616,13 +21444,11 @@
       }
     },
     {
-      "key": "pick_grave",
-      "text": "Grave Stormborne — Discipline",
-      "tags": [
-        "immutable"
-      ],
+      "key": "pick_white",
+      "text": "White — Discipline, Ninjutsu, Strength",
+      "tags": ["immutable"],
       "asset": "star:7:ash",
-      "tooltip": "White. Runes, readiness, and a monument at the end of it.",
+      "tooltip": "Grave Stormborne — Runes, readiness, and a monument at the end of it. Setsuki Hiruki — Small, quick, and hard to point at. Garus Rook — Big things, and a pass nobody gets through.",
       "play": {
         "action": [
           "create:mine.deck:aged_sensei:1",
@@ -21648,30 +21474,6 @@
           "create:mine.codex:true_power_of_storms:2",
           "create:mine.codex:versatile_style:2",
           "create:mine.command:grave:1",
-          "stat_gain:picked@mine.player:1"
-        ]
-      }
-    },
-    {
-      "key": "pick_setsuki",
-      "text": "Setsuki Hiruki — Ninjutsu",
-      "tags": [
-        "immutable"
-      ],
-      "asset": "star:6:ash",
-      "tooltip": "White. Small, quick, and hard to point at.",
-      "play": {
-        "action": [
-          "create:mine.deck:aged_sensei:1",
-          "create:mine.deck:fox_primus:1",
-          "create:mine.deck:fox_viper:1",
-          "create:mine.deck:morningstar_flagbearer:1",
-          "create:mine.deck:safe_attacking:1",
-          "create:mine.deck:savior_monk:1",
-          "create:mine.deck:smoker:1",
-          "create:mine.deck:grappling_hook:1",
-          "create:mine.deck:senseis_advice:1",
-          "create:mine.deck:snapback:1",
           "create:mine.codex:fuzz_cuddles:2",
           "create:mine.codex:inverse_power_ninja:2",
           "create:mine.codex:flying_fox:2",
@@ -21685,30 +21487,6 @@
           "create:mine.codex:shuriken_hail:2",
           "create:mine.codex:speed_of_the_fox:2",
           "create:mine.command:setsuki:1",
-          "stat_gain:picked@mine.player:1"
-        ]
-      }
-    },
-    {
-      "key": "pick_garus",
-      "text": "Garus Rook — Strength",
-      "tags": [
-        "immutable"
-      ],
-      "asset": "star:8:ash",
-      "tooltip": "White. Big things, and a pass nobody gets through.",
-      "play": {
-        "action": [
-          "create:mine.deck:aged_sensei:1",
-          "create:mine.deck:fox_primus:1",
-          "create:mine.deck:fox_viper:1",
-          "create:mine.deck:morningstar_flagbearer:1",
-          "create:mine.deck:safe_attacking:1",
-          "create:mine.deck:savior_monk:1",
-          "create:mine.deck:smoker:1",
-          "create:mine.deck:grappling_hook:1",
-          "create:mine.deck:senseis_advice:1",
-          "create:mine.deck:snapback:1",
           "create:mine.codex:ardras_boulder:2",
           "create:mine.codex:mythmaking:2",
           "create:mine.codex:colossus:2",
@@ -21829,13 +21607,11 @@
       }
     },
     {
-      "key": "pick_vir",
-      "text": "Vir Garbarean — Future",
-      "tags": [
-        "immutable"
-      ],
+      "key": "pick_purple",
+      "text": "Purple — Future, Past, Present",
+      "tags": ["immutable"],
       "asset": "star:7:violet",
-      "tooltip": "Purple. Cards played into the future that arrive when their clock runs out.",
+      "tooltip": "Vir Garbarean — Cards played into the future that arrive when their clock runs out. Prynn Pasternaak — Everything is on a clock, yours and theirs. Max Geiger — Readiness, draws, and an 8/8 that spends a fortune.",
       "play": {
         "action": [
           "create:mine.deck:battle_suits:1",
@@ -21861,30 +21637,6 @@
           "create:mine.codex:promise_of_payment:2",
           "create:mine.codex:unphase:2",
           "create:mine.command:vir:1",
-          "stat_gain:picked@mine.player:1"
-        ]
-      }
-    },
-    {
-      "key": "pick_prynn",
-      "text": "Prynn Pasternaak — Past",
-      "tags": [
-        "immutable"
-      ],
-      "asset": "star:7:violet",
-      "tooltip": "Purple. Everything is on a clock, yours and theirs.",
-      "play": {
-        "action": [
-          "create:mine.deck:battle_suits:1",
-          "create:mine.deck:fading_argonaut:1",
-          "create:mine.deck:hardened_mox:1",
-          "create:mine.deck:neo_plexus:1",
-          "create:mine.deck:nullcraft:1",
-          "create:mine.deck:plasmodium:1",
-          "create:mine.deck:tinkerer:1",
-          "create:mine.deck:forgotten_fighter:1",
-          "create:mine.deck:temporal_research:1",
-          "create:mine.deck:time_spiral:1",
           "create:mine.codex:seer:2",
           "create:mine.codex:stewardess_of_the_undone:2",
           "create:mine.codex:rememberer:2",
@@ -21898,30 +21650,6 @@
           "create:mine.codex:undo:2",
           "create:mine.codex:vortoss_emblem:2",
           "create:mine.command:prynn:1",
-          "stat_gain:picked@mine.player:1"
-        ]
-      }
-    },
-    {
-      "key": "pick_maxg",
-      "text": "Max Geiger — Present",
-      "tags": [
-        "immutable"
-      ],
-      "asset": "star:5:violet",
-      "tooltip": "Purple. Readiness, draws, and an 8/8 that spends a fortune.",
-      "play": {
-        "action": [
-          "create:mine.deck:battle_suits:1",
-          "create:mine.deck:fading_argonaut:1",
-          "create:mine.deck:hardened_mox:1",
-          "create:mine.deck:neo_plexus:1",
-          "create:mine.deck:nullcraft:1",
-          "create:mine.deck:plasmodium:1",
-          "create:mine.deck:tinkerer:1",
-          "create:mine.deck:forgotten_fighter:1",
-          "create:mine.deck:temporal_research:1",
-          "create:mine.deck:time_spiral:1",
           "create:mine.codex:argonaut:2",
           "create:mine.codex:sentry:2",
           "create:mine.codex:chronofixer:2",
