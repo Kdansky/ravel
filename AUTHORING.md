@@ -5066,6 +5066,18 @@ piece is a card keyed `w_rook_h` *and* a tag of the same name, which is how one
 piece is named by another's condition. A style sharing its name with a computed
 tag is what makes a look follow the numbers. Neither is a mistake.
 
+**A name has no capitals.** Every key — a card, a zone, a stat, a phase, a verb,
+a tag written on a card, an ability — is lowercase, and the validator refuses one
+that is not. `Burn` and `burn` are two words to the engine and one to a reader, so
+with no capitals anywhere a name is declared, a capital in a reference is always
+the typo, and it is named:
+
+```
+'stat_damage' names the stat 'HP', which the game does not declare — names are lowercase: 'hp'
+```
+
+Text a player reads — `text`, `tooltip`, `label` — is not a name and keeps its case.
+
 **One namespace is real, and it is what a *scope* resolves.** `@board` is asked
 of patterns first, then zones, then tags, so two of those kinds sharing a name
 means a condition silently picks one. The validator refuses that rather than

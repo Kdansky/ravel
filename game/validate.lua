@@ -418,6 +418,8 @@ end
 -- " — did you mean 'X'?" when something in the set is close enough, else "".
 local function suggest(name, set)
 	name = tostring(name):lower()
+	-- Keys have no capitals, so a name that is one once lowered is certainly the typo, and says so rather than guessing.
+	if name ~= "" and (set or {})[name] ~= nil then return " — names are lowercase: '" .. name .. "'" end
 	local best, bd = nil, math.max(1, math.floor(#name / 3)) + 1
 	for k in pairs(set or {}) do
 		local d = distance(name, tostring(k):lower())
@@ -468,6 +470,23 @@ function M.check(G)
 	end
 	for _, cd in pairs(G.card_defs) do note_abilities(cd.abilities) end
 	for _, td in pairs(tag_defs) do note_abilities(td.abilities) end
+
+	-- **A key has no capitals.** `Burn` and `burn` are two words to the engine and one to anybody reading, so a name
+	-- differing from its reference only in case is the typo nobody sees. Refused where it is declared, a capital in a
+	-- reference is always the mistake, and `suggest` names the key it meant.
+	local NAMED = { card = G.card_defs, zone = G.zone_defs, stat = G.stat_defs, phase = G.phase_by_key,
+		compute = G.compute_defs, verb = G.verb_defs, tag = tag_defs, style = G.style_defs, pattern = G.pattern_defs,
+		effect = G.effect_defs, asset = G.asset_defs, ["computed tag"] = G.computed_tags, ability = ability_keys }
+	for t in pairs(card_tags) do
+		if not tag_defs[t] then NAMED["card tag"] = NAMED["card tag"] or {}; NAMED["card tag"][t] = true end
+	end
+	for kind, set in pairs(NAMED) do
+		for k in pairs(set or {}) do
+			if type(k) == "string" and k:find("%u") then
+				warn("%s '%s': a key has no capitals — write '%s'", kind, k, k:lower())
+			end
+		end
+	end
 
 	-- **Readiness is nobody's tag and nobody's stat.** It has its own two words in
 	-- the condition vocabulary — "exhausted@" and "ready@" — so the name may not

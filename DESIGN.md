@@ -104,6 +104,12 @@ from `game/*.lua` is a defect in the format rather than a thing to document
 harder. Consistency is most of it — one question gets one spelling, everywhere
 it is asked.
 
+**A name is lowercase.** Every key a file declares is refused with a capital in it,
+and a reference that differs from a key only in case is named as the typo. Folding
+case at load was considered and refused: it makes `Burn` and `burn` two working
+spellings of one word, and it would have to know which argument of an action is a
+name and which is text a player reads.
+
 **A number is never positional.** `card_stats` used to take a list — `[current,
 max]`, or `[min, current, max]` — where the middle is the value and the middle
 of two is the first. That is a rule a reader has to be taught and cannot check,

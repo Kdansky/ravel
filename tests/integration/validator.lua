@@ -918,6 +918,13 @@ local CASES = {
 		function(g) g.verb_defs.burn = { key = "burn", action = { "stat_damage:param1@self:1" } }
 			g.verb_list = { "burn" }
 			g.card_defs.c_flee.on_play = { "burn:gold" } end },
+	-- names are lowercase
+	{ "a key declared with a capital", "stat 'Gold': a key has no capitals — write 'gold'",
+		function(g) g.stat_defs.Gold = { key = "Gold", min = 0 } end },
+	{ "a tag written on a card with a capital", "card tag 'Shiny': a key has no capitals",
+		function(g) g.card_defs.pearl.tags = { "Shiny" } end },
+	{ "a reference differing from its key only in case", "names are lowercase: 'hp'",
+		function(g) g.card_defs.c_flee.on_play = { "stat_damage:HP@self:1" } end },
 }
 
 -- The verb check runs last for a reason: what a game emits is only known once
