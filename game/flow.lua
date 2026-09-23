@@ -533,6 +533,8 @@ function M.settle()
 			if not ok then
 				print("load_game failed for '" .. tostring(fname) .. "': " .. tostring(err))
 				if fname ~= "menu.json" then pcall(M.init, "menu.json") end
+				-- After the menu has cleared the log, or the player lands on it with no idea why.
+				log.add("! " .. tostring(fname) .. " would not load: " .. tostring(err))
 			end
 			return
 		end

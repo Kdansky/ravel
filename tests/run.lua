@@ -1153,6 +1153,8 @@ check("path-traversal load_game is refused and the game keeps running",
 eval("load_game:this_game_does_not_exist.json")
 check("a load_game to a missing file recovers to the menu, not a crash",
 	declaration.G.title == "Ravel")
+check("and the menu says why, since the console is not where a player looks",
+	table.concat(log.tail(5), "\n"):find("this_game_does_not_exist.json would not load", 1, true) ~= nil)
 
 -- A pathologically deep JSON payload can blow the parser's (recursive
 -- descent) C stack. pcall catches that cleanly, and the load_game path
