@@ -73,10 +73,10 @@ SHARD = lambda n: "stat_gain:shards@mine.player:%d" % n
 # rest and no more.
 SOAK  = ["wound:health@mine.player:amount", "stat_damage:guard@mine.traps:amount"]
 
-# Initiative is one tracker, so taking it is two writes and there is no way to
-# say it as one. Both spellings exist because both directions appear on cards.
-GAIN_INIT = ["stat_set:initiative@mine.player:1", "stat_set:initiative@opponent:0"]
-LOSE_INIT = ["stat_set:initiative@mine.player:0", "stat_set:initiative@opponent:1"]
+# Initiative is one tracker, so taking it is two writes, said once each in VERBS.
+# Both directions exist because both appear on cards.
+GAIN_INIT = ["take_initiative"]
+LOSE_INIT = ["lose_initiative"]
 
 HAS_INIT = "initiative@mine.player >= 1"
 NO_INIT  = "initiative@mine.player <= 0"
@@ -154,10 +154,31 @@ REFILL_CLOUD = "draw_from:spellstorm_deck:storm_cloud:1"
 # sweep (Falling Star) stack two steps, and each hands itself to the next player
 # owed, Initiative first.
 GAIN_KINDS = {"fire": 1, "water": 2, "earth": 3, "tier": 4, "discard": 5, "coffee": 6, "must": 7}
-GAIN = lambda kind="tier": ["activate_zone:rules:by_column:gain_" + kind]
+GAIN = lambda kind="tier": ["gain_" + kind]
 # What a take or a pass does after its own part: one fewer owed, the button gone,
 # and the step closed so whatever it interrupted goes on.
 GAIN_DONE = ["stat_damage:gain_owed@mine.player:1", "purge:menu.no_gain", "pop_phase"]
+
+# The game's own actions, each written once. A gain is owed and the gaining step
+# opened, the kind saying what may be taken and where it goes.
+VERBS = [
+    {"key": "take_initiative", "tooltip": "You take the Initiative from your opponent.",
+     "action": ["stat_set:initiative@mine.player:1", "stat_set:initiative@opponent:0"]},
+    {"key": "lose_initiative", "tooltip": "Your opponent takes the Initiative from you.",
+     "action": ["stat_set:initiative@mine.player:0", "stat_set:initiative@opponent:1"]},
+    # The page has already popped, so the potion is lying in the reveal zone
+    # while this runs and that is the zone its own steps are reached through. A
+    # step the potion does not carry -- a second effect, Gasoline's second
+    # helping -- finds nothing to run.
+    {"key": "drink", "tooltip": "Drink this potion: its effect, again if the last potion was Gasoline, then the TOXIC check.",
+     "action": ["activate_zone:reveal:by_column:sip", "activate_zone:reveal:by_column:sip2",
+                "activate_zone:reveal:by_column:again", "activate_zone:reveal:by_column:again2",
+                "activate_zone:rules:by_column:potion_toxic", "move_to:potion_discard"]},
+] + [{"key": GAIN(kind)[0], "tooltip": "Gain a card from the Storm Cloud%s." % where,
+      "action": ["stat_gain:gain_owed@mine.player:1", "stat_set:gain_kind@mine.player:%d" % n, "push_phase:gaining"]}
+     for (kind, n), where in zip(GAIN_KINDS.items(), [
+         ": a Fire card at Tier I or II", ": a Water card at Tier I or II", ": an Earth card at Tier I or II",
+         " at your Tier, into your hand", " at your Tier, into your discard", " for Coffee Run", " at your Tier - you must take one"])]
 # The rules a step runs as it opens, and the ones a take runs, in order: r_gain's.
 GAIN_STEP = ["gain_seat_init", "gain_seat", "gain_may", "gain_none"]
 GAINED = ["gained_coffee", "gained_hand", "gained_discard", "gained_took", "gained_done"]
@@ -1281,7 +1302,7 @@ def spell_template(c):
     # answer arrives. The asks therefore go at the end -- and there may be more
     # than one now, since the offer queue holds the second question until the
     # first is answered. What is not allowed is doing something in between.
-    is_ask = lambda a: a.startswith(("show:", "options:", "activate_zone:rules:by_column:gain_"))
+    is_ask = lambda a: a.startswith(("show:", "options:") + tuple(GAIN(k)[0] for k in GAIN_KINDS))
     asks = [a for a in c["cast"] if is_ask(a)]
     does = [a for a in c["cast"] if a not in asks]
     for col in ("cast", "cast2", "cast3"):
@@ -1618,10 +1639,7 @@ def rules_templates():
     out.append(rules_card(
         "r_gain", "Gaining",
         "Whoever is owed a gain from the Storm Cloud chooses it, the player with Initiative first. With nothing on the shelf they may take, the gain passes.",
-        [ability("gain_" + kind, ["stat_gain:gain_owed@mine.player:1",
-                                  "stat_set:gain_kind@mine.player:%d" % n, "push_phase:gaining"])
-         for kind, n in GAIN_KINDS.items()]
-        + [ability("gain_seat_init", ["set_priority:owes_init"], when=["count:owes_init >= 1"]),
+        [ability("gain_seat_init", ["set_priority:owes_init"], when=["count:owes_init >= 1"]),
          ability("gain_seat", ["set_priority:owes_gain"], when=["count:owes_init <= 0"]),
          ability("gain_may", ["create:menu:btn_no_gain:1"], when=["gain_kind@mine.player != %d" % GAIN_KINDS["must"]]),
          ability("gain_none", GAIN_DONE, when=["count:takeable_now@storm_cloud <= 0"]),
@@ -1702,15 +1720,7 @@ def potion_templates():
         # Counted on the draw rather than on the sip: a third TOXIC ends the
         # Ultimate whether or not the beaker could pay for it.
         play = ["stat_gain:toxic@mine.player:1"] if toxic else []
-        # The page has already popped, so the potion is lying in the reveal zone
-        # while this runs and that is the zone its own steps are reached through.
-        play += ["activate_zone:reveal:by_column:sip"]
-        if other: play.append("activate_zone:reveal:by_column:sip2")
-        if key != "pot_gasoline":
-            play.append("activate_zone:reveal:by_column:again")
-            if other: play.append("activate_zone:reveal:by_column:again2")
-        play += ["activate_zone:rules:by_column:potion_toxic", "move_to:potion_discard"]
-        t["play"] = {"action": play}
+        t["play"] = {"action": play + ["drink"]}
 
         pay = ["stat_damage:%s_el@mine.player:%d" % (el, cost)]
         afford = "%s_el@mine.player >= %d" % (el, cost)
@@ -2336,7 +2346,7 @@ def build():
         # ask a question. `%` binds as `*` does, so this is (health % 2) * 2.
         "computes": [{"key": "yardstick_mana", "value": "health@mine.player % 2 * 2",
                       "tooltip": "Two mana at an odd number of health, none at an even one."}],
-        "verbs": [{"key": "heal", "does": "stat_gain",
+        "verbs": VERBS + [{"key": "heal", "does": "stat_gain",
                    "tooltip": "Healing. Named as a moment of its own so that a rule can answer it - the engine's own stat_gain is unwatchable on purpose."},
                   # The look is on the verb, so every card that deals a blow throws one.
                   {"key": "hit", "does": "stat_damage", "effect": "blast",
