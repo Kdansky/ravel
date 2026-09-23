@@ -272,6 +272,16 @@
   ],
   "verbs": [
     {
+      "key": "give_junk",
+      "tooltip": "Give your opponent a junk card of this kind, or the penalty if the pile is empty.",
+      "action": ["copy:dry_give.param1:activate", "move:junk_pile.param1:enemy.discard:1"]
+    },
+    {
+      "key": "gain_junk",
+      "tooltip": "Gain a junk card of this kind, or the penalty if the pile is empty.",
+      "action": ["copy:dry_take.param1:activate", "move:junk_pile.param1:mine.discard:1"]
+    },
+    {
       "key": "take_initiative",
       "tooltip": "You take the Initiative from your opponent.",
       "action": ["stat_set:initiative@mine.player:1", "stat_set:initiative@opponent:0"]
@@ -457,10 +467,7 @@
           "verb": "heal",
           "stat": "health",
           "covers": "mine.player",
-          "instead": [
-            "activate_zone:rules:by_column:dry_give_curse",
-            "draw_from:curse_pile:enemy.discard:1"
-          ]
+          "instead": ["give_junk:curse"]
         }
       ]
     },
@@ -708,6 +715,7 @@
       "label": "Ice",
       "layout": "stack",
       "applies": ["takeable"],
+      "tags": ["junk_pile"],
       "contents": ["ice:6"],
       "tooltip": "Six *ICE*. Given to an opponent's discard, and returned here when *VOIDed*.",
       "pos": [0.865, 0.215, 0.98, 0.395]
@@ -718,6 +726,7 @@
       "label": "Ash",
       "layout": "stack",
       "applies": ["takeable"],
+      "tags": ["junk_pile"],
       "contents": ["ash:6"],
       "tooltip": "Six *ASH*. Given to an opponent's discard, and returned here when *VOIDed*.",
       "pos": [0.865, 0.405, 0.98, 0.585]
@@ -728,6 +737,7 @@
       "label": "Curse",
       "layout": "stack",
       "applies": ["takeable"],
+      "tags": ["junk_pile"],
       "contents": ["curse:6"],
       "tooltip": "Six *CURSE*. Given to an opponent's discard, and returned here when *VOIDed*.",
       "pos": [0.865, 0.595, 0.98, 0.775]
@@ -751,6 +761,8 @@
       "pos": [0.06, 0.28, 0.94, 0.72]
     },
     { "key": "rules", "layout": "stack", "display": "offscreen", "use": "none" },
+    { "key": "dry_give", "layout": "stack", "display": "offscreen", "use": "none" },
+    { "key": "dry_take", "layout": "stack", "display": "offscreen", "use": "none" },
     { "key": "gained", "layout": "stack", "display": "offscreen", "use": "none" },
     {
       "key": "roster",
@@ -1124,11 +1136,7 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": [
-            "hit:health@opponent:1",
-            "activate_zone:rules:by_column:dry_take_ash",
-            "draw_from:ash_pile:mine.discard:1"
-          ]
+          "action": ["hit:health@opponent:1", "gain_junk:ash"]
         },
         {
           "key": "cast2",
@@ -1181,11 +1189,7 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": [
-            "heal:health@mine.player:3",
-            "activate_zone:rules:by_column:dry_take_curse",
-            "draw_from:curse_pile:mine.discard:1"
-          ]
+          "action": ["heal:health@mine.player:3", "gain_junk:curse"]
         }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["hurt:health@mine.player:1"] }
@@ -1206,12 +1210,7 @@
           "key": "cast2",
           "text": "Resolve",
           "needs": ["count:water@enemy.battle >= 1"],
-          "action": [
-            "move_to:void",
-            "activate_zone:rules:by_column:dry_take_curse",
-            "draw_from:curse_pile:mine.discard:1",
-            "hurt:health@mine.player:1"
-          ]
+          "action": ["move_to:void", "gain_junk:curse", "hurt:health@mine.player:1"]
         }
       ]
     },
@@ -1360,11 +1359,7 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": [
-            "draw_from:mine.deck:mine.hand:1",
-            "activate_zone:rules:by_column:dry_give_curse",
-            "draw_from:curse_pile:enemy.discard:1"
-          ]
+          "action": ["draw_from:mine.deck:mine.hand:1", "give_junk:curse"]
         },
         {
           "key": "cast2",
@@ -1412,8 +1407,7 @@
             "draw_from:mine.deck:mine.hand:1",
             "draw_from:mine.deck:mine.hand:1",
             "heal:health@mine.player:2",
-            "activate_zone:rules:by_column:dry_give_ice",
-            "draw_from:ice_pile:enemy.discard:1"
+            "give_junk:ice"
           ]
         }
       ]
@@ -1428,12 +1422,7 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": [
-            "heal:health@mine.player:1",
-            "stat_damage:power@mine.player:1",
-            "activate_zone:rules:by_column:dry_give_ice",
-            "draw_from:ice_pile:enemy.discard:1"
-          ]
+          "action": ["heal:health@mine.player:1", "stat_damage:power@mine.player:1", "give_junk:ice"]
         }
       ]
     },
@@ -1445,15 +1434,7 @@
       "tooltip": "Give an *ICE*. You may *VOID* an *ICE* from your hand or discard. Gain *Initiative*.\n\n_\"Watch your step!\" - Unknown_",
       "card_stats": { "tier_req": 2 },
       "abilities": [
-        {
-          "key": "cast",
-          "text": "Resolve",
-          "action": [
-            "activate_zone:rules:by_column:dry_give_ice",
-            "draw_from:ice_pile:enemy.discard:1",
-            "take_initiative"
-          ]
-        },
+        { "key": "cast", "text": "Resolve", "action": ["give_junk:ice", "take_initiative"] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.held.ice:optional"] }
       ],
       "chosen": { "action": ["move:target:ice_pile"] }
@@ -1537,12 +1518,7 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": [
-            "draw_from:mine.deck:mine.hand:1",
-            "heal:health@mine.player:1",
-            "activate_zone:rules:by_column:dry_take_ash",
-            "draw_from:ash_pile:mine.discard:1"
-          ]
+          "action": ["draw_from:mine.deck:mine.hand:1", "heal:health@mine.player:1", "gain_junk:ash"]
         }
       ]
     },
@@ -1719,11 +1695,7 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": [
-            "stat_damage:power@opponent:2",
-            "activate_zone:rules:by_column:dry_give_ash",
-            "draw_from:ash_pile:enemy.discard:1"
-          ]
+          "action": ["stat_damage:power@opponent:2", "give_junk:ash"]
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["gain_tier"] }
       ],
@@ -1895,12 +1867,7 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": [
-            "heal:health@mine.player:3",
-            "stat_gain:shards@mine.player:1",
-            "activate_zone:rules:by_column:dry_give_ice",
-            "draw_from:ice_pile:enemy.discard:1"
-          ]
+          "action": ["heal:health@mine.player:3", "stat_gain:shards@mine.player:1", "give_junk:ice"]
         }
       ]
     },
@@ -1930,12 +1897,7 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": [
-            "hit:health@opponent:2",
-            "stat_gain:shards@mine.player:1",
-            "activate_zone:rules:by_column:dry_give_ash",
-            "draw_from:ash_pile:enemy.discard:1"
-          ]
+          "action": ["hit:health@opponent:2", "stat_gain:shards@mine.player:1", "give_junk:ash"]
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["gain_tier", "gain_tier"] }
       ]
@@ -2014,8 +1976,7 @@
             "stat_gain:mana@mine.player:1",
             "power_up:power@mine.player:1",
             "hit:health@opponent:1",
-            "activate_zone:rules:by_column:dry_take_ash",
-            "draw_from:ash_pile:mine.discard:1"
+            "gain_junk:ash"
           ]
         },
         {
@@ -2074,10 +2035,8 @@
           "create:mine.wizard:wiz_eve:1",
           "create:mine.deck:eve_facepunch:1",
           "create:mine.deck:eve_riot:1",
-          "activate_zone:rules:by_column:dry_give_ice",
-          "draw_from:ice_pile:enemy.discard:1",
-          "activate_zone:rules:by_column:dry_take_ice",
-          "draw_from:ice_pile:mine.discard:1",
+          "give_junk:ice",
+          "gain_junk:ice",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "purge:roster.eve"
@@ -2485,7 +2444,7 @@
           "key": "cast2",
           "text": "Resolve",
           "needs": ["count:junk@enemy.discard <= 0"],
-          "action": ["activate_zone:rules:by_column:dry_give_ice", "draw_from:ice_pile:enemy.discard:1"]
+          "action": ["give_junk:ice"]
         }
       ]
     },
@@ -2947,12 +2906,7 @@
           "key": "wx2",
           "text": "Weather",
           "needs": ["initiative@mine.player <= 0"],
-          "action": [
-            "take_initiative",
-            "activate_zone:rules:by_column:dry_take_curse",
-            "draw_from:curse_pile:mine.discard:1",
-            "stat_gain:mana@mine.player:1"
-          ]
+          "action": ["take_initiative", "gain_junk:curse", "stat_gain:mana@mine.player:1"]
         }
       ]
     },
@@ -3146,19 +3100,13 @@
           "action": [
             "stat_damage:earth_el@mine.player:1",
             "power_up:power@mine.player:1",
-            "activate_zone:rules:by_column:dry_give_ash",
-            "draw_from:ash_pile:enemy.discard:1"
+            "give_junk:ash"
           ]
         },
         {
           "key": "again",
           "needs": ["earth_el@mine.player >= 1", "doubled@mine.player >= 1"],
-          "action": [
-            "power_up:power@mine.player:1",
-            "activate_zone:rules:by_column:dry_give_ash",
-            "draw_from:ash_pile:enemy.discard:1",
-            "stat_set:doubled@mine.player:0"
-          ]
+          "action": ["power_up:power@mine.player:1", "give_junk:ash", "stat_set:doubled@mine.player:0"]
         }
       ]
     },
@@ -3223,22 +3171,12 @@
         {
           "key": "sip",
           "needs": ["water_el@mine.player >= 2"],
-          "action": [
-            "stat_damage:water_el@mine.player:2",
-            "stat_damage:mana@opponent:1",
-            "activate_zone:rules:by_column:dry_give_ice",
-            "draw_from:ice_pile:enemy.discard:1"
-          ]
+          "action": ["stat_damage:water_el@mine.player:2", "stat_damage:mana@opponent:1", "give_junk:ice"]
         },
         {
           "key": "again",
           "needs": ["water_el@mine.player >= 2", "doubled@mine.player >= 1"],
-          "action": [
-            "stat_damage:mana@opponent:1",
-            "activate_zone:rules:by_column:dry_give_ice",
-            "draw_from:ice_pile:enemy.discard:1",
-            "stat_set:doubled@mine.player:0"
-          ]
+          "action": ["stat_damage:mana@opponent:1", "give_junk:ice", "stat_set:doubled@mine.player:0"]
         }
       ]
     },
@@ -3546,8 +3484,7 @@
           "needs": ["sprung@self <= 0", "count:water@mine.battle >= 1"],
           "action": [
             "stat_set:sprung@self:1",
-            "activate_zone:rules:by_column:dry_give_ice",
-            "draw_from:ice_pile:enemy.discard:1",
+            "give_junk:ice",
             "stat_gain:mana@mine.player:1",
             "emit:resolving"
           ]
@@ -3705,19 +3642,29 @@
       ]
     },
     {
-      "key": "r_dry_ash",
+      "key": "r_dry_take_ash",
       "text": "The ASH pile is empty",
-      "tags": ["immutable"],
+      "tags": ["immutable", "ash"],
       "tooltip": "When the *ASH* pile is empty, whoever would have been given one VOIDs a *ASH* of their choosing from their hand or discard and takes the penalty instead.",
       "asset": "auto",
       "abilities": [
         {
-          "key": "dry_take_ash",
+          "key": "dry_take",
           "needs": ["count:junk@ash_pile <= 0"],
           "action": ["stat_damage:power@mine.player:2", "show:mine.held.ash"]
-        },
+        }
+      ],
+      "chosen": { "action": ["move:target:ash_pile"] }
+    },
+    {
+      "key": "r_dry_give_ash",
+      "text": "The ASH pile is empty",
+      "tags": ["immutable", "ash"],
+      "tooltip": "When the *ASH* pile is empty, whoever would have been given one VOIDs a *ASH* of their choosing from their hand or discard and takes the penalty instead.",
+      "asset": "auto",
+      "abilities": [
         {
-          "key": "dry_give_ash",
+          "key": "dry_give",
           "needs": ["count:junk@ash_pile <= 0"],
           "action": ["stat_damage:power@opponent:2", "set_priority:enemy.player", "show:mine.held.ash"]
         }
@@ -3725,19 +3672,29 @@
       "chosen": { "action": ["move:target:ash_pile"] }
     },
     {
-      "key": "r_dry_curse",
+      "key": "r_dry_take_curse",
       "text": "The CURSE pile is empty",
-      "tags": ["immutable"],
+      "tags": ["immutable", "curse"],
       "tooltip": "When the *CURSE* pile is empty, whoever would have been given one VOIDs a *CURSE* of their choosing from their hand or discard and takes the penalty instead.",
       "asset": "auto",
       "abilities": [
         {
-          "key": "dry_take_curse",
+          "key": "dry_take",
           "needs": ["count:junk@curse_pile <= 0"],
           "action": ["hurt:health@mine.player:1", "show:mine.held.curse"]
-        },
+        }
+      ],
+      "chosen": { "action": ["move:target:curse_pile"] }
+    },
+    {
+      "key": "r_dry_give_curse",
+      "text": "The CURSE pile is empty",
+      "tags": ["immutable", "curse"],
+      "tooltip": "When the *CURSE* pile is empty, whoever would have been given one VOIDs a *CURSE* of their choosing from their hand or discard and takes the penalty instead.",
+      "asset": "auto",
+      "abilities": [
         {
-          "key": "dry_give_curse",
+          "key": "dry_give",
           "needs": ["count:junk@curse_pile <= 0"],
           "action": ["hit:health@opponent:1", "set_priority:enemy.player", "show:mine.held.curse"]
         }
@@ -3745,19 +3702,29 @@
       "chosen": { "action": ["move:target:curse_pile"] }
     },
     {
-      "key": "r_dry_ice",
+      "key": "r_dry_take_ice",
       "text": "The ICE pile is empty",
-      "tags": ["immutable"],
+      "tags": ["immutable", "ice"],
       "tooltip": "When the *ICE* pile is empty, whoever would have been given one VOIDs a *ICE* of their choosing from their hand or discard and takes the penalty instead.",
       "asset": "auto",
       "abilities": [
         {
-          "key": "dry_take_ice",
+          "key": "dry_take",
           "needs": ["count:junk@ice_pile <= 0"],
           "action": ["destroy:random.mine.hand:2", "show:mine.held.ice"]
-        },
+        }
+      ],
+      "chosen": { "action": ["move:target:ice_pile"] }
+    },
+    {
+      "key": "r_dry_give_ice",
+      "text": "The ICE pile is empty",
+      "tags": ["immutable", "ice"],
+      "tooltip": "When the *ICE* pile is empty, whoever would have been given one VOIDs a *ICE* of their choosing from their hand or discard and takes the penalty instead.",
+      "asset": "auto",
+      "abilities": [
         {
-          "key": "dry_give_ice",
+          "key": "dry_give",
           "needs": ["count:junk@ice_pile <= 0"],
           "action": ["destroy:random.enemy.hand:2", "set_priority:enemy.player", "show:mine.held.ice"]
         }
@@ -3958,12 +3925,9 @@
           "key": "potion_toxic",
           "needs": ["toxic@mine.player >= 3"],
           "action": [
-            "activate_zone:rules:by_column:dry_take_ash",
-            "draw_from:ash_pile:mine.discard:1",
-            "activate_zone:rules:by_column:dry_take_curse",
-            "draw_from:curse_pile:mine.discard:1",
-            "activate_zone:rules:by_column:dry_take_ice",
-            "draw_from:ice_pile:mine.discard:1",
+            "gain_junk:ash",
+            "gain_junk:curse",
+            "gain_junk:ice",
             "stat_set:doubled@mine.player:0",
             "stat_set:fire_el@mine.player:3",
             "stat_set:earth_el@mine.player:3",
@@ -4254,9 +4218,12 @@
       { "card": "r_ruby_void", "zone": "rules" },
       { "card": "r_blast", "zone": "rules" },
       { "card": "r_tier", "zone": "rules" },
-      { "card": "r_dry_ash", "zone": "rules" },
-      { "card": "r_dry_curse", "zone": "rules" },
-      { "card": "r_dry_ice", "zone": "rules" },
+      { "card": "r_dry_take_ash", "zone": "dry_take" },
+      { "card": "r_dry_give_ash", "zone": "dry_give" },
+      { "card": "r_dry_take_curse", "zone": "dry_take" },
+      { "card": "r_dry_give_curse", "zone": "dry_give" },
+      { "card": "r_dry_take_ice", "zone": "dry_take" },
+      { "card": "r_dry_give_ice", "zone": "dry_give" },
       { "card": "r_dry_dragon", "zone": "rules" },
       { "card": "r_dust", "zone": "rules" },
       { "card": "r_first_strike", "zone": "rules" },

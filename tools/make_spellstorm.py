@@ -84,15 +84,8 @@ NO_INIT  = "initiative@mine.player <= 0"
 # The junk piles are real stacks of six, so giving one is a draw off the pile
 # and voiding one is a move back onto it -- which is what the rulebook says
 # happens to a VOIDed ICE, and it means the piles run out on their own.
-#
-# Which the board has printed rules for, so each of these is two steps: the
-# empty-pile rule first, then the draw. That order because a draw that takes the
-# last card is not a draw from an empty pile, and only the second reading is the
-# one the board means.
-GIVE = lambda kind: ["activate_zone:rules:by_column:dry_give_%s" % kind,
-                     "draw_from:%s_pile:enemy.discard:1" % kind]
-GAIN_JUNK = lambda kind: ["activate_zone:rules:by_column:dry_take_%s" % kind,
-                          "draw_from:%s_pile:mine.discard:1" % kind]
+GIVE = lambda kind: ["give_junk:" + kind]
+GAIN_JUNK = lambda kind: ["gain_junk:" + kind]
 
 # "Discard a random card", which is a selection and a coin toss and nothing
 # else: `random.` narrows a scope to one of whatever it named, and `destroy:`
@@ -162,6 +155,15 @@ GAIN_DONE = ["stat_damage:gain_owed@mine.player:1", "purge:menu.no_gain", "pop_p
 # The game's own actions, each written once. A gain is owed and the gaining step
 # opened, the kind saying what may be taken and where it goes.
 VERBS = [
+    # The kind is a tag, so it finds both the pile and the empty-pile rule by
+    # itself: each junk card wears its kind, the piles share `junk_pile`, and
+    # each rule stands in the zone of its direction wearing the kind it is about.
+    # The empty-pile rule goes first: a draw that takes the last card is not a
+    # draw from an empty pile, and only the second reading is the one the board means.
+    {"key": "give_junk", "tooltip": "Give your opponent a junk card of this kind, or the penalty if the pile is empty.",
+     "action": ["copy:dry_give.param1:activate", "move:junk_pile.param1:enemy.discard:1"]},
+    {"key": "gain_junk", "tooltip": "Gain a junk card of this kind, or the penalty if the pile is empty.",
+     "action": ["copy:dry_take.param1:activate", "move:junk_pile.param1:mine.discard:1"]},
     {"key": "take_initiative", "tooltip": "You take the Initiative from your opponent.",
      "action": ["stat_set:initiative@mine.player:1", "stat_set:initiative@opponent:0"]},
     {"key": "lose_initiative", "tooltip": "Your opponent takes the Initiative from you.",
@@ -1430,6 +1432,11 @@ def wizard_templates(w):
     return out
 
 
+# A rules card that stands somewhere other than `rules`, because where it stands
+# is how a verb finds it.
+RULES_HOME = {}
+
+
 def rules_card(key, text, tooltip, abilities, chosen=None, tags=(), stats=None):
     """A rule with nowhere else to live: a card in an offscreen zone that a
     phase walks. Its `when` is the if the action grammar has no room for."""
@@ -1531,16 +1538,16 @@ def rules_templates():
         # junk was being *given*, the holder is the other player, which is what
         # `set_priority` is for: from inside that window `mine` is theirs.
         ask = "show:mine.held.%s" % kind
-        out.append(rules_card(
-            "r_dry_" + kind, "The %s pile is empty" % kind.upper(),
-            tip("When the %s pile is empty, whoever would have been given one VOIDs "
-                "a %s of their choosing from their hand or discard and takes the "
-                "penalty instead." % (kind.upper(), kind.upper())),
-            [ability("dry_take_" + kind, take + [ask],
-                     when=["count:junk@%s_pile <= 0" % kind]),
-             ability("dry_give_" + kind, give + ["set_priority:enemy.player", ask],
-                     when=["count:junk@%s_pile <= 0" % kind])],
-            chosen={"action": ["move:target:%s_pile" % kind]}))
+        rule = tip("When the %s pile is empty, whoever would have been given one VOIDs "
+                   "a %s of their choosing from their hand or discard and takes the "
+                   "penalty instead." % (kind.upper(), kind.upper()))
+        for way, acts in (("take", take + [ask]), ("give", give + ["set_priority:enemy.player", ask])):
+            key = "r_dry_%s_%s" % (way, kind)
+            RULES_HOME[key] = "dry_" + way
+            out.append(rules_card(
+                key, "The %s pile is empty" % kind.upper(), rule,
+                [ability("dry_" + way, acts, when=["count:junk@%s_pile <= 0" % kind])],
+                chosen={"action": ["move:target:%s_pile" % kind]}, tags=[kind]))
 
     # The Dragon pile is the one whose empty rule is a reward rather than a
     # penalty, because a Dragon is what you were owed.
@@ -1877,15 +1884,15 @@ def zones():
         {"key": "weather_discard", "layout": "stack", "use": "none", "pos": "weather_now"},
 
         {"key": "ice_pile", "use": "abilities", "label": "Ice", "layout": "stack",
-         "applies": ["takeable"], "contents": ["ice:6"],
+         "applies": ["takeable"], "tags": ["junk_pile"], "contents": ["ice:6"],
          "tooltip": "Six ICE. Given to an opponent's discard, and returned here when VOIDed.",
          "pos": P(0.865, 0.215, 0.980, 0.395)},
         {"key": "ash_pile", "use": "abilities", "label": "Ash", "layout": "stack",
-         "applies": ["takeable"], "contents": ["ash:6"],
+         "applies": ["takeable"], "tags": ["junk_pile"], "contents": ["ash:6"],
          "tooltip": "Six ASH. Given to an opponent's discard, and returned here when VOIDed.",
          "pos": P(0.865, 0.405, 0.980, 0.585)},
         {"key": "curse_pile", "use": "abilities", "label": "Curse", "layout": "stack",
-         "applies": ["takeable"], "contents": ["curse:6"],
+         "applies": ["takeable"], "tags": ["junk_pile"], "contents": ["curse:6"],
          "tooltip": "Six CURSE. Given to an opponent's discard, and returned here when VOIDed.",
          "pos": P(0.865, 0.595, 0.980, 0.775)},
         {"key": "dragon_deck", "label": "Dragons", "layout": "stack",
@@ -1903,6 +1910,9 @@ def zones():
         # Rules that have to run at a named moment live on cards, and cards have
         # to live somewhere.
         {"key": "rules", "layout": "stack", "display": "offscreen", "use": "none"},
+        # What an empty junk pile does instead, one zone per direction.
+        {"key": "dry_give", "layout": "stack", "display": "offscreen", "use": "none"},
+        {"key": "dry_take", "layout": "stack", "display": "offscreen", "use": "none"},
         # Where a gained card waits for one step while the rules say where it goes.
         {"key": "gained", "layout": "stack", "display": "offscreen", "use": "none"},
 
@@ -2485,7 +2495,7 @@ def build():
     # so they are placed rather than dealt.
     for c in cards:
         if c["key"].startswith("r_"):
-            game["setup"]["place"].append({"card": c["key"], "zone": "rules"})
+            game["setup"]["place"].append({"card": c["key"], "zone": RULES_HOME.get(c["key"], "rules")})
 
     # Last, and over everything: the prose a player reads is marked up here
     # rather than at the fifty places that write it, so a tooltip typed into a

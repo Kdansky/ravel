@@ -13,17 +13,13 @@ was already the caller, and a body change being the verb's change is what makes
 - **Moved so far** (each checked by seeded bot games reaching the same states):
   Puzzle Strike `crash_gems`, `pick_fighter`; Codex `deploy`, `summon_hero`,
   `leave_patrol`, `disable`; Spellstorm `drink`, `take_initiative`,
-  `lose_initiative`, `gain_<kind>`; Ghost Stories `drive_out`, `place_ghost`,
+  `lose_initiative`, `gain_<kind>`, `give_junk`, `gain_junk`; Ghost Stories `drive_out`, `place_ghost`,
   `spend_action`. Splendor and Grimm have only short or gated runs, and were left.
-- **A parameter is a whole word**, so Spellstorm's `GIVE(kind)` and
-  `GAIN_JUNK(kind)` — `activate_zone:rules:by_column:dry_give_<kind>` then a draw
-  off `<kind>_pile` — cannot be one verb over the kind. Either pass both names
-  (`give_junk:dry_give_ice:ice_pile`), or leave them; they are 30 call sites.
-- **A routine behind a `needs`.** `r_dry_ash`/`_curse`/`_ice` and every other
-  rules card whose abilities are gated stay as rules zones: a body has no if,
-  and `needs` on a verb was turned down because an ability's `needs` is asked
-  *before* anything runs and decides whether it is a move at all — a verb's would
-  be asked halfway through a list. Wants its own design; the `by_column`
-  gating itself is in `todo.md`.
+- **A routine behind a `needs`.** A body has no if, so a gated routine stays
+  on a rules card — reached by `activate_zone`, or by tag through
+  `copy:<zone>.<tag>:activate` as `give_junk` does. `needs` on a verb was turned
+  down: an ability's `needs` is asked *before* anything runs and decides whether
+  it is a move at all, where a verb's would be asked halfway through a list.
+  The if belongs to [42](42-an-if-inside-an-action-list.md).
 - **The 18 phase hooks** are a moment rather than a call, and stay out of this
   track.

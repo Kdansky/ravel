@@ -921,12 +921,12 @@ function M.test_spellstorm_an_empty_pile_bites_instead_of_nothing(check)
 	check("the pile has CURSE in it to start with", #pile.cards > 0, #pile.cards)
 
 	local health = seat_card(two).stats.health
-	actions.execute("activate_zone:rules:by_column:dry_give_curse", {})
+	actions.execute("copy:dry_give.curse:activate", {})
 	check("with cards in the pile, the empty rule is quiet",
 		seat_card(two).stats.health == health, seat_card(two).stats.health)
 
 	for _, id in ipairs({ unpack(pile.cards) }) do zones.move_card(id, zones.find_id("void")) end
-	actions.execute("activate_zone:rules:by_column:dry_give_curse", {})
+	actions.execute("copy:dry_give.curse:activate", {})
 	check("empty, being given a CURSE is a point of damage instead",
 		seat_card(two).stats.health == health - 1, seat_card(two).stats.health)
 end
@@ -2540,7 +2540,7 @@ function M.test_spellstorm_a_dry_pile_asks_the_player_it_bites(check)
 	for i = 3, #held do zones.move_card(held[i], zones.find_id("void")) end
 	check("the pile is empty", #pile.cards == 0)
 
-	actions.execute("activate_zone:rules:by_column:dry_give_curse", {})
+	actions.execute("copy:dry_give.curse:activate", {})
 	check("the offer went to the player being given the CURSE",
 		zones.active_seat() == "seat_two", tostring(zones.active_seat()))
 	check("and holds both of theirs, hand and discard",

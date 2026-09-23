@@ -1092,7 +1092,36 @@ of the string, colons and all. The body runs as the caller, so `@self` is the ca
 
 Also: a verb announces itself, so a reaction may answer `"to": "disable"`. A routine that runs
 only when a `needs` holds is still a rules zone of invisible cards, called with
-`activate_zone:rules:by_column:<key>` — a body has no if.
+`activate_zone:rules:by_column:<key>` — a body has no if. The next entry reaches one by tag
+instead, which a verb can take as an argument.
+
+### Give your opponent an ICE — or, if the ICE pile is empty, the penalty instead.
+
+```json
+"verbs": [{ "key": "give_junk",
+  "action": ["copy:dry_give.param1:activate", "move:junk_pile.param1:enemy.discard:1"] }],
+"zones": [
+  { "key": "ice_pile", "tags": ["junk_pile"], "contents": ["ice:6"] },
+  { "key": "ash_pile", "tags": ["junk_pile"], "contents": ["ash:6"] },
+  { "key": "dry_give", "display": "offscreen", "use": "none" }],
+"cards": [{ "key": "r_dry_give_ice", "tags": ["immutable", "ice"],
+  "abilities": [{ "key": "dry_give", "needs": ["count:junk@ice_pile <= 0"], "action": ["…the penalty…"] }] }],
+"play": { "action": ["give_junk:ice"] }
+```
+
+A parameter is substituted only as a whole word, so `param1_pile` is not `ice_pile`. Don't splice
+names — let the kind be a **tag** and let each place say what it is:
+
+- `junk_pile.param1` is *the ICE cards in any junk pile*: a scope's left word may be a tag several
+  zones wear, and the right word narrows to the cards carrying the kind.
+- `dry_give.param1` is *the empty-pile rule for ICE*: the rule cards stand in a zone of their
+  own, each tagged with the kind it is about, and `copy:…:activate` runs its abilities whose
+  `needs` hold — so the rule still stays quiet while the pile has cards.
+
+One ability per rule card: `copy` runs every ability whose `needs` holds, so a card carrying both
+the give and the take rule would fire both. Put the other direction in a second zone
+(`dry_take`) and a second verb. The rule goes first because a draw that takes the last card is
+not a draw from an empty pile.
 
 ---
 
