@@ -572,6 +572,13 @@ file as output.
   move rule had no field set at all until then, so a misspelt `fil` was ignored
   rather than reported. **`abilities` and `reactions` entries still have none**,
   which is the remaining hole of this kind.
+- `luajit tests/fuzz.lua [seed] [n]` — replaces values in shipped games with
+  ones of the wrong type, loads them and plays random moves; reports each crash
+  site once. Invariant 5 says it should find none. Seeds are independent, so run
+  several side by side.
+- `luajit tests/soak.lua [trials]` — random play through every game, asserting
+  that undo restores the exact state and that a state sent through JSON plays on
+  identically. Too slow for the suite; run it after touching snapshots.
 - `RAVEL_DEBUG=1` + `nc` — poke a live GUI process; `echo state | nc` dumps
   full entity state as JSON.
 - Balance questions: write a scratch script over `headless.lua` + `flow` and
