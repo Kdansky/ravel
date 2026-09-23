@@ -15,6 +15,40 @@
       "key": "cast",
       "does": "target",
       "tooltip": "A spell or an ability picking what it lands on. Untargetable refuses this and not the other."
+    },
+    {
+      "key": "deploy",
+      "tooltip": "This unit enters play, and is not ready until your next turn unless it has haste.",
+      "action": [
+        "move_to",
+        "stat_set:ready_since@self:count:hasty@self"
+      ]
+    },
+    {
+      "key": "summon_hero",
+      "tooltip": "This hero enters your army with its printed numbers, and is not ready until your next turn unless it has haste.",
+      "action": [
+        "reset:self",
+        "stat_set:ready_since@self:count:hasty@self",
+        "move_to:mine.army"
+      ]
+    },
+    {
+      "key": "leave_patrol",
+      "tooltip": "The unit is no longer in a patrol slot.",
+      "action": [
+        "stat_set:slot@param1:0",
+        "stat_set:guard@param1:0"
+      ]
+    },
+    {
+      "key": "sideline",
+      "tooltip": "Sideline a unit: it is exhausted, disabled, and taken off patrol.",
+      "action": [
+        "exhaust:param1",
+        "stat_set:disabled@param1:1",
+        "leave_patrol:param1"
+      ]
     }
   ],
   "stats": [
@@ -1563,8 +1597,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "stat_gain:ready_since@self:sum:rush@mine.player",
           "stat_damage:rush@mine.player:1"
         ]
@@ -1582,8 +1615,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "stat_gain:ready_since@self:sum:rush@mine.player",
           "stat_damage:rush@mine.player:1"
         ]
@@ -1604,8 +1636,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "stat_gain:ready_since@self:sum:rush@mine.player",
           "stat_damage:rush@mine.player:1"
         ]
@@ -1626,8 +1657,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "stat_gain:ready_since@self:sum:rush@mine.player",
           "stat_damage:rush@mine.player:1"
         ]
@@ -6650,9 +6680,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "reset:self",
-            "stat_set:ready_since@self:count:hasty@self",
-            "move_to:mine.army"
+            "summon_hero"
           ]
         },
         {
@@ -6784,9 +6812,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "reset:self",
-            "stat_set:ready_since@self:count:hasty@self",
-            "move_to:mine.army"
+            "summon_hero"
           ]
         },
         {
@@ -6988,9 +7014,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "reset:self",
-            "stat_set:ready_since@self:count:hasty@self",
-            "move_to:mine.army"
+            "summon_hero"
           ]
         },
         {
@@ -7156,9 +7180,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "reset:self",
-            "stat_set:ready_since@self:count:hasty@self",
-            "move_to:mine.army"
+            "summon_hero"
           ]
         },
         {
@@ -7298,9 +7320,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "reset:self",
-            "stat_set:ready_since@self:count:hasty@self",
-            "move_to:mine.army",
+            "summon_hero",
             "create:mine.army:wisp:1"
           ]
         },
@@ -7568,10 +7588,7 @@
             "zones": ["fighters"]
           },
           "action": [
-            "exhaust:target",
-            "stat_set:disabled@target:1",
-            "stat_set:slot@target:0",
-            "stat_set:guard@target:0",
+            "sideline:target",
             "draw_from:enemy.deck:enemy.hand:1"
           ]
         }
@@ -7695,10 +7712,7 @@
           ]
         },
         "action": [
-          "exhaust:target",
-          "stat_set:disabled@target:1",
-          "stat_set:slot@target:0",
-          "stat_set:guard@target:0",
+          "sideline:target",
           "move:target:enemy.army"
         ],
         "spent": "mine.discard"
@@ -7794,8 +7808,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "draw_from:mine.deck:mine.hand:1"
         ]
       }
@@ -7835,8 +7848,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "stat_damage:gold@opponent:1",
           "stat_gain:gold@mine.player:1"
         ]
@@ -7890,10 +7902,7 @@
             ]
           },
           "action": [
-            "exhaust:target",
-            "stat_set:disabled@target:1",
-            "stat_set:slot@target:0",
-            "stat_set:guard@target:0"
+            "sideline:target"
           ]
         }
       ]
@@ -8009,8 +8018,7 @@
           "zones": ["fielded"]
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "stat_set:insured@target:1"
         ]
       }
@@ -8587,10 +8595,7 @@
           "zones": ["fielded"]
         },
         "action": [
-          "exhaust:target",
-          "stat_set:disabled@target:1",
-          "stat_set:slot@target:0",
-          "stat_set:guard@target:0",
+          "sideline:target",
           "stat_gain:plus@target:1",
           "draw_from:mine.deck:mine.hand:1"
         ],
@@ -9063,8 +9068,7 @@
         "action": [
           "move:target:mine.army",
           "set_owner:target:mine.player",
-          "stat_set:slot@target:0",
-          "stat_set:guard@target:0",
+          "leave_patrol:target",
           "move_to:mine.ongoing",
           "attach_to_target"
         ]
@@ -9107,9 +9111,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "reset:self",
-            "stat_set:ready_since@self:count:hasty@self",
-            "move_to:mine.army"
+            "summon_hero"
           ]
         },
         {
@@ -9212,8 +9214,7 @@
             ]
           },
           "action": [
-            "stat_set:slot@target:0",
-            "stat_set:guard@target:0",
+            "leave_patrol:target",
             "move:target:enemy.army"
           ]
         },
@@ -9274,9 +9275,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "reset:self",
-            "stat_set:ready_since@self:count:hasty@self",
-            "move_to:mine.army"
+            "summon_hero"
           ]
         },
         {
@@ -9482,9 +9481,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "reset:self",
-            "stat_set:ready_since@self:count:hasty@self",
-            "move_to:mine.army",
+            "summon_hero",
             "create:mine.army:mirror:1"
           ]
         },
@@ -10330,8 +10327,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "stat_gain:minus@target:1"
         ],
         "target": {
@@ -10711,8 +10707,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "stat_set:time@self:7"
         ]
       },
@@ -10737,8 +10732,7 @@
             "zones": ["fielded"]
           },
           "action": [
-            "stat_set:slot@target:0",
-            "stat_set:guard@target:0",
+            "leave_patrol:target",
             "move:target:enemy.hand"
           ]
         }
@@ -10812,8 +10806,7 @@
           ]
         },
         "action": [
-          "stat_set:slot@target:0",
-          "stat_set:guard@target:0",
+          "leave_patrol:target",
           "move:target:enemy.army",
           "move_to:mine.ongoing",
           "attach_to_target"
@@ -10855,8 +10848,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "stat_set:time@self:3"
         ]
       }
@@ -10941,8 +10933,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "stat_set:focus@self:3"
         ]
       }
@@ -10993,8 +10984,7 @@
           ]
         },
         "action": [
-          "stat_set:slot@target:0",
-          "stat_set:guard@target:0",
+          "leave_patrol:target",
           "move:target:enemy.hand"
         ]
       }
@@ -11384,8 +11374,7 @@
           ]
         },
         "action": [
-          "stat_set:slot@target:0",
-          "stat_set:guard@target:0",
+          "leave_patrol:target",
           "move:target:enemy.army"
         ]
       }
@@ -11592,8 +11581,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "create:mine.army:daigo:1"
         ]
       }
@@ -11707,8 +11695,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "create:mine.army:stinger:5"
         ]
       }
@@ -11908,8 +11895,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "create:mine.army:ninja:4"
         ]
       }
@@ -11975,8 +11961,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "purge:each.anyone.token",
           "activate_zone:rules_death"
         ]
@@ -12673,10 +12658,7 @@
           },
           "action": [
             "ready:self",
-            "exhaust:target",
-            "stat_set:disabled@target:1",
-            "stat_set:slot@target:0",
-            "stat_set:guard@target:0"
+            "sideline:target"
           ]
         }
       ]
@@ -12806,8 +12788,7 @@
           "zones": ["fielded"]
         },
         "action": [
-          "stat_set:slot@target:0",
-          "stat_set:guard@target:0",
+          "leave_patrol:target",
           "move:target:enemy.command"
         ]
       }
@@ -12894,8 +12875,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "stat_gain:minus@each.enemy.unit:1"
         ]
       }
@@ -12936,8 +12916,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "stat_gain:minus@each.enemy.fighter:1"
         ]
       },
@@ -13362,8 +13341,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "stat_set:time@self:3"
         ]
       }
@@ -13446,10 +13424,7 @@
         },
         "action": [
           "harm:hp@target:3",
-          "exhaust:target",
-          "stat_set:disabled@target:1",
-          "stat_set:slot@target:0",
-          "stat_set:guard@target:0",
+          "sideline:target",
           "activate_zone:rules_death"
         ]
       }
@@ -13658,8 +13633,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "stat_gain:time@target:1"
         ],
         "target": {
@@ -13858,8 +13832,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "stat_set:time@self:2"
         ]
       }
@@ -14056,8 +14029,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "stat_set:javelin@self:1"
         ]
       }
@@ -14148,8 +14120,7 @@
           "zones": ["fielded"]
         },
         "action": [
-          "stat_set:slot@target:0",
-          "stat_set:guard@target:0",
+          "leave_patrol:target",
           "move:target:enemy.command",
           "stat_gain:plus@each.mine.unit:0"
         ]
@@ -14448,10 +14419,8 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
-          "stat_set:slot@target:0",
-          "stat_set:guard@target:0",
+          "deploy",
+          "leave_patrol:target",
           "move:target:enemy.hand"
         ],
         "target": {
@@ -14546,8 +14515,7 @@
           ]
         },
         "action": [
-          "stat_set:slot@target:0",
-          "stat_set:guard@target:0",
+          "leave_patrol:target",
           "move:target:mine.hand"
         ]
       }
@@ -14646,8 +14614,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "create:enemy.army:warlock:4"
         ]
       },
@@ -14720,8 +14687,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "move:random.enemy.hand:enemy.discard"
         ]
       }
@@ -14773,8 +14739,7 @@
           ]
         },
         "action": [
-          "stat_set:slot@target:0",
-          "stat_set:guard@target:0",
+          "leave_patrol:target",
           "move:target:enemy.army"
         ]
       }
@@ -14953,8 +14918,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "stat_set:time@self:3"
         ]
       },
@@ -15170,8 +15134,7 @@
           ]
         },
         "action": [
-          "stat_set:slot@target:0",
-          "stat_set:guard@target:0",
+          "leave_patrol:target",
           "move:target:enemy.hand"
         ]
       }
@@ -15289,10 +15252,7 @@
           ]
         },
         "action": [
-          "exhaust:target",
-          "stat_set:disabled@target:1",
-          "stat_set:slot@target:0",
-          "stat_set:guard@target:0"
+          "sideline:target"
         ]
       }
     },
@@ -15588,8 +15548,7 @@
           },
           "action": [
             "harm:hp@target:4",
-            "stat_set:slot@target:0",
-            "stat_set:guard@target:0",
+            "leave_patrol:target",
             "move:target:enemy.army",
             "activate_zone:rules_death"
           ]
@@ -15735,8 +15694,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "stat_set:time@self:2"
         ]
       },
@@ -15818,8 +15776,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "destroy:target"
         ],
         "target": {
@@ -15969,9 +15926,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "reset:self",
-            "stat_set:ready_since@self:count:hasty@self",
-            "move_to:mine.army"
+            "summon_hero"
           ]
         },
         {
@@ -16085,9 +16040,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "reset:self",
-            "stat_set:ready_since@self:count:hasty@self",
-            "move_to:mine.army"
+            "summon_hero"
           ]
         },
         {
@@ -16231,9 +16184,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "reset:self",
-            "stat_set:ready_since@self:count:hasty@self",
-            "move_to:mine.army"
+            "summon_hero"
           ]
         },
         {
@@ -16489,9 +16440,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "reset:self",
-            "stat_set:ready_since@self:count:hasty@self",
-            "move_to:mine.army"
+            "summon_hero"
           ]
         },
         {
@@ -16693,9 +16642,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "reset:self",
-            "stat_set:ready_since@self:count:hasty@self",
-            "move_to:mine.army"
+            "summon_hero"
           ]
         },
         {
@@ -16838,9 +16785,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "reset:self",
-            "stat_set:ready_since@self:count:hasty@self",
-            "move_to:mine.army"
+            "summon_hero"
           ]
         },
         {
@@ -17005,9 +16950,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "reset:self",
-            "stat_set:ready_since@self:count:hasty@self",
-            "move_to:mine.army"
+            "summon_hero"
           ]
         },
         {
@@ -17174,9 +17117,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "reset:self",
-            "stat_set:ready_since@self:count:hasty@self",
-            "move_to:mine.army",
+            "summon_hero",
             "stat_set:time@self:4"
           ]
         },
@@ -17337,9 +17278,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "reset:self",
-            "stat_set:ready_since@self:count:hasty@self",
-            "move_to:mine.army"
+            "summon_hero"
           ]
         },
         {
@@ -18121,8 +18060,7 @@
           },
           "action": [
             "move:target:enemy.army",
-            "stat_set:slot@target:0",
-            "stat_set:guard@target:0"
+            "leave_patrol:target"
           ]
         }
       ]
@@ -18926,8 +18864,7 @@
           "move:target:mine.army",
           "ready:target",
           "stat_set:ready_since@target:1",
-          "stat_set:slot@target:0",
-          "stat_set:guard@target:0",
+          "leave_patrol:target",
           "stat_set:taken@target:1"
         ],
         "spent": "mine.discard"
@@ -18970,8 +18907,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "create:mine.army:pirate_token:3"
         ]
       }
@@ -19159,8 +19095,7 @@
           "zones": ["fielded"]
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "harm:hp@target:3",
           "activate_zone:rules_death"
         ]
@@ -19629,8 +19564,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "create:mine.army:wisp:1"
         ]
       }
@@ -19684,8 +19618,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "stat_gain:plus@self:2"
         ]
       },
@@ -19809,8 +19742,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "draw_from:mine.deck:mine.hand:1"
         ]
       }
@@ -20081,8 +20013,7 @@
           ]
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "stat_gain:ready_since@self:sum:rush@mine.player",
           "stat_damage:rush@mine.player:1",
           "stat_set:feather@target:1"
@@ -20136,8 +20067,7 @@
           ]
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "destroy:target"
         ]
       }
@@ -20213,8 +20143,7 @@
           "zones": ["fielded", "ongoing"]
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "destroy:target"
         ]
       }
@@ -20469,8 +20398,7 @@
           "gold@mine.player": "gigadon_price"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "stat_gain:ready_since@self:sum:rush@mine.player",
           "stat_damage:rush@mine.player:1"
         ]
@@ -20632,8 +20560,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "create:mine.army:squirrel:3"
         ]
       },
@@ -20895,8 +20822,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self"
+          "deploy"
         ]
       }
     },
@@ -20936,8 +20862,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "create:mine.army:wisp:1"
         ]
       }
@@ -20988,8 +20913,7 @@
           "zones": ["built"]
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self",
+          "deploy",
           "stat_gain:integrity@target:3"
         ]
       }
@@ -21186,8 +21110,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "move_to",
-          "stat_set:ready_since@self:count:hasty@self"
+          "deploy"
         ]
       },
       "abilities": [
