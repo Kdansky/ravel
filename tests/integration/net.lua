@@ -19,14 +19,6 @@ local rng         = require("rng")
 
 local M = {}
 
--- Lost Cities opens by asking how many players; every test that wants to reach
--- the game itself has to answer that first.
-local function dismiss_mode()
-	if phase.is_overlay() and phase.current().key == "mode" then
-		flow.play_card(zones.find("mode").cards[1])
-	end
-end
-
 -- Run a single action then settle, like the debug server's `eval`.
 local function eval(str)
 	actions.execute(str, {})
@@ -68,7 +60,6 @@ function M.test_net_a_state_survives_the_wire(check)
 	end
 
 	net.begin("lost_cities.json", 7)
-	dismiss_mode()
 	local said = log_text()
 	check("the fixture's log has multi-byte text", said:find("—") ~= nil)
 	local msg0 = net.export(true)
@@ -80,7 +71,6 @@ end
 function M.test_net_delta_is_small_and_lands_where_it_belongs(check)
 	-- A move, as a delta against the state both sides last shared.
 	net.begin("lost_cities.json", 7)
-	dismiss_mode()
 	local shared = net.export(true)          -- what the opponent is holding
 	local cid, targets = first_playable()
 	check("the fixture has a playable card", cid ~= nil)
@@ -102,7 +92,6 @@ function M.test_net_delta_is_small_and_lands_where_it_belongs(check)
 
 	-- ...and refuses to apply anywhere else, which is the whole safety story.
 	net.begin("lost_cities.json", 99)
-	dismiss_mode()
 	check("a delta is refused against a state it does not fit", not net.import(delta))
 	net.begin("castle.json", 7)
 	check("a delta is refused across a game change", not net.import(delta))
@@ -142,14 +131,12 @@ end
 function M.test_net_seat_gating(check)
 	-- Seat gating. flow is what enforces it, so ask flow.
 	net.begin("lost_cities.json", 7)
-	dismiss_mode()
 	check("with no seat claimed, anyone may act", net.may_act())
 	net.claim_seat(zones.active_seat())
 	check("the active seat may act", net.may_act())
 	local mine, my_targets = first_playable()
 	check("...and can play", mine ~= nil and flow.play_card(mine, my_targets))
 	net.begin("lost_cities.json", 7)
-	dismiss_mode()
 	net.claim_seat("south")                   -- north is up first
 	check("the inactive seat may not act", not net.may_act())
 	local theirs = zones.find("hand")
@@ -161,8 +148,6 @@ end
 
 function M.test_net_invite(check)
 	-- The invite: the whole handshake for a copy/paste game.
-	-- Deliberately not dismissed: an invite puts both players at the game's
-	-- actual opening, mode question and all, which is the state they must share.
 	net.begin("lost_cities.json", 4242)
 	local invite = net.invite(4242)
 	local started = net.fingerprint()
@@ -219,7 +204,6 @@ end
 function M.test_net_three_hashes(check)
 	-- The three hashes, and the three different questions they answer.
 	net.begin("lost_cities.json", 7)
-	dismiss_mode()
 	check("a game file has a hash", (net.game_hash() or ""):match("^%x%x%x%x%x%x%x%x$") ~= nil)
 	check("a different file hashes differently",
 		net.game_hash("lost_cities.json") ~= net.game_hash("castle.json"))
@@ -249,7 +233,6 @@ function M.test_net_refuses_a_header_that_disagrees(check)
 	check("a whole state is labelled init", honest:find("^RAVEL1:init:castle%.json:") ~= nil,
 		honest:sub(1, 40))
 	net.begin("lost_cities.json", 7)
-	dismiss_mode()
 	local shared2 = net.export(true)
 	local lc, lt = first_playable()
 	flow.play_card(lc, lt)
@@ -272,7 +255,6 @@ end
 function M.test_net_delta_names_the_state_it_follows(check)
 	-- The chain: a delta says which state it follows, and is refused elsewhere.
 	net.begin("lost_cities.json", 7)
-	dismiss_mode()
 	local at = net.export(true)
 	local c3, t3 = first_playable()
 	flow.play_card(c3, t3)
@@ -280,7 +262,6 @@ function M.test_net_delta_names_the_state_it_follows(check)
 	net.import(at)
 	check("a delta names the state it follows", net.import(step))
 	net.begin("lost_cities.json", 7)
-	dismiss_mode()
 	local c4, t4 = first_playable()
 	flow.play_card(c4, t4)                     -- somewhere else entirely
 	local okc, errc = net.import(step)
@@ -298,7 +279,6 @@ function M.test_net_ops_are_cards(check)
 		end
 
 		net.begin("lost_cities.json", 7)
-		dismiss_mode()
 		local asked = {}
 		net.on_ui = function(what) asked[#asked + 1] = what end
 
@@ -323,16 +303,12 @@ function M.test_net_ops_are_cards(check)
 		-- And the menu actually uses them, which is the point of the exercise.
 		local menu = love.filesystem.read("games/menu.json")
 		check("the menu offers joining as a card", menu:find("net_join") ~= nil)
-		local lc = love.filesystem.read("games/lost_cities.json")
-		check("and the two-player game offers hosting as one",
-			lc:find("net_invite") ~= nil and lc:find("net_seat") ~= nil)
 	end
 end
 
 function M.test_net_recognises_what_arrives(check)
 	-- Four things arrive in one box, and one function decides which is which.
 	net.begin("lost_cities.json", 4242)
-	dismiss_mode()
 	check("a state is recognised", net.kind_of(net.export(true)) == "state")
 	check("an invite is recognised", net.kind_of(net.invite(4242)) == "invite")
 	check("an offer is recognised", net.kind_of(net.wrap_sdp("offer", "c2Rw")) == "offer")
@@ -443,20 +419,17 @@ function M.test_net_desync_and_the_button_that_fixes_it(check)
 	do
 		local la, lb = netlink.loopback()
 		net.begin("lost_cities.json", 7)
-		dismiss_mode()
 		net.link(la)
 		check("a fresh game is not out of sync", net.desync == nil)
 
 		-- Build a move from somewhere else entirely, then hand it over.
 		local elsewhere
 		net.begin("lost_cities.json", 21)
-		dismiss_mode()
 		local xc, xt = first_playable()
 		flow.play_card(xc, xt)
 		elsewhere = net.export()
 
 		net.begin("lost_cities.json", 7)
-		dismiss_mode()
 		net.link(la)
 		local okd = net.import(elsewhere)
 		check("a move from another game is refused", not okd)
@@ -477,15 +450,12 @@ function M.test_net_desync_and_the_button_that_fixes_it(check)
 
 		-- And a whole state is the cure.
 		net.begin("lost_cities.json", 7)
-		dismiss_mode()
 		net.link(la)
 		net.import(elsewhere)
 		check("still out of sync before the fix", net.desync ~= nil)
 		net.begin("lost_cities.json", 21)
-		dismiss_mode()
 		local whole = net.export(true)
 		net.begin("lost_cities.json", 7)
-		dismiss_mode()
 		net.desync = "pretend we never recovered"
 		check("a whole state applies", net.import(whole))
 		check("...and clears the out-of-sync flag", net.desync == nil)
@@ -505,7 +475,6 @@ function M.test_net_a_move_arrives_as_the_run_that_made_it(check)
 	local stage = require("stage")
 	local a, b = netlink.loopback()
 	net.begin("lost_cities.json", 7)
-	dismiss_mode()
 	local shared = net.export(true)
 	net.link(a)
 	zones.on_change = function(what, id) stage.record(what, id) end
@@ -570,7 +539,6 @@ function M.test_net_a_crashed_peer_rejoins_the_game(check)
 	for _, survivor in ipairs({ "host", "guest" }) do
 		local a, b = netlink.loopback()
 		net.begin("lost_cities.json", 7)
-		dismiss_mode()
 		net.take_role(survivor)
 		local seats = net.seats()
 		local mine = net.seat

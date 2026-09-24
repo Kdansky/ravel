@@ -54,23 +54,23 @@ COL = lambda i: (0.06 + i * 0.152, 0.19 + i * 0.152)
 # holds: a hand is one row of eight, a discard is one card. The height left over
 # goes to the expeditions, which is the only band whose contents grow.
 EXPEDITION_POS = {  # colour index -> [north rect, south rect]
-    i: [[COL(i)[0], 0.120, COL(i)[1], 0.398],
-        [COL(i)[0], 0.536, COL(i)[1], 0.814]]
+    i: [[COL(i)[0], 0.120, COL(i)[1], 0.431],
+        [COL(i)[0], 0.569, COL(i)[1], 0.880]]
     for i in range(len(COLOURS))
 }
-DISCARD_POS = {i: [COL(i)[0], 0.410, COL(i)[1], 0.524]
+DISCARD_POS = {i: [COL(i)[0], 0.443, COL(i)[1], 0.557]
                for i in range(len(COLOURS))}
 HAND_POS    = [[0.06, 0.010, 0.798, 0.108],    # north, top edge
-               [0.06, 0.826, 0.798, 0.924]]    # south, bottom edge
+               [0.06, 0.892, 0.798, 0.990]]    # south, bottom edge
 # The right-hand column: rulebook, the deck beside the discards it feeds, and
 # the scoring tray below both. Choice stops short of 0.82, where the undo
 # button and the event log are drawn over everything.
-RULES_POS   = [0.815, 0.120, 0.975, 0.290]
-DECK_POS    = [0.815, 0.306, 0.975, 0.524]
-CHOICE_POS  = [0.815, 0.536, 0.975, 0.8]
+RULES_POS   = [0.815, 0.120, 0.975, 0.320]
+DECK_POS    = [0.815, 0.336, 0.975, 0.557]
+CHOICE_POS  = [0.815, 0.569, 0.975, 0.8]
 # The left margin, x < 0.06, is otherwise empty -- a seat's own card lives
 # there so a player can find and hover it.
-SEAT_BOX_POS = {"north": [0.0, 0.010, 0.058, 0.185], "south": [0.0, 0.826, 0.058, 0.99]}
+SEAT_BOX_POS = {"north": [0.0, 0.010, 0.058, 0.185], "south": [0.0, 0.815, 0.058, 0.99]}
 
 
 def templates():
@@ -150,14 +150,6 @@ def templates():
             },
         })
 
-    out.append({"key": "mode_local", "text": "Both sides, here",
-                "tooltip": "Hot-seat: take both players' turns on this machine.",
-                "tags": ["token"], "play": {"action": ["purge:mode"]}})
-    out.append({"key": "mode_online", "text": "With a friend, online",
-                "tooltip": "Sit as North and invite someone to play South. They do not "
-                           "need this game — it travels with the invite.",
-                "tags": ["token"],
-                "play": {"action": ["purge:mode", "net_seat:north", "net_invite"]}})
     # The rulebook, as a card. "phases": [] means it works in no phase, so it can
     # never be played — it is a thing to read. "immutable" keeps it out of
     # targeting, so no stray effect can eat the instructions.
@@ -203,14 +195,6 @@ def zones():
             "contents": ["%s_w%d" % (c, w) for c, _, _, _ in COLOURS for w in range(1, WAGERS + 1)]
                         + ["%s_%d" % (c, v) for c, _, _, _ in COLOURS for v in VALUES]},
            {"key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat", "pos": HAND_POS},
-           # The opening question, as an overlay of its own. Hidden, so it costs
-           # no board space and the layout check ignores it, but an overlay
-           # phase draws its zone over the dim regardless. Deliberately *not*
-           # the built-in "reveal" pair: that one is page-mode at the zone, so
-           # every card fills the whole panel and two choices would stack.
-           # Here the page flag lives on the phase instead — which is what makes
-           # each card's own play block run — while the zone lays them side by side.
-           {"key": "mode", "layout": "row", "display": "offscreen", "pos": [0.30, 0.24, 0.70, 0.76]},
            # Where every choice that is not a card in your hand is made — which
            # today is only the tally, eleven scoring cards at the end of the
            # game. It is fanned rather than laid in a row: eleven cards side by
@@ -302,9 +286,7 @@ def phases():
     # Setup deals both hands once and is never returned to: the turn loop is a
     # cycle of its own, closed by south_draw routing back to north_play.
     out = [{"key": "setup", "type": "automatic",
-            "actions": ["draw_from:deck:mine.hand:8", "draw_from:deck:enemy.hand:8",
-                        "create:mode:mode_local:1", "create:mode:mode_online:1",
-                        "push_phase:mode"]}]
+            "actions": ["draw_from:deck:mine.hand:8", "draw_from:deck:enemy.hand:8"]}]
 
     # A turn is play-then-draw, and there is exactly one of each. Both seats
     # share them: "seat": "next" hands over on entering the play phase, so the
@@ -342,9 +324,6 @@ def phases():
         out.append({"key": seat + "_end", "type": "automatic",
                     "actions": ["stat_gain:won@" + seat + "_side:1",
                                 "reveal:" + seat + "_wins"]})
-    # Last, so nothing reaches it by falling off the end of the list: it is
-    # only ever pushed, and popped by answering it.
-    out.append({"key": "mode", "type": "overlay", "zone": "mode"})
     return out
 
 

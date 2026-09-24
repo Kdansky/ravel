@@ -154,11 +154,6 @@ function M.test_visibility_an_opponents_hand_cannot_be_read(check)
 	-- that carried it was hidden as well, and a hidden zone is not drawn, so
 	-- `zone_at` never names it and no right-click ever reaches `peekable`. The
 	-- tag is gone; this is the rule that was doing the work all along.
-	zones.resize()
-	local mode = zones.find("mode")
-	check("a zone nobody can reach is not browsable", mode.display == "offscreen"
-		and zones.zone_at(mode.place.x + mode.place.w * 0.5,
-			mode.place.y + mode.place.h * 0.5) ~= mode.id)
 
 	-- Hand over, and the answers swap.
 	for e in entity.each("card") do
@@ -174,6 +169,15 @@ end
 -- which is exactly why none of them could catch this: with one client the two
 -- seats move together, and with two they must not — a client that has claimed a
 -- seat goes on seeing its own hand, and only its own, while the opponent thinks.
+function M.test_visibility_an_offscreen_zone_cannot_be_reached(check)
+	flow.init("castle.json", 1)
+	zones.resize()
+	local offer = zones.find("offer")
+	check("a zone nobody can reach is not browsable", offer.display == "offscreen"
+		and zones.zone_at(offer.place.x + offer.place.w * 0.5,
+			offer.place.y + offer.place.h * 0.5) ~= offer.id)
+end
+
 function M.test_visibility_the_viewer_is_not_the_seat_to_play(check)
 	local net = require("net")
 	flow.init("lost_cities.json", 11)

@@ -69,7 +69,7 @@
       "label": "Expedition Deck",
       "layout": "stack",
       "visibility": "secret",
-      "pos": [0.815, 0.306, 0.975, 0.524],
+      "pos": [0.815, 0.336, 0.975, 0.557],
       "tags": ["shuffle"],
       "tooltip": "Take the top card. Ends your turn.",
       "abilities": [{ "phases": ["draw"], "action": ["draw_from:deck:hand:1", "end_phase"] }],
@@ -141,13 +141,12 @@
       "layout": "row",
       "visibility": "owner",
       "copies": "per_seat",
-      "pos": [[0.06, 0.01, 0.798, 0.108], [0.06, 0.826, 0.798, 0.924]]
+      "pos": [[0.06, 0.01, 0.798, 0.108], [0.06, 0.892, 0.798, 0.99]]
     },
-    { "key": "mode", "layout": "row", "display": "offscreen", "pos": [0.3, 0.24, 0.7, 0.76] },
     {
       "key": "rules",
       "layout": "stack",
-      "pos": [0.815, 0.12, 0.975, 0.29],
+      "pos": [0.815, 0.12, 0.975, 0.32],
       "contents": ["how_to_play"]
     },
     {
@@ -155,14 +154,14 @@
       "layout": "row",
       "row": "down",
       "tags": ["stacked"],
-      "pos": [0.815, 0.536, 0.975, 0.8]
+      "pos": [0.815, 0.569, 0.975, 0.8]
     },
     {
       "key": "seat_box",
       "layout": "stack",
       "status": "board",
       "copies": "per_seat",
-      "pos": [[0.0, 0.01, 0.058, 0.185], [0.0, 0.826, 0.058, 0.99]]
+      "pos": [[0.0, 0.01, 0.058, 0.185], [0.0, 0.815, 0.058, 0.99]]
     },
     {
       "key": "red",
@@ -172,7 +171,7 @@
       "reach": "top",
       "copies": "per_seat",
       "tags": ["stacked"],
-      "pos": [[0.06, 0.12, 0.19, 0.398], [0.06, 0.536, 0.19, 0.814]],
+      "pos": [[0.06, 0.12, 0.19, 0.431], [0.06, 0.569, 0.19, 0.88]],
       "receive": { "needs": { "req": ["value@target >= max:value@mine.red"] } }
     },
     {
@@ -180,7 +179,7 @@
       "label": "Red discard",
       "layout": "stack",
       "use": "abilities",
-      "pos": [0.06, 0.41, 0.19, 0.524],
+      "pos": [0.06, 0.443, 0.19, 0.557],
       "applies": ["takeable"],
       "receive": { "action": ["set_owner:target:none"] }
     },
@@ -192,7 +191,7 @@
       "reach": "top",
       "copies": "per_seat",
       "tags": ["stacked"],
-      "pos": [[0.212, 0.12, 0.34199999999999997, 0.398], [0.212, 0.536, 0.34199999999999997, 0.814]],
+      "pos": [[0.212, 0.12, 0.34199999999999997, 0.431], [0.212, 0.569, 0.34199999999999997, 0.88]],
       "receive": { "needs": { "req": ["value@target >= max:value@mine.green"] } }
     },
     {
@@ -200,7 +199,7 @@
       "label": "Green discard",
       "layout": "stack",
       "use": "abilities",
-      "pos": [0.212, 0.41, 0.34199999999999997, 0.524],
+      "pos": [0.212, 0.443, 0.34199999999999997, 0.557],
       "applies": ["takeable"],
       "receive": { "action": ["set_owner:target:none"] }
     },
@@ -212,7 +211,7 @@
       "reach": "top",
       "copies": "per_seat",
       "tags": ["stacked"],
-      "pos": [[0.364, 0.12, 0.494, 0.398], [0.364, 0.536, 0.494, 0.814]],
+      "pos": [[0.364, 0.12, 0.494, 0.431], [0.364, 0.569, 0.494, 0.88]],
       "receive": { "needs": { "req": ["value@target >= max:value@mine.blue"] } }
     },
     {
@@ -220,7 +219,7 @@
       "label": "Blue discard",
       "layout": "stack",
       "use": "abilities",
-      "pos": [0.364, 0.41, 0.494, 0.524],
+      "pos": [0.364, 0.443, 0.494, 0.557],
       "applies": ["takeable"],
       "receive": { "action": ["set_owner:target:none"] }
     },
@@ -232,7 +231,7 @@
       "reach": "top",
       "copies": "per_seat",
       "tags": ["stacked"],
-      "pos": [[0.516, 0.12, 0.6459999999999999, 0.398], [0.516, 0.536, 0.6459999999999999, 0.814]],
+      "pos": [[0.516, 0.12, 0.6459999999999999, 0.431], [0.516, 0.569, 0.6459999999999999, 0.88]],
       "receive": { "needs": { "req": ["value@target >= max:value@mine.white"] } }
     },
     {
@@ -240,7 +239,7 @@
       "label": "White discard",
       "layout": "stack",
       "use": "abilities",
-      "pos": [0.516, 0.41, 0.6459999999999999, 0.524],
+      "pos": [0.516, 0.443, 0.6459999999999999, 0.557],
       "applies": ["takeable"],
       "receive": { "action": ["set_owner:target:none"] }
     },
@@ -252,7 +251,7 @@
       "reach": "top",
       "copies": "per_seat",
       "tags": ["stacked"],
-      "pos": [[0.6679999999999999, 0.12, 0.798, 0.398], [0.6679999999999999, 0.536, 0.798, 0.814]],
+      "pos": [[0.6679999999999999, 0.12, 0.798, 0.431], [0.6679999999999999, 0.569, 0.798, 0.88]],
       "receive": { "needs": { "req": ["value@target >= max:value@mine.yellow"] } }
     },
     {
@@ -260,7 +259,7 @@
       "label": "Yellow discard",
       "layout": "stack",
       "use": "abilities",
-      "pos": [0.6679999999999999, 0.41, 0.798, 0.524],
+      "pos": [0.6679999999999999, 0.443, 0.798, 0.557],
       "applies": ["takeable"],
       "receive": { "action": ["set_owner:target:none"] }
     }
@@ -879,20 +878,6 @@
       }
     },
     {
-      "key": "mode_local",
-      "text": "Both sides, here",
-      "tooltip": "Hot-seat: take both players' turns on this machine.",
-      "tags": ["token"],
-      "play": { "action": ["purge:mode"] }
-    },
-    {
-      "key": "mode_online",
-      "text": "With a friend, online",
-      "tooltip": "Sit as North and invite someone to play South. They do not need this game — it travels with the invite.",
-      "tags": ["token"],
-      "play": { "action": ["purge:mode", "net_seat:north", "net_invite"] }
-    },
-    {
       "key": "how_to_play",
       "text": "How to play",
       "tags": ["immutable"],
@@ -926,13 +911,7 @@
     {
       "key": "setup",
       "type": "automatic",
-      "actions": [
-        "draw_from:deck:mine.hand:8",
-        "draw_from:deck:enemy.hand:8",
-        "create:mode:mode_local:1",
-        "create:mode:mode_online:1",
-        "push_phase:mode"
-      ]
+      "actions": ["draw_from:deck:mine.hand:8", "draw_from:deck:enemy.hand:8"]
     },
     {
       "key": "play",
@@ -991,8 +970,7 @@
       "key": "south_end",
       "type": "automatic",
       "actions": ["stat_gain:won@south_side:1", "reveal:south_wins"]
-    },
-    { "key": "mode", "type": "overlay", "zone": "mode" }
+    }
   ],
   "end_conditions": []
 }
