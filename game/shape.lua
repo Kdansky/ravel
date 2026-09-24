@@ -48,21 +48,20 @@ local function either(...)
 end
 
 local STRS    = list(STR)
+local ACTIONS = list(STR)
+ACTIONS.what  = 'a list of actions like ["stat_gain:gold:1"]'
 -- One condition, or a list that must all hold.
 local COND    = either(STR, list(STR))
--- An action is a string, or an if standing in its place. Its `do` takes the same entries, so an if inside an if is
--- still the right shape here and reaches the validator, which is what refuses it by name.
-local IF      = rec({ ["if"] = COND }, '{ "if": ["gold >= 3"], "do": ["stat_gain:mana:1"] }')
-local ACTIONS = list(either(STR, IF))
-ACTIONS.what  = 'a list of actions like ["stat_gain:gold:1"]'
-IF.fields["do"] = ACTIONS
+-- Conditions by what failing them does — see needs.lua, which reads the kinds.
+-- The old list form passes here so needs.lua can say what it became.
+local NEEDS   = either(map(COND, '{ "req": ["gold >= 3"] }'), COND)
 local WORDS   = either(STR, list(STR))
 local RECT    = list(NUM, 4, "[0.1, 0.1, 0.4, 0.3]")
 local COLOUR  = list(NUM, { 3, 4 }, "[0.8, 0.2, 0.2]")
 -- A cost's values are amounts: a number, or an expression the amount reader parses.
 local COST    = map(either(NUM, STR), '{ "gold": 2 }')
 
-local MOVE_RULE = rec({ patterns = WORDS, fill = STR, needs = COND, where = COND })
+local MOVE_RULE = rec({ patterns = WORDS, fill = STR, needs = NEEDS, where = COND })
 local MOVES     = list(either(STR, MOVE_RULE))
 
 local TARGET = rec({
@@ -137,18 +136,18 @@ M.MOMENTS = {
 
 -- What each authored word inside a moment holds.
 local IN_MOMENT = {
-	cost = COST, needs = COND, target = TARGET, phases = WORDS, action = ACTIONS,
+	cost = COST, needs = NEEDS, target = TARGET, phases = WORDS, action = ACTIONS,
 	spent = STR, compute = STRS, pass = ACTIONS, fail = ACTIONS, when = COND,
 	whose = STR, where = COND, from = STR, into = STR,
 }
 
 local ABILITY = rec({
 	key = STR, text = STR, tooltip = STR, asset = STR, cost = COST, target = TARGET,
-	phases = WORDS, action = ACTIONS, moves = MOVES, needs = COND, compute = STRS, merge = STR,
+	phases = WORDS, action = ACTIONS, moves = MOVES, needs = NEEDS, compute = STRS, merge = STR,
 })
 
 local REACTION = rec({
-	key = STR, text = STR, tooltip = STR, to = STR, where = COND, needs = COND,
+	key = STR, text = STR, tooltip = STR, to = STR, where = COND, needs = NEEDS,
 	forced = STR, ["in"] = STR, whose = STR, cost = COST, target = TARGET,
 	action = ACTIONS, moves = MOVES, compute = STRS, spent = STR,
 })
@@ -173,6 +172,9 @@ local function with_moments(fields)
 	end
 	fields.abilities = list(ABILITY)
 	fields.emits = EMITS
+	-- A reveal's `needs` is only ever its `where`, which needs.lua moves onto the block before anything flattens it,
+	-- so it has a type here and no flat name.
+	fields.chosen.fields.needs = NEEDS
 	return fields
 end
 
@@ -182,7 +184,7 @@ local CARD = rec(with_moments({
 	reactions = list(REACTION),
 }))
 
-local ADJUST = rec({ key = STR, verb = STR, stat = STR, covers = STR, needs = COND,
+local ADJUST = rec({ key = STR, verb = STR, stat = STR, covers = STR, needs = NEEDS,
 	by = either(NUM, STR), instead = ACTIONS })
 
 local TAG = rec(with_moments({
@@ -221,7 +223,7 @@ local FILE = rec({
 	cards = list(CARD), zones = list(ZONE), phases = list(PHASE), stats = list(STAT),
 	tags = map(TAG),
 	computes = list(rec({ key = STR, value = either(STR, NUM), tooltip = STR })),
-	computed_tags = map(rec({ needs = COND, any_of = STRS })),
+	computed_tags = map(rec({ needs = NEEDS, any_of = STRS })),
 	verbs = list(rec({ key = STR, does = STR, action = ACTIONS, tooltip = STR, effect = STR })),
 	effects = map(rec({ base = STR, size = NUM, speed = NUM, count = NUM, color = COLOUR })),
 	end_conditions = list(rec({ when = COND, ["then"] = ACTIONS })),

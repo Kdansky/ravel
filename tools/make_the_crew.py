@@ -70,10 +70,10 @@ COMPUTES = [
 def in_trick():
     return [
         {"key": "follows", "text": "Weigh",
-         "needs": ["suit@self == led@plan"],
+         "needs": {"req": ["suit@self == led@plan"]},
          "action": ["stat_set:contend@self:sum:value@self"]},
         {"key": "trumps", "text": "Weigh", "compute": ["trump_rank"],
-         "needs": ["trump@self >= 1"],
+         "needs": {"req": ["trump@self >= 1"]},
          "action": ["stat_set:contend@self:trump_rank"]},
         # The led card always contends, so the best is never zero and exactly one
         # card is short by nothing. Its own pass, because it needs a number the
@@ -118,8 +118,8 @@ def radio_card():
                            f" {name.lower()} in your hand. One card, once a mission, and it stays"
                            " where you put it even after it stops being true.",
                 "cost": {"radio@mine.player": 1},
-                "target": {"type": "card", "count": 1, "zones": ["hand"],
-                           "where": [f"{v}@target >= 1", where.format(c=v)]},
+                "needs": {"where": [f"{v}@target >= 1", where.format(c=v)]},
+                "target": {"type": "card", "count": 1, "zones": ["hand"]},
                 "action": ["move:target:open"],
             })
     return {"key": "radio", "text": "Radio", "asset": "circle:teal",
@@ -446,10 +446,10 @@ def build():
            for k in SCRATCH if k not in ("suit", "value")],
         "computes": COMPUTES,
         "computed_tags": {
-            "commander": {"needs": ["has_r4@self >= 1"]},
+            "commander": {"needs": {"req": ["has_r4@self >= 1"]}},
             # The one card in the trick that fell short of the best by nothing.
-            "taker": {"needs": ["gap@self == 0"]},
-            "hit_now": {"needs": ["hit@self >= 1"]},
+            "taker": {"needs": {"req": ["gap@self == 0"]}},
+            "hit_now": {"needs": {"req": ["hit@self >= 1"]}},
         },
         "tags": {
             # The whole of follow-suit, said once for all forty cards. Leading,
@@ -457,7 +457,7 @@ def build():
             # ("nothing else here is playable") opens the hand at once.
             "play_card": {
                 "tooltip": "Follow the led suit if you hold it. Rockets beat every colour.",
-                "play": {"needs": ["suit@self == led@plan"],
+                "play": {"needs": {"req": ["suit@self == led@plan"]},
                          "action": ["set_owner:self:mine.player", "move_to:trick"]},
             },
             # Taking a task is one act; which card it wants is the tag it shares

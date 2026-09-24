@@ -106,7 +106,7 @@ response window, after blocks, where LoR gives the attacker one before them too.
 
 **"Deal 2 to anything" was not a gap after all.** It looked like one — a Nexus is
 a seat card carrying `nexus`, a unit carries `health`, so one aim writes two
-stats and an action list has no if ([42](42-an-if-inside-an-action-list.md)).
+stats and an action list had no if (it has gates now: [46](46-one-list-of-conditions.md)).
 The answer is that it needs no if: `any_of` says the aim once as a union of the
 two kinds, and a subject names only the cards **carrying** its stat, so the two
 damage lines each land on exactly the half they are about and pass over the

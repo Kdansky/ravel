@@ -26,7 +26,7 @@ local GAME = [==[{
   ],
   "cards": [
     { "key": "one", "text": "One" },
-    { "key": "gated", "text": "Gated", "play": { "needs": ["gold@mine.player >= 1"], "action": ["move_to:field"] } },
+    { "key": "gated", "text": "Gated", "play": { "needs": { "req": ["gold@mine.player >= 1"] }, "action": ["move_to:field"] } },
     { "key": "other", "text": "Other" %s }
   ],
   "setup": { "place": [{ "card": "one", "zone": "field" }] }

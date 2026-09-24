@@ -256,11 +256,11 @@
     }
   ],
   "computed_tags": {
-    "spent": { "needs": ["stock@self < 1"] },
-    "discounted": { "needs": ["on_sale@self >= 1"] },
-    "dear": { "needs": ["price@self >= 2"] },
+    "spent": { "needs": { "req": ["stock@self < 1"] } },
+    "discounted": { "needs": { "req": ["on_sale@self >= 1"] } },
+    "dear": { "needs": { "req": ["price@self >= 2"] } },
     "stowed": { "any_of": ["in_bag", "in_discard"] },
-    "character_stowed": { "needs": ["tagged:character@self", "tagged:stowed@self"] }
+    "character_stowed": { "needs": { "req": ["tagged:character@self", "tagged:stowed@self"] } }
   },
   "tags": {
     "red": { "emits": { "play": "attack" } },
@@ -274,7 +274,7 @@
           "text": "Buy it",
           "merge": "this",
           "phases": ["buy", "react_buy"],
-          "needs": ["stock@self >= 1"],
+          "needs": { "req": ["stock@self >= 1"] },
           "cost": { "money@mine.player": "price@self" },
           "action": ["take:self:mine.discard:1", "stat_gain:bought@mine.player:1"]
         }
@@ -636,7 +636,13 @@
       "tags": ["immutable"],
       "asset": "square:slate",
       "tooltip": "End your turn. You must have bought at least one chip — a Wound is free, and that is the point.",
-      "abilities": [{ "phases": ["buy"], "needs": ["bought@mine.player >= 1"], "action": ["end_phase"] }]
+      "abilities": [
+        {
+          "phases": ["buy"],
+          "needs": { "req": ["bought@mine.player >= 1"] },
+          "action": ["end_phase"]
+        }
+      ]
     },
     {
       "key": "gem_1",
@@ -709,7 +715,7 @@
         "action": ["resolve_challenge"]
       },
       "challenge": {
-        "needs": ["sum:value@target <= 4"],
+        "needs": { "req": ["sum:value@target <= 4"] },
         "pass": [
           "stat_set:combined@mine.player:sum:value@target",
           "purge:target",
@@ -976,7 +982,7 @@
           "to": "crash",
           "whose": "enemy",
           "text": "Negate the gems",
-          "needs": ["crashed@opponent >= 1", "broke@opponent <= 3"],
+          "needs": { "req": ["crashed@opponent >= 1", "broke@opponent <= 3"] },
           "action": ["purge:mine.gem_1:sum:crashed@opponent"],
           "spent": "mine.discard"
         }
@@ -1037,7 +1043,7 @@
         "action": ["purge:self", "show:bank:optional"]
       },
       "chosen": {
-        "where": ["not_tagged:gem@target", "not_tagged:puzzle@target"],
+        "needs": { "where": ["not_tagged:gem@target", "not_tagged:puzzle@target"] },
         "action": ["create:mine.discard:@target:1", "stat_damage:stock@target:1", "end_phase"]
       },
       "tooltip": "Choose any number of different non-gem, non-Puzzle chips in the bank. Play them, gain them, then end your action phase.\n\nDEV: one chip is gained off the shelf, and it ends your action phase and trashes itself. Two things are short of the print. \"Any number of different\" is one, because an offer takes one answer. And they are gained rather than played: these four are the purples and Wound, whose plays resolve a challenge, and a challenge's pass is an ordinary action list that moves the card it belongs to — which would drag the shelf out of the bank. copy: promises not to move a card; it cannot promise that about what the card's own rules do once they are running.",
@@ -1062,7 +1068,7 @@
         "spent": "mine.table"
       },
       "challenge": {
-        "needs": ["sum:value@target <= 4"],
+        "needs": { "req": ["sum:value@target <= 4"] },
         "pass": [
           "stat_set:combined@mine.player:sum:value@target",
           "purge:target",
@@ -1100,7 +1106,7 @@
           "whose": "mine",
           "forced": "mandatory",
           "in": "board",
-          "where": ["tagged:purple@event"],
+          "needs": { "event": ["tagged:purple@event"] },
           "action": [],
           "spent": "mine.discard"
         }
@@ -1156,7 +1162,7 @@
         "spent": "mine.table"
       },
       "chosen": {
-        "where": ["tagged:purple@target"],
+        "needs": { "where": ["tagged:purple@target"] },
         "action": ["set_owner:target:mine.player", "move:target:mine.discard"]
       },
       "tooltip": "Chosen opponent reveals his hand and discards all purples. Steal one of those purples (to your discard pile). If you do, trash this chip.\n\nDEV: you take one purple out of their revealed hand. The rest of their purples are not discarded, which would want a scope that reaches inside a hand.",
@@ -1209,7 +1215,7 @@
         "spent": "mine.table"
       },
       "chosen": {
-        "where": ["price@target <= budget@mine.player", "stock@target >= 1"],
+        "needs": { "where": ["price@target <= budget@mine.player", "stock@target >= 1"] },
         "action": ["take:target:mine.hand:1"]
       },
       "tooltip": "Piggy bank. Trash a non-purple-orb chip from your hand, then put a bank chip costing up to 2 more than the trashed chip into your hand.",
@@ -1237,7 +1243,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "needs": ["sum:value@mine.gem_pile <= 4"],
+        "needs": { "req": ["sum:value@mine.gem_pile <= 4"] },
         "action": ["stat_gain:acts@mine.player:2", "draw_from:mine.bag:mine.hand:2"],
         "spent": "mine.table"
       },
@@ -1255,7 +1261,7 @@
         "action": ["stat_gain:act_blue@mine.player:1", "show:mine.bag:optional"],
         "spent": "mine.table"
       },
-      "chosen": { "where": ["tagged:blue@target"], "action": ["move:target:mine.hand"] },
+      "chosen": { "needs": { "where": ["tagged:blue@target"] }, "action": ["move:target:mine.hand"] },
       "reactions": [
         {
           "to": "attack",
@@ -1306,7 +1312,7 @@
         "spent": "mine.table"
       },
       "chosen": {
-        "where": ["price@target <= budget@mine.player", "stock@target >= 1"],
+        "needs": { "where": ["price@target <= budget@mine.player", "stock@target >= 1"] },
         "action": ["take:target:mine.discard:1"]
       },
       "tooltip": "+2 chips. Trash a chip from your hand. If you do, gain a chip costing up to 2 more than the trashed chip.",
@@ -1494,7 +1500,7 @@
         "cost": { "acts@mine.player": 1 },
         "action": ["purge:self", "show:bank:optional"]
       },
-      "chosen": { "where": ["sum:price@target <= 5"], "action": ["copy:target:play"] },
+      "chosen": { "needs": { "where": ["sum:price@target <= 5"] }, "action": ["copy:target:play"] },
       "tooltip": "Play this as if it were any bank chip of cost 5 or less, then trash this chip.\n\nDEV: built whole, now that the bank holds chips and not plates: the shelf comes up as an offer, and copy: runs what the chosen chip does. A copy carries no targets, so a chip that waits to be aimed — a Crash Gem — is played and goes off at nothing.",
       "card_stats": { "price": 6 }
     },
@@ -1778,7 +1784,7 @@
         {
           "to": "crash",
           "whose": "enemy",
-          "needs": ["crashed@opponent >= 1", "broke@opponent <= 3"],
+          "needs": { "req": ["crashed@opponent >= 1", "broke@opponent <= 3"] },
           "in": "board",
           "action": ["purge:mine.gem_1:1", "destroy:self", "transform:self:bubble_shield"]
         }
@@ -1909,14 +1915,8 @@
           "to": "buy",
           "whose": "enemy",
           "text": "Trash a chip and gain a better one",
-          "where": ["tagged:purple@event"],
-          "target": {
-            "type": "card",
-            "zones": ["hand"],
-            "owner": "mine",
-            "count": 1,
-            "where": ["not_tagged:purple@target"]
-          },
+          "needs": { "event": ["tagged:purple@event"], "where": ["not_tagged:purple@target"] },
+          "target": { "type": "card", "zones": ["hand"], "owner": "mine", "count": 1 },
           "action": [
             "stat_set:budget@mine.player:sum:price@target",
             "stat_gain:budget@mine.player:2",
@@ -1927,7 +1927,7 @@
         }
       ],
       "chosen": {
-        "where": ["price@target <= budget@mine.player", "stock@target >= 1"],
+        "needs": { "where": ["price@target <= budget@mine.player", "stock@target >= 1"] },
         "action": ["take:target:mine.discard:1"]
       },
       "tooltip": "Reaction: When an opponent buys a purple chip, trash a non-purple chip from your hand then gain a chip costing up to 2 more than the trashed chip.",
@@ -1962,14 +1962,8 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "target": {
-          "type": "card",
-          "tags": ["chip"],
-          "zones": ["hand"],
-          "owner": "anyone",
-          "count": 1,
-          "where": ["not_tagged:puzzle@target"]
-        },
+        "needs": { "where": ["not_tagged:puzzle@target"] },
+        "target": { "type": "card", "tags": ["chip"], "zones": ["hand"], "owner": "anyone", "count": 1 },
         "action": ["copy:target:play:2", "purge:target", "end_phase:action"],
         "spent": "mine.table"
       }
@@ -2022,7 +2016,7 @@
           "to": "crash",
           "whose": "enemy",
           "text": "Counter-crash",
-          "needs": ["crashed@opponent >= 1", "broke@opponent <= 3"],
+          "needs": { "req": ["crashed@opponent >= 1", "broke@opponent <= 3"] },
           "target": {
             "type": "card",
             "tags": ["gem"],
@@ -2093,7 +2087,7 @@
           "to": "crash",
           "whose": "enemy",
           "text": "Send the gems back to the bank",
-          "needs": ["crashed@opponent >= 1", "broke@opponent <= 3"],
+          "needs": { "req": ["crashed@opponent >= 1", "broke@opponent <= 3"] },
           "action": ["purge:mine.gem_1:sum:crashed@opponent"],
           "spent": "mine.discard"
         }
@@ -2164,7 +2158,7 @@
         "spent": "mine.table"
       },
       "chosen": {
-        "where": ["tagged:gem@target", "sum:value@target >= max:value@options"],
+        "needs": { "where": ["tagged:gem@target", "sum:value@target >= max:value@options"] },
         "action": [
           "stat_set:crashed@mine.player:sum:value@target",
           "stat_set:broke@mine.player:max:value@target",
@@ -2268,7 +2262,7 @@
         "action": ["stat_gain:acts@mine.player:1", "show:mine.bag:optional"],
         "spent": "mine.table"
       },
-      "chosen": { "where": ["tagged:purple@target"], "action": ["move:target:mine.hand"] },
+      "chosen": { "needs": { "where": ["tagged:purple@target"] }, "action": ["move:target:mine.hand"] },
       "tooltip": "+1 action. Exchange a chip in your hand with a purple from your bag.\n\nDEV: the bag opens and a purple comes out of it. The chip you give back in exchange is not asked for.",
       "card_stats": { "plus_act": 1 }
     },
@@ -2305,7 +2299,10 @@
         "action": ["stat_gain:acts@mine.player:1", "show:mine.discard:optional"],
         "spent": "mine.table"
       },
-      "chosen": { "where": ["not_tagged:puzzle@target"], "action": ["move:target:mine.hand"] },
+      "chosen": {
+        "needs": { "where": ["not_tagged:puzzle@target"] },
+        "action": ["move:target:mine.hand"]
+      },
       "tooltip": "+1 action. Put a non-Puzzle chip from your discard pile into your hand.",
       "card_stats": { "plus_act": 1 }
     },
@@ -2317,7 +2314,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "needs": ["count:chip@mine.discard >= 1"],
+        "needs": { "req": ["count:chip@mine.discard >= 1"] },
         "action": ["set_priority:enemy.player", "show:enemy.discard"],
         "spent": "mine.table"
       },
@@ -2341,7 +2338,9 @@
           "whose": "enemy",
           "forced": "mandatory",
           "in": "board",
-          "needs": ["sum:value@mine.gem_pile >= 3", "sum:price@event > sum:value@enemy.gem_pile"],
+          "needs": {
+            "req": ["sum:value@mine.gem_pile >= 3", "sum:price@event > sum:value@enemy.gem_pile"]
+          },
           "action": ["counterspell"]
         },
         {
@@ -2349,7 +2348,7 @@
           "whose": "mine",
           "forced": "mandatory",
           "in": "board",
-          "where": ["tagged:purple@event"],
+          "needs": { "event": ["tagged:purple@event"] },
           "action": [],
           "spent": "mine.discard"
         }
@@ -2390,7 +2389,7 @@
         "spent": "mine.table"
       },
       "chosen": {
-        "where": ["tagged:puzzle@target", "sum:price@target <= shown@clock"],
+        "needs": { "where": ["tagged:puzzle@target", "sum:price@target <= shown@clock"] },
         "action": ["copy:target:play", "stat_damage:stock@target:1"]
       },
       "tooltip": "Reveal a Puzzle chip from your hand or discard pile, then play and trash a different Puzzle chip from the bank costing the same or less.\n\nDEV: built, now that the bank holds chips: the revealed chip stays in your hand, its price is written on the clock rather than into your purse, and the shelf it may reach is gated on that number. The bank chip is played and the stack pays one for it, which is what trashing it comes to. \"A different Puzzle chip\" is not said — nothing compares a pick against an earlier one — and the reveal is from your hand only, since a discard is a stack and a stack offers its top card."
@@ -2691,7 +2690,7 @@
           "whose": "mine",
           "forced": "mandatory",
           "in": "board",
-          "where": ["tagged:purple@event"],
+          "needs": { "event": ["tagged:purple@event"] },
           "action": [],
           "spent": "mine.discard"
         }
@@ -2707,7 +2706,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "needs": ["sum:value@mine.gem_pile >= 6"],
+        "needs": { "req": ["sum:value@mine.gem_pile >= 6"] },
         "action": [
           "draw_from:mine.bag:mine.hand:2",
           "stat_gain:act_brown@mine.player:1",
@@ -2831,7 +2830,7 @@
           "to": "crash",
           "whose": "enemy",
           "text": "Crash a 1-gem back",
-          "needs": ["crashed@opponent >= 1", "broke@opponent <= 3"],
+          "needs": { "req": ["crashed@opponent >= 1", "broke@opponent <= 3"] },
           "target": {
             "type": "card",
             "tags": ["gem_1"],
@@ -2898,7 +2897,7 @@
           "whose": "mine",
           "forced": "mandatory",
           "in": "board",
-          "where": ["tagged:purple@event"],
+          "needs": { "event": ["tagged:purple@event"] },
           "action": [],
           "spent": "mine.discard"
         },
@@ -2907,7 +2906,7 @@
           "whose": "mine",
           "forced": "mandatory",
           "in": "board",
-          "where": ["sum:price@event >= 6"],
+          "needs": { "event": ["sum:price@event >= 6"] },
           "action": [],
           "spent": "mine.discard"
         }
@@ -2943,7 +2942,7 @@
         "spent": "mine.table"
       },
       "chosen": {
-        "where": ["tagged:gem@target", "sum:value@target >= max:value@options"],
+        "needs": { "where": ["tagged:gem@target", "sum:value@target >= max:value@options"] },
         "action": ["destroy:target"]
       },
       "tooltip": "+1 brown action. Each opponent reveals his hand and discards his largest gem.",
@@ -2960,7 +2959,7 @@
         "action": ["show:bank:optional"],
         "spent": "mine.table"
       },
-      "chosen": { "where": ["tagged:puzzle@target"], "action": ["move:target:chip_box"] },
+      "chosen": { "needs": { "where": ["tagged:puzzle@target"] }, "action": ["move:target:chip_box"] },
       "tooltip": "Remove a Puzzle bank stack from the game. If a stack was previously removed, return it to the game.\n\nDEV: the stack goes back into the box, which is as near as a zone gets to out of the game. The bank comes up as an offer rather than as a target, because a bank plate is scenery and nothing may point at one. Returning a stack is not built: nothing remembers which one left."
     },
     {
@@ -2972,7 +2971,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "needs": ["sum:value@mine.gem_pile >= 10"],
+        "needs": { "req": ["sum:value@mine.gem_pile >= 10"] },
         "action": ["draw_from:mine.bag:mine.hand:3", "stat_gain:acts@mine.player:1"],
         "spent": "mine.table"
       },
@@ -2995,7 +2994,7 @@
           "whose": "mine",
           "forced": "mandatory",
           "in": "board",
-          "where": ["tagged:puzzle@event"],
+          "needs": { "event": ["tagged:puzzle@event"] },
           "action": ["stat_set:owed@mine.player:1"]
         },
         {
@@ -3003,7 +3002,7 @@
           "whose": "mine",
           "forced": "mandatory",
           "in": "board",
-          "needs": ["owed@mine.player >= 1"],
+          "needs": { "req": ["owed@mine.player >= 1"] },
           "action": ["draw_from:mine.bag:mine.hand:1", "stat_set:owed@mine.player:0"]
         }
       ],
@@ -3531,7 +3530,7 @@
         {
           "key": "ante_1",
           "text": "ante_1",
-          "needs": ["panic@clock <= 1"],
+          "needs": { "req": ["panic@clock <= 1"] },
           "action": ["take:bank.gem_1:mine.gem_pile:1"]
         }
       ]
@@ -3544,7 +3543,7 @@
         {
           "key": "ante_2",
           "text": "ante_2",
-          "needs": ["panic@clock >= 2", "panic@clock <= 2"],
+          "needs": { "req": ["panic@clock >= 2", "panic@clock <= 2"] },
           "action": ["take:bank.gem_2:mine.gem_pile:1"]
         }
       ]
@@ -3557,7 +3556,7 @@
         {
           "key": "ante_3",
           "text": "ante_3",
-          "needs": ["panic@clock >= 3", "panic@clock <= 3"],
+          "needs": { "req": ["panic@clock >= 3", "panic@clock <= 3"] },
           "action": ["take:bank.gem_3:mine.gem_pile:1"]
         }
       ]
@@ -3570,7 +3569,7 @@
         {
           "key": "ante_4",
           "text": "ante_4",
-          "needs": ["panic@clock >= 4"],
+          "needs": { "req": ["panic@clock >= 4"] },
           "action": ["take:bank.gem_4:mine.gem_pile:1"]
         }
       ]
@@ -3583,7 +3582,7 @@
         {
           "key": "comb_2",
           "text": "comb_2",
-          "needs": ["combined@mine.player == 2"],
+          "needs": { "req": ["combined@mine.player == 2"] },
           "action": ["take:bank.gem_2:mine.gem_pile:1"]
         }
       ]
@@ -3596,7 +3595,7 @@
         {
           "key": "comb_3",
           "text": "comb_3",
-          "needs": ["combined@mine.player == 3"],
+          "needs": { "req": ["combined@mine.player == 3"] },
           "action": ["take:bank.gem_3:mine.gem_pile:1"]
         }
       ]
@@ -3609,7 +3608,7 @@
         {
           "key": "comb_4",
           "text": "comb_4",
-          "needs": ["combined@mine.player == 4"],
+          "needs": { "req": ["combined@mine.player == 4"] },
           "action": ["take:bank.gem_4:mine.gem_pile:1"]
         }
       ]
@@ -3622,7 +3621,7 @@
         {
           "key": "up_2",
           "text": "up_2",
-          "needs": ["combined@mine.player == 1"],
+          "needs": { "req": ["combined@mine.player == 1"] },
           "action": ["take:bank.gem_2:mine.discard:1"]
         }
       ]
@@ -3635,7 +3634,7 @@
         {
           "key": "up_3",
           "text": "up_3",
-          "needs": ["combined@mine.player == 2"],
+          "needs": { "req": ["combined@mine.player == 2"] },
           "action": ["take:bank.gem_3:mine.discard:1"]
         }
       ]
@@ -3648,7 +3647,7 @@
         {
           "key": "up_4",
           "text": "up_4",
-          "needs": ["combined@mine.player == 3"],
+          "needs": { "req": ["combined@mine.player == 3"] },
           "action": ["take:bank.gem_4:mine.discard:1"]
         }
       ]
@@ -3661,7 +3660,7 @@
         {
           "key": "uph_2",
           "text": "uph_2",
-          "needs": ["combined@mine.player == 1"],
+          "needs": { "req": ["combined@mine.player == 1"] },
           "action": ["take:bank.gem_2:mine.hand:1"]
         }
       ]
@@ -3674,7 +3673,7 @@
         {
           "key": "uph_3",
           "text": "uph_3",
-          "needs": ["combined@mine.player == 2"],
+          "needs": { "req": ["combined@mine.player == 2"] },
           "action": ["take:bank.gem_3:mine.hand:1"]
         }
       ]
@@ -3687,7 +3686,7 @@
         {
           "key": "uph_4",
           "text": "uph_4",
-          "needs": ["combined@mine.player == 3"],
+          "needs": { "req": ["combined@mine.player == 3"] },
           "action": ["take:bank.gem_4:mine.hand:1"]
         }
       ]
@@ -3700,7 +3699,7 @@
         {
           "key": "upp_2",
           "text": "upp_2",
-          "needs": ["combined@mine.player == 1"],
+          "needs": { "req": ["combined@mine.player == 1"] },
           "action": ["take:bank.gem_2:mine.gem_pile:1"]
         }
       ]
@@ -3713,7 +3712,7 @@
         {
           "key": "upp_3",
           "text": "upp_3",
-          "needs": ["combined@mine.player == 2"],
+          "needs": { "req": ["combined@mine.player == 2"] },
           "action": ["take:bank.gem_3:mine.gem_pile:1"]
         }
       ]
@@ -3726,7 +3725,7 @@
         {
           "key": "upp_4",
           "text": "upp_4",
-          "needs": ["combined@mine.player == 3"],
+          "needs": { "req": ["combined@mine.player == 3"] },
           "action": ["take:bank.gem_4:mine.gem_pile:1"]
         }
       ]
@@ -3739,7 +3738,7 @@
         {
           "key": "piggy_bank",
           "text": "Piggy bank",
-          "needs": ["piggy@mine.player >= 1"],
+          "needs": { "req": ["piggy@mine.player >= 1"] },
           "action": ["show:mine.hand:optional"]
         }
       ],
@@ -3757,7 +3756,7 @@
         }
       ],
       "chosen": {
-        "where": ["tagged:character@target"],
+        "needs": { "where": ["tagged:character@target"] },
         "action": ["copy:target:play", "move:target:mine.table"]
       }
     },
@@ -3769,7 +3768,7 @@
         {
           "key": "height_3",
           "text": "height_3",
-          "needs": ["sum:value@mine.gem_pile >= 3"],
+          "needs": { "req": ["sum:value@mine.gem_pile >= 3"] },
           "action": ["stat_gain:to_draw@mine.player:1"]
         }
       ]
@@ -3782,7 +3781,7 @@
         {
           "key": "height_6",
           "text": "height_6",
-          "needs": ["sum:value@mine.gem_pile >= 6"],
+          "needs": { "req": ["sum:value@mine.gem_pile >= 6"] },
           "action": ["stat_gain:to_draw@mine.player:1"]
         }
       ]
@@ -3795,7 +3794,7 @@
         {
           "key": "height_9",
           "text": "height_9",
-          "needs": ["sum:value@mine.gem_pile >= 9"],
+          "needs": { "req": ["sum:value@mine.gem_pile >= 9"] },
           "action": ["stat_gain:to_draw@mine.player:1"]
         }
       ]

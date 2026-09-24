@@ -17,7 +17,7 @@
     { "key": "food", "label": "Food", "icon": "leaf", "min": 0, "max": 999 }
   ],
   "computed_tags": {
-    "standing": { "needs": ["hp@self >= 1"] }
+    "standing": { "needs": { "req": ["hp@self >= 1"] } }
   },
   "styles": { "slate": { "color": [0.1, 0.14, 0.22] }, "tiled": { "fit": "fill" } },
   "setup": { "place": [{ "card": "throne_room", "zone": "board", "at": "c3" }] },
@@ -156,7 +156,7 @@
       "asset": "cavalry_raid.jpg",
       "tooltip": "Raiders attack! Need 3 defense or lose 2 morale.",
       "tags": ["challenge"],
-      "challenge": { "needs": ["sum:defense@standing >= 3"], "pass": [], "fail": ["stat_damage:morale:2"] }
+      "challenge": { "needs": { "req": ["sum:defense@standing >= 3"] }, "pass": [], "fail": ["stat_damage:morale:2"] }
     },
     {
       "key": "drought",
@@ -164,7 +164,7 @@
       "asset": "blighted_tree.jpg",
       "tooltip": "Crops wither. Need 3 food or lose 1 morale.",
       "tags": ["challenge"],
-      "challenge": { "needs": ["food >= 3"], "pass": [], "fail": ["stat_damage:morale:1"] }
+      "challenge": { "needs": { "req": ["food >= 3"] }, "pass": [], "fail": ["stat_damage:morale:1"] }
     },
     {
       "key": "merchant",
@@ -172,7 +172,7 @@
       "asset": "gold_coins.jpg",
       "tooltip": "A merchant arrives. Have 2 gold and earn 2 more.",
       "tags": ["challenge"],
-      "challenge": { "needs": ["gold >= 2"], "pass": ["stat_gain:gold:2"], "fail": [] }
+      "challenge": { "needs": { "req": ["gold >= 2"] }, "pass": ["stat_gain:gold:2"], "fail": [] }
     },
     {
       "key": "siege",
@@ -181,7 +181,7 @@
       "tooltip": "Enemy forces lay siege. Need 5 defense or a building takes 2 damage.",
       "tags": ["challenge"],
       "challenge": {
-        "needs": ["sum:defense@standing >= 5"],
+        "needs": { "req": ["sum:defense@standing >= 5"] },
         "pass": [],
         "fail": ["stat_damage:hp@random.building:2"]
       }

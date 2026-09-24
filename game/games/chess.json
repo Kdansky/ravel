@@ -144,7 +144,7 @@
       "tags": ["piece", "pawn"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "challenge": {
-        "needs": ["rank@self == 8"],
+        "needs": { "req": ["rank@self == 8"] },
         "pass": ["options:to_queen,to_rook,to_bishop,to_knight"],
         "fail": ["end_phase"]
       },
@@ -157,7 +157,7 @@
             {
               "patterns": ["pawn_run"],
               "fill": "empty",
-              "needs": ["rank@self == 2"]
+              "needs": { "req": ["rank@self == 2"] }
             },
             { "patterns": ["pawn_take"], "fill": "enemy" }
           ],
@@ -168,13 +168,15 @@
           "text": "Take in passing",
           "moves": [
             {
+              "needs": {
+                "where": [
+                  "tagged:last_acted@behind",
+                  "tagged:pawn@behind",
+                  "rank@behind == 4"
+                ]
+              },
               "patterns": ["pawn_take"],
-              "fill": "empty",
-              "where": [
-                "tagged:last_acted@behind",
-                "tagged:pawn@behind",
-                "rank@behind == 4"
-              ]
+              "fill": "empty"
             }
           ],
           "action": ["move_to:target", "purge:behind", "stat_gain:moves_made@self:1", "end_phase"]
@@ -251,12 +253,14 @@
             {
               "patterns": ["two_right"],
               "fill": "empty",
-              "needs": ["moves_made@self == 0"],
-              "where": [
-                "tagged:rook@one_right",
-                "moves_made@one_right == 0",
-                "not_tagged:piece@one_left"
-              ]
+              "needs": {
+                "req": ["moves_made@self == 0"],
+                "where": [
+                  "tagged:rook@one_right",
+                  "moves_made@one_right == 0",
+                  "not_tagged:piece@one_left"
+                ]
+              }
             }
           ],
           "action": [
@@ -275,13 +279,15 @@
             {
               "patterns": ["two_left"],
               "fill": "empty",
-              "needs": ["moves_made@self == 0"],
-              "where": [
-                "tagged:rook@two_left",
-                "moves_made@two_left == 0",
-                "not_tagged:piece@one_right",
-                "not_tagged:piece@one_left"
-              ]
+              "needs": {
+                "req": ["moves_made@self == 0"],
+                "where": [
+                  "tagged:rook@two_left",
+                  "moves_made@two_left == 0",
+                  "not_tagged:piece@one_right",
+                  "not_tagged:piece@one_left"
+                ]
+              }
             }
           ],
           "action": [

@@ -36,9 +36,9 @@ local GAME = [==[{
     { "key": "beast", "text": "Beast", "tags": ["beast"], "card_stats": { "hp": 3 } },
     { "key": "ghost", "text": "Ghost", "tags": ["ghost"] },
     { "key": "one_gate", "text": "One gate",
-      "play": { "needs": ["gold >= 3"], "action": ["purge:self"] } },
+      "play": { "needs": { "req": ["gold >= 3"] }, "action": ["purge:self"] } },
     { "key": "range_gate", "text": "Range gate",
-      "play": { "needs": ["gold >= 3", "gold <= 8"], "action": ["purge:self"] } },
+      "play": { "needs": { "req": ["gold >= 3", "gold <= 8"] }, "action": ["purge:self"] } },
     { "key": "loose", "text": "Loose", "play": { "action": ["purge:self"] } }
   ],
   "setup": {

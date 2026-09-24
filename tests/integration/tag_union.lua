@@ -41,7 +41,7 @@ local GAME = [==[{
   "computed_tags": {
     "junk": { "any_of": ["curse", "ice"] },
     "held_or_binned": { "any_of": ["in_hand", "in_discard"] },
-    "junk_held": { "needs": ["tagged:junk@self", "tagged:held_or_binned@self"] }
+    "junk_held": { "needs": { "req": ["tagged:junk@self", "tagged:held_or_binned@self"] } }
   },
   "cards": [
     { "key": "one", "text": "One", "tags": ["seat_one"] },

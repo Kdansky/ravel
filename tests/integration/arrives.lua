@@ -56,7 +56,7 @@ local GAME = [==[{
       "play": { "phases": ["main"], "action": ["move_to:mine.army"] },
       "reactions": [
         { "to": "arrived", "whose": "mine", "forced": "mandatory", "in": "board",
-          "needs": ["not_self@event", "tagged:unit@event"],
+          "needs": { "req": ["not_self@event", "tagged:unit@event"] },
           "action": ["stat_gain:plus@self:1"] } ] }
   ],
   "setup": { "place": [{ "card": "one", "zone": "army" }, { "card": "two", "zone": "army" }] }

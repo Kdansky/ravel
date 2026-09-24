@@ -85,15 +85,15 @@
     }
   ],
   "computed_tags": {
-    "commander": { "needs": ["has_r4@self >= 1"] },
-    "taker": { "needs": ["gap@self == 0"] },
-    "hit_now": { "needs": ["hit@self >= 1"] }
+    "commander": { "needs": { "req": ["has_r4@self >= 1"] } },
+    "taker": { "needs": { "req": ["gap@self == 0"] } },
+    "hit_now": { "needs": { "req": ["hit@self >= 1"] } }
   },
   "tags": {
     "play_card": {
       "tooltip": "Follow the led suit if you hold it. Rockets beat every colour.",
       "play": {
-        "needs": ["suit@self == led@plan"],
+        "needs": { "req": ["suit@self == led@plan"] },
         "action": ["set_owner:self:mine.player", "move_to:trick"]
       }
     },
@@ -103,14 +103,14 @@
         {
           "key": "follows",
           "text": "Weigh",
-          "needs": ["suit@self == led@plan"],
+          "needs": { "req": ["suit@self == led@plan"] },
           "action": ["stat_set:contend@self:sum:value@self"]
         },
         {
           "key": "trumps",
           "text": "Weigh",
           "compute": ["trump_rank"],
-          "needs": ["trump@self >= 1"],
+          "needs": { "req": ["trump@self >= 1"] },
           "action": ["stat_set:contend@self:trump_rank"]
         },
         { "key": "measure", "compute": ["behind"], "action": ["stat_set:gap@self:behind"] }
@@ -522,12 +522,8 @@
           "text": "My highest pink",
           "tooltip": "Lay a pink card face up, saying it is the highest pink in your hand. One card, once a mission, and it stays where you put it even after it stops being true.",
           "cost": { "radio@mine.player": 1 },
-          "target": {
-            "type": "card",
-            "count": 1,
-            "zones": ["hand"],
-            "where": ["v_pink@target >= 1", "v_pink@target >= max:v_pink@mine.hand"]
-          },
+          "needs": { "where": ["v_pink@target >= 1", "v_pink@target >= max:v_pink@mine.hand"] },
+          "target": { "type": "card", "count": 1, "zones": ["hand"] },
           "action": ["move:target:open"]
         },
         {
@@ -535,12 +531,8 @@
           "text": "My only pink",
           "tooltip": "Lay a pink card face up, saying it is the only pink in your hand. One card, once a mission, and it stays where you put it even after it stops being true.",
           "cost": { "radio@mine.player": 1 },
-          "target": {
-            "type": "card",
-            "count": 1,
-            "zones": ["hand"],
-            "where": ["v_pink@target >= 1", "max:v_pink@mine.hand <= min:v_pink@mine.hand"]
-          },
+          "needs": { "where": ["v_pink@target >= 1", "max:v_pink@mine.hand <= min:v_pink@mine.hand"] },
+          "target": { "type": "card", "count": 1, "zones": ["hand"] },
           "action": ["move:target:open"]
         },
         {
@@ -548,12 +540,8 @@
           "text": "My lowest pink",
           "tooltip": "Lay a pink card face up, saying it is the lowest pink in your hand. One card, once a mission, and it stays where you put it even after it stops being true.",
           "cost": { "radio@mine.player": 1 },
-          "target": {
-            "type": "card",
-            "count": 1,
-            "zones": ["hand"],
-            "where": ["v_pink@target >= 1", "v_pink@target <= min:v_pink@mine.hand"]
-          },
+          "needs": { "where": ["v_pink@target >= 1", "v_pink@target <= min:v_pink@mine.hand"] },
+          "target": { "type": "card", "count": 1, "zones": ["hand"] },
           "action": ["move:target:open"]
         },
         {
@@ -561,12 +549,8 @@
           "text": "My highest blue",
           "tooltip": "Lay a blue card face up, saying it is the highest blue in your hand. One card, once a mission, and it stays where you put it even after it stops being true.",
           "cost": { "radio@mine.player": 1 },
-          "target": {
-            "type": "card",
-            "count": 1,
-            "zones": ["hand"],
-            "where": ["v_blue@target >= 1", "v_blue@target >= max:v_blue@mine.hand"]
-          },
+          "needs": { "where": ["v_blue@target >= 1", "v_blue@target >= max:v_blue@mine.hand"] },
+          "target": { "type": "card", "count": 1, "zones": ["hand"] },
           "action": ["move:target:open"]
         },
         {
@@ -574,12 +558,8 @@
           "text": "My only blue",
           "tooltip": "Lay a blue card face up, saying it is the only blue in your hand. One card, once a mission, and it stays where you put it even after it stops being true.",
           "cost": { "radio@mine.player": 1 },
-          "target": {
-            "type": "card",
-            "count": 1,
-            "zones": ["hand"],
-            "where": ["v_blue@target >= 1", "max:v_blue@mine.hand <= min:v_blue@mine.hand"]
-          },
+          "needs": { "where": ["v_blue@target >= 1", "max:v_blue@mine.hand <= min:v_blue@mine.hand"] },
+          "target": { "type": "card", "count": 1, "zones": ["hand"] },
           "action": ["move:target:open"]
         },
         {
@@ -587,12 +567,8 @@
           "text": "My lowest blue",
           "tooltip": "Lay a blue card face up, saying it is the lowest blue in your hand. One card, once a mission, and it stays where you put it even after it stops being true.",
           "cost": { "radio@mine.player": 1 },
-          "target": {
-            "type": "card",
-            "count": 1,
-            "zones": ["hand"],
-            "where": ["v_blue@target >= 1", "v_blue@target <= min:v_blue@mine.hand"]
-          },
+          "needs": { "where": ["v_blue@target >= 1", "v_blue@target <= min:v_blue@mine.hand"] },
+          "target": { "type": "card", "count": 1, "zones": ["hand"] },
           "action": ["move:target:open"]
         },
         {
@@ -600,12 +576,8 @@
           "text": "My highest green",
           "tooltip": "Lay a green card face up, saying it is the highest green in your hand. One card, once a mission, and it stays where you put it even after it stops being true.",
           "cost": { "radio@mine.player": 1 },
-          "target": {
-            "type": "card",
-            "count": 1,
-            "zones": ["hand"],
-            "where": ["v_green@target >= 1", "v_green@target >= max:v_green@mine.hand"]
-          },
+          "needs": { "where": ["v_green@target >= 1", "v_green@target >= max:v_green@mine.hand"] },
+          "target": { "type": "card", "count": 1, "zones": ["hand"] },
           "action": ["move:target:open"]
         },
         {
@@ -613,12 +585,8 @@
           "text": "My only green",
           "tooltip": "Lay a green card face up, saying it is the only green in your hand. One card, once a mission, and it stays where you put it even after it stops being true.",
           "cost": { "radio@mine.player": 1 },
-          "target": {
-            "type": "card",
-            "count": 1,
-            "zones": ["hand"],
-            "where": ["v_green@target >= 1", "max:v_green@mine.hand <= min:v_green@mine.hand"]
-          },
+          "needs": { "where": ["v_green@target >= 1", "max:v_green@mine.hand <= min:v_green@mine.hand"] },
+          "target": { "type": "card", "count": 1, "zones": ["hand"] },
           "action": ["move:target:open"]
         },
         {
@@ -626,12 +594,8 @@
           "text": "My lowest green",
           "tooltip": "Lay a green card face up, saying it is the lowest green in your hand. One card, once a mission, and it stays where you put it even after it stops being true.",
           "cost": { "radio@mine.player": 1 },
-          "target": {
-            "type": "card",
-            "count": 1,
-            "zones": ["hand"],
-            "where": ["v_green@target >= 1", "v_green@target <= min:v_green@mine.hand"]
-          },
+          "needs": { "where": ["v_green@target >= 1", "v_green@target <= min:v_green@mine.hand"] },
+          "target": { "type": "card", "count": 1, "zones": ["hand"] },
           "action": ["move:target:open"]
         },
         {
@@ -639,12 +603,8 @@
           "text": "My highest yellow",
           "tooltip": "Lay a yellow card face up, saying it is the highest yellow in your hand. One card, once a mission, and it stays where you put it even after it stops being true.",
           "cost": { "radio@mine.player": 1 },
-          "target": {
-            "type": "card",
-            "count": 1,
-            "zones": ["hand"],
-            "where": ["v_yellow@target >= 1", "v_yellow@target >= max:v_yellow@mine.hand"]
-          },
+          "needs": { "where": ["v_yellow@target >= 1", "v_yellow@target >= max:v_yellow@mine.hand"] },
+          "target": { "type": "card", "count": 1, "zones": ["hand"] },
           "action": ["move:target:open"]
         },
         {
@@ -652,12 +612,10 @@
           "text": "My only yellow",
           "tooltip": "Lay a yellow card face up, saying it is the only yellow in your hand. One card, once a mission, and it stays where you put it even after it stops being true.",
           "cost": { "radio@mine.player": 1 },
-          "target": {
-            "type": "card",
-            "count": 1,
-            "zones": ["hand"],
+          "needs": {
             "where": ["v_yellow@target >= 1", "max:v_yellow@mine.hand <= min:v_yellow@mine.hand"]
           },
+          "target": { "type": "card", "count": 1, "zones": ["hand"] },
           "action": ["move:target:open"]
         },
         {
@@ -665,12 +623,8 @@
           "text": "My lowest yellow",
           "tooltip": "Lay a yellow card face up, saying it is the lowest yellow in your hand. One card, once a mission, and it stays where you put it even after it stops being true.",
           "cost": { "radio@mine.player": 1 },
-          "target": {
-            "type": "card",
-            "count": 1,
-            "zones": ["hand"],
-            "where": ["v_yellow@target >= 1", "v_yellow@target <= min:v_yellow@mine.hand"]
-          },
+          "needs": { "where": ["v_yellow@target >= 1", "v_yellow@target <= min:v_yellow@mine.hand"] },
+          "target": { "type": "card", "count": 1, "zones": ["hand"] },
           "action": ["move:target:open"]
         }
       ]

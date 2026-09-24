@@ -831,142 +831,192 @@
   ],
   "computed_tags": {
     "dead": {
-      "needs": [
-        "hp@self < 1"
-      ]
+      "needs": {
+        "req": [
+          "hp@self < 1"
+        ]
+      }
     },
     "fallen": {
-      "needs": [
-        "life@self < 1"
-      ]
+      "needs": {
+        "req": [
+          "life@self < 1"
+        ]
+      }
     },
     "fell_low": {
-      "needs": [
-        "life@self < 1",
-        "level@self <= 3"
-      ]
+      "needs": {
+        "req": [
+          "life@self < 1",
+          "level@self <= 3"
+        ]
+      }
     },
     "rubble": {
-      "needs": [
-        "integrity@self < 1"
-      ]
+      "needs": {
+        "req": [
+          "integrity@self < 1"
+        ]
+      }
     },
     "slain": {
-      "needs": [
-        "left@self < 1"
-      ]
+      "needs": {
+        "req": [
+          "left@self < 1"
+        ]
+      }
     },
     "at_lead": {
-      "needs": [
-        "slot@self == 1"
-      ]
+      "needs": {
+        "req": [
+          "slot@self == 1"
+        ]
+      }
     },
     "at_elite": {
-      "needs": [
-        "slot@self == 2"
-      ]
+      "needs": {
+        "req": [
+          "slot@self == 2"
+        ]
+      }
     },
     "at_scav": {
-      "needs": [
-        "slot@self == 3"
-      ]
+      "needs": {
+        "req": [
+          "slot@self == 3"
+        ]
+      }
     },
     "at_tech": {
-      "needs": [
-        "slot@self == 4"
-      ]
+      "needs": {
+        "req": [
+          "slot@self == 4"
+        ]
+      }
     },
     "at_lookout": {
-      "needs": [
-        "slot@self == 5"
-      ]
+      "needs": {
+        "req": [
+          "slot@self == 5"
+        ]
+      }
     },
     "marked": {
-      "needs": [
-        "mark@self >= 1"
-      ]
+      "needs": {
+        "req": [
+          "mark@self >= 1"
+        ]
+      }
     },
     "fading": {
-      "needs": [
-        "fleeting@self >= 1"
-      ]
+      "needs": {
+        "req": [
+          "fleeting@self >= 1"
+        ]
+      }
     },
     "green_unit": {
-      "needs": [
-        "tagged:green@self",
-        "tagged:unit@self"
-      ]
+      "needs": {
+        "req": [
+          "tagged:green@self",
+          "tagged:unit@self"
+        ]
+      }
     },
     "veiled": {
-      "needs": [
-        "veil@self >= 1"
-      ]
+      "needs": {
+        "req": [
+          "veil@self >= 1"
+        ]
+      }
     },
     "barked": {
-      "needs": [
-        "tagged:bark@self",
-        "slot@self >= 1"
-      ]
+      "needs": {
+        "req": [
+          "tagged:bark@self",
+          "slot@self >= 1"
+        ]
+      }
     },
     "ferned": {
-      "needs": [
-        "tagged:unit@self",
-        "atk@self <= 3",
-        "count:ferns@mine.ongoing >= 1"
-      ]
+      "needs": {
+        "req": [
+          "tagged:unit@self",
+          "atk@self <= 3",
+          "count:ferns@mine.ongoing >= 1"
+        ]
+      }
     },
     "mighty": {
-      "needs": [
-        "tagged:fighter@self",
-        "sum:might@mine.ongoing.might >= 5"
-      ]
+      "needs": {
+        "req": [
+          "tagged:fighter@self",
+          "sum:might@mine.ongoing.might >= 5"
+        ]
+      }
     },
     "drakked": {
-      "needs": [
-        "tagged:unit@self",
-        "max:level@mine.h_blood >= 4"
-      ]
+      "needs": {
+        "req": [
+          "tagged:unit@self",
+          "max:level@mine.h_blood >= 4"
+        ]
+      }
     },
     "midori_air": {
-      "needs": [
-        "tagged:h_balance@self",
-        "level@self >= 8"
-      ]
+      "needs": {
+        "req": [
+          "tagged:h_balance@self",
+          "level@self >= 8"
+        ]
+      }
     },
     "cala_guard": {
-      "needs": [
-        "tagged:unit@self",
-        "max:level@mine.h_feral >= 3"
-      ]
+      "needs": {
+        "req": [
+          "tagged:unit@self",
+          "max:level@mine.h_feral >= 3"
+        ]
+      }
     },
     "showdown": {
-      "needs": [
-        "count:finale@attached_to.self >= 1"
-      ]
+      "needs": {
+        "req": [
+          "count:finale@attached_to.self >= 1"
+        ]
+      }
     },
     "held": {
-      "needs": [
-        "taken@self >= 1"
-      ]
+      "needs": {
+        "req": [
+          "taken@self >= 1"
+        ]
+      }
     },
     "rampaging": {
-      "needs": [
-        "rampage@self >= 1",
-        "not_tagged:overpower@self"
-      ]
+      "needs": {
+        "req": [
+          "rampage@self >= 1",
+          "not_tagged:overpower@self"
+        ]
+      }
     },
     "tok_unseen": {
-      "needs": [
-        "unseen@self >= 1",
-        "slot@self == 0"
-      ]
+      "needs": {
+        "req": [
+          "unseen@self >= 1",
+          "slot@self == 0"
+        ]
+      }
     },
     "tiger_unseen": {
-      "needs": [
-        "tagged:stalker@self",
-        "slot@self == 0",
-        "count:h_feral@mine.hero >= 1"
-      ]
+      "needs": {
+        "req": [
+          "tagged:stalker@self",
+          "slot@self == 0",
+          "count:h_feral@mine.hero >= 1"
+        ]
+      }
     },
     "hidden": {
       "any_of": [
@@ -978,27 +1028,35 @@
       ]
     },
     "t0_ok": {
-      "needs": [
-        "tagged:tech0@self"
-      ]
+      "needs": {
+        "req": [
+          "tagged:tech0@self"
+        ]
+      }
     },
     "t1_ok": {
-      "needs": [
-        "tagged:tech1@self",
-        "count:t1@mine.tech >= 1"
-      ]
+      "needs": {
+        "req": [
+          "tagged:tech1@self",
+          "count:t1@mine.tech >= 1"
+        ]
+      }
     },
     "t2_ok": {
-      "needs": [
-        "tagged:tech2@self",
-        "count:t2@mine.tech >= 1"
-      ]
+      "needs": {
+        "req": [
+          "tagged:tech2@self",
+          "count:t2@mine.tech >= 1"
+        ]
+      }
     },
     "t3_ok": {
-      "needs": [
-        "tagged:tech3@self",
-        "count:t3@mine.tech >= 1"
-      ]
+      "needs": {
+        "req": [
+          "tagged:tech3@self",
+          "count:t3@mine.tech >= 1"
+        ]
+      }
     },
     "buildable": {
       "any_of": [
@@ -1016,11 +1074,13 @@
       ]
     },
     "runed": {
-      "needs": [
-        "plus@self >= 1",
-        "not_tagged:overpower@self",
-        "count:elm@mine.structures >= 1"
-      ]
+      "needs": {
+        "req": [
+          "plus@self >= 1",
+          "not_tagged:overpower@self",
+          "count:elm@mine.structures >= 1"
+        ]
+      }
     },
     "hasty": {
       "any_of": [
@@ -1029,46 +1089,60 @@
       ]
     },
     "mimic_air": {
-      "needs": [
-        "tagged:mimic@self",
-        "sum:alt@others.anyone.fighter >= 1"
-      ]
+      "needs": {
+        "req": [
+          "tagged:mimic@self",
+          "sum:alt@others.anyone.fighter >= 1"
+        ]
+      }
     },
     "mimic_haste": {
-      "needs": [
-        "tagged:mimic@self",
-        "count:haste@others.anyone.fighter >= 1"
-      ]
+      "needs": {
+        "req": [
+          "tagged:mimic@self",
+          "count:haste@others.anyone.fighter >= 1"
+        ]
+      }
     },
     "mimic_over": {
-      "needs": [
-        "tagged:mimic@self",
-        "count:overpower@others.anyone.fighter >= 1"
-      ]
+      "needs": {
+        "req": [
+          "tagged:mimic@self",
+          "count:overpower@others.anyone.fighter >= 1"
+        ]
+      }
     },
     "mimic_ward": {
-      "needs": [
-        "tagged:mimic@self",
-        "count:untargetable@others.anyone.fighter >= 1"
-      ]
+      "needs": {
+        "req": [
+          "tagged:mimic@self",
+          "count:untargetable@others.anyone.fighter >= 1"
+        ]
+      }
     },
     "mimic_sneak": {
-      "needs": [
-        "tagged:mimic@self",
-        "sum:sneak@others.anyone.fighter >= 1"
-      ]
+      "needs": {
+        "req": [
+          "tagged:mimic@self",
+          "sum:sneak@others.anyone.fighter >= 1"
+        ]
+      }
     },
     "judged": {
-      "needs": [
-        "tagged:unit@self",
-        "tech_level@self <= 2"
-      ]
+      "needs": {
+        "req": [
+          "tagged:unit@self",
+          "tech_level@self <= 2"
+        ]
+      }
     },
     "bluecoat_lr": {
-      "needs": [
-        "tagged:bluecoat@self",
-        "atk@self == 1"
-      ]
+      "needs": {
+        "req": [
+          "tagged:bluecoat@self",
+          "atk@self == 1"
+        ]
+      }
     },
     "ranged": {
       "any_of": [
@@ -1077,83 +1151,109 @@
       ]
     },
     "weak": {
-      "needs": [
-        "tagged:fighter@self",
-        "atk@self <= 2"
-      ]
+      "needs": {
+        "req": [
+          "tagged:fighter@self",
+          "atk@self <= 2"
+        ]
+      }
     },
     "trained": {
-      "needs": [
-        "trained@self >= 1"
-      ]
+      "needs": {
+        "req": [
+          "trained@self >= 1"
+        ]
+      }
     },
     "warring": {
-      "needs": [
-        "warring@self >= 1"
-      ]
+      "needs": {
+        "req": [
+          "warring@self >= 1"
+        ]
+      }
     },
     "hammering": {
-      "needs": [
-        "tagged:hammer@self",
-        "count:building@across >= 1",
-        "count:damaged@across >= 1"
-      ]
+      "needs": {
+        "req": [
+          "tagged:hammer@self",
+          "count:building@across >= 1",
+          "count:damaged@across >= 1"
+        ]
+      }
     },
     "damaged": {
-      "needs": [
-        "integrity@self >= 1",
-        "integrity@self < 4"
-      ]
+      "needs": {
+        "req": [
+          "integrity@self >= 1",
+          "integrity@self < 4"
+        ]
+      }
     },
     "debilitated": {
-      "needs": [
-        "count:debil@across >= 1",
-        "sum:slot@across >= 1"
-      ]
+      "needs": {
+        "req": [
+          "count:debil@across >= 1",
+          "sum:slot@across >= 1"
+        ]
+      }
     },
     "claimed": {
-      "needs": [
-        "insured@self >= 1",
-        "hp@self < 1"
-      ]
+      "needs": {
+        "req": [
+          "insured@self >= 1",
+          "hp@self < 1"
+        ]
+      }
     },
     "reviving": {
-      "needs": [
-        "tagged:juggernaut@self",
-        "hp@self < 1",
-        "lives@self == 0"
-      ]
+      "needs": {
+        "req": [
+          "tagged:juggernaut@self",
+          "hp@self < 1",
+          "lives@self == 0"
+        ]
+      }
     },
     "revived": {
-      "needs": [
-        "tagged:juggernaut@self",
-        "hp@self < 1",
-        "lives@self == 2"
-      ]
+      "needs": {
+        "req": [
+          "tagged:juggernaut@self",
+          "hp@self < 1",
+          "lives@self == 2"
+        ]
+      }
     },
     "returning": {
-      "needs": [
-        "homing@self >= 1",
-        "hp@self < 1"
-      ]
+      "needs": {
+        "req": [
+          "homing@self >= 1",
+          "hp@self < 1"
+        ]
+      }
     },
     "crumbled": {
-      "needs": [
-        "tagged:juggernaut@self",
-        "hp@self >= 1",
-        "lives@self == 2"
-      ]
+      "needs": {
+        "req": [
+          "tagged:juggernaut@self",
+          "hp@self >= 1",
+          "lives@self == 2"
+        ]
+      }
     },
     "rousable": {
-      "needs": [
-        "exhausted@self",
-        "disabled@self == 0"
-      ]
+      "needs": {
+        "req": [
+          "exhausted@self",
+          "disabled@self == 0"
+        ]
+      }
     },
     "disabled_kw": {
-      "needs": [
-        "disabled@self >= 1"
-      ]
+      "needs": {
+        "req": [
+          "disabled@self >= 1"
+        ]
+      }
     },
     "exhaustable": {
       "any_of": [
@@ -1164,146 +1264,190 @@
       ]
     },
     "runed_down": {
-      "needs": [
-        "minus@self >= 1"
-      ]
+      "needs": {
+        "req": [
+          "minus@self >= 1"
+        ]
+      }
     },
     "skeletal": {
-      "needs": [
-        "tagged:skeleton@self",
-        "count:archery@mine.structures >= 1"
-      ]
+      "needs": {
+        "req": [
+          "tagged:skeleton@self",
+          "count:archery@mine.structures >= 1"
+        ]
+      }
     },
     "javelined": {
-      "needs": [
-        "javelin@self >= 1"
-      ]
+      "needs": {
+        "req": [
+          "javelin@self >= 1"
+        ]
+      }
     },
     "abominated": {
-      "needs": [
-        "tagged:unit@self",
-        "not_tagged:abom@self",
-        "count:abom@others.anyone.unit >= 1"
-      ]
+      "needs": {
+        "req": [
+          "tagged:unit@self",
+          "not_tagged:abom@self",
+          "count:abom@others.anyone.unit >= 1"
+        ]
+      }
     },
     "plagued": {
-      "needs": [
-        "minus@self >= 1",
-        "tech_level@self <= 2"
-      ]
+      "needs": {
+        "req": [
+          "minus@self >= 1",
+          "tech_level@self <= 2"
+        ]
+      }
     },
     "bonelorded": {
-      "needs": [
-        "tagged:skeleton@self",
-        "count:bonelord@mine.unit >= 1"
-      ]
+      "needs": {
+        "req": [
+          "tagged:skeleton@self",
+          "count:bonelord@mine.unit >= 1"
+        ]
+      }
     },
     "shadowed": {
-      "needs": [
-        "tagged:black@self",
-        "tagged:unit@self",
-        "slot@self == 0",
-        "count:shadowlord@mine.unit >= 1"
-      ]
+      "needs": {
+        "req": [
+          "tagged:black@self",
+          "tagged:unit@self",
+          "slot@self == 0",
+          "count:shadowlord@mine.unit >= 1"
+        ]
+      }
     },
     "safe_attacker": {
-      "needs": [
-        "tagged:unit@self",
-        "attacking@self >= 1",
-        "not_tagged:tech2@self",
-        "not_tagged:tech3@self",
-        "count:safely@mine.safely >= 1"
-      ]
+      "needs": {
+        "req": [
+          "tagged:unit@self",
+          "attacking@self >= 1",
+          "not_tagged:tech2@self",
+          "not_tagged:tech3@self",
+          "count:safely@mine.safely >= 1"
+        ]
+      }
     },
     "parried": {
-      "needs": [
-        "tagged:fighter@self",
-        "count:mindparry@mine.unit >= 1"
-      ]
+      "needs": {
+        "req": [
+          "tagged:fighter@self",
+          "count:mindparry@mine.unit >= 1"
+        ]
+      }
     },
     "drilled": {
-      "needs": [
-        "tagged:hero@self",
-        "count:dojo@mine.structures >= 1"
-      ]
+      "needs": {
+        "req": [
+          "tagged:hero@self",
+          "count:dojo@mine.structures >= 1"
+        ]
+      }
     },
     "monumented": {
-      "needs": [
-        "tagged:hero@self",
-        "count:monument@mine.structures >= 1"
-      ]
+      "needs": {
+        "req": [
+          "tagged:hero@self",
+          "count:monument@mine.structures >= 1"
+        ]
+      }
     },
     "denned": {
-      "needs": [
-        "tagged:ninja@self",
-        "slot@self == 0",
-        "count:den@mine.structures >= 1"
-      ]
+      "needs": {
+        "req": [
+          "tagged:ninja@self",
+          "slot@self == 0",
+          "count:den@mine.structures >= 1"
+        ]
+      }
     },
     "ninja_air": {
-      "needs": [
-        "tagged:ninja@self",
-        "count:headmistress@mine.unit >= 1"
-      ]
+      "needs": {
+        "req": [
+          "tagged:ninja@self",
+          "count:headmistress@mine.unit >= 1"
+        ]
+      }
     },
     "mythed": {
-      "needs": [
-        "tagged:legendary@self",
-        "count:myth@mine.ongoing >= 1"
-      ]
+      "needs": {
+        "req": [
+          "tagged:legendary@self",
+          "count:myth@mine.ongoing >= 1"
+        ]
+      }
     },
     "unmythed": {
-      "needs": [
-        "tagged:legendary@self",
-        "count:myth@enemy.ongoing >= 1"
-      ]
+      "needs": {
+        "req": [
+          "tagged:legendary@self",
+          "count:myth@enemy.ongoing >= 1"
+        ]
+      }
     },
     "hurt_build": {
-      "needs": [
-        "tagged:building@self",
-        "integrity@self >= 1",
-        "integrity@self < 4"
-      ]
+      "needs": {
+        "req": [
+          "tagged:building@self",
+          "integrity@self >= 1",
+          "integrity@self < 4"
+        ]
+      }
     },
     "faded": {
-      "needs": [
-        "tagged:fading@self",
-        "time@self == 0",
-        "slot@self >= 0"
-      ]
+      "needs": {
+        "req": [
+          "tagged:fading@self",
+          "time@self == 0",
+          "slot@self >= 0"
+        ]
+      }
     },
     "due": {
-      "needs": [
-        "time@self == 0"
-      ]
+      "needs": {
+        "req": [
+          "time@self == 0"
+        ]
+      }
     },
     "grounded": {
-      "needs": [
-        "tagged:unit@self",
-        "slot@self >= 1",
-        "alt@self == 0"
-      ]
+      "needs": {
+        "req": [
+          "tagged:unit@self",
+          "slot@self >= 1",
+          "alt@self == 0"
+        ]
+      }
     },
     "nebulous": {
-      "needs": [
-        "tagged:unit@self",
-        "slot@self == 0",
-        "count:nebular@mine.unit >= 1",
-        "not_tagged:nebular@self"
-      ]
+      "needs": {
+        "req": [
+          "tagged:unit@self",
+          "slot@self == 0",
+          "count:nebular@mine.unit >= 1",
+          "not_tagged:nebular@self"
+        ]
+      }
     },
     "rewound": {
-      "needs": [
-        "tagged:unit@self",
-        "tech_level@self <= 2",
-        "not_tagged:token@self"
-      ]
+      "needs": {
+        "req": [
+          "tagged:unit@self",
+          "tech_level@self <= 2",
+          "not_tagged:token@self"
+        ]
+      }
     },
     "spent_now": {
-      "needs": [
-        "exhausted@self",
-        "tagged:fighter@self"
-      ]
+      "needs": {
+        "req": [
+          "exhausted@self",
+          "tagged:fighter@self"
+        ]
+      }
     }
   },
   "patterns": {
@@ -1571,10 +1715,12 @@
           "key": "attacks",
           "phases": [],
           "text": "Final Showdown",
-          "needs": [
-            "attacking@self >= 1",
-            "count:finale@attached_to.self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "count:finale@attached_to.self >= 1"
+            ]
+          },
           "action": [
             "draw_from:mine.deck:mine.hand:1"
           ]
@@ -1619,9 +1765,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:t1@mine.tech >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:t1@mine.tech >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -1640,9 +1788,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:t2@mine.tech >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:t2@mine.tech >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -1661,9 +1811,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:t3@mine.tech >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:t3@mine.tech >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -1688,10 +1840,17 @@
           "cost": {
             "exhaust": 1
           },
-          "needs": [
-            "ready_since@self >= 1",
-            "not_tagged:cant_attack@self"
-          ],
+          "needs": {
+            "req": [
+              "ready_since@self >= 1",
+              "not_tagged:cant_attack@self"
+            ],
+            "where": [
+              "slot@target == 1",
+              "alt@target <= sum:aa@self",
+              "bars_t0@target <= tech_level@self"
+            ]
+          },
           "target": {
             "verb": "attack",
             "type": "card",
@@ -1699,11 +1858,6 @@
             "owner": "enemy",
             "zones": [
               "patrol"
-            ],
-            "where": [
-              "slot@target == 1",
-              "alt@target <= sum:aa@self",
-              "bars_t0@target <= tech_level@self"
             ]
           },
           "action": [
@@ -1753,11 +1907,18 @@
             "lead_wk",
             "lead_hold"
           ],
-          "needs": [
-            "ready_since@self >= 1",
-            "not_tagged:cant_attack@self",
-            "aims:strike_lead <= lead_hold"
-          ],
+          "needs": {
+            "req": [
+              "ready_since@self >= 1",
+              "not_tagged:cant_attack@self",
+              "aims:strike_lead <= lead_hold"
+            ],
+            "where": [
+              "slot@target >= 2",
+              "alt@target <= sum:aa@self",
+              "bars_t0@target <= tech_level@self"
+            ]
+          },
           "target": {
             "verb": "attack",
             "type": "card",
@@ -1765,11 +1926,6 @@
             "owner": "enemy",
             "zones": [
               "patrol"
-            ],
-            "where": [
-              "slot@target >= 2",
-              "alt@target <= sum:aa@self",
-              "bars_t0@target <= tech_level@self"
             ]
           },
           "action": [
@@ -1827,22 +1983,24 @@
             "rest_wk",
             "rest_hold"
           ],
-          "needs": [
-            "ready_since@self >= 1",
-            "not_tagged:cant_attack@self",
-            "aims:strike_lead <= lead_hold",
-            "aims:strike_patrol <= rest_hold"
-          ],
+          "needs": {
+            "req": [
+              "ready_since@self >= 1",
+              "not_tagged:cant_attack@self",
+              "aims:strike_lead <= lead_hold",
+              "aims:strike_patrol <= rest_hold"
+            ],
+            "where": [
+              "alt@target <= sum:aa@self",
+              "bars_t0@target <= tech_level@self"
+            ]
+          },
           "target": {
             "verb": "attack",
             "type": "card",
             "count": 1,
             "owner": "enemy",
-            "zones": ["built", "army"],
-            "where": [
-              "alt@target <= sum:aa@self",
-              "bars_t0@target <= tech_level@self"
-            ]
+            "zones": ["built", "army"]
           },
           "action": [
             "stat_gain:spotted@opponent:sum:sneak@self",
@@ -1878,9 +2036,11 @@
             "exhaust": 1
           },
           "tooltip": "Take a post. Left to right: squad leader, elite, scavenger, technician, lookout. Attacking gives the post up, so a patroller cannot do both.",
-          "needs": [
-            "not_tagged:cant_patrol@self"
-          ],
+          "needs": {
+            "req": [
+              "not_tagged:cant_patrol@self"
+            ]
+          },
           "target": {
             "type": "slot",
             "count": 1,
@@ -1902,10 +2062,12 @@
           "key": "rage",
           "phases": [],
           "text": "Frenzy",
-          "needs": [
-            "attacking@self >= 1",
-            "sum:rage@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "sum:rage@self >= 1"
+            ]
+          },
           "action": [
             "stat_gain:power@self:sum:rage@self"
           ]
@@ -1914,10 +2076,12 @@
           "key": "attacks",
           "phases": [],
           "text": "Spirit of the Panda",
-          "needs": [
-            "attacking@self >= 1",
-            "count:spirit@attached_to.self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "count:spirit@attached_to.self >= 1"
+            ]
+          },
           "action": [
             "stat_gain:gold@mine.player:1"
           ]
@@ -1926,11 +2090,13 @@
           "key": "kills",
           "phases": [],
           "text": "Might of Leaf and Claw",
-          "needs": [
-            "attacking@self >= 1",
-            "sum:power@self >= 1",
-            "count:might@mine.ongoing >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "sum:power@self >= 1",
+              "count:might@mine.ongoing >= 1"
+            ]
+          },
           "action": [
             "stat_gain:might@mine.ongoing.might:1"
           ]
@@ -1977,9 +2143,11 @@
           "key": "attacks",
           "phases": [],
           "text": "Attacks",
-          "needs": [
-            "attacking@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1"
+            ]
+          },
           "action": [
             "stat_set:fought@self:1"
           ]
@@ -1992,10 +2160,12 @@
             "lr_them",
             "lr_block"
           ],
-          "needs": [
-            "sum:alt@across <= sum:aa@self",
-            "lr_block <= 0"
-          ],
+          "needs": {
+            "req": [
+              "sum:alt@across <= sum:aa@self",
+              "lr_block <= 0"
+            ]
+          },
           "action": [
             "stat_gain:incoming@across:sum:power@self",
             "stat_gain:raw@across:sum:power@self",
@@ -2007,10 +2177,12 @@
           "phases": [],
           "text": "Tower",
           "tooltip": "A tower on the base being attacked hits the attacker for 1, whatever it is attacking and however high it flies.",
-          "needs": [
-            "attacking@self >= 1",
-            "count:detector@enemy.addon >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "count:detector@enemy.addon >= 1"
+            ]
+          },
           "action": [
             "stat_gain:incoming@self:1",
             "stat_gain:back@self:1"
@@ -2020,10 +2192,12 @@
           "key": "armor",
           "phases": [],
           "text": "Armor",
-          "needs": [
-            "back@self >= 1",
-            "sum:pierce@across == 0"
-          ],
+          "needs": {
+            "req": [
+              "back@self >= 1",
+              "sum:pierce@across == 0"
+            ]
+          },
           "action": [
             "stat_damage:incoming@self:sum:guard@self",
             "stat_damage:back@self:sum:guard@self",
@@ -2050,10 +2224,12 @@
           "key": "venom",
           "phases": [],
           "text": "Deathtouch",
-          "needs": [
-            "raw@self >= 1",
-            "count:deathtouch@across >= 1"
-          ],
+          "needs": {
+            "req": [
+              "raw@self >= 1",
+              "count:deathtouch@across >= 1"
+            ]
+          },
           "action": [
             "stat_set:hp@self:0",
             "stat_set:life@self:0"
@@ -2077,11 +2253,13 @@
           "key": "spill",
           "phases": [],
           "text": "Overpower",
-          "needs": [
-            "attacking@self >= 1",
-            "sum:slot@across >= 1",
-            "sum:spill@across >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "sum:slot@across >= 1",
+              "sum:spill@across >= 1"
+            ]
+          },
           "action": [
             "stat_damage:integrity@enemy.base:sum:spill@across"
           ]
@@ -2094,10 +2272,12 @@
           "key": "sparked",
           "phases": [],
           "text": "Sparkshot",
-          "needs": [
-            "sparking@mine.player >= 1",
-            "count:marked@beside >= 1"
-          ],
+          "needs": {
+            "req": [
+              "sparking@mine.player >= 1",
+              "count:marked@beside >= 1"
+            ]
+          },
           "action": [
             "stat_damage:hp@self:1",
             "stat_damage:life@self:1"
@@ -2119,9 +2299,11 @@
           "stat": "gold",
           "covers": "self",
           "by": 1,
-          "needs": [
-            "count@enemy.source >= 1"
-          ]
+          "needs": {
+            "req": [
+              "count@enemy.source >= 1"
+            ]
+          }
         }
       ]
     },
@@ -2133,9 +2315,11 @@
           "stat": "gold",
           "covers": "self",
           "by": 1,
-          "needs": [
-            "count@enemy.source >= 1"
-          ]
+          "needs": {
+            "req": [
+              "count@enemy.source >= 1"
+            ]
+          }
         }
       ]
     },
@@ -2147,9 +2331,11 @@
           "stat": "gold",
           "covers": "self",
           "by": 2,
-          "needs": [
-            "count@enemy.source >= 1"
-          ]
+          "needs": {
+            "req": [
+              "count@enemy.source >= 1"
+            ]
+          }
         }
       ]
     },
@@ -2161,9 +2347,11 @@
           "stat": "gold",
           "covers": "self",
           "by": 1,
-          "needs": [
-            "count@enemy.source >= 1"
-          ]
+          "needs": {
+            "req": [
+              "count@enemy.source >= 1"
+            ]
+          }
         }
       ]
     },
@@ -2175,26 +2363,32 @@
           "stat": "gold",
           "covers": "self",
           "by": 1,
-          "needs": [
-            "count@enemy.source >= 1"
-          ]
+          "needs": {
+            "req": [
+              "count@enemy.source >= 1"
+            ]
+          }
         }
       ]
     },
     "untargetable": {
       "receive": {
-        "needs": [
-          "not_verb:cast"
-        ]
+        "needs": {
+          "req": [
+            "not_verb:cast"
+          ]
+        }
       }
     },
     "illusion": { "receive": { "when": ["verb:cast"], "action": ["destroy:self"] } },
     "mimic_ward": {
       "tooltip": "Untargetable, copied from somebody else who has it.",
       "receive": {
-        "needs": [
-          "not_verb:cast"
-        ]
+        "needs": {
+          "req": [
+            "not_verb:cast"
+          ]
+        }
       }
     },
     "rampaging": {
@@ -2204,11 +2398,13 @@
           "key": "spill",
           "phases": [],
           "text": "Stampede",
-          "needs": [
-            "attacking@self >= 1",
-            "sum:slot@across >= 1",
-            "sum:spill@across >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "sum:slot@across >= 1",
+              "sum:spill@across >= 1"
+            ]
+          },
           "action": [
             "stat_damage:integrity@enemy.base:sum:spill@across"
           ]
@@ -2219,9 +2415,11 @@
       "tooltip": "Invisible — to an opponent without a detector this cannot be pointed at, and it may not take a post and stay hidden. Your own spells see it either way.",
       "receive": {
         "whose": "enemy",
-        "needs": [
-          "count:detector@mine.addon >= 1"
-        ]
+        "needs": {
+          "req": [
+            "count:detector@mine.addon >= 1"
+          ]
+        }
       }
     },
     "veiled": {
@@ -2268,11 +2466,13 @@
           "key": "spill",
           "phases": [],
           "text": "Wandering Mimic",
-          "needs": [
-            "attacking@self >= 1",
-            "sum:slot@across >= 1",
-            "sum:spill@across >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "sum:slot@across >= 1",
+              "sum:spill@across >= 1"
+            ]
+          },
           "action": [
             "stat_damage:integrity@enemy.base:sum:spill@across"
           ]
@@ -2286,11 +2486,13 @@
           "key": "spill",
           "phases": [],
           "text": "Blooming Elm",
-          "needs": [
-            "attacking@self >= 1",
-            "sum:slot@across >= 1",
-            "sum:spill@across >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "sum:slot@across >= 1",
+              "sum:spill@across >= 1"
+            ]
+          },
           "action": [
             "stat_damage:integrity@enemy.base:sum:spill@across"
           ]
@@ -2308,11 +2510,13 @@
           "key": "kills",
           "phases": [],
           "text": "Captain Zane",
-          "needs": [
-            "level@self >= 4",
-            "sum:slot@across == 4",
-            "count:slain@across >= 1"
-          ],
+          "needs": {
+            "req": [
+              "level@self >= 4",
+              "sum:slot@across == 4",
+              "count:slain@across >= 1"
+            ]
+          },
           "action": [
             "draw_from:mine.deck:mine.hand:1"
           ]
@@ -2327,10 +2531,12 @@
           "stat": "hp",
           "covers": "each.anyone.fighter",
           "by": 1,
-          "needs": [
-            "count@mine.source >= 1",
-            "tagged:red@source"
-          ]
+          "needs": {
+            "req": [
+              "count@mine.source >= 1",
+              "tagged:red@source"
+            ]
+          }
         },
         {
           "key": "hotter",
@@ -2338,10 +2544,12 @@
           "stat": "life",
           "covers": "each.anyone.hero",
           "by": 1,
-          "needs": [
-            "count@mine.source >= 1",
-            "tagged:red@source"
-          ]
+          "needs": {
+            "req": [
+              "count@mine.source >= 1",
+              "tagged:red@source"
+            ]
+          }
         },
         {
           "key": "hotter",
@@ -2349,10 +2557,12 @@
           "stat": "integrity",
           "covers": "each.anyone.building",
           "by": 1,
-          "needs": [
-            "count@mine.source >= 1",
-            "tagged:red@source"
-          ]
+          "needs": {
+            "req": [
+              "count@mine.source >= 1",
+              "tagged:red@source"
+            ]
+          }
         }
       ]
     },
@@ -2416,9 +2626,11 @@
       "tooltip": "A Mindparry Monk stands: no opponent may aim a spell at this.",
       "receive": {
         "whose": "enemy",
-        "needs": [
-          "not_verb:cast"
-        ]
+        "needs": {
+          "req": [
+            "not_verb:cast"
+          ]
+        }
       }
     },
     "drilled": {
@@ -2463,18 +2675,22 @@
           "stat": "gold",
           "covers": "self",
           "by": 1,
-          "needs": [
-            "count@enemy.source >= 1",
-            "slot@self == 0"
-          ]
+          "needs": {
+            "req": [
+              "count@enemy.source >= 1",
+              "slot@self == 0"
+            ]
+          }
         }
       ]
     },
     "nullcraft": {
       "receive": {
-        "needs": [
-          "not_verb:cast"
-        ]
+        "needs": {
+          "req": [
+            "not_verb:cast"
+          ]
+        }
       }
     }
   },
@@ -5459,9 +5675,11 @@
             "gold@mine.player": 1,
             "hired@mine.player": 1
           },
-          "needs": [
-            "count:rich_earth@mine.ongoing == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:rich_earth@mine.ongoing == 0"
+            ]
+          },
           "target": {
             "type": "card",
             "count": 1,
@@ -5484,9 +5702,11 @@
           "cost": {
             "hired@mine.player": 1
           },
-          "needs": [
-            "count:rich_earth@mine.ongoing >= 1"
-          ],
+          "needs": {
+            "req": [
+              "count:rich_earth@mine.ongoing >= 1"
+            ]
+          },
           "target": {
             "type": "card",
             "count": 1,
@@ -5520,12 +5740,14 @@
           "cost": {
             "gold@mine.player": 1
           },
-          "needs": [
-            "workers@mine.player >= 6",
-            "count:t1@mine.tech == 0",
-            "count:t1@mine.site == 0",
-            "t1_ever@mine.player == 0"
-          ],
+          "needs": {
+            "req": [
+              "workers@mine.player >= 6",
+              "count:t1@mine.tech == 0",
+              "count:t1@mine.site == 0",
+              "t1_ever@mine.player == 0"
+            ]
+          },
           "action": [
             "create:mine.site:tech_1:1",
             "stat_set:t1_ever@mine.player:1"
@@ -5537,12 +5759,14 @@
           "phases": [
             "main"
           ],
-          "needs": [
-            "workers@mine.player >= 6",
-            "count:t1@mine.tech == 0",
-            "count:t1@mine.site == 0",
-            "t1_ever@mine.player >= 1"
-          ],
+          "needs": {
+            "req": [
+              "workers@mine.player >= 6",
+              "count:t1@mine.tech == 0",
+              "count:t1@mine.site == 0",
+              "t1_ever@mine.player >= 1"
+            ]
+          },
           "action": [
             "create:mine.site:tech_1:1"
           ]
@@ -5567,13 +5791,15 @@
           "cost": {
             "gold@mine.player": 1
           },
-          "needs": [
-            "workers@mine.player >= 8",
-            "count:t1@mine.tech >= 1",
-            "count:t2@mine.tech == 0",
-            "count:t2@mine.site == 0",
-            "t2_ever@mine.player == 0"
-          ],
+          "needs": {
+            "req": [
+              "workers@mine.player >= 8",
+              "count:t1@mine.tech >= 1",
+              "count:t2@mine.tech == 0",
+              "count:t2@mine.site == 0",
+              "t2_ever@mine.player == 0"
+            ]
+          },
           "action": [
             "create:mine.site:tech_2:1",
             "stat_set:t2_ever@mine.player:1"
@@ -5585,13 +5811,15 @@
           "phases": [
             "main"
           ],
-          "needs": [
-            "workers@mine.player >= 8",
-            "count:t1@mine.tech >= 1",
-            "count:t2@mine.tech == 0",
-            "count:t2@mine.site == 0",
-            "t2_ever@mine.player >= 1"
-          ],
+          "needs": {
+            "req": [
+              "workers@mine.player >= 8",
+              "count:t1@mine.tech >= 1",
+              "count:t2@mine.tech == 0",
+              "count:t2@mine.site == 0",
+              "t2_ever@mine.player >= 1"
+            ]
+          },
           "action": [
             "create:mine.site:tech_2:1"
           ]
@@ -5616,13 +5844,15 @@
           "cost": {
             "gold@mine.player": 1
           },
-          "needs": [
-            "workers@mine.player >= 10",
-            "count:t2@mine.tech >= 1",
-            "count:t3@mine.tech == 0",
-            "count:t3@mine.site == 0",
-            "t3_ever@mine.player == 0"
-          ],
+          "needs": {
+            "req": [
+              "workers@mine.player >= 10",
+              "count:t2@mine.tech >= 1",
+              "count:t3@mine.tech == 0",
+              "count:t3@mine.site == 0",
+              "t3_ever@mine.player == 0"
+            ]
+          },
           "action": [
             "create:mine.site:tech_3:1",
             "stat_set:t3_ever@mine.player:1"
@@ -5634,13 +5864,15 @@
           "phases": [
             "main"
           ],
-          "needs": [
-            "workers@mine.player >= 10",
-            "count:t2@mine.tech >= 1",
-            "count:t3@mine.tech == 0",
-            "count:t3@mine.site == 0",
-            "t3_ever@mine.player >= 1"
-          ],
+          "needs": {
+            "req": [
+              "workers@mine.player >= 10",
+              "count:t2@mine.tech >= 1",
+              "count:t3@mine.tech == 0",
+              "count:t3@mine.site == 0",
+              "t3_ever@mine.player >= 1"
+            ]
+          },
           "action": [
             "create:mine.site:tech_3:1"
           ]
@@ -5663,10 +5895,12 @@
           "cost": {
             "gold@mine.player": 2
           },
-          "needs": [
-            "count:attachment@mine.addon == 0",
-            "count:attachment@mine.site == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:attachment@mine.addon == 0",
+              "count:attachment@mine.site == 0"
+            ]
+          },
           "action": [
             "create:mine.site:surplus:1"
           ]
@@ -5689,10 +5923,12 @@
           "cost": {
             "gold@mine.player": 3
           },
-          "needs": [
-            "count:attachment@mine.addon == 0",
-            "count:attachment@mine.site == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:attachment@mine.addon == 0",
+              "count:attachment@mine.site == 0"
+            ]
+          },
           "action": [
             "create:mine.site:tower:1"
           ]
@@ -5712,9 +5948,11 @@
           "phases": [
             "main"
           ],
-          "needs": [
-            "count:attachment@mine.addon >= 1"
-          ],
+          "needs": {
+            "req": [
+              "count:attachment@mine.addon >= 1"
+            ]
+          },
           "action": [
             "purge:mine.addon",
             "stat_damage:integrity@mine.base:2"
@@ -5764,9 +6002,11 @@
           "phases": [
             "tech"
           ],
-          "needs": [
-            "workers@mine.player >= 10"
-          ],
+          "needs": {
+            "req": [
+              "workers@mine.player >= 10"
+            ]
+          },
           "action": [
             "stat_set:teched@mine.player:0"
           ]
@@ -5777,9 +6017,11 @@
           "phases": [
             "tech"
           ],
-          "needs": [
-            "sum:stock@mine.codex == 0"
-          ],
+          "needs": {
+            "req": [
+              "sum:stock@mine.codex == 0"
+            ]
+          },
           "action": [
             "stat_set:teched@mine.player:0"
           ]
@@ -5890,10 +6132,12 @@
           "key": "mine",
           "text": "Pirate-Gang Commander",
           "phases": [],
-          "needs": [
-            "count@mine.gang >= 1",
-            "count:dead@mine.unit >= 1"
-          ],
+          "needs": {
+            "req": [
+              "count@mine.gang >= 1",
+              "count:dead@mine.unit >= 1"
+            ]
+          },
           "action": [
             "stat_damage:integrity@enemy.base:count:dead@mine.unit"
           ]
@@ -5902,10 +6146,12 @@
           "key": "theirs",
           "text": "Pirate-Gang Commander",
           "phases": [],
-          "needs": [
-            "count@enemy.gang >= 1",
-            "count:dead@enemy.unit >= 1"
-          ],
+          "needs": {
+            "req": [
+              "count@enemy.gang >= 1",
+              "count:dead@enemy.unit >= 1"
+            ]
+          },
           "action": [
             "stat_damage:integrity@mine.base:count:dead@enemy.unit"
           ]
@@ -5940,11 +6186,13 @@
           "key": "boon_m",
           "text": "Two free levels",
           "phases": [],
-          "needs": [
-            "count:fallen@mine.hero >= 1",
-            "count:hero@enemy.hero >= 1",
-            "count:fallen@enemy.hero == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:fallen@mine.hero >= 1",
+              "count:hero@enemy.hero >= 1",
+              "count:fallen@enemy.hero == 0"
+            ]
+          },
           "action": [
             "stat_gain:xp@opponent:2"
           ]
@@ -5953,11 +6201,13 @@
           "key": "boon_t",
           "text": "Two free levels",
           "phases": [],
-          "needs": [
-            "count:fallen@enemy.hero >= 1",
-            "count:hero@mine.hero >= 1",
-            "count:fallen@mine.hero == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:fallen@enemy.hero >= 1",
+              "count:hero@mine.hero >= 1",
+              "count:fallen@mine.hero == 0"
+            ]
+          },
           "action": [
             "stat_gain:xp@mine.player:2"
           ]
@@ -6057,9 +6307,11 @@
           "key": "blood_m",
           "text": "Channeling",
           "phases": [],
-          "needs": [
-            "count:h_blood@mine.hero == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:h_blood@mine.hero == 0"
+            ]
+          },
           "action": [
             "destroy:mine.ongoing.chan_blood"
           ]
@@ -6068,9 +6320,11 @@
           "key": "blood_e",
           "text": "Channeling",
           "phases": [],
-          "needs": [
-            "count:h_blood@enemy.hero == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:h_blood@enemy.hero == 0"
+            ]
+          },
           "action": [
             "destroy:enemy.ongoing.chan_blood"
           ]
@@ -6079,9 +6333,11 @@
           "key": "feral_m",
           "text": "Channeling",
           "phases": [],
-          "needs": [
-            "count:h_feral@mine.hero == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:h_feral@mine.hero == 0"
+            ]
+          },
           "action": [
             "destroy:mine.ongoing.chan_feral"
           ]
@@ -6090,9 +6346,11 @@
           "key": "feral_e",
           "text": "Channeling",
           "phases": [],
-          "needs": [
-            "count:h_feral@enemy.hero == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:h_feral@enemy.hero == 0"
+            ]
+          },
           "action": [
             "destroy:enemy.ongoing.chan_feral"
           ]
@@ -6101,9 +6359,11 @@
           "key": "balance_m",
           "text": "Channeling",
           "phases": [],
-          "needs": [
-            "count:h_balance@mine.hero == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:h_balance@mine.hero == 0"
+            ]
+          },
           "action": [
             "destroy:mine.ongoing.chan_balance"
           ]
@@ -6112,9 +6372,11 @@
           "key": "balance_e",
           "text": "Channeling",
           "phases": [],
-          "needs": [
-            "count:h_balance@enemy.hero == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:h_balance@enemy.hero == 0"
+            ]
+          },
           "action": [
             "destroy:enemy.ongoing.chan_balance"
           ]
@@ -6132,9 +6394,11 @@
           "key": "heal",
           "text": "Healing",
           "phases": [],
-          "needs": [
-            "count:healing@mine.healing >= 1"
-          ],
+          "needs": {
+            "req": [
+              "count:healing@mine.healing >= 1"
+            ]
+          },
           "action": [
             "stat_gain:hp@each.mine.unit:count:healing@mine.healing",
             "stat_gain:life@each.mine.hero:count:healing@mine.healing"
@@ -6154,9 +6418,11 @@
           "key": "beat",
           "text": "War Drums",
           "phases": [],
-          "needs": [
-            "count:drums@mine.ongoing >= 1"
-          ],
+          "needs": {
+            "req": [
+              "count:drums@mine.ongoing >= 1"
+            ]
+          },
           "action": [
             "stat_gain:atk@each.mine.unit:count:unit@mine.unit",
             "stat_gain:lent@each.mine.unit:count:unit@mine.unit"
@@ -6175,9 +6441,11 @@
           "key": "horn",
           "text": "Drakk Ramhorn",
           "phases": [],
-          "needs": [
-            "max:level@mine.h_blood >= 6"
-          ],
+          "needs": {
+            "req": [
+              "max:level@mine.h_blood >= 6"
+            ]
+          },
           "action": [
             "stat_set:rush@mine.player:1"
           ]
@@ -6196,10 +6464,12 @@
           "key": "join",
           "text": "Dothram Horselord",
           "phases": [],
-          "needs": [
-            "count@enemy.dothram >= 1",
-            "sum:atk@mine.fighter > sum:atk@enemy.fighter"
-          ],
+          "needs": {
+            "req": [
+              "count@enemy.dothram >= 1",
+              "sum:atk@mine.fighter > sum:atk@enemy.fighter"
+            ]
+          },
           "action": [
             "stat_set:slot@each.enemy.dothram:0",
             "stat_set:guard@each.enemy.dothram:0",
@@ -6221,9 +6491,11 @@
           "key": "home",
           "text": "Kidnapping ends",
           "phases": [],
-          "needs": [
-            "count:held@enemy.army >= 1"
-          ],
+          "needs": {
+            "req": [
+              "count:held@enemy.army >= 1"
+            ]
+          },
           "action": [
             "stat_set:slot@each.enemy.army.held:0",
             "stat_set:guard@each.enemy.army.held:0",
@@ -6264,9 +6536,11 @@
           "key": "back",
           "text": "Chameleon Lizzo returns",
           "phases": [],
-          "needs": [
-            "count:chameleon_lizzo@mine.unit >= 1"
-          ],
+          "needs": {
+            "req": [
+              "count:chameleon_lizzo@mine.unit >= 1"
+            ]
+          },
           "action": [
             "move:mine.chameleon_lizzo:mine.hand"
           ]
@@ -6299,7 +6573,7 @@
       "tooltip": "Sacrifice a green unit and put a green unit costing 5 or less from your codex into play.",
       "play": { "cost": { "sacrifice:green_unit": 1 }, "action": ["show:mine.codex"] },
       "chosen": {
-        "where": ["tagged:unit@target", "sum:price@target <= 5"],
+        "needs": { "where": ["tagged:unit@target", "sum:price@target <= 5"] },
         "action": ["take:target:mine.army:1"]
       }
     },
@@ -6513,10 +6787,12 @@
             "gold@mine.player": 2
           },
           "compute": ["hero_limit"],
-          "needs": [
-            "count:hero@mine.hero < hero_limit",
-            "hero_wait@self == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:hero@mine.hero < hero_limit",
+              "hero_wait@self == 0"
+            ]
+          },
           "action": [
             "reset:self",
             "move_to:mine.army"
@@ -6531,10 +6807,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 1"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 1"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -6548,10 +6826,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 2"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 2"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -6565,10 +6845,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 3"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 3"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:3",
@@ -6584,10 +6866,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 4"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 4"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -6601,10 +6885,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 5"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 5"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:4",
@@ -6620,10 +6906,12 @@
           "cost": {
             "exhaust": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self >= 6"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self >= 6"
+            ]
+          },
           "target": {
             "verb": "cast",
             "type": "card",
@@ -6643,11 +6931,13 @@
           "key": "kills",
           "phases": [],
           "text": "Zane",
-          "needs": [
-            "level@self >= 4",
-            "sum:slot@across == 3",
-            "count:slain@across >= 1"
-          ],
+          "needs": {
+            "req": [
+              "level@self >= 4",
+              "sum:slot@across == 3",
+              "count:slain@across >= 1"
+            ]
+          },
           "action": [
             "stat_gain:gold@mine.player:1"
           ]
@@ -6687,10 +6977,12 @@
             "gold@mine.player": 2
           },
           "compute": ["hero_limit"],
-          "needs": [
-            "count:hero@mine.hero < hero_limit",
-            "hero_wait@self == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:hero@mine.hero < hero_limit",
+              "hero_wait@self == 0"
+            ]
+          },
           "action": [
             "summon_hero"
           ]
@@ -6704,10 +6996,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 1"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 1"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -6721,10 +7015,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 2"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 2"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -6738,10 +7034,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 3"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 3"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:2",
@@ -6757,10 +7055,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 4"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 4"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -6774,10 +7074,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 5"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 5"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:3",
@@ -6820,10 +7122,12 @@
             "gold@mine.player": 2
           },
           "compute": ["hero_limit"],
-          "needs": [
-            "count:hero@mine.hero < hero_limit",
-            "hero_wait@self == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:hero@mine.hero < hero_limit",
+              "hero_wait@self == 0"
+            ]
+          },
           "action": [
             "summon_hero"
           ]
@@ -6837,10 +7141,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 1"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 1"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -6854,10 +7160,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 2"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 2"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -6871,10 +7179,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 3"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 3"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:3",
@@ -6890,10 +7200,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 4"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 4"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -6907,10 +7219,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 5"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 5"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -6924,10 +7238,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 6"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 6"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:4",
@@ -6943,11 +7259,13 @@
           "cost": {
             "exhaust": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self >= 4",
-            "level@self <= 6"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self >= 4",
+              "level@self <= 6"
+            ]
+          },
           "target": {
             "verb": "cast",
             "type": "card",
@@ -6971,10 +7289,12 @@
           "cost": {
             "exhaust": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self >= 7"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self >= 7"
+            ]
+          },
           "target": {
             "verb": "cast",
             "type": "card",
@@ -7023,10 +7343,12 @@
             "gold@mine.player": 2
           },
           "compute": ["hero_limit"],
-          "needs": [
-            "count:hero@mine.hero < hero_limit",
-            "hero_wait@self == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:hero@mine.hero < hero_limit",
+              "hero_wait@self == 0"
+            ]
+          },
           "action": [
             "summon_hero"
           ]
@@ -7040,10 +7362,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 1"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 1"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -7057,10 +7381,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 2"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 2"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -7074,10 +7400,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 3"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 3"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -7091,10 +7419,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 4"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 4"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:3",
@@ -7110,10 +7440,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 5"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 5"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -7127,10 +7459,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 6"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 6"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -7144,10 +7478,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 7"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 7"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:4",
@@ -7190,10 +7526,12 @@
             "gold@mine.player": 2
           },
           "compute": ["hero_limit"],
-          "needs": [
-            "count:hero@mine.hero < hero_limit",
-            "hero_wait@self == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:hero@mine.hero < hero_limit",
+              "hero_wait@self == 0"
+            ]
+          },
           "action": [
             "summon_hero"
           ]
@@ -7207,10 +7545,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 1"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 1"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -7224,10 +7564,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 2"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 2"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:3",
@@ -7243,10 +7585,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 3"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 3"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -7260,10 +7604,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 4"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 4"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:4",
@@ -7280,19 +7626,23 @@
             "gold@mine.player": 4,
             "exhaust": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self >= 5"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self >= 5"
+            ]
+          },
           "action": [
             "show:mine.codex"
           ]
         }
       ],
       "chosen": {
-        "where": [
-          "tagged:tiger@target"
-        ],
+        "needs": {
+          "where": [
+            "tagged:tiger@target"
+          ]
+        },
         "action": [
           "take:target:mine.army:1"
         ]
@@ -7331,10 +7681,12 @@
             "gold@mine.player": 2
           },
           "compute": ["hero_limit"],
-          "needs": [
-            "count:hero@mine.hero < hero_limit",
-            "hero_wait@self == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:hero@mine.hero < hero_limit",
+              "hero_wait@self == 0"
+            ]
+          },
           "action": [
             "summon_hero",
             "create:mine.army:wisp:1"
@@ -7349,10 +7701,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 1"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 1"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -7366,10 +7720,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 2"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 2"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:1",
@@ -7385,10 +7741,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 3"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 3"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -7402,10 +7760,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 4"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 4"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:1",
@@ -7422,10 +7782,12 @@
           "cost": {
             "exhaust": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self >= 3"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self >= 3"
+            ]
+          },
           "target": {
             "verb": "cast",
             "type": "card",
@@ -7709,9 +8071,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -7755,9 +8119,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -7817,9 +8183,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t1_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t1_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -7857,9 +8225,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t1_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t1_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -7904,6 +8274,11 @@
           "cost": {
             "exhaust": 1
           },
+          "needs": {
+            "where": [
+              "tech_level@target <= 2"
+            ]
+          },
           "target": {
             "verb": "cast",
             "type": "card",
@@ -7912,10 +8287,7 @@
             "tags": [
               "unit"
             ],
-            "zones": ["fielded"],
-            "where": [
-              "tech_level@target <= 2"
-            ]
+            "zones": ["fielded"]
           },
           "action": [
             "disable:target"
@@ -7976,10 +8348,12 @@
           "key": "kills",
           "phases": [],
           "text": "Guardian of the Gates",
-          "needs": [
-            "sum:power@self >= 1",
-            "count:unit@across >= 1"
-          ],
+          "needs": {
+            "req": [
+              "sum:power@self >= 1",
+              "count:unit@across >= 1"
+            ]
+          },
           "action": [
             "exhaust:across",
             "stat_set:disabled@across:1",
@@ -8017,9 +8391,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t2_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t2_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -8100,9 +8476,11 @@
           "key": "obliterate",
           "phases": [],
           "text": "Obliterate 4",
-          "needs": [
-            "attacking@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1"
+            ]
+          },
           "action": [
             "destroy:lowest:tech_level.enemy.army:4",
             "destroy:lowest:tech_level.enemy.patrol:4",
@@ -8133,10 +8511,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_law@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_law@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -8146,11 +8526,13 @@
         "spent": "mine.discard"
       },
       "chosen": {
-        "where": [
-          "tagged:unit@target",
-          "tech_level@target <= 2",
-          "tech_level@target >= 1"
-        ],
+        "needs": {
+          "where": [
+            "tagged:unit@target",
+            "tech_level@target <= 2",
+            "tech_level@target >= 1"
+          ]
+        },
         "action": [
           "move:target:mine.army",
           "set_owner:target:mine.player",
@@ -8180,10 +8562,15 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_law@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_law@mine.hero >= 1"
+          ],
+          "where": [
+            "count:t3@target == 0"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -8197,9 +8584,6 @@
           ],
           "zones": [
             "tech"
-          ],
-          "where": [
-            "count:t3@target == 0"
           ]
         },
         "action": [
@@ -8251,11 +8635,13 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_law@mine.hero >= 1",
-          "max:level@mine.h_law >= 5"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_law@mine.hero >= 1",
+            "max:level@mine.h_law >= 5"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -8329,10 +8715,12 @@
           "key": "kills",
           "phases": [],
           "text": "Brave Knight",
-          "needs": [
-            "attacking@self >= 1",
-            "romp@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "romp@self >= 1"
+            ]
+          },
           "action": [
             "stat_set:romp@self:0",
             "ready:self"
@@ -8414,7 +8802,7 @@
       "tooltip": "Whenever you play a unit from your hand, put a +1/+1 rune on this. Remove a +1/+1 rune: put a +1/+1 rune on another unit.",
       "reactions": [
         { "to": "arrived", "whose": "mine", "forced": "mandatory", "in": "board",
-          "needs": ["not_self@event", "tagged:unit@event"],
+          "needs": { "req": ["not_self@event", "tagged:unit@event"] },
           "action": ["stat_gain:plus@self:1"] }
       ],
       "card_stats": {
@@ -8430,9 +8818,14 @@
           "phases": [
             "main"
           ],
-          "needs": [
-            "plus@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "plus@self >= 1"
+            ],
+            "where": [
+              "not_self@target"
+            ]
+          },
           "target": {
             "verb": "cast",
             "type": "card",
@@ -8441,10 +8834,7 @@
             "tags": [
               "unit"
             ],
-            "zones": ["fielded"],
-            "where": [
-              "not_self@target"
-            ]
+            "zones": ["fielded"]
           },
           "action": [
             "stat_damage:plus@self:1",
@@ -8471,7 +8861,7 @@
       "tooltip": "Whenever you play a unit from your hand, draw a card.",
       "reactions": [
         { "to": "arrived", "whose": "mine", "forced": "mandatory", "in": "board",
-          "needs": ["tagged:unit@event"],
+          "needs": { "req": ["tagged:unit@event"] },
           "action": ["draw_from:mine.deck:mine.hand:1"] }
       ],
       "card_stats": {
@@ -8513,11 +8903,13 @@
           "key": "kills",
           "phases": [],
           "text": "Flagstone Spy",
-          "needs": [
-            "attacking@self >= 1",
-            "sum:power@self >= 1",
-            "count:building@across >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "sum:power@self >= 1",
+              "count:building@across >= 1"
+            ]
+          },
           "action": [
             "stat_damage:gold@opponent:1",
             "stat_gain:gold@mine.player:1"
@@ -8559,11 +8951,13 @@
           "key": "kills",
           "phases": [],
           "text": "Patriot Gryphon",
-          "needs": [
-            "attacking@self >= 1",
-            "count:building@across >= 1",
-            "count:rubble@across >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "count:building@across >= 1",
+              "count:rubble@across >= 1"
+            ]
+          },
           "action": [
             "stat_damage:integrity@enemy.base:sum:atk@self"
           ]
@@ -8593,10 +8987,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_peace@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_peace@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -8640,10 +9036,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_peace@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_peace@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -8685,10 +9083,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_peace@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_peace@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -8732,11 +9132,13 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_peace@mine.hero >= 1",
-          "max:level@mine.h_peace >= 8"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_peace@mine.hero >= 1",
+            "max:level@mine.h_peace >= 8"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -9063,11 +9465,13 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_truth@mine.hero >= 1",
-          "max:level@mine.h_truth >= 5"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_truth@mine.hero >= 1",
+            "max:level@mine.h_truth >= 5"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -9123,10 +9527,12 @@
             "gold@mine.player": 2
           },
           "compute": ["hero_limit"],
-          "needs": [
-            "count:hero@mine.hero < hero_limit",
-            "hero_wait@self == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:hero@mine.hero < hero_limit",
+              "hero_wait@self == 0"
+            ]
+          },
           "action": [
             "summon_hero"
           ]
@@ -9140,10 +9546,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 1"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 1"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -9157,10 +9565,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 2"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 2"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:2",
@@ -9176,10 +9586,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 3"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 3"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -9193,10 +9605,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 4"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 4"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:3",
@@ -9212,11 +9626,17 @@
           "cost": {
             "exhaust": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self >= 3",
-            "level@self <= 4"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self >= 3",
+              "level@self <= 4"
+            ],
+            "where": [
+              "count:tech2@target == 0",
+              "tech_level@target <= 2"
+            ]
+          },
           "target": {
             "verb": "cast",
             "type": "card",
@@ -9224,10 +9644,6 @@
             "owner": "enemy",
             "zones": [
               "patrol"
-            ],
-            "where": [
-              "count:tech2@target == 0",
-              "tech_level@target <= 2"
             ]
           },
           "action": [
@@ -9244,10 +9660,12 @@
           "cost": {
             "exhaust": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self >= 5"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self >= 5"
+            ]
+          },
           "action": [
             "draw_from:mine.deck:mine.hand:1"
           ]
@@ -9288,10 +9706,12 @@
             "gold@mine.player": 2
           },
           "compute": ["hero_limit"],
-          "needs": [
-            "count:hero@mine.hero < hero_limit",
-            "hero_wait@self == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:hero@mine.hero < hero_limit",
+              "hero_wait@self == 0"
+            ]
+          },
           "action": [
             "summon_hero"
           ]
@@ -9305,10 +9725,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 1"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 1"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -9322,10 +9744,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 2"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 2"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -9339,10 +9763,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 3"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 3"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -9356,10 +9782,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 4"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 4"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:3",
@@ -9375,10 +9803,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 5"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 5"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -9392,10 +9822,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 6"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 6"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -9409,10 +9841,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 7"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 7"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:4",
@@ -9423,9 +9857,11 @@
           "key": "upkeep",
           "phases": [],
           "text": "General Onimaru",
-          "needs": [
-            "level@self >= 5"
-          ],
+          "needs": {
+            "req": [
+              "level@self >= 5"
+            ]
+          },
           "action": [
             "stat_set:romp@self:1"
           ]
@@ -9434,10 +9870,12 @@
           "key": "kills",
           "phases": [],
           "text": "General Onimaru",
-          "needs": [
-            "attacking@self >= 1",
-            "romp@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "romp@self >= 1"
+            ]
+          },
           "action": [
             "stat_set:romp@self:0",
             "ready:self"
@@ -9452,10 +9890,12 @@
           "cost": {
             "exhaust": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self >= 8"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self >= 8"
+            ]
+          },
           "action": [
             "create:mine.army:blue_soldier:3"
           ]
@@ -9495,10 +9935,12 @@
             "gold@mine.player": 2
           },
           "compute": ["hero_limit"],
-          "needs": [
-            "count:hero@mine.hero < hero_limit",
-            "hero_wait@self == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:hero@mine.hero < hero_limit",
+              "hero_wait@self == 0"
+            ]
+          },
           "action": [
             "summon_hero",
             "create:mine.army:mirror:1"
@@ -9513,10 +9955,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 1"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 1"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -9530,10 +9974,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 2"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 2"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:1",
@@ -9549,10 +9995,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 3"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 3"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -9566,10 +10014,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 4"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 4"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:1",
@@ -9585,10 +10035,12 @@
           "cost": {
             "gold@mine.player": 2
           },
-          "needs": [
-            "not_self@mine.command",
-            "count:mirror@mine.army <= 1"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "count:mirror@mine.army <= 1"
+            ]
+          },
           "action": [
             "create:mine.army:mirror:1"
           ]
@@ -9754,10 +10206,12 @@
           "key": "kills",
           "phases": [],
           "text": "Argonaut",
-          "needs": [
-            "attacking@self >= 1",
-            "romp@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "romp@self >= 1"
+            ]
+          },
           "action": [
             "stat_set:romp@self:0",
             "ready:self"
@@ -9786,10 +10240,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_future@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_future@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -9901,10 +10357,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_strength@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_strength@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -10044,9 +10502,11 @@
           "key": "attacks",
           "phases": [],
           "text": "Bone Collector",
-          "needs": [
-            "attacking@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1"
+            ]
+          },
           "action": [
             "create:mine.army:skeleton:1"
           ]
@@ -10099,10 +10559,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_disease@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_disease@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -10299,11 +10761,13 @@
           "key": "kills",
           "phases": [],
           "text": "Cursed Crow",
-          "needs": [
-            "attacking@self >= 1",
-            "sum:power@self >= 1",
-            "count:building@across >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "sum:power@self >= 1",
+              "count:building@across >= 1"
+            ]
+          },
           "action": [
             "move:random.enemy.hand:enemy.discard"
           ]
@@ -10339,9 +10803,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t2_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t2_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -10382,10 +10848,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_demonology@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_demonology@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -10428,10 +10896,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_disease@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_disease@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -10466,10 +10936,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_necromancy@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_necromancy@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -10501,9 +10973,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -10565,10 +11039,15 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_necromancy@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_necromancy@mine.hero >= 1"
+          ],
+          "where": [
+            "tech_level@target <= 2"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self",
           "sacrifice:unit": 1
@@ -10582,10 +11061,7 @@
           "tags": [
             "fighter"
           ],
-          "zones": ["fighters"],
-          "where": [
-            "tech_level@target <= 2"
-          ]
+          "zones": ["fighters"]
         },
         "action": [
           "destroy:target",
@@ -10616,9 +11092,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t2_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t2_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -10675,10 +11153,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_strength@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_strength@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -10719,9 +11199,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t3_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t3_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -10805,10 +11287,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_strength@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_strength@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -10860,9 +11344,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t0_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t0_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -10945,9 +11431,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t2_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t2_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -10978,9 +11466,16 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1"
+          ],
+          "where": [
+            "atk@target <= 2",
+            "count:tech2@target == 0",
+            "tech_level@target <= 2"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -10995,11 +11490,6 @@
           ],
           "zones": [
             "patrol"
-          ],
-          "where": [
-            "atk@target <= 2",
-            "count:tech2@target == 0",
-            "tech_level@target <= 2"
           ]
         },
         "action": [
@@ -11103,10 +11593,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_ninjutsu@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_ninjutsu@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -11373,9 +11865,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -11593,9 +12087,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t3_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t3_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -11626,10 +12122,15 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_ninjutsu@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_ninjutsu@mine.hero >= 1"
+          ],
+          "where": [
+            "atk@target <= 4"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -11643,10 +12144,7 @@
           "tags": [
             "fighter"
           ],
-          "zones": ["fighters"],
-          "where": [
-            "atk@target <= 4"
-          ]
+          "zones": ["fighters"]
         },
         "action": [
           "stat_set:veil@target:1"
@@ -11707,9 +12205,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t2_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t2_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -11773,9 +12273,11 @@
           "key": "attacks",
           "phases": [],
           "text": "Hyperion",
-          "needs": [
-            "attacking@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1"
+            ]
+          },
           "action": [
             "draw_from:mine.deck:mine.hand:1"
           ]
@@ -11907,9 +12409,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t3_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t3_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -11973,9 +12477,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t2_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t2_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -12015,9 +12521,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t1_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t1_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -12074,10 +12582,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_necromancy@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_necromancy@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self",
           "workers@mine.player": 1
@@ -12166,10 +12676,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_discipline@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_discipline@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -12377,6 +12889,11 @@
           "cost": {
             "exhaust": 1
           },
+          "needs": {
+            "where": [
+              "tech_level@target <= 2"
+            ]
+          },
           "target": {
             "verb": "cast",
             "type": "card",
@@ -12385,10 +12902,7 @@
             "tags": [
               "unit"
             ],
-            "zones": ["fielded"],
-            "where": [
-              "tech_level@target <= 2"
-            ]
+            "zones": ["fielded"]
           },
           "action": [
             "destroy:target",
@@ -12469,10 +12983,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_necromancy@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_necromancy@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -12539,10 +13055,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_present@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_present@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -12737,9 +13255,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t2_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t2_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -12758,9 +13278,11 @@
           "cost": {
             "sacrifice:unit": 1
           },
-          "needs": [
-            "time@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "time@self >= 1"
+            ]
+          },
           "action": [
             "stat_damage:time@self:1"
           ]
@@ -12788,10 +13310,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_past@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_past@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -12887,9 +13411,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t2_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t2_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -12928,9 +13454,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t3_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t3_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -12944,9 +13472,11 @@
           "key": "attacks",
           "phases": [],
           "text": "Plague Lord",
-          "needs": [
-            "attacking@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1"
+            ]
+          },
           "action": [
             "stat_gain:minus@each.enemy.fighter:1"
           ]
@@ -12992,11 +13522,13 @@
           "key": "kills",
           "phases": [],
           "text": "Plague Spitter",
-          "needs": [
-            "attacking@self >= 1",
-            "sum:power@self >= 1",
-            "count:fighter@across >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "sum:power@self >= 1",
+              "count:fighter@across >= 1"
+            ]
+          },
           "action": [
             "stat_gain:minus@across:1"
           ]
@@ -13031,9 +13563,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t0_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t0_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -13071,9 +13605,11 @@
           "key": "attacks",
           "phases": [],
           "text": "Poisonblade Rogue",
-          "needs": [
-            "attacking@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1"
+            ]
+          },
           "action": [
             "stat_set:pierce@self:1"
           ]
@@ -13082,11 +13618,13 @@
           "key": "kills",
           "phases": [],
           "text": "Poisonblade Rogue",
-          "needs": [
-            "attacking@self >= 1",
-            "sum:power@self >= 1",
-            "count:fighter@across >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "sum:power@self >= 1",
+              "count:fighter@across >= 1"
+            ]
+          },
           "action": [
             "stat_gain:minus@across:1"
           ]
@@ -13207,10 +13745,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_present@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_present@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -13260,9 +13800,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t2_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t2_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -13353,9 +13895,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t2_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t2_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -13387,10 +13931,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_present@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_present@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -13421,10 +13967,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_discipline@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_discipline@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -13496,11 +14044,13 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_past@mine.hero >= 1",
-          "max:level@mine.h_past >= 7"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_past@mine.hero >= 1",
+            "max:level@mine.h_past >= 7"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -13645,9 +14195,14 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t1_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t1_ok@self"
+          ],
+          "where": [
+            "time@target >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -13660,10 +14215,7 @@
           "type": "card",
           "count": 1,
           "owner": "mine",
-          "zones": ["fielded", "soon", "ongoing"],
-          "where": [
-            "time@target >= 1"
-          ]
+          "zones": ["fielded", "soon", "ongoing"]
         }
       }
     },
@@ -13688,9 +14240,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -13786,10 +14340,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_demonology@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_demonology@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -13844,9 +14400,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t2_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t2_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -13910,10 +14468,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_ninjutsu@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_ninjutsu@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -13945,10 +14505,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_disease@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_disease@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -14041,9 +14603,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t0_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t0_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -14121,9 +14685,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -14193,10 +14759,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_demonology@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_demonology@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -14270,6 +14838,11 @@
           "cost": {
             "exhaust": 1
           },
+          "needs": {
+            "where": [
+              "plus@target == 0"
+            ]
+          },
           "target": {
             "verb": "cast",
             "type": "card",
@@ -14278,10 +14851,7 @@
             "tags": [
               "fighter"
             ],
-            "zones": ["fighters"],
-            "where": [
-              "plus@target == 0"
-            ]
+            "zones": ["fighters"]
           },
           "action": [
             "stat_gain:plus@target:1"
@@ -14296,9 +14866,11 @@
           "cost": {
             "gold@mine.player": 2
           },
-          "needs": [
-            "exhausted@self"
-          ],
+          "needs": {
+            "req": [
+              "exhausted@self"
+            ]
+          },
           "action": [
             "ready:self"
           ]
@@ -14326,10 +14898,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_ninjutsu@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_ninjutsu@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -14363,10 +14937,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_disease@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_disease@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -14431,9 +15007,14 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t1_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t1_ok@self"
+          ],
+          "where": [
+            "tech_level@target == 0"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -14450,10 +15031,7 @@
           "tags": [
             "unit"
           ],
-          "zones": ["fielded"],
-          "where": [
-            "tech_level@target == 0"
-          ]
+          "zones": ["fielded"]
         }
       }
     },
@@ -14478,9 +15056,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -14511,10 +15091,16 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_present@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_present@mine.hero >= 1"
+          ],
+          "where": [
+            "tech_level@target >= 1",
+            "tech_level@target <= 2"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -14527,11 +15113,7 @@
           "tags": [
             "unit"
           ],
-          "zones": ["fielded"],
-          "where": [
-            "tech_level@target >= 1",
-            "tech_level@target <= 2"
-          ]
+          "zones": ["fielded"]
         },
         "action": [
           "leave_patrol:target",
@@ -14560,9 +15142,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -14626,9 +15210,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t2_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t2_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -14642,9 +15228,11 @@
           "key": "obliterate",
           "phases": [],
           "text": "Obliterate 2",
-          "needs": [
-            "attacking@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1"
+            ]
+          },
           "action": [
             "destroy:lowest:tech_level.enemy.army:2",
             "destroy:lowest:tech_level.enemy.patrol:2",
@@ -14699,9 +15287,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t0_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t0_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -14732,10 +15322,16 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_strength@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_strength@mine.hero >= 1"
+          ],
+          "where": [
+            "alt@target == 0",
+            "price@target <= 2"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -14751,10 +15347,6 @@
           ],
           "zones": [
             "patrol"
-          ],
-          "where": [
-            "alt@target == 0",
-            "price@target <= 2"
           ]
         },
         "action": [
@@ -14784,9 +15376,14 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1"
+          ],
+          "where": [
+            "time@target >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -14796,10 +15393,7 @@
           "type": "card",
           "count": 1,
           "owner": "anyone",
-          "zones": ["fielded", "soon", "ongoing"],
-          "where": [
-            "time@target >= 1"
-          ]
+          "zones": ["fielded", "soon", "ongoing"]
         },
         "action": [
           "stat_gain:time@target:1"
@@ -14862,15 +15456,17 @@
           "cost": {
             "exhaust": 1
           },
+          "needs": {
+            "where": [
+              "time@target >= 1"
+            ]
+          },
           "target": {
             "verb": "cast",
             "type": "card",
             "count": 1,
             "owner": "mine",
-            "zones": ["fielded", "soon", "ongoing"],
-            "where": [
-              "time@target >= 1"
-            ]
+            "zones": ["fielded", "soon", "ongoing"]
           },
           "action": [
             "stat_gain:time@target:1"
@@ -14930,9 +15526,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t2_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t2_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -15042,10 +15640,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_discipline@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_discipline@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -15131,10 +15731,15 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_past@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_past@mine.hero >= 1"
+          ],
+          "where": [
+            "tech_level@target <= 2"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -15147,10 +15752,7 @@
           "tags": [
             "unit"
           ],
-          "zones": ["fielded"],
-          "where": [
-            "tech_level@target <= 2"
-          ]
+          "zones": ["fielded"]
         },
         "action": [
           "leave_patrol:target",
@@ -15179,10 +15781,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_future@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_future@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -15249,10 +15853,15 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_discipline@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_discipline@mine.hero >= 1"
+          ],
+          "where": [
+            "alt@target >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -15265,10 +15874,7 @@
           "tags": [
             "fighter"
           ],
-          "zones": ["fighters"],
-          "where": [
-            "alt@target >= 1"
-          ]
+          "zones": ["fighters"]
         },
         "action": [
           "disable:target"
@@ -15312,10 +15918,12 @@
           "key": "kills",
           "phases": [],
           "text": "Vigor Adept",
-          "needs": [
-            "attacking@self >= 1",
-            "romp@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "romp@self >= 1"
+            ]
+          },
           "action": [
             "stat_set:romp@self:0",
             "ready:self"
@@ -15418,9 +16026,11 @@
           "key": "clear",
           "phases": [],
           "text": "Voidblocker",
-          "needs": [
-            "count:fighter@across >= 1"
-          ],
+          "needs": {
+            "req": [
+              "count:fighter@across >= 1"
+            ]
+          },
           "action": [
             "exhaust:enemy.fighter"
           ]
@@ -15450,10 +16060,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_past@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_past@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -15513,11 +16125,13 @@
         }
       ],
       "chosen": {
-        "where": [
-          "tagged:unit@target",
-          "tech_level@target >= 1",
-          "tech_level@target <= 2"
-        ],
+        "needs": {
+          "where": [
+            "tagged:unit@target",
+            "tech_level@target >= 1",
+            "tech_level@target <= 2"
+          ]
+        },
         "action": [
           "take:target:mine.army:1"
         ]
@@ -15667,9 +16281,11 @@
           "key": "attacks",
           "phases": [],
           "text": "Xenostalker",
-          "needs": [
-            "attacking@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1"
+            ]
+          },
           "action": [
             "harm:hp@each.enemy.grounded:1",
             "activate_zone:rules_death"
@@ -15706,9 +16322,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t2_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t2_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -15722,11 +16340,13 @@
           "key": "kills",
           "phases": [],
           "text": "Yesterday's Golgort",
-          "needs": [
-            "attacking@self >= 1",
-            "sum:power@self >= 1",
-            "count:building@across >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "sum:power@self >= 1",
+              "count:building@across >= 1"
+            ]
+          },
           "action": [
             "stat_gain:time@self:1"
           ]
@@ -15788,9 +16408,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "tagged:t3_ok@self"
-        ],
+        "needs": {
+          "req": [
+            "tagged:t3_ok@self"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -15811,9 +16433,11 @@
           "key": "obliterate",
           "phases": [],
           "text": "Obliterate 4",
-          "needs": [
-            "attacking@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1"
+            ]
+          },
           "action": [
             "destroy:lowest:tech_level.enemy.army:4",
             "destroy:lowest:tech_level.enemy.patrol:4",
@@ -15941,10 +16565,12 @@
             "gold@mine.player": 2
           },
           "compute": ["hero_limit"],
-          "needs": [
-            "count:hero@mine.hero < hero_limit",
-            "hero_wait@self == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:hero@mine.hero < hero_limit",
+              "hero_wait@self == 0"
+            ]
+          },
           "action": [
             "summon_hero"
           ]
@@ -15958,10 +16584,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 1"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 1"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -15975,10 +16603,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 2"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 2"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:3",
@@ -15994,10 +16624,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 3"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 3"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -16011,10 +16643,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 4"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 4"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:4",
@@ -16056,10 +16690,12 @@
             "gold@mine.player": 2
           },
           "compute": ["hero_limit"],
-          "needs": [
-            "count:hero@mine.hero < hero_limit",
-            "hero_wait@self == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:hero@mine.hero < hero_limit",
+              "hero_wait@self == 0"
+            ]
+          },
           "action": [
             "summon_hero"
           ]
@@ -16073,10 +16709,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 1"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 1"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -16090,10 +16728,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 2"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 2"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -16107,10 +16747,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 3"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 3"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:2",
@@ -16126,10 +16768,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 4"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 4"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -16143,10 +16787,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 5"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 5"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:2",
@@ -16157,11 +16803,13 @@
           "key": "kills",
           "phases": [],
           "text": "Orpal Gloor",
-          "needs": [
-            "attacking@self >= 1",
-            "sum:power@self >= 1",
-            "count:fighter@across >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "sum:power@self >= 1",
+              "count:fighter@across >= 1"
+            ]
+          },
           "action": [
             "stat_gain:minus@across:1"
           ]
@@ -16201,10 +16849,12 @@
             "gold@mine.player": 2
           },
           "compute": ["hero_limit"],
-          "needs": [
-            "count:hero@mine.hero < hero_limit",
-            "hero_wait@self == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:hero@mine.hero < hero_limit",
+              "hero_wait@self == 0"
+            ]
+          },
           "action": [
             "summon_hero"
           ]
@@ -16218,10 +16868,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 1"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 1"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -16235,10 +16887,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 2"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 2"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -16252,10 +16906,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 3"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 3"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:2",
@@ -16271,10 +16927,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 4"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 4"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -16288,10 +16946,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 5"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 5"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -16305,10 +16965,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 6"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 6"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:3",
@@ -16325,10 +16987,12 @@
             "gold@mine.player": 1,
             "exhaust": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self <= 3"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self <= 3"
+            ]
+          },
           "action": [
             "create:mine.army:skeleton:1"
           ]
@@ -16342,10 +17006,12 @@
           "cost": {
             "sacrifice:skeleton": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self >= 4"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self >= 4"
+            ]
+          },
           "action": [
             "draw_from:mine.deck:mine.hand:1"
           ]
@@ -16458,10 +17124,12 @@
             "gold@mine.player": 2
           },
           "compute": ["hero_limit"],
-          "needs": [
-            "count:hero@mine.hero < hero_limit",
-            "hero_wait@self == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:hero@mine.hero < hero_limit",
+              "hero_wait@self == 0"
+            ]
+          },
           "action": [
             "summon_hero"
           ]
@@ -16475,10 +17143,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 1"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 1"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -16492,10 +17162,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 2"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 2"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:3",
@@ -16511,10 +17183,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 3"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 3"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -16528,10 +17202,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 4"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 4"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -16545,10 +17221,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 5"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 5"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -16562,10 +17240,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 6"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 6"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:4",
@@ -16576,9 +17256,11 @@
           "key": "upkeep",
           "phases": [],
           "text": "Grave Stormborne",
-          "needs": [
-            "level@self >= 3"
-          ],
+          "needs": {
+            "req": [
+              "level@self >= 3"
+            ]
+          },
           "action": [
             "stat_set:romp@self:1"
           ]
@@ -16587,10 +17269,12 @@
           "key": "kills",
           "phases": [],
           "text": "Grave Stormborne",
-          "needs": [
-            "attacking@self >= 1",
-            "romp@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "romp@self >= 1"
+            ]
+          },
           "action": [
             "stat_set:romp@self:0",
             "ready:self"
@@ -16606,10 +17290,12 @@
             "exhaust": 1,
             "sword@self": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self >= 7"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self >= 7"
+            ]
+          },
           "target": {
             "verb": "cast",
             "type": "card",
@@ -16661,10 +17347,12 @@
             "gold@mine.player": 2
           },
           "compute": ["hero_limit"],
-          "needs": [
-            "count:hero@mine.hero < hero_limit",
-            "hero_wait@self == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:hero@mine.hero < hero_limit",
+              "hero_wait@self == 0"
+            ]
+          },
           "action": [
             "summon_hero"
           ]
@@ -16678,10 +17366,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 1"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 1"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -16695,10 +17385,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 2"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 2"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -16712,10 +17404,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 3"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 3"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:2",
@@ -16731,10 +17425,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 4"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 4"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -16748,10 +17444,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 5"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 5"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:3",
@@ -16762,9 +17460,11 @@
           "key": "upkeep",
           "phases": [],
           "text": "Setsuki Hiruki",
-          "needs": [
-            "level@self >= 6"
-          ],
+          "needs": {
+            "req": [
+              "level@self >= 6"
+            ]
+          },
           "action": [
             "draw_from:mine.deck:mine.hand:2"
           ]
@@ -16805,10 +17505,12 @@
             "gold@mine.player": 2
           },
           "compute": ["hero_limit"],
-          "needs": [
-            "count:hero@mine.hero < hero_limit",
-            "hero_wait@self == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:hero@mine.hero < hero_limit",
+              "hero_wait@self == 0"
+            ]
+          },
           "action": [
             "summon_hero"
           ]
@@ -16822,10 +17524,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 1"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 1"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -16839,10 +17543,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 2"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 2"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -16856,10 +17562,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 3"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 3"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -16873,10 +17581,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 4"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 4"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:3",
@@ -16892,10 +17602,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 5"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 5"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -16909,10 +17621,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 6"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 6"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -16926,10 +17640,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 7"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 7"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:4",
@@ -16971,10 +17687,12 @@
             "gold@mine.player": 2
           },
           "compute": ["hero_limit"],
-          "needs": [
-            "count:hero@mine.hero < hero_limit",
-            "hero_wait@self == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:hero@mine.hero < hero_limit",
+              "hero_wait@self == 0"
+            ]
+          },
           "action": [
             "summon_hero"
           ]
@@ -16988,10 +17706,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 1"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 1"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -17005,10 +17725,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 2"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 2"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -17022,10 +17744,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 3"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 3"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -17039,10 +17763,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 4"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 4"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:3",
@@ -17058,10 +17784,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 5"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 5"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -17075,10 +17803,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 6"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 6"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:3",
@@ -17094,10 +17824,12 @@
           "cost": {
             "exhaust": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self >= 7"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self >= 7"
+            ]
+          },
           "action": [
             "create:mine.soon:mech:1",
             "stat_set:time@each.mine.soon:2"
@@ -17139,10 +17871,12 @@
             "gold@mine.player": 2
           },
           "compute": ["hero_limit"],
-          "needs": [
-            "count:hero@mine.hero < hero_limit",
-            "hero_wait@self == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:hero@mine.hero < hero_limit",
+              "hero_wait@self == 0"
+            ]
+          },
           "action": [
             "summon_hero",
             "stat_set:time@self:4"
@@ -17157,10 +17891,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 1"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 1"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -17174,10 +17910,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 2"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 2"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -17191,10 +17929,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 3"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 3"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:2",
@@ -17210,10 +17950,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 4"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 4"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -17227,10 +17969,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 5"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 5"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -17244,10 +17988,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 6"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 6"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:3",
@@ -17258,9 +18004,11 @@
           "key": "attacks",
           "phases": [],
           "text": "Prynn Pasternaak",
-          "needs": [
-            "attacking@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1"
+            ]
+          },
           "action": [
             "stat_gain:time@self:1"
           ]
@@ -17301,10 +18049,12 @@
             "gold@mine.player": 2
           },
           "compute": ["hero_limit"],
-          "needs": [
-            "count:hero@mine.hero < hero_limit",
-            "hero_wait@self == 0"
-          ],
+          "needs": {
+            "req": [
+              "count:hero@mine.hero < hero_limit",
+              "hero_wait@self == 0"
+            ]
+          },
           "action": [
             "summon_hero"
           ]
@@ -17318,10 +18068,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 1"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 1"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -17335,10 +18087,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 2"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 2"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:2",
@@ -17354,10 +18108,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 3"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 3"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1"
           ]
@@ -17371,10 +18127,12 @@
           "cost": {
             "xp@mine.player": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self == 4"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self == 4"
+            ]
+          },
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:3",
@@ -17390,10 +18148,12 @@
           "cost": {
             "exhaust": 1
           },
-          "needs": [
-            "not_self@mine.command",
-            "level@self >= 3"
-          ],
+          "needs": {
+            "req": [
+              "not_self@mine.command",
+              "level@self >= 3"
+            ]
+          },
           "action": [
             "move:random.mine.hand:mine.discard",
             "draw_from:mine.deck:mine.hand:1"
@@ -17705,11 +18465,13 @@
           "key": "endturn",
           "phases": [],
           "text": "Bloodrage Ogre",
-          "needs": [
-            "count@mine.self >= 1",
-            "ready_since@self >= 1",
-            "fought@self == 0"
-          ],
+          "needs": {
+            "req": [
+              "count@mine.self >= 1",
+              "ready_since@self >= 1",
+              "fought@self == 0"
+            ]
+          },
           "action": [
             "move_to:mine.hand"
           ]
@@ -17747,10 +18509,12 @@
           "key": "rage",
           "phases": [],
           "text": "Siege",
-          "needs": [
-            "attacking@self >= 1",
-            "count:building@across >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "count:building@across >= 1"
+            ]
+          },
           "action": [
             "stat_gain:power@self:2"
           ]
@@ -17824,9 +18588,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -17867,9 +18633,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -17911,9 +18679,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -17971,9 +18741,11 @@
           "cost": {
             "exhaust": 1
           },
-          "needs": [
-            "spells@mine.player >= 1"
-          ],
+          "needs": {
+            "req": [
+              "spells@mine.player >= 1"
+            ]
+          },
           "target": {
             "verb": "cast",
             "type": "card",
@@ -18025,11 +18797,13 @@
           "key": "kills",
           "phases": [],
           "text": "Gunpoint Taxman",
-          "needs": [
-            "attacking@self >= 1",
-            "sum:slot@across >= 1",
-            "count:slain@across >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "sum:slot@across >= 1",
+              "count:slain@across >= 1"
+            ]
+          },
           "action": [
             "stat_gain:gold@mine.player:1",
             "stat_damage:gold@opponent:1"
@@ -18097,9 +18871,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:t2@mine.tech >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:t2@mine.tech >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -18142,9 +18918,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:t2@mine.tech >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:t2@mine.tech >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -18240,10 +19018,12 @@
           "key": "rage",
           "phases": [],
           "text": "Siege",
-          "needs": [
-            "attacking@self >= 1",
-            "count:building@across >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "count:building@across >= 1"
+            ]
+          },
           "action": [
             "stat_gain:power@self:4"
           ]
@@ -18287,9 +19067,11 @@
           "key": "obliterate",
           "phases": [],
           "text": "Obliterate 2",
-          "needs": [
-            "attacking@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1"
+            ]
+          },
           "action": [
             "destroy:lowest:tech_level.enemy.army:2",
             "destroy:lowest:tech_level.enemy.patrol:2",
@@ -18300,9 +19082,11 @@
           "key": "attacks",
           "phases": [],
           "text": "Obliterate",
-          "needs": [
-            "attacking@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1"
+            ]
+          },
           "action": [
             "destroy:enemy.army.unit:2"
           ]
@@ -18347,10 +19131,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_anarchy@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_anarchy@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -18395,10 +19181,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_anarchy@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_anarchy@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -18429,10 +19217,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:h_anarchy@mine.hero >= 1",
-          "max:ripe@mine.h_anarchy >= 6"
-        ],
+        "needs": {
+          "req": [
+            "count:h_anarchy@mine.hero >= 1",
+            "max:ripe@mine.h_anarchy >= 6"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -18472,9 +19262,11 @@
       },
       "leaves": {
         "into": "discard",
-        "needs": [
-          "count:player@enemy.owner_of >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:player@enemy.owner_of >= 1"
+          ]
+        },
         "action": [
           "stat_damage:integrity@mine.base:1",
           "emit:died"
@@ -18701,10 +19493,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_blood@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_blood@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -18767,10 +19561,15 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_blood@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_blood@mine.hero >= 1"
+          ],
+          "where": [
+            "tech_level@target <= 2"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -18782,10 +19581,7 @@
           "tags": [
             "unit"
           ],
-          "zones": ["fielded"],
-          "where": [
-            "tech_level@target <= 2"
-          ]
+          "zones": ["fielded"]
         },
         "action": [
           "set_owner:target:mine.player",
@@ -18828,9 +19624,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:t3@mine.tech >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:t3@mine.tech >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -18865,10 +19663,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:h_blood@mine.hero >= 1",
-          "max:ripe@mine.h_blood >= 6"
-        ],
+        "needs": {
+          "req": [
+            "count:h_blood@mine.hero >= 1",
+            "max:ripe@mine.h_blood >= 6"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -19005,9 +19805,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:t2@mine.tech >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:t2@mine.tech >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -19059,9 +19861,11 @@
           "key": "attacks",
           "phases": [],
           "text": "Attacks",
-          "needs": [
-            "attacking@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1"
+            ]
+          },
           "action": [
             "stat_damage:integrity@enemy.base:3"
           ]
@@ -19120,9 +19924,11 @@
           "phases": [],
           "text": "Firehouse",
           "tooltip": "Nothing records who did a killing, so the firehouse marks what it aimed at and asks afterwards whether the mark is still standing.",
-          "needs": [
-            "count:marked@anyone.finished >= 1"
-          ],
+          "needs": {
+            "req": [
+              "count:marked@anyone.finished >= 1"
+            ]
+          },
           "action": [
             "ready:self"
           ]
@@ -19180,11 +19986,13 @@
           "key": "kills",
           "phases": [],
           "text": "Molting Firebird",
-          "needs": [
-            "attacking@self >= 1",
-            "sum:power@self >= 1",
-            "count:building@across >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "sum:power@self >= 1",
+              "count:building@across >= 1"
+            ]
+          },
           "action": [
             "stat_damage:hp@each.enemy.unit:1",
             "stat_damage:life@each.enemy.hero:1"
@@ -19242,10 +20050,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_fire@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_fire@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -19286,10 +20096,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_fire@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_fire@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -19329,10 +20141,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_fire@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_fire@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -19374,10 +20188,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:h_fire@mine.hero >= 1",
-          "max:ripe@mine.h_fire >= 7"
-        ],
+        "needs": {
+          "req": [
+            "count:h_fire@mine.hero >= 1",
+            "max:ripe@mine.h_fire >= 7"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -19696,9 +20512,14 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1"
+          ],
+          "where": [
+            "plus@target == 0"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -19710,10 +20531,7 @@
           "tags": [
             "fighter"
           ],
-          "zones": ["fielded"],
-          "where": [
-            "plus@target == 0"
-          ]
+          "zones": ["fielded"]
         },
         "action": [
           "stat_gain:plus@target:1"
@@ -19742,9 +20560,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -19919,9 +20739,15 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:t2@mine.tech >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:t2@mine.tech >= 1"
+          ],
+          "where": [
+            "tech_level@target <= 2",
+            "tech_level@target >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -19934,11 +20760,7 @@
           "tags": [
             "unit"
           ],
-          "zones": ["fielded"],
-          "where": [
-            "tech_level@target <= 2",
-            "tech_level@target >= 1"
-          ]
+          "zones": ["fielded"]
         },
         "action": [
           "deploy",
@@ -19978,9 +20800,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:t2@mine.tech >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:t2@mine.tech >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -20056,9 +20880,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:t3@mine.tech >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:t3@mine.tech >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -20085,7 +20911,7 @@
       "card_stats": { "price": 3 },
       "play": {
         "phases": ["main"],
-        "needs": ["count:hero@mine.hero >= 1", "count:h_balance@mine.hero >= 1"],
+        "needs": { "req": ["count:hero@mine.hero >= 1", "count:h_balance@mine.hero >= 1"] },
         "cost": { "gold@mine.player": "price@self" },
         "action": ["options:col_give:optional"],
         "spent": "mine.discard"
@@ -20129,10 +20955,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_balance@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_balance@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -20179,10 +21007,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:h_balance@mine.hero >= 1",
-          "max:ripe@mine.h_balance >= 8"
-        ],
+        "needs": {
+          "req": [
+            "count:h_balance@mine.hero >= 1",
+            "max:ripe@mine.h_balance >= 8"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -20316,9 +21146,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:t2@mine.tech >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:t2@mine.tech >= 1"
+          ]
+        },
         "compute": [
           "gigadon_price"
         ],
@@ -20363,11 +21195,13 @@
           "key": "kills",
           "phases": [],
           "text": "Predator Tiger",
-          "needs": [
-            "attacking@self >= 1",
-            "sum:power@self >= 1",
-            "count:home@across >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "sum:power@self >= 1",
+              "count:home@across >= 1"
+            ]
+          },
           "action": [
             "stat_damage:workers@opponent:1",
             "purge:enemy.workers:1"
@@ -20412,10 +21246,12 @@
           "key": "kills",
           "phases": [],
           "text": "Rampaging Elephant",
-          "needs": [
-            "attacking@self >= 1",
-            "romp@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "romp@self >= 1"
+            ]
+          },
           "action": [
             "stat_set:romp@self:0",
             "ready:self"
@@ -20481,9 +21317,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:t3@mine.tech >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:t3@mine.tech >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -20497,9 +21335,11 @@
           "key": "attacks",
           "phases": [],
           "text": "Attacks",
-          "needs": [
-            "attacking@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1"
+            ]
+          },
           "action": [
             "create:mine.army:squirrel:3",
             "stat_set:ready_since@each.mine.squirrel:1",
@@ -20532,10 +21372,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_feral@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_feral@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -20566,10 +21408,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_feral@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_feral@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -20600,10 +21444,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_feral@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_feral@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -20681,10 +21527,15 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:h_feral@mine.hero >= 1",
-          "max:ripe@mine.h_feral >= 5"
-        ],
+        "needs": {
+          "req": [
+            "count:h_feral@mine.hero >= 1",
+            "max:ripe@mine.h_feral >= 5"
+          ],
+          "where": [
+            "count:buildable@target >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -20699,9 +21550,6 @@
           ],
           "zones": [
             "hand"
-          ],
-          "where": [
-            "count:buildable@target >= 1"
           ]
         },
         "action": [
@@ -20741,11 +21589,13 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:t1@mine.tech >= 1",
-          "count:galina_glimmer@mine.army == 0",
-          "count:galina_glimmer@mine.patrol == 0"
-        ],
+        "needs": {
+          "req": [
+            "count:t1@mine.tech >= 1",
+            "count:galina_glimmer@mine.army == 0",
+            "count:galina_glimmer@mine.patrol == 0"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -20783,9 +21633,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:t1@mine.tech >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:t1@mine.tech >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -20823,9 +21675,11 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:t2@mine.tech >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:t2@mine.tech >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -20865,7 +21719,7 @@
       "tooltip": "Whenever another unit or hero of yours arrives, put a +1/+1 rune on this. Remove a +1/+1 rune: put a +1/+1 rune on another unit.",
       "reactions": [
         { "to": "arrived", "whose": "mine", "forced": "mandatory", "in": "board",
-          "needs": ["not_self@event", "tagged:unit@event"],
+          "needs": { "req": ["not_self@event", "tagged:unit@event"] },
           "action": ["stat_gain:plus@self:1"] }
       ],
       "card_stats": {
@@ -20881,9 +21735,11 @@
           "phases": [
             "main"
           ],
-          "needs": [
-            "plus@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "plus@self >= 1"
+            ]
+          },
           "target": {
             "verb": "cast",
             "type": "card",
@@ -21029,11 +21885,13 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:t3@mine.tech >= 1",
-          "count:guargum@mine.army == 0",
-          "count:guargum@mine.patrol == 0"
-        ],
+        "needs": {
+          "req": [
+            "count:t3@mine.tech >= 1",
+            "count:guargum@mine.army == 0",
+            "count:guargum@mine.patrol == 0"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -21046,9 +21904,11 @@
           "key": "obliterate",
           "phases": [],
           "text": "Obliterate 4",
-          "needs": [
-            "attacking@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1"
+            ]
+          },
           "action": [
             "destroy:lowest:tech_level.enemy.army:4",
             "destroy:lowest:tech_level.enemy.patrol:4",
@@ -21059,9 +21919,11 @@
           "key": "attacks",
           "phases": [],
           "text": "Obliterate",
-          "needs": [
-            "attacking@self >= 1"
-          ],
+          "needs": {
+            "req": [
+              "attacking@self >= 1"
+            ]
+          },
           "action": [
             "destroy:enemy.army.unit:4"
           ]
@@ -21089,10 +21951,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_growth@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_growth@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -21136,10 +22000,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_growth@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_growth@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -21183,10 +22049,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_growth@mine.hero >= 1"
-        ],
+        "needs": {
+          "req": [
+            "count:hero@mine.hero >= 1",
+            "count:h_growth@mine.hero >= 1"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -21231,10 +22099,12 @@
         "phases": [
           "main"
         ],
-        "needs": [
-          "count:h_growth@mine.hero >= 1",
-          "max:ripe@mine.h_growth >= 5"
-        ],
+        "needs": {
+          "req": [
+            "count:h_growth@mine.hero >= 1",
+            "max:ripe@mine.h_growth >= 5"
+          ]
+        },
         "cost": {
           "gold@mine.player": "price@self"
         },
@@ -21516,9 +22386,11 @@
           "key": "tick_play",
           "text": "Fading",
           "phases": [],
-          "needs": [
-            "count:fading@mine.fading >= 1"
-          ],
+          "needs": {
+            "req": [
+              "count:fading@mine.fading >= 1"
+            ]
+          },
           "action": [
             "stat_damage:time@each.mine.fading:1"
           ]
@@ -21527,9 +22399,11 @@
           "key": "tick_future",
           "text": "Forecast",
           "phases": [],
-          "needs": [
-            "count@mine.soon >= 1"
-          ],
+          "needs": {
+            "req": [
+              "count@mine.soon >= 1"
+            ]
+          },
           "action": [
             "stat_damage:time@each.mine.soon:1"
           ]
@@ -21538,9 +22412,11 @@
           "key": "expire",
           "text": "Fading",
           "phases": [],
-          "needs": [
-            "count:faded@mine.fading >= 1"
-          ],
+          "needs": {
+            "req": [
+              "count:faded@mine.fading >= 1"
+            ]
+          },
           "action": [
             "destroy:each.mine.faded",
             "activate_zone:rules_death"
@@ -21550,9 +22426,11 @@
           "key": "arrive",
           "text": "Forecast",
           "phases": [],
-          "needs": [
-            "count:due@mine.soon >= 1"
-          ],
+          "needs": {
+            "req": [
+              "count:due@mine.soon >= 1"
+            ]
+          },
           "action": [
             "move:mine.soon.due:mine.army",
             "stat_set:ready_since@each.mine.army:1"

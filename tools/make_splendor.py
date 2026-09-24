@@ -375,7 +375,7 @@ def piles():
                             "end_phase"]},
                 {"key": f"take2_{k}", "text": f"Take two {label.lower()}",
                  "phases": ["act"],
-                 "needs": ["stock@self >= 4"],
+                 "needs": {"req": ["stock@self >= 4"]},
                  "cost": {"exhaust": 1, "stock@self": 2,
                           "first_take@mine.player": 1},
                  "action": [f"stat_gain:t_{k}@mine.player:2",
@@ -422,7 +422,7 @@ def buttons():
          "asset": "circle:slate",
          "tooltip": "Stop after one or two tokens. Taking a third ends your turn on its own.",
          "tags": ["immutable"],
-         "play": {"phases": ["act"], "needs": ["takes@mine.player >= 1"],
+         "play": {"phases": ["act"], "needs": {"req": ["takes@mine.player >= 1"]},
                   "action": ["stat_set:done@mine.player:1", "end_phase"]}},
     ]
 
@@ -598,8 +598,8 @@ def build(here):
         "computed_tags": {
             # Both are yes/no questions asked as a number, so an amount can
             # multiply by them: the engine has no branch and needs none.
-            "noble_ready": {"needs": ["ok@self >= 1"]},
-            "has_gold": {"needs": ["stock@self >= 1"]},
+            "noble_ready": {"needs": {"req": ["ok@self >= 1"]}},
+            "has_gold": {"needs": {"req": ["stock@self >= 1"]}},
         },
         "tags": {
             # The ability is never clicked: neither zone is tagged "activate",
@@ -610,7 +610,7 @@ def build(here):
             # carrying a copy for somebody to keep in step.
             "development": {
                 "abilities": [{"key": "price", "text": "Price", "action": pricing()}],
-                "play": {"phases": ["act"], "needs": ["buyable@self >= 1"],
+                "play": {"phases": ["act"], "needs": {"req": ["buyable@self >= 1"]},
                          "action": buying()},
             },
             "noble": {
@@ -619,7 +619,7 @@ def build(here):
                 # leaves it. Nothing prices a noble once it has visited, so
                 # clearing "ok" here is what stops noble_check finding it again:
                 # count:noble_ready asks the whole table, not just the row.
-                "play": {"phases": ["noble_pick"], "needs": ["ok@self >= 1"],
+                "play": {"phases": ["noble_pick"], "needs": {"req": ["ok@self >= 1"]},
                          "action": ["stat_gain:score@mine.player:3", "stat_set:ok@self:0",
                                     "set_owner:self:mine.player", "move_to:mine.tableau", "end_phase"]},
             },

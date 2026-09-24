@@ -61,9 +61,9 @@ and a line here names a section that exists:
 
 - **What a file holds** — Top-level fields · One game out of several files · `comment` — the one field the engine will not read · `ravel_` — the fields that are the engine's · Stats · Zones · A shelf — several zones on one rect · The system column · Players · Setup · Card templates · Two marks in card text · A caption that reads the board · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · A turn each · Two or more players · The player is a card · A stat says whose number it is
-- **Asking the board a question** — Conditions (one vocabulary everywhere) · `lowest:` and `highest:` — a pool in order · `aims:` — what an ability could point at · `spread` — an aim that spends points rather than cards · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `select` — a cost the player settles · `@owner_of` — the seat a card belongs to · `@attached_to` and `@host_of` — a card standing on another · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A place may be a word several zones wear · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
-- **What a card does** — Actions · A card that can do several things · Readiness — spent, given back, and asked about · `merge` — what an ability says to the others on its card · `needs` — an ability with an if in it · `if` and `do` — an if inside an action list · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag, or a counter, that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · A verb with a body — the game's own action · `does: "target"` — naming the aim, so the target can answer it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
-- **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · A second asker is a second answer · `chosen.where` — which of the revealed cards may be taken · An answer may have a price · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · A list waits for the question it asked
+- **Asking the board a question** — Conditions (one vocabulary everywhere) · `lowest:` and `highest:` — a pool in order · `aims:` — what an ability could point at · `spread` — an aim that spends points rather than cards · `needs` — what failing it does · `@everywhere` — every card, hands and decks included · `select` — a cost the player settles · `@owner_of` — the seat a card belongs to · `@attached_to` and `@host_of` — a card standing on another · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A place may be a word several zones wear · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
+- **What a card does** — Actions · A card that can do several things · Readiness — spent, given back, and asked about · `merge` — what an ability says to the others on its card · Gates — an if inside an ability · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag, or a counter, that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · A verb with a body — the game's own action · `does: "target"` — naming the aim, so the target can answer it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
+- **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · A second asker is a second answer · `chosen`'s `where` — which of the revealed cards may be taken · An answer may have a price · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · A list waits for the question it asked
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `answered` — the announcement itself · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · An automatic phase can ask, if the ask is the last thing it does · A mandatory reaction is how you ask somebody else a question · What it will not do yet
 - **Boards and pieces** — Pieces that move · Asking about the square you are considering · Moves with fixed destinations (castling) · Legality between two cards · Which end of a deck a card lands on · A cell, where the destination is a grid · Filling a row up · `origin` — back where it came from · `fan` — a stack you can read
 - **Outside the game itself** — Engine behaviors you get for free · Playing over a network · Offering it from your own game · Saving a game, and picking it up
@@ -496,7 +496,7 @@ two things, and `"gold >= 2"` in a cost would say the wrong one.
 **"Only if you have three farms."**
 
 ```json
-"play": { "needs": ["count:farm >= 3"], "action": ["stat_gain:gold:2"] }
+"play": { "needs": { "req": ["count:farm >= 3"] }, "action": ["stat_gain:gold:2"] }
 ```
 
 **"Once a turn."** Being spent is itself the cost:
@@ -693,7 +693,7 @@ forced play needs an out, and the validator says so.
 `deck`, `draw` and a `pass_card`, ended by a router token:
 
 ```json
-"play": { "needs": ["plays >= 1"], "action": ["purge:self", "end_phase"] }
+"play": { "needs": { "req": ["plays >= 1"] }, "action": ["purge:self", "end_phase"] }
 ```
 
 **A shop** (`splendor.json`). A `supply` zone whose `applies` tag carries the
@@ -1703,7 +1703,7 @@ operators are `>=`, `<=`, `>`, `<`, `==` and `!=`. One comparison per string —
 there are no boolean operators, because a list already means *and*, and *or* is
 two abilities.
 
-- Any `needs`, an `accepts` and a target's `where` take a **list** of them, all
+- Each kind in a `needs` (`req`, `where`, a gate …) takes a **list** of them, all
   of which must hold: `["might >= 8", "count:farm >= 3"]`. A list rather than a
   map keyed by its subject, because such a map cannot name one subject twice,
   and `["gold >= 3", "gold <= 8"]` is a range.
@@ -1791,15 +1791,15 @@ decides what it may point at.
 
 ```json
 { "key": "strike_lead",
-  "target": { "verb": "attack", "type": "card", "count": 1, "owner": "enemy", "zones": ["patrol"],
-              "where": ["slot@target == 1", "alt@target <= sum:aa@self"] } }
+  "needs": { "where": ["slot@target == 1", "alt@target <= sum:aa@self"] },
+  "target": { "verb": "attack", "type": "card", "count": 1, "owner": "enemy", "zones": ["patrol"] } }
 ```
 
 `aims:strike_lead` is **how many cards that ability could point at right now**.
 
 ```json
 { "key": "strike_free",
-  "needs": ["aims:strike_lead == 0", "aims:strike_patrol == 0"] }
+  "needs": { "req": ["aims:strike_lead == 0", "aims:strike_patrol == 0"] } }
 ```
 
 It takes no `@` — the ability is one of this card's own, so there is nowhere else
@@ -1835,8 +1835,8 @@ tag's condition is asked once per card, so the tag is the bridge:
 
 ```json
 "computed_tags": {
-  "jump_fl":  { "needs": ["aims:jump_left >= 1"] },
-  "jump_fr":  { "needs": ["aims:jump_right >= 1"] },
+  "jump_fl":  { "needs": { "req": ["aims:jump_left >= 1"] } },
+  "jump_fr":  { "needs": { "req": ["aims:jump_right >= 1"] } },
   "can_jump": { "any_of": ["jump_fl", "jump_fr"] }
 }
 ```
@@ -1912,58 +1912,62 @@ At the screen it is the ordinary targeting mode: click a chosen target again to
 put another point on it, the count shows on the card past the first, and the bar
 counts down what is left to spread.
 
-### `needs` and `where` — asked once, or asked of each
+### `needs` — what failing it does
 
-One vocabulary, two moments. **`needs` is asked once, before there is anything
-to choose. `where` is asked once per candidate, and is the only one that can
-tell them apart.**
+Every condition an ability, a play, a move rule or a reveal carries sits in one
+`needs`, keyed by **what failing it does**. The key is the moment it is asked.
 
-| Written on | Asked | About |
+```json
+"needs": {
+  "req":   ["mana@mine.player >= 2"],
+  "where": ["tagged:enemy@target", "health@target >= 1"],
+  "init":  ["initiative@mine.player >= 1"]
+},
+"action": ["stat_damage:health@opponent:1", "init? stat_damage:health@opponent:2",
+           "!init? stat_set:initiative@mine.player:1"]
+```
+
+| Kind | Failing it | Asked |
 |---|---|---|
-| `play.needs` | once, before targeting opens | the card. It **cannot see targets** — none have been chosen yet |
-| `challenge.needs` | once, when `resolve_challenge` runs | the card and the targets it already has |
-| `receive.needs` | once per candidate destination | that destination as `@self`, the arriving card as `@target` |
-| `receive.when` / `receive.action` | once per chosen target | the card aimed at, as `@self` and as the seat `mine` means; the aiming card as `@target` |
-| `target.where` | once per candidate | the candidate, as `@target` |
-| `chosen.where` | once per revealed card | that card |
-| a move rule's `needs` | once for the rule | the piece |
-| a move rule's `where` | once per candidate square | that square, as `@target` **and** as the anchor for any pattern inside it |
+| `req` | blocks: not offered, not playable; a phase running it skips it | once, before anything is chosen. It **cannot see targets** |
+| `where` | that candidate is not offered | once per candidate — a target, a square, a revealed card — as `@target` |
+| `fizzle` | it is used, and its action does nothing | once, as it resolves |
+| `event` | a reaction does not answer | once per announcement, about `@event` (reactions only) |
+| any other word | only the lines written `word? action` are skipped | once, at the first of those lines |
 
-The rule underneath: **`needs` asks about the thing it is written on; `where`
-asks about each option that thing is offering.** `receive.needs` looks like the
-exception and is not — it is written on the destination, the destination is what
-it asks about, and it runs again for each one because each one is a different
-destination answering for itself.
+Each value is one condition or a list, and a list means *and*. Two conditions
+for one gate are one list, so a key never needs writing twice.
 
-**Why both words exist.** They are two moments, and neither can do the other's
-work. A card has to be judged playable before the player commits to anything —
-that is what dims it in the hand — and at that moment there are no candidates,
-so `needs` is asked with nothing chosen. Once targeting opens the question
-changes from *may this card be played* to *may it be played at that*, which has
-a different answer for every square on the board and cannot be asked once. One
-word covering both would have to be re-asked per candidate, which makes the
-first question unanswerable, or asked once, which makes the second one a lie.
+**`req` and `where` are two moments, and neither can do the other's work.** A
+card has to be judged playable before the player commits to anything — that is
+what dims it in the hand — and at that moment there are no candidates. Once
+targeting opens the question changes from *may this card be played* to *may it
+be played at that*, which has a different answer for every square and cannot be
+asked once. A `req` that mentions `@target` is refused for that reason.
 
-**A move rule is the only block carrying both**, because it is the only one that
-does both jobs: decide whether the rule applies at all, then filter the squares
-it produced.
+A move rule shows both at once:
 
 ```json
 { "patterns": ["two_right"], "fill": "empty",
-  "needs": ["moves_made@self == 0"],
-  "where": ["tagged:rook@one_right >= 1", "moves_made@one_right == 0"] }
+  "needs": { "req": ["moves_made@self == 0"],
+             "where": ["tagged:rook@one_right >= 1", "moves_made@one_right == 0"] } }
 ```
 
-*Has this king moved?* is one answer for the whole rule, and asking it per
-square would get the same answer every time. *Is there an unmoved rook beyond
-**this** square?* has no answer until there is a square, so it cannot be asked
-in `needs`. `fill` sits between the two — also per square, but it knows only
-what is standing there, and `where` is for everything else about it.
+*Has this king moved?* is one answer for the whole rule. *Is there an unmoved
+rook beyond **this** square?* has no answer until there is a square. `fill` sits
+between the two — also per square, but it knows only what is standing there, and
+`where` is for everything else about it. In a move rule a `where` square is also
+the anchor for any pattern inside it.
 
-Everywhere else the format offers one word and not the other, and **which one
-you are given says what is being asked**. A `play` block has no `where` because
-nothing has been chosen yet. A `target` block has no `needs` because the card's
-own gate has already happened.
+**Where each block may say what:**
+
+| Written on | Takes | Notes |
+|---|---|---|
+| an ability, a `play` | `req`, `where`, `fizzle`, gates | `where` filters its `target` |
+| a reaction | the same, and `event` | `event` is about what it answers, read from the event's side |
+| a move rule | `req`, `where` | |
+| `chosen` | `where` | asked of each revealed card |
+| `challenge`, `receive`, `arrives`, `leaves`, an `adjusts`, a computed tag | `req` | `receive`'s is asked of each candidate destination, as `@self` — it is written on the destination |
 
 **The escape hatch on `needs`.** A `needs`-gated card becomes playable anyway
 when nothing else the phase would let you play is playable, so a mandatory play
@@ -2632,9 +2636,9 @@ standing there. `where` is the third: asked per candidate, with that square as
 
 ```json
 { "patterns": ["pawn_take"], "fill": "empty",
-  "where": ["tagged:last_acted@behind >= 1",
-            "tagged:pawn@behind >= 1",
-            "rank@behind == 4"] }
+  "needs": { "where": ["tagged:last_acted@behind >= 1",
+                       "tagged:pawn@behind >= 1",
+                       "rank@behind == 4"] } }
 ```
 
 That is en passant: *an empty square I could take onto, with a pawn just behind
@@ -2663,7 +2667,7 @@ except the card asking — which is the whole of what makes a rule about *the re
 of the board* sayable:
 
 ```json
-"computed_tags": { "mimic_air": { "needs": ["sum:alt@others.anyone.fighter >= 1"] } },
+"computed_tags": { "mimic_air": { "needs": { "req": ["sum:alt@others.anyone.fighter >= 1"] } } },
 "tags":          { "mimic_air": { "buffs": { "alt": 1 } } }
 ```
 
@@ -2681,8 +2685,8 @@ measuring fn does — there is nothing to name, since what it compares against i
 the card whose condition this is:
 
 ```json
-"target": { "zones": ["hand"], "tags": ["fire"],
-            "where": ["not_self@target"] }
+"needs": { "where": ["not_self@target"] },
+"target": { "zones": ["hand"], "tags": ["fire"] }
 ```
 
 That is "a **different** Fire card in your hand", which nothing else in the
@@ -2697,10 +2701,10 @@ columns do not flip with facing, so the same rules serve both colours:
 ```json
 { "key": "castle_k", "text": "Castle kingside",
   "moves": [{ "patterns": ["two_right"], "fill": "empty",
-              "needs": ["moves_made@self == 0"],
-              "where": ["tagged:rook@one_right",
-                        "moves_made@one_right == 0",
-                        "not_tagged:piece@one_left"] }],
+              "needs": { "req": ["moves_made@self == 0"],
+                         "where": ["tagged:rook@one_right",
+                                   "moves_made@one_right == 0",
+                                   "not_tagged:piece@one_left"] } }],
   "action": ["move_to:target", "place:one_right:one_left", "end_phase"] }
 ```
 
@@ -2870,7 +2874,7 @@ The same name answers *what is standing there* as readily as *where may I go*,
 so no separate "is this square empty" condition exists or is needed:
 
 ```json
-"play": { "needs": ["count:piece@castle_k_path == 0"] }
+"play": { "needs": { "req": ["count:piece@castle_k_path == 0"] } }
 ```
 
 An absolute pattern names its squares outright. A relative one is anchored on
@@ -2891,7 +2895,7 @@ standing on the far square* needs more than a list of names:
 { "key": "pawn", "abilities": [{ "action": [...], "moves": [
     { "patterns": ["pawn_step"], "fill": "empty" },
     { "patterns": ["pawn_run"],  "fill": "empty",
-      "needs": ["rank@self == 2"] },
+      "needs": { "req": ["rank@self == 2"] } },
     { "patterns": ["pawn_take"], "fill": "enemy" } ] }] }
 ```
 
@@ -2939,7 +2943,7 @@ five patrol slots answers *sparkshot* — 1 damage to a patroller adjacent to th
 one struck:
 
 ```json
-{ "key": "sparked", "needs": ["count:marked@beside >= 1"],
+{ "key": "sparked", "needs": { "req": ["count:marked@beside >= 1"] },
   "action": ["stat_damage:hp@self:1"] }
 ```
 
@@ -2949,7 +2953,7 @@ immediate squares and nothing beyond, so an empty post between two cards makes
 them not adjacent, which is usually exactly what a rulebook means.
 
 **What a pattern anchors on.** The acting card's *square* — so it names nothing
-for a card that is not standing on one — or, inside a target's `where`, the
+for a card that is not standing on one — or, inside a `where`, the
 candidate square being considered. Inside `activate_zone` the context is rebuilt
 for each card as the walk reaches it, which is why one ability written once
 speaks for every card in the zone.
@@ -2985,12 +2989,14 @@ which is how chess declares it.
     {
       "patterns": ["two_right"],
       "fill": "empty",
-      "needs": ["moves_made@self == 0"],
-      "where": [
-        "tagged:rook@one_right >= 1",
-        "moves_made@one_right == 0",
-        "not_tagged:piece@one_left"
-      ]
+      "needs": {
+        "req": ["moves_made@self == 0"],
+        "where": [
+          "tagged:rook@one_right >= 1",
+          "moves_made@one_right == 0",
+          "not_tagged:piece@one_left"
+        ]
+      }
     }
   ],
   "action": ["move_to:target", "place:one_right:one_left", "stat_gain:moves_made@self:1", "end_phase"]
@@ -3042,7 +3048,7 @@ itself as `@self` and the arriving card as `@target`:
 {
   "key": "red_route",
   "tags": ["marker", "red_dest"],
-  "receive": { "needs": ["value@target >= max:value@mine.red"] }
+  "receive": { "needs": { "req": ["value@target >= max:value@mine.red"] } }
 }
 
 "setup": { "place": [{ "card": "red_route", "zone": "red" }] }
@@ -3228,8 +3234,7 @@ when anything there has spent itself; `ready@<scope>` is its exact complement.
 Written bare, with no comparison and no argument:
 
 ```json
-"needs": ["ready@self"]
-"where": ["exhausted@target"]
+"needs": { "req": ["ready@self"], "where": ["exhausted@target"] }
 ```
 
 They are *not* a tag and *not* a stat. The tag and stat namespaces belong to the
@@ -3243,7 +3248,7 @@ tag, a computed tag or a style, and no card may set one in `card_stats`.
 -1/-1"* is a computed tag like any other:
 
 ```json
-"computed_tags": { "spent": { "needs": ["exhausted@self"] } },
+"computed_tags": { "spent": { "needs": { "req": ["exhausted@self"] } } },
 "tags":          { "spent": { "buffs": { "atk": -1, "hp": -1 } } }
 ```
 
@@ -3258,7 +3263,7 @@ new word. Declare `disabled`, fold it into the same computed tag, and count it
 down:
 
 ```json
-"computed_tags": { "rousable": { "needs": ["exhausted@self", "disabled@self == 0"] } }
+"computed_tags": { "rousable": { "needs": { "req": ["exhausted@self", "disabled@self == 0"] } } }
 ```
 
 ```json
@@ -3331,56 +3336,47 @@ spare ability going free.
 Two abilities both claiming `this` is a contradiction — each wants the other
 silent — and the validator refuses it rather than picking a winner.
 
-### `needs` — an ability with an if in it
+### Gates — an if inside an ability
 
-`phases` and `cost` say whether a **player** may use an ability. `needs` says
-whether the ability **happens at all**, and it is a list of ordinary conditions:
-
-```json
-{ "key": "spill", "text": "Overwhelm",
-  "needs": ["attacking@self >= 1", "count:unit@across == 0"],
-  "action": ["stat_set:spill@self:sum:power@self"] }
-```
-
-The difference matters because a phase walking a zone (`activate_zone`) is
-*ungated* — it has already decided it is time — but it still honours `needs`.
-Permission is about the player; a `needs` is part of the rule. "Damage past the
-blocker hits the Nexus" is a sentence with an *if* in it, and without somewhere
-to write that if, the only spelling left is multiplying by a stat that is 0 or 1:
-
-```
-before  stat_damage:spill@self:sum:health@across:x:count:overkilled@across:x:sum:attacking@self
-after   when   ["attacking@self >= 1", "overkill >= 1"]
-        action ["stat_gain:spill@self:overkill"]
-```
-
-Every rule about conditions holds here — a list means *and*, one comparison per
-string, and an absent stat fails every comparison.
-
-### `if` and `do` — an if inside an action list
-
-A `needs` gates a whole ability. When a card does one thing and then, *if*
-something, a second, the second is an entry of its own in the action list:
+`req` gates a whole ability. When a card does one thing and then, *if*
+something, a second, the condition gets a name of its own in `needs`, and the
+lines behind it say so:
 
 ```json
-"action": ["stat_gain:mana@mine.player:1",
-           { "if": ["initiative@mine.player >= 1"], "do": ["hit:health@opponent:1"] },
+"needs": { "init": "initiative@mine.player >= 1" },
+"action": ["stat_gain:mana@mine.player:1", "init? stat_damage:health@opponent:1",
            "stat_gain:power@mine.player:1"]
 ```
 
-*"Gain 1 mana. If you have Initiative, deal 1 damage. Power up."* It runs where
-it stands: the condition is asked when the list reaches it, after everything
-above it has happened, and the lines below run whether it held or not.
+*"Gain 1 mana. If you have Initiative, deal 1 damage. Power up."*
 
-- `if` is the `needs` grammar unchanged — one condition or a list, all of which
-  must hold, bare yes/no questions included.
-- `do` is an ordinary action list. A question in it (`options:`, `show:`) holds
-  back the rest of `do` *and* the rest of the outer list, exactly as if they had
-  been written inline.
-- A verb body may hold one, and `param1` … are filled in on both halves.
-- One level. An if inside a `do` is refused: two gates are two conditions in one
-  `if`. There is no `else` — the other branch is a second if saying its own
-  condition, which reads better than a negation nobody wrote.
+- **A gate is asked once, at the first line behind it, and kept.** So it reads
+  what the lines above have done, and a line behind it that changes what it reads
+  — losing the Initiative — does not switch the lines after it off.
+- **`!name?` is the other branch**, reading the same answer. *"Whoever has
+  Initiative loses it"* is `init?` losing it and `!init?` taking it;
+  written as two conditions asked in turn, the second sees the first one's work
+  and takes the Initiative straight back.
+- **A question in a gated line** (`options:`, `show:`) holds back the rest of the
+  list, and the answer rides with it.
+- The name is any word that is not one of the kinds. One no line uses, and a
+  line behind a name `needs` does not give, are both refused.
+
+**`req` or `fizzle` for the whole thing.** On a card a player plays, `req`
+means it cannot be played, and `fizzle` means it can and does nothing — a
+difference a player feels. On an ability only a phase runs (`"phases": []`)
+there is nobody to refuse, the two are the same, and the validator asks for
+`req`:
+
+```json
+{ "key": "spill", "text": "Overwhelm", "phases": [],
+  "needs": { "req": ["attacking@self >= 1", "count:unit@across == 0"] },
+  "action": ["stat_set:spill@self:sum:power@self"] }
+```
+
+A phase walking a zone (`activate_zone`) is *ungated* — it has already decided
+it is time — but it still honours `req`: *"damage past the blocker hits the
+Nexus"* is a rule with an if in it, not a permission.
 
 ### Reactions — answering another player's action
 
@@ -3424,8 +3420,7 @@ the other.
 ```json
 "reactions": [
   { "to": "cast", "text": "Counter it",
-    "where": ["tagged:fire@event >= 1"],
-    "needs": ["mana@mine.player >= 1"],
+    "needs": { "event": ["tagged:fire@event >= 1"], "req": ["mana@mine.player >= 1"] },
     "cost":  { "mana@mine.player": 1 },
     "action": ["counterspell"],
     "spent": "mine.graveyard" }
@@ -3589,7 +3584,7 @@ pausing one. Nothing answers that verb, or the game has no stack zone: it runs
 now, so an emit costs a game without reactions exactly nothing.
 
 The subject is the acting card, which carries the tags a reaction reads —
-`"where": ["tagged:gem@event >= 1"]` — so the emitter names nobody who might
+`"needs": { "event": ["tagged:gem@event >= 1"] }` — so the emitter names nobody who might
 answer.
 
 #### An automatic phase can ask, if the ask is the last thing it does
@@ -3663,7 +3658,7 @@ judged and again before it runs:
 
 ```json
 { "key": "spill", "compute": ["overkill"],
-  "needs": ["overkill >= 1"], "action": ["stat_gain:spill@self:overkill"] }
+  "needs": { "req": ["overkill >= 1"] }, "action": ["stat_gain:spill@self:overkill"] }
 ```
 
 The name then stands **as an amount** in that ability's actions and **as an
@@ -3728,7 +3723,7 @@ Some moves end in a choice: a pawn reaching the far rank, a builder picking what
 to build. That is one action:
 
 ```json
-"challenge": { "needs": ["rank@self == 8"],
+"challenge": { "needs": { "req": ["rank@self == 8"] },
                "pass":  ["options:to_queen,to_rook,to_bishop,to_knight"],
                "fail":  ["end_phase"] }
 ```
@@ -3927,7 +3922,7 @@ counting how many have been answered breaks on the first one declined: nothing
 runs on a decline, so the count never advances and every question after it means
 the wrong thing.
 
-#### `chosen.where` — which of the revealed cards may be taken
+#### `chosen`'s `where` — which of the revealed cards may be taken
 
 An offer of somebody's hand is a whole hand, and a rule is usually about part of
 one: *their largest gem*, *a blue-banner chip*, *a non-Puzzle chip*. The asking
@@ -3936,12 +3931,12 @@ card says which part, beside the block that says what happens:
 ```json
 "play": { "action": ["show:enemy.hand:optional"] },
 "chosen": {
-  "where": ["tagged:gem@target", "sum:value@target >= max:value@options"],
+  "needs": { "where": ["tagged:gem@target", "sum:value@target >= max:value@options"] },
   "action": ["move:target:void"]
 }
 ```
 
-Same word and same vocabulary as a target's `where`, asked the same way: the
+Same word and same vocabulary as an ability's `where`, asked the same way: the
 candidate is `@target` and the asking card is `@self`. **The whole scope still
 comes up** — revealing a hand is usually half the rule — and only the cards that
 qualify can be clicked; the rest are shown and dimmed.
@@ -3969,14 +3964,14 @@ quotes it.
 **Only a card the offer dealt.** A card it **borrowed** with `show:` is somebody
 else's chip and the *asker* is what acts, so the price printed on it is not the
 price of taking it: a codex unit shown to be fetched must not cost what it would
-cost to play. Those are gated by the asker's `chosen.where` instead.
+cost to play. Those are gated by the `where` in the asker's `chosen` instead.
 
 **If you wanted fewer cards to come up, narrow the scope instead.** "A Fire card
 from your hand" is one place and one kind, which is `<zone>.<tag>`:
 
 ```json
 "play": { "action": ["show:mine.hand.fire:optional"] },
-"chosen": { "where": ["tier_req@target <= 2"], "action": ["move:target:mine.discard"] }
+"chosen": { "needs": { "where": ["tier_req@target <= 2"] }, "action": ["move:target:mine.discard"] }
 ```
 
 The two do different jobs and a rule often wants both. *Which cards come up* is a
@@ -4170,7 +4165,7 @@ that happens *to* the card, and belongs here.
 and one departure is often two rules told apart by something that is not a place:
 
 ```json
-"leaves": { "into": "discard", "needs": ["count:player@enemy.owner_of >= 1"],
+"leaves": { "into": "discard", "needs": { "req": ["count:player@enemy.owner_of >= 1"] },
             "action": ["stat_damage:integrity@mine.base:1", "emit:died"] }
 ```
 
@@ -4312,7 +4307,7 @@ when a card and its zone both define one behaviour.
 **A style may be a computed tag, and then the look follows the numbers:**
 
 ```json
-"computed_tags": { "wounded": { "needs": ["hp@self < 3"] } },
+"computed_tags": { "wounded": { "needs": { "req": ["hp@self < 3"] } } },
 "styles":        { "wounded": { "color": [0.8, 0.1, 0.1] } }
 ```
 
@@ -4414,8 +4409,8 @@ costs no white, a noble that needs no green.
 Per-card derived tags, written as an ordinary condition about that one card:
 
 ```json
-"computed_tags": { "standing": { "needs": ["hp@self >= 1"] },
-                   "dead":     { "needs": ["hp@self < 1"] } }
+"computed_tags": { "standing": { "needs": { "req": ["hp@self >= 1"] } },
+                   "dead":     { "needs": { "req": ["hp@self < 1"] } } }
 ```
 
 **Every subject wants its `@self`.** A bare stat means whoever is up, and this is
@@ -4443,7 +4438,7 @@ union once and they do.
 
 ```
 show:mine.discard.curse_or_ice        offer only those
-"where": ["tagged:curse_or_ice@target"]
+"needs": { "where": ["tagged:curse_or_ice@target"] }
 count:curse_or_ice@enemy.discard
 ```
 
@@ -4486,7 +4481,7 @@ that way:
 ```json
 "tags": {
   "development": {
-    "play": { "phases": ["act"], "needs": ["buyable@self >= 1"], "action": [ … ] }
+    "play": { "phases": ["act"], "needs": { "req": ["buyable@self >= 1"] }, "action": [ … ] }
   }
 }
 ```
@@ -4568,7 +4563,7 @@ The last is the interesting one, because a computed tag is worn the same way a
 printed one is — the difference is only that the wearing comes and goes:
 
 ```json
-"computed_tags": { "hurt": { "needs": ["hp@self < 3"] } },
+"computed_tags": { "hurt": { "needs": { "req": ["hp@self < 3"] } } },
 "tags":          { "hurt": { "buffs": { "atk": 2 } } }
 ```
 
@@ -4583,7 +4578,7 @@ the card being played, and there is no card here to be it.
 its own name, and let a condition decide who is wearing it:
 
 ```json
-"computed_tags": { "runed": { "needs": ["runes@self >= 1", "count:elm@mine.structures >= 1"] } },
+"computed_tags": { "runed": { "needs": { "req": ["runes@self >= 1", "count:elm@mine.structures >= 1"] } } },
 "tags": { "runed": {
   "tooltip": "Overpower, lent by a Blooming Elm to anything wearing a +1/+1 rune.",
   "abilities": [{ "key": "spill", "phases": [], "text": "Blooming Elm", "action": [ … ] }] } }
@@ -4601,7 +4596,7 @@ but me*, so *"as long as another card has overpower, this one does"* is one
 condition wearing one grant.
 
 ```json
-"computed_tags": { "mimic_over": { "needs": ["count:overpower@others.anyone.fighter >= 1"] } },
+"computed_tags": { "mimic_over": { "needs": { "req": ["count:overpower@others.anyone.fighter >= 1"] } } },
 "tags":          { "mimic_over": { "abilities": [ … the same ability "overpower" grants … ] } }
 ```
 
@@ -4644,7 +4639,7 @@ conditions like any other number. And a threshold is still a computed tag, becau
 *"5 or more runes"* is not per point:
 
 ```json
-"computed_tags": { "mighty": { "needs": ["sum:runes@mine.ongoing.might >= 5"] } }
+"computed_tags": { "mighty": { "needs": { "req": ["sum:runes@mine.ongoing.might >= 5"] } } }
 ```
 
 The counter is read **raw** — its own stored number, never through its own buffs —
@@ -4759,7 +4754,7 @@ The fields:
 
 ```json
 { "key": "ward", "verb": "damage", "stat": "hp", "covers": "self", "by": -2,
-  "needs": ["tagged:witch@source >= 1"] }
+  "needs": { "req": ["tagged:witch@source >= 1"] } }
 ```
 
 - **`by`** — how much, in the ordinary amount grammar.
@@ -4811,7 +4806,7 @@ is 3, never the negative the engine carries. It is what lets a replacement be
 ```json
 "tags": { "overhealing": { "adjusts": [
   { "key": "spare", "verb": "heal", "stat": "health", "covers": "mine.player",
-    "needs": ["health@mine.player >= 10"],
+    "needs": { "req": ["health@mine.player >= 10"] },
     "instead": ["draw_from:mine.deck:mine.hand:amount"] }] } }
 ```
 
@@ -4898,7 +4893,7 @@ that casts is the hero that attacks. `verb:` and `not_verb:` ask it:
 
 ```json
 { "key": "moss_ancient", "tags": ["unit", "untargetable"],
-  "receive": { "needs": ["not_verb:cast"] } }
+  "receive": { "needs": { "req": ["not_verb:cast"] } } }
 ```
 
 The rule now lives **on the word**. `accepts` is read through the same behaviour
@@ -4906,7 +4901,7 @@ lookup everything else about a card goes through, so a `receive` may be written 
 a tag — and a ward is a keyword far more often than it is one card:
 
 ```json
-"tags": { "untargetable": { "receive": { "needs": ["not_verb:cast"] } } }
+"tags": { "untargetable": { "receive": { "needs": { "req": ["not_verb:cast"] } } } }
 ```
 
 Said once. Nothing that aims says anything, so printing a new spell cannot forget
@@ -4961,7 +4956,7 @@ the word a reaction already uses, and the same three values:
 
 ```json
 "tags": { "hidden": { "receive": {
-  "whose": "enemy", "needs": ["count:detector@mine.addon >= 1"] } } }
+  "whose": "enemy", "needs": { "req": ["count:detector@mine.addon >= 1"] } } } }
 ```
 
 `"enemy"` answers an opponent's aim and nobody else's, `"mine"` its own side's,
@@ -4999,7 +4994,7 @@ aimer *pays*:
 "tags": {
   "resist_1": {
     "adjusts": [{ "key": "resist", "verb": "cast", "stat": "gold", "covers": "self", "by": 1,
-      "needs": ["count@enemy.self >= 1"] }]
+      "needs": { "req": ["count@enemy.self >= 1"] } }]
   }
 }
 ```
@@ -5021,9 +5016,9 @@ things that are true rather than things that happen. Codex's lookout post is the
 case: resist 1 for as long as something stands on the fifth patrol square.
 
 ```json
-"computed_tags": { "at_lookout": { "needs": ["slot@self == 5"] } },
+"computed_tags": { "at_lookout": { "needs": { "req": ["slot@self == 5"] } } },
 "tags": { "at_lookout": { "adjusts": [{ "key": "resist", "verb": "cast",
-  "stat": "gold", "covers": "self", "by": 1, "needs": ["count@enemy.self >= 1"] }] } }
+  "stat": "gold", "covers": "self", "by": 1, "needs": { "req": ["count@enemy.self >= 1"] } }] } }
 ```
 
 ### Keywords: a tag that means something to the player
@@ -5434,7 +5429,7 @@ pick up:
   "key": "m_continue",
   "text": "Continue",
   "tags": ["token", "immutable"],
-  "play": { "needs": ["saved:quick >= 1"], "action": ["load_save:quick"] }
+  "play": { "needs": { "req": ["saved:quick >= 1"] }, "action": ["load_save:quick"] }
 }
 ```
 

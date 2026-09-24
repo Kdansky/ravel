@@ -1020,7 +1020,7 @@ def purple_cards():
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "target": dict(own_gems, count=2),
                   "action": ["resolve_challenge"]},
-         "challenge": {"needs": ["sum:value@target <= 4"],
+         "challenge": {"needs": {"req": ["sum:value@target <= 4"]},
                        "pass": ["stat_set:combined@mine.player:sum:value@target",
                                 "purge:target",
                                 "activate_zone:rules_combine",
@@ -1142,7 +1142,7 @@ def puzzle_cards():
                   "action": ["purge:self", "end_phase"]}},
         {"key": "gems_to_gemonade", **shape("gems_to_gemonade", "purple"),
          "play": act(["draw_from:mine.bag:mine.hand:2"]),
-         "reactions": [{"to": "crash", "whose": "enemy", "text": "Negate the gems", "needs": ANSWERABLE,
+         "reactions": [{"to": "crash", "whose": "enemy", "text": "Negate the gems", "needs": {"req": ANSWERABLE},
                         "action": ["purge:mine.gem_1:sum:crashed@opponent"],
                         "spent": "mine.discard"}]},
         {"key": "its_a_trap", **shape("its_a_trap", "brown"),
@@ -1167,14 +1167,14 @@ def puzzle_cards():
          # about what the card's own rules do once they are running.
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "action": ["purge:self", "show:bank:optional"]},
-         "chosen": {"where": ["not_tagged:gem@target", "not_tagged:puzzle@target"],
+         "chosen": {"needs": {"where": ["not_tagged:gem@target", "not_tagged:puzzle@target"]},
                     "action": ["create:mine.discard:@target:1",
                                "stat_damage:stock@target:1", "end_phase"]}},
         {"key": "mix_master", **shape("mix_master", "red"),
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "target": dict(own_gems, count=2),
                   "action": ["resolve_challenge"], "spent": "mine.table"},
-         "challenge": {"needs": ["sum:value@target <= 4"],
+         "challenge": {"needs": {"req": ["sum:value@target <= 4"]},
                        "pass": ["stat_set:combined@mine.player:sum:value@target",
                                 "purge:target",
                                 "activate_zone:rules_combine",
@@ -1188,7 +1188,7 @@ def puzzle_cards():
                         "action": ["stat_gain:piggy@mine.player:1"]}],
          # It watches its *own* controller, which is what "whose": "mine" is for.
          "reactions": [{"to": "buy", "whose": "mine", "forced": "mandatory", "in": "board",
-                        "where": ["tagged:purple@event"],
+                        "needs": {"event": ["tagged:purple@event"]},
                         "action": [], "spent": "mine.discard"}],
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "action": ["stat_gain:acts@mine.player:1"], "spent": "mine.ongoing"}},
@@ -1203,7 +1203,7 @@ def puzzle_cards():
         # name would go back to their discard the next time it is thrown away.
         {"key": "stolen_purples", **shape("stolen_purples", "red"),
          "play": act(["show:enemy.hand:optional"]),
-         "chosen": {"where": ["tagged:purple@target"],
+         "chosen": {"needs": {"where": ["tagged:purple@target"]},
                     "action": ["set_owner:target:mine.player", "move:target:mine.discard"]}},
         {"key": "thinking_ahead", **shape("thinking_ahead", "blue"),
          "play": act(["stat_gain:money@mine.player:1"]),
@@ -1224,7 +1224,7 @@ def puzzle_cards():
                              "purge:target",
                              "show:bank:optional"],
                   "spent": "mine.table"},
-         "chosen": {"where": ["price@target <= budget@mine.player", "stock@target >= 1"],
+         "chosen": {"needs": {"where": ["price@target <= budget@mine.player", "stock@target >= 1"]},
                     "action": ["take:target:mine.hand:1"]}},
 
         # --- Shadows --------------------------------------------------------
@@ -1232,12 +1232,12 @@ def puzzle_cards():
          "play": act(["stat_gain:act_brown@mine.player:1", "draw_from:mine.bag:mine.hand:2"])},
         {"key": "bang_then_fizzle", **shape("bang_then_fizzle", "brown"),
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
-                  "needs": ["sum:value@mine.gem_pile <= 4"],
+                  "needs": {"req": ["sum:value@mine.gem_pile <= 4"]},
                   "action": ["stat_gain:acts@mine.player:2", "draw_from:mine.bag:mine.hand:2"],
                   "spent": "mine.table"}},
         {"key": "blues_are_good", **shape("blues_are_good", "blue"),
          "play": act(["stat_gain:act_blue@mine.player:1", "show:mine.bag:optional"]),
-         "chosen": {"where": ["tagged:blue@target"],
+         "chosen": {"needs": {"where": ["tagged:blue@target"]},
                     "action": ["move:target:mine.hand"]},
          "reactions": [{"to": "attack", "whose": "enemy", "text": "Become immune",
                         "action": ["counterspell"], "spent": "mine.discard"}]},
@@ -1253,7 +1253,7 @@ def puzzle_cards():
                              "purge:target",
                              "show:bank:optional"],
                   "spent": "mine.table"},
-         "chosen": {"where": ["price@target <= budget@mine.player", "stock@target >= 1"],
+         "chosen": {"needs": {"where": ["price@target <= budget@mine.player", "stock@target >= 1"]},
                     "action": ["take:target:mine.discard:1"]}},
         {"key": "color_panic", **shape("color_panic", "red"),
          "play": act(["stat_gain:act_red@mine.player:1"])},
@@ -1294,7 +1294,7 @@ def puzzle_cards():
         {"key": "option_select", **shape("option_select", None),
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "action": ["purge:self", "show:bank:optional"]},
-         "chosen": {"where": ["sum:price@target <= 5"],
+         "chosen": {"needs": {"where": ["sum:price@target <= 5"]},
                     "action": ["copy:target:play"]}},
         {"key": "ouch", **shape("ouch", "red"),
          "play": act(["take:bank.gem_1:enemy.gem_pile:1"]
@@ -1405,7 +1405,7 @@ def character_chips():
          # without saying while that row was a "hand" as far as the engine was
          # concerned, and the default — a reaction played out of a hand — caught
          # it by accident.
-         "reactions": [{"to": "crash", "whose": "enemy", "needs": ANSWERABLE, "in": "board",
+         "reactions": [{"to": "crash", "whose": "enemy", "needs": {"req": ANSWERABLE}, "in": "board",
                         "action": ["purge:mine.gem_1:1",
                                    "destroy:self", "transform:self:bubble_shield"]}]},
         {"key": "protective_ward", "text": "Protective Ward", "tags": ["chip", "character", "brown"],
@@ -1461,15 +1461,14 @@ def character_chips():
         {"key": "rigorous_training", "text": "Rigorous Training", "tags": ["chip", "character", "blue"],
          "asset": "circle:green",
          "reactions": [{"to": "buy", "whose": "enemy", "text": "Trash a chip and gain a better one",
-                        "where": ["tagged:purple@event"],
-                        "target": {"type": "card", "zones": ["hand"], "owner": "mine", "count": 1,
-                                   "where": ["not_tagged:purple@target"]},
+                        "needs": {"event": ["tagged:purple@event"], "where": ["not_tagged:purple@target"]},
+                        "target": {"type": "card", "zones": ["hand"], "owner": "mine", "count": 1},
                         "action": ["stat_set:budget@mine.player:sum:price@target",
                                    "stat_gain:budget@mine.player:2",
                                    "purge:target",
                                    "show:bank:optional"],
                         "spent": "mine.discard"}],
-         "chosen": {"where": ["price@target <= budget@mine.player", "stock@target >= 1"],
+         "chosen": {"needs": {"where": ["price@target <= budget@mine.player", "stock@target >= 1"]},
                     "action": ["take:target:mine.discard:1"]}},
         {"key": "purge_bad_habits", "text": "Purge Bad Habits", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:green",
@@ -1488,8 +1487,8 @@ def character_chips():
          # Hand only: a discard is a stack and a stack offers its top card, so
          # a chip buried in one cannot be pointed at.
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
-                  "target": {"type": "card", "tags": ["chip"], "zones": ["hand"], "owner": "anyone",
-                             "count": 1, "where": ["not_tagged:puzzle@target"]},
+                  "needs": {"where": ["not_tagged:puzzle@target"]},
+                  "target": {"type": "card", "tags": ["chip"], "zones": ["hand"], "owner": "anyone", "count": 1},
                   "action": ["copy:target:play:2", "purge:target", "end_phase:action"],
                   "spent": "mine.table"}},
         {"key": "bag_of_tricks", "text": "Bag of Tricks", "tags": ["chip", "character", "brown"],
@@ -1505,7 +1504,7 @@ def character_chips():
         {"key": "reversal", "text": "Reversal", "tags": ["chip", "character", "purple"],
          "asset": "circle:navy",
          "play": act(["draw_from:mine.bag:mine.hand:2"]),
-         "reactions": [{"to": "crash", "whose": "enemy", "text": "Counter-crash", "needs": ANSWERABLE,
+         "reactions": [{"to": "crash", "whose": "enemy", "text": "Counter-crash", "needs": {"req": ANSWERABLE},
                         "target": {"type": "card", "tags": ["gem"], "zones": ["gem_pile"],
                                    "owner": "mine", "count": 1},
                         "action": ["stat_set:crashed@mine.player:sum:value@target",
@@ -1540,7 +1539,7 @@ def character_chips():
          "asset": "circle:ash",
          "play": act(["draw_from:mine.bag:mine.hand:1", "stat_gain:piggy@mine.player:1"]),
          "reactions": [{"to": "crash", "whose": "enemy", "text": "Send the gems back to the bank",
-                        "needs": ANSWERABLE,
+                        "needs": {"req": ANSWERABLE},
                         "action": ["purge:mine.gem_1:sum:crashed@opponent"],
                         "spent": "mine.discard"}]},
         {"key": "big_rocks", "text": "Big Rocks", "tags": ["chip", "character", "brown"],
@@ -1577,8 +1576,8 @@ def character_chips():
          # only their largest gem may be taken out of it. "Largest" is a
          # comparison between the candidate and the pile it is in, which is what
          # a condition over a scope has always been able to say.
-         "chosen": {"where": ["tagged:gem@target",
-                              "sum:value@target >= max:value@options"],
+         "chosen": {"needs": {"where": ["tagged:gem@target",
+                              "sum:value@target >= max:value@options"]},
                     "action": ["stat_set:crashed@mine.player:sum:value@target",
                                "stat_set:broke@mine.player:max:value@target",
                                "purge:target",
@@ -1620,7 +1619,7 @@ def character_chips():
         {"key": "research_development", "text": "Research & Development",
          "tags": ["chip", "character", "brown"], "asset": "polygon:7:yellow",
          "play": act(["stat_gain:acts@mine.player:1", "show:mine.bag:optional"]),
-         "chosen": {"where": ["tagged:purple@target"],
+         "chosen": {"needs": {"where": ["tagged:purple@target"]},
                     "action": ["move:target:mine.hand"]}},
         {"key": "future_sight", "text": "Future Sight", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:yellow",
@@ -1635,7 +1634,7 @@ def character_chips():
         {"key": "its_time_for_the_past", "text": "It's Time for the Past",
          "tags": ["chip", "character", "brown"], "asset": "polygon:7:yellow",
          "play": act(["stat_gain:acts@mine.player:1", "show:mine.discard:optional"]),
-         "chosen": {"where": ["not_tagged:puzzle@target"],
+         "chosen": {"needs": {"where": ["not_tagged:puzzle@target"]},
                     "action": ["move:target:mine.hand"]}},
 
         # --- Shadows --------------------------------------------------------
@@ -1654,7 +1653,7 @@ def character_chips():
          # The `needs` is not flavour — an offer with nothing in it never opens,
          # and priority handed across an offer that never opens never comes home.
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
-                  "needs": ["count:chip@mine.discard >= 1"],
+                  "needs": {"req": ["count:chip@mine.discard >= 1"]},
                   "action": ["set_priority:enemy.player", "show:enemy.discard"],
                   "spent": "mine.table"},
          "chosen": {"action": ["move:target:enemy.hand", "clear_priority"]}},
@@ -1671,11 +1670,11 @@ def character_chips():
          # seat. "Their pile" is only a fixed thing to compare against in the
          # second, so a seat word in a `where` would mean whatever the moment did.
          "reactions": [{"to": "buy", "whose": "enemy", "forced": "mandatory", "in": "board",
-                        "needs": ["sum:value@mine.gem_pile >= 3",
-                                 "sum:price@event > sum:value@enemy.gem_pile"],
+                        "needs": {"req": ["sum:value@mine.gem_pile >= 3",
+                                 "sum:price@event > sum:value@enemy.gem_pile"]},
                         "action": ["counterspell"]},
                        {"to": "buy", "whose": "mine", "forced": "mandatory", "in": "board",
-                        "where": ["tagged:purple@event"],
+                        "needs": {"event": ["tagged:purple@event"]},
                         "action": [], "spent": "mine.discard"}]},
         {"key": "patriot_mirror", "text": "Patriot Mirror", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:gold",
@@ -1698,8 +1697,8 @@ def character_chips():
                   "target": dict(hand_chip, tags=["puzzle"]),
                   "action": ["stat_set:shown@clock:sum:price@target", "show:bank:optional"],
                   "spent": "mine.table"},
-         "chosen": {"where": ["tagged:puzzle@target",
-                              "sum:price@target <= shown@clock"],
+         "chosen": {"needs": {"where": ["tagged:puzzle@target",
+                              "sum:price@target <= shown@clock"]},
                     "action": ["copy:target:play", "stat_damage:stock@target:1"]}},
         {"key": "double_slash", "text": "Double Slash", "tags": ["chip", "character", "purple"],
          "asset": "circle:orange",
@@ -1796,12 +1795,12 @@ def character_chips():
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "action": ["stat_gain:act_brown@mine.player:1"], "spent": "mine.ongoing"},
          "reactions": [{"to": "buy", "whose": "mine", "forced": "mandatory", "in": "board",
-                        "where": ["tagged:purple@event"],
+                        "needs": {"event": ["tagged:purple@event"]},
                         "action": [], "spent": "mine.discard"}]},
         {"key": "beast_unleashed", "text": "Beast Unleashed", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:brown",
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
-                  "needs": ["sum:value@mine.gem_pile >= 6"],
+                  "needs": {"req": ["sum:value@mine.gem_pile >= 6"]},
                   "action": ["draw_from:mine.bag:mine.hand:2",
                              "stat_gain:act_brown@mine.player:1",
                              "stat_gain:piggy@mine.player:1"],
@@ -1846,7 +1845,7 @@ def character_chips():
                         "target": {"type": "card", "tags": ["gem_1"], "zones": ["gem_pile"],
                                    "owner": "anyone", "count": 1},
                         "action": crash_action(1, 0), "spent": "mine.discard"},
-                       {"to": "crash", "whose": "enemy", "text": "Crash a 1-gem back", "needs": ANSWERABLE,
+                       {"to": "crash", "whose": "enemy", "text": "Crash a 1-gem back", "needs": {"req": ANSWERABLE},
                         "target": {"type": "card", "tags": ["gem_1"], "zones": ["gem_pile"],
                                    "owner": "anyone", "count": 1},
                         "action": crash_action(1, 0), "spent": "mine.discard"}]},
@@ -1871,10 +1870,10 @@ def character_chips():
          # Two reactions is how a card says "or": conditions written on one are
          # read together, and these two are alternatives.
          "reactions": [{"to": "buy", "whose": "mine", "forced": "mandatory", "in": "board",
-                        "where": ["tagged:purple@event"],
+                        "needs": {"event": ["tagged:purple@event"]},
                         "action": [], "spent": "mine.discard"},
                        {"to": "buy", "whose": "mine", "forced": "mandatory", "in": "board",
-                        "where": ["sum:price@event >= 6"],
+                        "needs": {"event": ["sum:price@event >= 6"]},
                         "action": [], "spent": "mine.discard"}]},
         # Menelker
         {"key": "deathstrike_dragon", "text": "Deathstrike Dragon",
@@ -1885,8 +1884,8 @@ def character_chips():
         {"key": "bonecracker", "text": "Bonecracker", "tags": ["chip", "character", "red"],
          "asset": "polygon:7:maroon",
          "play": act(["stat_gain:act_brown@mine.player:1", "show:enemy.hand"]),
-         "chosen": {"where": ["tagged:gem@target",
-                              "sum:value@target >= max:value@options"],
+         "chosen": {"needs": {"where": ["tagged:gem@target",
+                              "sum:value@target >= max:value@options"]},
                     "action": ["destroy:target"]}},
         {"key": "into_oblivion", "text": "Into Oblivion", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:maroon",
@@ -1894,14 +1893,14 @@ def character_chips():
          # The draft button already reaches the box the other way, with `show:`,
          # and an offer is the only thing a plate answers to.
          "play": act(["show:bank:optional"]),
-         "chosen": {"where": ["tagged:puzzle@target"],
+         "chosen": {"needs": {"where": ["tagged:puzzle@target"]},
                     "action": ["move:target:chip_box"]}},
         # Lum
         {"key": "living_on_the_edge", "text": "Living on the Edge", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:white",
          "tooltip": "Three chips and an action — but only while your own gem pile is at ten or more, which is to say only while you are already losing.",
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
-                  "needs": ["sum:value@mine.gem_pile >= 10"],
+                  "needs": {"req": ["sum:value@mine.gem_pile >= 10"]},
                   "action": ["draw_from:mine.bag:mine.hand:3",
                              "stat_gain:acts@mine.player:1", "move_to:mine.table"]}},
         {"key": "pandas_bargain", "text": "Panda's Bargain", "tags": ["chip", "character", "brown"],
@@ -1914,10 +1913,10 @@ def character_chips():
          # to the other, because an event knows what it is and not what came before.
          "play": ongoing(),
          "reactions": [{"to": "buy", "whose": "mine", "forced": "mandatory", "in": "board",
-                        "where": ["tagged:puzzle@event"],
+                        "needs": {"event": ["tagged:puzzle@event"]},
                         "action": ["stat_set:owed@mine.player:1"]},
                        {"to": "turn_end", "whose": "mine", "forced": "mandatory", "in": "board",
-                        "needs": ["owed@mine.player >= 1"],
+                        "needs": {"req": ["owed@mine.player >= 1"]},
                         "action": ["draw_from:mine.bag:mine.hand:1",
                                    "stat_set:owed@mine.player:0"]}]},
         {"key": "jackpot", "text": "Jackpot", "tags": ["chip", "character", "brown"],
@@ -2005,7 +2004,7 @@ def rule_cards():
 
     def rule(zone, key, when, action):
         out.append((zone, {"key": key, "text": key, "tags": ["immutable"],
-                           "abilities": [{"key": key, "text": key, "needs": when, "action": action}]}))
+                           "abilities": [{"key": key, "text": key, "needs": {"req": when}, "action": action}]}))
 
     def ante_gem(n, where):
         return ["take:bank.%s:%s:1" % (gem_key(n), where)]
@@ -2039,7 +2038,7 @@ def rule_cards():
     out.append(("rules_piggy", {
         "key": "piggy_bank", "text": "Piggy bank", "tags": ["immutable"],
         "abilities": [{"key": "piggy_bank", "text": "Piggy bank",
-                       "needs": ["piggy@mine.player >= 1"],
+                       "needs": {"req": ["piggy@mine.player >= 1"]},
                        "action": ["show:mine.hand:optional"]}],
         "chosen": {"action": ["move:target:mine.stash",
                               "stat_damage:to_draw@mine.player:1"]}}))
@@ -2055,7 +2054,7 @@ def rule_cards():
         "key": "signature_play", "text": "Play a character chip", "tags": ["immutable"],
         "abilities": [{"key": "signature_play", "text": "Play a character chip",
                        "action": ["show:mine.hand:optional"]}],
-        "chosen": {"where": ["tagged:character@target"],
+        "chosen": {"needs": {"where": ["tagged:character@target"]},
                    "action": ["copy:target:play", "move:target:mine.table"]}}))
     # The height bonus is cumulative, so three separate ifs add up to +1/+2/+3.
     for n in (3, 6, 9):
@@ -2119,7 +2118,7 @@ def button_cards():
          # A count, not a payment: the rule is a floor, so this asks whether the
          # floor was reached and takes nothing away for asking — a cost would have
          # spent the one purchase it was checking for.
-         "abilities": [{"phases": ["buy"], "needs": ["bought@mine.player >= 1"],
+         "abilities": [{"phases": ["buy"], "needs": {"req": ["bought@mine.player >= 1"]},
                       "action": ["end_phase"]}]},
     ]
 
@@ -2264,21 +2263,21 @@ def build():
                       "tooltip": "How many Puzzle chips the bank is still short of a game."}],
         # A stack nobody can buy from any more is what drives the ante up, and
         # it is the plate's own number read as a word.
-        "computed_tags": {"spent": {"needs": ["stock@self < 1"]},
+        "computed_tags": {"spent": {"needs": {"req": ["stock@self < 1"]}},
                           # Marked by the sale, and so a coin cheaper.
-                          "discounted": {"needs": ["on_sale@self >= 1"]},
+                          "discounted": {"needs": {"req": ["on_sale@self >= 1"]}},
                           # Chips that can afford to lose one. This is the whole
                           # of "to a minimum of 1": it is asked once, against the
                           # printed price, before any of them is cheaper — which
                           # is also why the sale marks the stacks rather than the
                           # discount reading the price it changes.
-                          "dear": {"needs": ["price@self >= 2"]},
+                          "dear": {"needs": {"req": ["price@self >= 2"]}},
                           # Your deck as it is not in your hand, which is the
                           # half of it a search reaches. The two names come off
                           # the zones themselves (see `applies` there), so no
                           # chip declares either and both stay true as it cycles.
                           "stowed": {"any_of": ["in_bag", "in_discard"]},
-                          "character_stowed": {"needs": ["tagged:character@self", "tagged:stowed@self"]}},
+                          "character_stowed": {"needs": {"req": ["tagged:character@self", "tagged:stowed@self"]}}},
         # Two words the whole game answers to, said once each rather than on
         # ninety chips. A red chip announces an attack when it is played, so a
         # shield names "attack" and never has to list what might carry one; the
@@ -2311,7 +2310,7 @@ def build():
                                    # at once, which was convenient and said none
                                    # of the three out loud. `take` is the record,
                                    # and the check is what `when` is for.
-                                   "needs": ["stock@self >= 1"],
+                                   "needs": {"req": ["stock@self >= 1"]},
                                    "cost": {"money@mine.player": "price@self"},
                                    "action": ["take:self:mine.discard:1",
                                               "stat_gain:bought@mine.player:1"]}]}},

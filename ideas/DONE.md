@@ -1470,23 +1470,28 @@ burn is made of. A declared verb in the body keeps its own name.
   its own is no zone and no stat; it refuses `param0`, a skipped number, too few
   arguments and a verb that performs itself.
 
-# An if inside an action list · shipped
+# One list of conditions · shipped
 
-An action list may hold `{ "if": [conditions], "do": [actions] }` in place of a
-string. The `if` is the `needs` grammar unchanged; `actions.run` splices a `do`
-that holds into the list where it stands, so a question inside it parks the rest
-of `do` and of the outer list as one plain tail.
+`needs` is keyed by what failing it does: `req` blocks, `where` filters each
+candidate, `fizzle` lets it be used and do nothing, `event` is a reaction's
+question about what it answers, and any other key is a gate that only the lines
+written `name? action` sit behind (`!name?` is the other branch). `needs.lua`
+unfolds it on load into the flat fields the engine already read, so the runtime
+change is one: `actions.run` answers a gated line, asking each gate once and
+keeping the answer on the ctx, parked tails included.
 
-- **Why an object, not `when:<cond>:<action>`:** a condition may contain a colon,
-  so the wrapper had no reading. Naming each gate as a `computes` key was the
-  write-up's first choice until the count: Spellstorm's 65 step gates are 53
-  distinct conditions, 400 of 790 `needs` lists are conjunctions, and a compute
-  is a value, not a condition. The object carries every existing condition as it
-  is.
-- **Refused:** an if inside a `do`, and `else` — the other branch is a second if
-  with its own condition.
-- **Spellstorm:** `cast2`/`cast3` folded into `cast` as ifs; the `resolve` phase
-  lost two passes. Random play over 80 seeds is identical before and after.
+- **Why keyed, not markers on a list:** each value is a list meaning *and*, so no
+  key repeats; a partial if needs a name the lines can point at, which only a
+  key gives. `where` kept its word — it was already what "per candidate" meant.
+- **Why a gate is asked once:** a line behind it may change what it reads.
+  Swamp Silt, *"whoever has Initiative loses it"*, was two ifs asked in turn and
+  took the Initiative straight back; `init?`/`!init?` read one answer.
+- **Superseded on the way:** an inline `{ "if", "do" }` object (ac42030), and
+  the plan to stop `activate_zone` reading `needs` — for an ability only a phase
+  runs, blocking *is* skipping, so `req` means one thing there too.
+- **Migration:** every game and fixture, by a text-preserving rewrite; random
+  play identical in every game but Spellstorm, where the one divergence in 20
+  seeds is Swamp Silt.
 
 # Bugs found on the way, and what they bought
 

@@ -960,6 +960,24 @@ function M.test_spellstorm_dooms_arrive_only_from_failure(check)
 end
 
 
+-- Swamp Silt, "Whoever has Initiative loses it." Written as two ifs asked in turn
+-- it lost the Initiative and then, asking again, took it straight back; one gate
+-- read by both branches takes one of them.
+function M.test_spellstorm_swamp_silt_moves_the_initiative(check)
+	opening(3, "eve", "croh")
+	become("seat_one")
+	actions.execute("stat_set:initiative@mine.player:1", {})
+	actions.execute("stat_set:initiative@opponent:0", {})
+	local silt = stage_battle("seat_one", "swampsilt")
+	actions.execute("activate_zone:mine.battle:by_column:cast", { card_id = silt.id, targets = {} })
+	check("holding it, it goes to the opponent", seat_card("seat_one").stats.initiative == 0
+		and seat_card("seat_two").stats.initiative == 1,
+		seat_card("seat_one").stats.initiative .. "/" .. seat_card("seat_two").stats.initiative)
+	actions.execute("activate_zone:mine.battle:by_column:cast", { card_id = silt.id, targets = {} })
+	check("and not holding it, it comes back", seat_card("seat_one").stats.initiative == 1,
+		seat_card("seat_one").stats.initiative)
+end
+
 -- Rapid Fire comes back to hand, which it could always have done: the round-end
 -- sweep moves what is still standing in a battle spot, and a card that left is
 -- not there to be swept.

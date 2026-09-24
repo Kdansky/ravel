@@ -73,8 +73,8 @@ into `COOKBOOK.md`.
    through the Yang phase, which is routing; Strength of a Mountain is a fourth
    die, which is a fourth bag and a fourth term in five computes.
 4. **The captive Tao die.** "Exorcisms roll one die fewer" is one die not
-   dealt, and the roll is a fixed list of actions with no if in it — which is
-   [42](42-an-if-inside-an-action-list.md)'s customer, not a new word.
+   dealt, and the roll is a fixed list of actions with no if in it — which a
+   gate in its `needs` now says ([46](46-one-list-of-conditions.md)), not a new word.
 5. **The Uncatchable.** It may only be exorcised standing on a Buddha, and a
    Buddha here occupies the square and eats whatever is laid on it. Faithfully
    it wants a Buddha that is a *rider* on a space, which is the same want as

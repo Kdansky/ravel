@@ -1164,10 +1164,10 @@ function M.test_validator_counting_one_card_is_asking_about_it(check)
 		"zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] }],
 		"phases": [{ "key": "turn", "type": "player_input" }],
 		"cards": [{ "key": "thing", "text": "Thing", "tags": ["gem", "red"], "abilities": [
-			{ "key": "a", "needs": ["count:gem@self >= 1"], "action": ["end_phase"] },
-			{ "key": "b", "needs": ["count:red@self == 0"], "action": ["end_phase"] },
-			{ "key": "c", "needs": ["count:gem@board >= 1"], "action": ["end_phase"] },
-			{ "key": "d", "needs": ["count:gem@self >= 2"], "action": ["end_phase"] }] }]
+			{ "key": "a", "needs": { "req": ["count:gem@self >= 1"] }, "action": ["end_phase"] },
+			{ "key": "b", "needs": { "req": ["count:red@self == 0"] }, "action": ["end_phase"] },
+			{ "key": "c", "needs": { "req": ["count:gem@board >= 1"] }, "action": ["end_phase"] },
+			{ "key": "d", "needs": { "req": ["count:gem@self >= 2"] }, "action": ["end_phase"] }] }]
 	}]==])
 	f:close()
 	local ok, G = pcall(declaration.parse, "tmp_count_self.json")
@@ -1197,7 +1197,7 @@ function M.test_validator_names_the_wrong_half_of_a_zone_tag_scope(check)
 		"cards": [{ "key": "thing", "text": "Thing", "tags": ["gem"], "abilities": [
 			{ "key": "a", "action": ["purge:vualt.gem"] },
 			{ "key": "b", "action": ["purge:vault.gme"] },
-			{ "key": "c", "needs": ["count:gem@vualt.gem >= 1"], "action": ["end_phase"] },
+			{ "key": "c", "needs": { "req": ["count:gem@vualt.gem >= 1"] }, "action": ["end_phase"] },
 			{ "key": "d", "action": ["purge:vault.gem"] }] }]
 	}]==])
 	f:close()
@@ -1270,11 +1270,11 @@ function M.test_validator_reads_a_compute_on_either_side(check)
 			{ "key": "hand", "layout": "row" }],
 		"phases": [{ "key": "turn", "type": "player_input" }],
 		"cards": [{ "key": "clerk", "text": "Clerk", "abilities": [
-			{ "key": "right", "compute": ["spare"], "needs": ["gold >= spare"],
+			{ "key": "right", "compute": ["spare"], "needs": { "req": ["gold >= spare"] },
 			  "action": ["stat_gain:gold:1"] },
-			{ "key": "left", "compute": ["spare"], "needs": ["spare >= gold"],
+			{ "key": "left", "compute": ["spare"], "needs": { "req": ["spare >= gold"] },
 			  "action": ["stat_gain:gold:1"] },
-			{ "key": "typo", "needs": ["gold >= resreve"], "action": ["stat_gain:gold:1"] }] }]
+			{ "key": "typo", "needs": { "req": ["gold >= resreve"] }, "action": ["stat_gain:gold:1"] }] }]
 	}]==])
 	f:close()
 	local ok, G = pcall(declaration.parse, "tmp_compute_operand.json")

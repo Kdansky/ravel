@@ -40,7 +40,7 @@ local GAME = [==[{
     },
     "warded": {
       "adjusts": [{ "key": "ward", "verb": "damage", "stat": "hp", "covers": "self", "by": -2,
-        "needs": ["tagged:witch@source"] }]
+        "needs": { "req": ["tagged:witch@source"] } }]
     },
     "blessed": {
       "adjusts": [{ "key": "bless", "verb": "mend", "stat": "hp", "covers": "self", "by": 1 }]
@@ -52,7 +52,7 @@ local GAME = [==[{
     },
     "greedy": {
       "adjusts": [{ "key": "greed", "verb": "mend", "stat": "hp", "covers": "each.unit",
-        "needs": ["amount >= 2"], "instead": ["stat_gain:tally@self:1"] }]
+        "needs": { "req": ["amount >= 2"] }, "instead": ["stat_gain:tally@self:1"] }]
     },
     "recoiling": {
       "adjusts": [{ "key": "recoil", "verb": "damage", "stat": "hp", "covers": "self",

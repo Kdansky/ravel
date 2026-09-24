@@ -67,8 +67,8 @@
     }
   ],
   "computed_tags": {
-    "dead": { "needs": ["health@self < 1"] },
-    "passed": { "needs": ["passed@self >= 1"] },
+    "dead": { "needs": { "req": ["health@self < 1"] } },
+    "passed": { "needs": { "req": ["passed@self >= 1"] } },
     "any_target": { "any_of": ["unit", "nexus_plate"] }
   },
   "computes": [
@@ -98,7 +98,7 @@
           "text": "Overwhelm",
           "phases": ["strike"],
           "compute": ["overkill"],
-          "needs": ["attacking@self >= 1", "overkill >= 1"],
+          "needs": { "req": ["attacking@self >= 1", "overkill >= 1"] },
           "action": ["stat_gain:spill@self:overkill"]
         }
       ]
@@ -110,12 +110,12 @@
           "text": "Attack",
           "tooltip": "Send this unit into one of your lanes.",
           "phases": ["declare_attack"],
+          "needs": { "where": ["row@target == side@mine.player"] },
           "target": {
             "type": "slot",
             "count": 1,
             "zones": ["battle"],
-            "fill": "empty",
-            "where": ["row@target == side@mine.player"]
+            "fill": "empty"
           },
           "action": ["stat_set:attacking@self:1", "move_to:target"]
         },
@@ -124,12 +124,12 @@
           "text": "Block",
           "tooltip": "Meet an attacker. A lane with nothing across it cannot be blocked into.",
           "phases": ["declare_block"],
+          "needs": { "where": ["row@target == side@mine.player", "count:unit@across >= 1"] },
           "target": {
             "type": "slot",
             "count": 1,
             "zones": ["battle"],
-            "fill": "empty",
-            "where": ["row@target == side@mine.player", "count:unit@across >= 1"]
+            "fill": "empty"
           },
           "action": ["move_to:target"]
         }
@@ -145,7 +145,7 @@
         { "key": "land", "action": ["damage:health@self:sum:incoming@self"] },
         {
           "key": "spill",
-          "needs": ["attacking@self >= 1", "count:unit@across == 0"],
+          "needs": { "req": ["attacking@self >= 1", "count:unit@across == 0"] },
           "action": ["stat_set:spill@self:sum:power@self"]
         }
       ]
@@ -746,14 +746,14 @@
       "play": {
         "phases": ["play", "combat_response"],
         "cost": { "mana": 3 },
+        "needs": { "where": ["power@target <= 3"] },
         "target": {
           "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "anyone",
           "tags": ["unit"],
-          "zones": ["in_play"],
-          "where": ["power@target <= 3"]
+          "zones": ["in_play"]
         },
         "action": ["destroy:target", "end_phase"],
         "spent": "mine.discard"

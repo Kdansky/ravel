@@ -35,7 +35,7 @@ local GAME = [==[{
   "tags": {
     "goes":   { "play": { "action": ["stat_gain:purse@mine.player:1", "move_to:table"] } },
     "priced": { "play": { "cost": { "purse@mine.player": 2 }, "action": ["move_to:sold"] } },
-    "gated":  { "play": { "needs": ["purse@mine.player >= 5"], "action": ["move_to:table"] } },
+    "gated":  { "play": { "needs": { "req": ["purse@mine.player >= 5"] }, "action": ["move_to:table"] } },
     "elsewhere": { "play": { "action": ["move_to:sold"] } }
   },
   "cards": [

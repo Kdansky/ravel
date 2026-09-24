@@ -88,7 +88,7 @@
       "tooltip": "End this season and browse the Market next. Play at least one card first.",
       "tags": ["token", "moss"],
       "play": {
-        "needs": ["plays >= 1"],
+        "needs": { "req": ["plays >= 1"] },
         "action": ["stat_set:destination:1", "purge:self", "end_phase"]
       }
     },
@@ -99,7 +99,7 @@
       "tooltip": "End this season and train at the Barracks next. Play at least one card first.",
       "tags": ["token", "rust"],
       "play": {
-        "needs": ["plays >= 1"],
+        "needs": { "req": ["plays >= 1"] },
         "action": ["stat_set:destination:2", "purge:self", "end_phase"]
       }
     },
@@ -110,7 +110,7 @@
       "tooltip": "End this season and seek the Sanctum next. Play at least one card first.",
       "tags": ["token", "indigo"],
       "play": {
-        "needs": ["plays >= 1"],
+        "needs": { "req": ["plays >= 1"] },
         "action": ["stat_set:destination:3", "purge:self", "end_phase"]
       }
     },
@@ -120,7 +120,7 @@
       "asset": "circle:teal",
       "tooltip": "End the season once both trials are faced.",
       "tags": ["token", "slate"],
-      "play": { "needs": ["plays >= 2"], "action": ["purge:self", "end_phase"] }
+      "play": { "needs": { "req": ["plays >= 2"] }, "action": ["purge:self", "end_phase"] }
     },
     {
       "key": "march_on",
@@ -237,7 +237,7 @@
       "tooltip": "The banners rise: +1 might per soldier.",
       "tags": ["one_shot"],
       "play": {
-        "needs": ["count:soldier >= 2"],
+        "needs": { "req": ["count:soldier >= 2"] },
         "action": ["stat_gain:might:count:soldier", "stat_gain:progress:1", "destroy:self"]
       }
     },
@@ -322,7 +322,7 @@
       "tooltip": "Blight creeps through the fields. Need 4 food.",
       "tags": ["trial"],
       "challenge": {
-        "needs": ["food >= 4"],
+        "needs": { "req": ["food >= 4"] },
         "pass": ["destroy:self", "stat_damage:food:2", "stat_gain:progress:1"],
         "fail": [
           "move_to:board",
@@ -340,7 +340,7 @@
       "tooltip": "Riders burn the frontier. Need 3 might.",
       "tags": ["trial"],
       "challenge": {
-        "needs": ["might >= 3"],
+        "needs": { "req": ["might >= 3"] },
         "pass": ["destroy:self", "stat_damage:might:1", "stat_gain:progress:1"],
         "fail": ["move_to:board", "effect:crisis_smoke", "stat_damage:stability:2"]
       },
@@ -353,7 +353,7 @@
       "tooltip": "Old debts come due. Need 6 gold.",
       "tags": ["trial"],
       "challenge": {
-        "needs": ["gold >= 6"],
+        "needs": { "req": ["gold >= 6"] },
         "pass": ["destroy:self", "stat_damage:gold:4", "stat_gain:progress:1"],
         "fail": [
           "move_to:board",
@@ -371,7 +371,7 @@
       "tooltip": "The dead whisper louder. Need 3 mana.",
       "tags": ["trial"],
       "challenge": {
-        "needs": ["mana >= 3"],
+        "needs": { "req": ["mana >= 3"] },
         "pass": ["destroy:self", "stat_damage:mana:2", "stat_gain:progress:1"],
         "fail": [
           "move_to:board",
@@ -389,7 +389,7 @@
       "tooltip": "Two lean years in a row. Need 2 farms.",
       "tags": ["trial"],
       "challenge": {
-        "needs": ["count:farm >= 2"],
+        "needs": { "req": ["count:farm >= 2"] },
         "pass": ["destroy:self", "stat_damage:food:3", "stat_gain:progress:2"],
         "fail": [
           "move_to:board",
@@ -407,7 +407,7 @@
       "tooltip": "The sellswords name their price. Need 8 gold.",
       "tags": ["trial"],
       "challenge": {
-        "needs": ["gold >= 8"],
+        "needs": { "req": ["gold >= 8"] },
         "pass": ["destroy:self", "stat_damage:gold:6", "stat_gain:progress:2"],
         "fail": [
           "move_to:board",
@@ -425,7 +425,7 @@
       "tooltip": "A rival banner marches. Need 6 might.",
       "tags": ["trial"],
       "challenge": {
-        "needs": ["might >= 6"],
+        "needs": { "req": ["might >= 6"] },
         "pass": ["destroy:self", "stat_damage:might:3", "stat_gain:progress:2"],
         "fail": ["move_to:board", "effect:crisis_smoke", "stat_damage:stability:3"]
       },
@@ -438,7 +438,7 @@
       "tooltip": "Fear turns on the wise. Need 6 mana.",
       "tags": ["trial"],
       "challenge": {
-        "needs": ["mana >= 6"],
+        "needs": { "req": ["mana >= 6"] },
         "pass": ["destroy:self", "stat_damage:mana:3", "stat_gain:progress:2"],
         "fail": [
           "move_to:board",
@@ -456,7 +456,7 @@
       "tooltip": "Cousins with armies. Need 8 might and 8 gold.",
       "tags": ["trial"],
       "challenge": {
-        "needs": ["might >= 8", "gold >= 8"],
+        "needs": { "req": ["might >= 8", "gold >= 8"] },
         "pass": ["destroy:self", "stat_damage:might:4", "stat_damage:gold:6", "stat_gain:progress:2"],
         "fail": [
           "move_to:board",
@@ -474,7 +474,7 @@
       "tooltip": "It does not thaw. Need 8 food and 3 farms.",
       "tags": ["trial"],
       "challenge": {
-        "needs": ["food >= 8", "count:farm >= 3"],
+        "needs": { "req": ["food >= 8", "count:farm >= 3"] },
         "pass": ["destroy:self", "stat_damage:food:5", "stat_gain:progress:2"],
         "fail": [
           "move_to:board",
@@ -492,7 +492,7 @@
       "tooltip": "It remembers where gold sleeps. Need 10 might and 4 mana.",
       "tags": ["trial"],
       "challenge": {
-        "needs": ["might >= 10", "mana >= 4"],
+        "needs": { "req": ["might >= 10", "mana >= 4"] },
         "pass": ["destroy:self", "stat_damage:might:4", "stat_damage:mana:2", "stat_gain:progress:3"],
         "fail": [
           "move_to:board",

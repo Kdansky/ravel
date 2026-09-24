@@ -1501,7 +1501,7 @@ function M.offer_step()
 		if #z.after == 0 then z.after = nil end
 		if f.seat then stack.give_priority(f.seat) end
 		actions.run(f.action, { card_id = f.card, targets = f.targets or {},
-			event = f.event, let = f.let, within = f.within })
+			event = f.event, let = f.let, within = f.within, gated = f.gated })
 		return true
 	end
 	for tz in entity.each("zone") do
@@ -1510,7 +1510,7 @@ function M.offer_step()
 			if #tz.after == 0 then tz.after = nil end
 			if f.seat then stack.give_priority(f.seat) end
 			actions.run(f.action, { card_id = f.card, targets = f.targets or {},
-				event = f.event, let = f.let, within = f.within })
+				event = f.event, let = f.let, within = f.within, gated = f.gated })
 			return true
 		end
 	end

@@ -11,7 +11,7 @@
     "unit": { "zone": "battlefield", "play": { "action": ["move_to"] } },
     "item": { "zone": "inventory", "play": { "action": ["move_to"] } }
   },
-  "computed_tags": { "slain": { "needs": ["hp@self == 0"] } },
+  "computed_tags": { "slain": { "needs": { "req": ["hp@self == 0"] } } },
   "effects": {
     "sabre_hit": { "base": "damage" },
     "wolf_bite": { "base": "bleed", "size": 1.2 },
@@ -268,7 +268,7 @@
       "tags": ["threat"],
       "card_stats": { "hp": { "value": 3, "max": 3 } },
       "challenge": {
-        "needs": ["card:torch >= 1"],
+        "needs": { "req": ["card:torch >= 1"] },
         "pass": ["destroy:self", "stat_gain:distance:1", "stat_gain:morale:1"],
         "fail": ["stat_damage:morale:2"]
       },
@@ -283,7 +283,7 @@
       "tags": ["threat"],
       "card_stats": { "hp": { "value": 3, "max": 3 } },
       "challenge": {
-        "needs": ["supplies >= 3"],
+        "needs": { "req": ["supplies >= 3"] },
         "pass": ["destroy:self", "stat_damage:supplies:2", "stat_gain:distance:2"],
         "fail": ["stat_damage:morale:1"]
       },

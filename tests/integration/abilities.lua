@@ -33,7 +33,7 @@ local GAME = [==[{
     { "key": "pawn", "text": "Pawn", "tags": ["eager"], "card_stats": { "moves_made": 0 },
       "abilities": [{ "key": "move", "text": "Move it", "action": ["stat_gain:moves_made@self:1"] }] },
     { "key": "lever", "text": "Lever", "card_stats": { "moves_made": 0 },
-      "abilities": [{ "needs": ["moves_made@self >= 1"], "action": ["stat_gain:moves_made@self:1"] }] }
+      "abilities": [{ "needs": { "req": ["moves_made@self >= 1"] }, "action": ["stat_gain:moves_made@self:1"] }] }
   ],
   "setup": { "place": [
     { "card": "rook", "zone": "board", "at": ["a1"] },
@@ -471,7 +471,7 @@ function M.test_abilities_a_play_may_compute(check)
   "phases": [{ "key": "turn", "type": "player_input", "zone": "hand" }],
   "cards": [{ "key": "me", "text": "Me", "card_stats": { "gold": 4, "score": 0 } },
     { "key": "surge", "text": "Surge",
-      "play": { "compute": ["swing"], "needs": ["swing >= 2"],
+      "play": { "compute": ["swing"], "needs": { "req": ["swing >= 2"] },
                 "action": ["stat_gain:score@mine.player:swing"] } },
     { "key": "filler", "text": "Filler", "play": { "action": ["purge:self"] } }],
   "setup": { "place": [{ "card": "surge", "zone": "hand" },

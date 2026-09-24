@@ -51,8 +51,7 @@ local GAME = [==[{
       "reactions": [{ "to": "cast", "whose": "enemy", "in": "board", "key": "again", "text": "Again",
         "action": ["copy:answered"] }] },
     { "key": "jandra", "text": "Jandra", "tags": ["unit"],
-      "reactions": [{ "to": "cast", "whose": "enemy", "in": "board", "key": "take_it", "text": "Take it",
-        "where": ["not_self@target"], "action": ["redirect:answered:self"] }] },
+      "reactions": [{ "to": "cast", "whose": "enemy", "in": "board", "key": "take_it", "text": "Take it", "needs": { "event": ["not_self@target"] }, "action": ["redirect:answered:self"] }] },
     { "key": "crook", "text": "Crook", "tags": ["unit"],
       "reactions": [{ "to": "cast", "whose": "enemy", "in": "board", "key": "shove", "text": "Shove",
         "action": ["redirect:answered:stone"] }] }

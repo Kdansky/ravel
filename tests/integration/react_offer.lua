@@ -56,7 +56,8 @@ local GAME = [==[{
       "play": { "action": ["stat_gain:landed@mine.player:1"], "spent": "mine.graveyard" } },
     { "key": "browser", "text": "Browser", "tags": ["counter"],
       "reactions": [
-        { "to": "play", "where": ["tagged:fireball@event"],
+        { "to": "play",
+          "needs": { "event": ["tagged:fireball@event"] },
           "action": ["show:shelf:optional"], "spent": "mine.graveyard" }
       ],
       "chosen": { "action": ["move:target:mine.graveyard", "stat_gain:mana@mine.player:1"] } }

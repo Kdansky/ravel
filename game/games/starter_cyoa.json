@@ -40,7 +40,7 @@
       "key": "c_leave",
       "text": "TODO: A gated choice",
       "tooltip": "TODO: this branch only opens once the key is carried — trying early reveals the failure page.",
-      "challenge": { "needs": ["card:the_key >= 1"], "pass": ["reveal:e_end"], "fail": ["reveal:p_locked"] },
+      "challenge": { "needs": { "req": ["card:the_key >= 1"] }, "pass": ["reveal:e_end"], "fail": ["reveal:p_locked"] },
       "play": { "action": ["resolve_challenge"] }
     },
     {

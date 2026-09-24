@@ -31,7 +31,7 @@ local GAME = [==[{
     { "key": "attack", "does": "target", "tooltip": "One fighter picking what it throws itself at." },
     { "key": "cast",   "does": "target", "tooltip": "A spell picking what it lands on." }
   ],
-  "computed_tags": { "hurt": { "needs": ["hp@self < 5"] } },
+  "computed_tags": { "hurt": { "needs": { "req": ["hp@self < 5"] } } },
   "tags": {
     "resist_1": {
       "adjusts": [{ "key": "resist", "verb": "cast", "stat": "gold", "covers": "self", "by": 1 }]
@@ -51,7 +51,7 @@ local GAME = [==[{
     { "key": "one", "text": "One" },
     { "key": "grunt", "text": "Grunt", "tags": ["unit"] },
     { "key": "warded", "text": "Warded", "tags": ["unit"],
-      "receive": { "needs": ["not_verb:cast"] } },
+      "receive": { "needs": { "req": ["not_verb:cast"] } } },
     { "key": "tough", "text": "Tough", "tags": ["unit", "resist_1"] },
     { "key": "bolt", "text": "Bolt", "tags": ["spell"],
       "play": { "cost": { "gold@mine.player": 3 },
@@ -65,14 +65,14 @@ local GAME = [==[{
         "action": ["stat_damage:hp@target:1"] } },
     { "key": "deer", "text": "Deer", "tags": ["beast", "prey"] },
     { "key": "ghost", "text": "Ghost", "tags": ["beast", "prey"],
-      "receive": { "needs": ["not_verb:attack"] } },
+      "receive": { "needs": { "req": ["not_verb:attack"] } } },
     { "key": "hunter", "text": "Hunter", "tags": ["beast"],
       "abilities": [
         { "key": "strike", "text": "Strike", "phases": ["act"],
           "target": { "verb": "attack", "type": "card", "tags": ["prey"], "count": 1, "zones": ["field"] },
           "action": ["stat_damage:hp@target:1"] },
         { "key": "roam", "text": "Roam", "phases": ["act"],
-          "needs": ["aims:strike == 0"],
+          "needs": { "req": ["aims:strike == 0"] },
           "action": ["stat_gain:gold@mine.player:1"] }
       ] }
   ],

@@ -32,8 +32,7 @@ local GAME = [==[{
     { "key": "flame_counter", "text": "Flame Counter", "tags": ["spell"],
       "reactions": [
         { "to": "play",
-          "where": ["tagged:fireball@event"],
-          "needs": ["mana@mine.player >= 1"],
+          "needs": { "req": ["mana@mine.player >= 1"], "event": ["tagged:fireball@event"] },
           "cost": { "mana@mine.player": 1 },
           "action": ["purge:event"] }
       ] }
@@ -102,7 +101,7 @@ function M.test_reactions_structural_mistakes_are_caught(check)
 		"zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] }],
 		"phases": [{ "key": "turn", "type": "player_input" }],
 		"cards": [{ "key": "thing", "text": "Thing", "reactions": [
-			{ "where": ["hp@self >= 1"] },
+			{ "needs": { "event": ["hp@self >= 1"] } },
 			{ "to": "play", "forced": "maybe" },
 			{ "to": "play", "whose": "somebody" },
 			{ "to": "play", "wat": 1 }

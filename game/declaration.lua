@@ -1,5 +1,6 @@
 local json  = require("json")
 local shape = require("shape")
+local needs = require("needs")
 
 local M = {}
 M.G        = {}   -- current game definition; templates may be edited live (see cards.edit)
@@ -736,6 +737,7 @@ function M.parse(filename)
 	local read, _, came_from = M.read(filename, include_problems)
 	-- Every known field the type it is meant to be, before anything reads one.
 	local parsed = shape.clean(read, include_problems)
+	needs.unfold(parsed, include_problems)
 
 	local G = {
 		title          = parsed.title or "Ravel",

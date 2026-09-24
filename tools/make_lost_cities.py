@@ -125,7 +125,7 @@ def templates():
             "tooltip": "Total the " + label.lower() + " expedition.",
             "tags": ["scoring", "token", look],
             "play": {
-                "needs": ["count:expedition@mine." + c + " >= 1"],
+                "needs": {"req": ["count:expedition@mine." + c + " >= 1"]},
                 # (sum - 20) x (1 + wagers), distributed as (sum - 20) plus
                 # (sum - 20) x wagers, because a product cannot add one inside
                 # itself. The route marker used to carry the "wager" tag so that
@@ -145,7 +145,7 @@ def templates():
             "tooltip": "An expedition of eight cards or more is worth 20 more.",
             "tags": ["scoring", "token", look],
             "play": {
-                "needs": ["count:expedition@mine." + c + " >= 8"],
+                "needs": {"req": ["count:expedition@mine." + c + " >= 8"]},
                 "action": ["stat_gain:score@mine.player:20", "purge:self"],
             },
         })
@@ -248,7 +248,7 @@ def zones():
         out.append({"key": c, "label": label, "layout": "row", "row": "down",
                     "reach": "top", "copies": "per_seat",
                     "tags": ["stacked"], "pos": EXPEDITION_POS[i],
-                    "receive": {"needs": ["value@target >= max:value@mine." + c]}})
+                    "receive": {"needs": {"req": ["value@target >= max:value@mine." + c]}}})
         # A pile hands "takeable" to whatever lands on it — so its top card can
         # be picked up during the draw step without any card knowing about piles.
         # "activate" is the zone's own say-so that abilities work here. A pile

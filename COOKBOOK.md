@@ -126,7 +126,7 @@ The key still names what cards spend; `subject` only changes what the row *reads
 
 ```json
 "computes": [{ "key": "overkill", "value": "0 - health@across" }],
-"abilities": [{ "compute": ["overkill"], "needs": ["overkill >= 1"],
+"abilities": [{ "compute": ["overkill"], "needs": { "req": ["overkill >= 1"] },
                 "action": ["stat_gain:spill@self:overkill"] }]
 ```
 
@@ -189,7 +189,7 @@ Both run `stat_damage`; the aura names one of them. That is the whole mechanism 
 
 ```json
 "adjusts": [{ "key": "ward", "verb": "damage", "stat": "hp", "covers": "self", "by": -2,
-              "needs": ["tagged:witch@source"] }]
+              "needs": { "req": ["tagged:witch@source"] } }]
 ```
 
 `@source` is who is doing it — the one thing no other scope names. `@self` is the card holding
@@ -202,11 +202,11 @@ the aura, `@target` the card being hit.
           { "key": "wound", "does": "stat_damage" }],
 "adjusts": [
   { "key": "soak_one", "verb": "wound", "stat": "hp", "covers": "self",
-    "needs": ["guard@self >= 1"], "by": -1 },
+    "needs": { "req": ["guard@self >= 1"] }, "by": -1 },
   { "key": "soak_two", "verb": "wound", "stat": "hp", "covers": "self",
-    "needs": ["guard@self >= 2"], "by": -1 },
+    "needs": { "req": ["guard@self >= 2"] }, "by": -1 },
   { "key": "soak", "verb": "hit", "stat": "hp", "covers": "self",
-    "needs": ["guard@self >= 1"],
+    "needs": { "req": ["guard@self >= 1"] },
     "instead": ["wound:hp@self:amount", "stat_damage:guard@self:amount"] }]
 ```
 
@@ -291,11 +291,11 @@ string for every question in the game.
 ### You may pay 1 gold to take one of these.
 
 ```json
-"chosen": { "where": ["gold@mine.player >= 1"],
+"chosen": { "needs": { "where": ["gold@mine.player >= 1"] },
             "action": ["stat_damage:gold@mine.player:1", "move:target:mine.hand"] }
 ```
 
-A `chosen` block has no `cost` — it carries `where` and `action`, and the two say a price between
+A `chosen` block has no `cost` — it carries `needs.where` and `action`, and the two say a price between
 them: the gate refuses a pick you cannot afford, and the payment is the first thing the answer
 does. Declining owes nothing, which `:optional` already said. An offer where **no** candidate
 passes its `where` does not open at all, so a player with nothing to pay with is not asked.
@@ -324,7 +324,7 @@ stack.
 ```json
 "tags": { "overhealing": { "adjusts": [
   { "key": "spare", "verb": "heal", "stat": "health", "covers": "mine.player",
-    "needs": ["health@mine.player >= 10"],
+    "needs": { "req": ["health@mine.player >= 10"] },
     "instead": ["draw_from:mine.deck:mine.hand:amount"] }] } }
 ```
 
@@ -338,7 +338,7 @@ replacement be worth what it replaced. Bound inside this hook and nowhere else; 
 ```json
 "tags": { "taxed": { "adjusts": [
   { "key": "resist", "verb": "cast", "stat": "gold", "covers": "self", "by": 1,
-    "needs": ["count@enemy.self >= 1"] }] } }
+    "needs": { "req": ["count@enemy.self >= 1"] } }] } }
 ```
 
 Resist is the same word as armour, pointed at a cost rather than at damage.
@@ -471,7 +471,7 @@ handback.
 ### While it has no health left it counts as dead.
 
 ```json
-"computed_tags": { "dead": { "needs": ["hp@self < 1"] } }
+"computed_tags": { "dead": { "needs": { "req": ["hp@self < 1"] } } }
 ```
 
 Worn like any other tag, worked out on every read, and usable anywhere a tag is.
@@ -505,7 +505,7 @@ permanent bonus.
 ### While it is wounded it hits harder.
 
 ```json
-"computed_tags": { "hurt": { "needs": ["hp@self < 3"] } },
+"computed_tags": { "hurt": { "needs": { "req": ["hp@self < 3"] } } },
 "tags": { "hurt": { "buffs": { "atk": 2 } } }
 ```
 
@@ -714,12 +714,12 @@ sets off the death triggers.
 ```
 
 ```json
-"chosen": { "where": ["not_tagged:puzzle@target"], "action": ["purge:target"] }
+"chosen": { "needs": { "where": ["not_tagged:puzzle@target"] }, "action": ["purge:target"] }
 ```
 
 **The rule lives on the asker, not on the card**, because the two ways of asking are gated in
 different places: a `target` spec narrows its pool by `tags`, and an offer gates its pick with
-`chosen.where`. A tag nothing reads protects nothing — write the word on the cards, then say it
+`chosen`'s `needs.where`. A tag nothing reads protects nothing — write the word on the cards, then say it
 at every site that removes one.
 
 Say it positively where you can (`trashable` on the few kinds that may go) and negatively where
@@ -957,7 +957,7 @@ cost never has to know which currencies exist.
 ### You may only play this if you control a Farm.
 
 ```json
-"play": { "needs": ["count@mine.farm >= 1"] }
+"play": { "needs": { "req": ["count@mine.farm >= 1"] } }
 ```
 
 ### You may only play this during your main phase.
@@ -1008,7 +1008,7 @@ zone that granted it.
 ### The ability only happens if something is true.
 
 ```json
-"abilities": [{ "key": "spill", "needs": ["overkill >= 1"], "compute": ["overkill"] }]
+"abilities": [{ "key": "spill", "needs": { "req": ["overkill >= 1"] }, "compute": ["overkill"] }]
 ```
 
 `needs` is whether it **happens**; `cost` and `phases` are whether a player **may**.
@@ -1027,14 +1027,33 @@ The box answers, rather than the card on top of it becoming clickable. No `targe
 ### Gain 1 mana. If you have Initiative, deal 1 damage.
 
 ```json
-"play": { "action": ["stat_gain:mana@mine.player:1",
-  { "if": ["initiative@mine.player >= 1"], "do": ["hit:health@opponent:1"] }] }
+"play": { "needs": { "init": "initiative@mine.player >= 1" },
+          "action": ["stat_gain:mana@mine.player:1", "init? stat_damage:health@opponent:1"] }
 ```
 
-The if sits in the list where the sentence has it, and is asked when the list
-gets there — after the mana. `if` takes what `needs` takes; `do` is any action
-list, and a question inside it holds back everything after it. One level, no
-`else`: the other branch is a second if with its own condition.
+Any key in `needs` that is not one of its kinds (`req`, `where`, `fizzle`, `event`) is a gate, and
+only the lines written `init? …` sit behind it. It is asked at the first of them — after the mana —
+and the answer is kept for the rest of the list, so a line behind it that changes what it reads
+does not switch the others off.
+
+### If you have Initiative, lose it; otherwise take it.
+
+```json
+"needs": { "init": "initiative@mine.player >= 1" },
+"action": ["init? stat_set:initiative@mine.player:0", "!init? stat_set:initiative@mine.player:1"]
+```
+
+`!init?` is the other branch, and it reads the answer `init?` got. Two conditions asked in turn —
+*have it? lose it. don't have it? take it* — see the first one's work and take it straight back.
+
+### You may play this with no gold; it just does nothing.
+
+```json
+"play": { "needs": { "fizzle": "gold@mine.player >= 1" }, "action": ["…"] }
+```
+
+`req` stops the card being played at all; `fizzle` lets it be played and skips every line. On an
+ability only a phase runs the two are the same thing, and the validator asks for `req`.
 
 ### Do what that card does, without playing it.
 
@@ -1078,7 +1097,7 @@ those.
 ### Only while this is ready. / Only while it is spent.
 
 ```json
-"needs": ["ready@self"]
+"needs": { "req": ["ready@self"] }
 ```
 
 Written bare, with no comparison and no argument — a card is spent or it is not, never spent
@@ -1086,7 +1105,7 @@ twice. `exhausted@<scope>` is its exact complement. A game that wants spending t
 something says so itself:
 
 ```json
-"computed_tags": { "spent": { "needs": ["exhausted@self"] } },
+"computed_tags": { "spent": { "needs": { "req": ["exhausted@self"] } } },
 "tags": { "spent": { "buffs": { "atk": -1 } } }
 ```
 
@@ -1117,7 +1136,7 @@ instead, which a verb can take as an argument.
   { "key": "ash_pile", "tags": ["junk_pile"], "contents": ["ash:6"] },
   { "key": "dry_give", "display": "offscreen", "use": "none" }],
 "cards": [{ "key": "r_dry_give_ice", "tags": ["immutable", "ice"],
-  "abilities": [{ "key": "dry_give", "needs": ["count:junk@ice_pile <= 0"], "action": ["…the penalty…"] }] }],
+  "abilities": [{ "key": "dry_give", "needs": { "req": ["count:junk@ice_pile <= 0"] }, "action": ["…the penalty…"] }] }],
 "play": { "action": ["give_junk:ice"] }
 ```
 
@@ -1199,16 +1218,18 @@ question back.
 ### Target a unit whose cost is 3 or less.
 
 ```json
-"target": { "type": "card", "count": 1, "where": ["price@target <= 3"] }
+"needs": { "where": ["price@target <= 3"] },
+"target": { "type": "card", "count": 1 }
 ```
 
-`where` is asked **of each candidate** with that candidate as `@target`. `needs` is asked once,
+`where` is asked **of each candidate** with that candidate as `@target`. `req` is asked once,
 before anything is offered.
 
 ### Target something other than this card.
 
 ```json
-"target": { "type": "card", "count": 1, "where": ["not_self"] }
+"needs": { "where": ["not_self"] },
+"target": { "type": "card", "count": 1 }
 ```
 
 ### This is an attack; that is a spell.
@@ -1224,15 +1245,15 @@ Nothing performs an aiming verb. Declaring it is what lets a *target* answer it.
 
 ```json
 "abilities": [
-  { "key": "strike_lead", "target": { "verb": "attack", "type": "card", "count": 1,
-      "owner": "enemy", "zones": ["patrol"], "where": ["slot@target == 1"] } },
-  { "key": "strike_free", "needs": ["aims:strike_lead == 0"],
+  { "key": "strike_lead", "needs": { "where": ["slot@target == 1"] },
+    "target": { "verb": "attack", "type": "card", "count": 1, "owner": "enemy", "zones": ["patrol"] } },
+  { "key": "strike_free", "needs": { "req": ["aims:strike_lead == 0"] },
     "target": { "verb": "attack", "type": "card", "count": 1, "owner": "enemy" } }]
 ```
 
 `aims:<ability>` is how many cards one of **this card's own** abilities could point at right
 now. It takes no `@`. It counts candidates — zones, owner, `where`, and every ward they wear —
-and never the ability's own `needs`. It exists so a rule is not written twice: a new `where`
+and never the ability's own `req`. It exists so a rule is not written twice: a new `where`
 clause or a new ward feeds the permission rule the moment it is written.
 
 It is also an amount, so `stat_set:chaining@self:aims:jump_left` writes the answer down. That is
@@ -1243,11 +1264,11 @@ the action starts: a piece asking how many jumps it has left has to ask after it
 
 ```json
 "computed_tags": {
-  "jump_fl":  { "needs": ["aims:jump_left >= 1"] },
-  "jump_fr":  { "needs": ["aims:jump_right >= 1"] },
+  "jump_fl":  { "needs": { "req": ["aims:jump_left >= 1"] } },
+  "jump_fr":  { "needs": { "req": ["aims:jump_right >= 1"] } },
   "can_jump": { "any_of": ["jump_fl", "jump_fr"] }
 },
-"abilities": [{ "key": "step", "needs": ["not_tagged:can_jump@mine.board"], "moves": [] }]
+"abilities": [{ "key": "step", "needs": { "req": ["not_tagged:can_jump@mine.board"] }, "moves": [] }]
 ```
 
 `aims:` is about the card asking, and *"may anything of mine jump"* is about a whole side — so
@@ -1267,7 +1288,7 @@ and the turn passes by itself the moment the jumps run out. `game/games/checkers
 ### This cannot be targeted by spells.
 
 ```json
-"receive": { "needs": ["not_verb:cast"] }
+"receive": { "needs": { "req": ["not_verb:cast"] } }
 ```
 
 `verb:`/`not_verb:` ask what kind of aim this is, which is not a question about the aimer — the
@@ -1277,7 +1298,7 @@ yes to `not_verb:`.
 ### This cannot be attacked while you control a bigger unit.
 
 ```json
-"receive": { "needs": ["max:atk@mine.army <= atk@self"] }
+"receive": { "needs": { "req": ["max:atk@mine.army <= atk@self"] } }
 ```
 
 `receive.needs` is a ward: asked of the candidate as `@self`, with the aiming card as `@target`.
@@ -1287,7 +1308,7 @@ Several conditions are ANDed; several wards are several gates.
 
 ```json
 "stats": [{ "key": "bars_t0", "on": ["unit"], "start": 0 }],
-"receive": { "needs": ["bars_t0@target <= tech_level@self"] }
+"receive": { "needs": { "req": ["bars_t0@target <= tech_level@self"] } }
 ```
 
 Trap: splitting a comparison into two conditions makes it an **and**, which is a different rule.
@@ -1313,7 +1334,7 @@ spot is the right one here.
 
 ```json
 "tags": { "hidden": { "receive": {
-  "whose": "enemy", "needs": ["count:detector@mine.addon >= 1"] } } }
+  "whose": "enemy", "needs": { "req": ["count:detector@mine.addon >= 1"] } } } }
 ```
 
 `whose` is the side the block is addressed to, in the word a reaction already uses: `"enemy"`
@@ -1350,7 +1371,7 @@ bolt was thrown at, because both are the board.
 
 ```json
 "zones": [{ "key": "red_pile",
-            "receive": { "needs": ["value@target >= max:value@mine.red"] } }]
+            "receive": { "needs": { "req": ["value@target >= max:value@mine.red"] } } }]
 ```
 
 The zone answers for itself, exactly as a card does.
@@ -1377,7 +1398,7 @@ The zone answers for itself, exactly as a card does.
 ### When this dies on somebody else's turn.
 
 ```json
-"leaves": { "into": "discard", "needs": ["count:player@enemy.owner_of >= 1"],
+"leaves": { "into": "discard", "needs": { "req": ["count:player@enemy.owner_of >= 1"] },
             "action": ["damage:integrity@mine.base:1"] }
 ```
 
@@ -1443,7 +1464,7 @@ Which is what lets `emit` name the newcomer and `others` leave it out of a pool.
 "zones": [{ "key": "army", "arrives": { "action": ["emit:arrived"] } }],
 "cards": [{ "key": "blooming_ancient", "tags": ["unit", "ancient"],
   "reactions": [{ "to": "arrived", "whose": "mine", "forced": "mandatory", "in": "board",
-                  "needs": ["not_self@event", "tagged:unit@event"],
+                  "needs": { "req": ["not_self@event", "tagged:unit@event"] },
                   "action": ["stat_gain:plus@self:1"] }] }]
 ```
 
@@ -1480,7 +1501,7 @@ idiom for upkeep, arrival and death rules that belong to the *game* rather than 
 
 ```json
 "reactions": [{ "to": "resolving", "whose": "mine", "in": "wizard",
-                "needs": ["free_use@mine.player <= 0"],
+                "needs": { "req": ["free_use@mine.player <= 0"] },
                 "cost": { "mana@mine.player": 6 }, "action": ["damage:hp@enemy.player:2"] },
               { "to": "resolving", "whose": "mine", "in": "wizard",
                 "cost": { "free_use@mine.player": 1 }, "action": ["damage:hp@enemy.player:2"] }]
@@ -1522,7 +1543,7 @@ held card can reply to.
 "zones": [{ "key": "traps", "copies": "per_seat", "visibility": "owner", "use": "abilities" }],
 "cards": [{ "key": "trap_mud", "card_stats": { "sprung": 0 },
   "reactions": [{ "to": "countered", "whose": "mine", "in": "traps",
-                  "needs": ["sprung@self <= 0"],
+                  "needs": { "req": ["sprung@self <= 0"] },
                   "action": ["stat_set:sprung@self:1", "stat_damage:health@opponent:1"] }] }]
 ```
 
@@ -1582,14 +1603,14 @@ button's name.
 
 ```json
 { "key": "opt_raid", "text": "Raid", "tags": ["immutable"],
-  "play": { "needs": ["count:farm@mine.army >= 1"],
+  "play": { "needs": { "req": ["count:farm@mine.army >= 1"] },
             "action": ["stat_gain:gold@mine.player:3"] } }
 ```
 
 A dealt entry's `needs` is read as it is offered, the same way its `cost` is (*Boost 3*, above): an
 entry you may not take comes up and refuses the click. Put the gate here rather than in an ability
 the entry runs — an ability that declines to fire has already spent the player's choice. It is not
-`chosen.where`, which answers the other question: what may be taken out of a `show:`, where the
+`chosen`'s `needs.where`, which answers the other question: what may be taken out of a `show:`, where the
 cards are somebody else's and carry nothing of yours.
 
 ### Return a card from your discard, **or** draw a card.
@@ -1600,7 +1621,7 @@ cards are somebody else's and carry nothing of yours.
 
 ```json
 { "key": "opt_recall", "text": "Take a card back", "tags": ["immutable"],
-  "play": { "needs": ["count:card@mine.discard >= 1"],
+  "play": { "needs": { "req": ["count:card@mine.discard >= 1"] },
             "action": ["show:mine.discard:optional"] },
   "chosen": { "action": ["move:target:mine.hand"] } },
 { "key": "opt_draw", "text": "Draw instead", "tags": ["immutable"],
@@ -1620,7 +1641,7 @@ list has no cursor. Write *"resolve it, then bury it"* as the move and then the 
 
 ```json
 "action": ["show:rules.jspace:optional"],
-"chosen": { "where": ["researched@target <= 0", "tokens@mine.player <= 5"],
+"chosen": { "needs": { "where": ["researched@target <= 0", "tokens@mine.player <= 5"] },
             "action": ["stat_set:researched@target:1", "stat_gain:tokens@mine.player:1"] }
 ```
 
@@ -1665,7 +1686,7 @@ walked away from; one the player opened by clicking a card always can.
 "chosen": { "action": ["move:target:mine.discard"] }
 ```
 
-An offer has no count — `chosen.where` says which cards may be taken and never how many. It does
+An offer has no count — `chosen`'s `needs.where` says which cards may be taken and never how many. It does
 not need one: an offer with no `:optional` cannot be walked away from, so three of them in a row
 *are* "exactly three", and the queue holds the second and third until the first is answered.
 
@@ -1689,7 +1710,7 @@ one on top" are the same question and it needs no way out.
 ### Only some of the revealed cards may be taken.
 
 ```json
-"chosen": { "where": ["tier_req@target <= 2"], "action": ["move:target:mine.hand"] }
+"chosen": { "needs": { "where": ["tier_req@target <= 2"] }, "action": ["move:target:mine.hand"] }
 ```
 
 ### Ask every player, going round from whoever is up.
@@ -1778,7 +1799,7 @@ when the chain is over — see *Known gaps*.
 ### While this is out, EARTH cards do nothing when they resolve but heal 2.
 
 ```json
-{ "key": "dust", "needs": ["card:glitteringdust@weather >= 1", "count:earth@mine.battle >= 1"],
+{ "key": "dust", "needs": { "req": ["card:glitteringdust@weather >= 1", "count:earth@mine.battle >= 1"] },
   "action": ["heal:health@mine.player:2", "destroy:mine.battle.earth"] }
 ```
 
@@ -1886,7 +1907,7 @@ ignores what it passes) or `absolute` (the vectors are squares, not directions).
 
 ```json
 "moves": [{ "patterns": ["pawn_step"], "fill": "empty" },
-          { "patterns": ["pawn_run"], "fill": "empty", "needs": ["rank@self == 2"] },
+          { "patterns": ["pawn_run"], "fill": "empty", "needs": { "req": ["rank@self == 2"] } },
           { "patterns": ["pawn_take"], "fill": "enemy" }]
 ```
 
@@ -1898,7 +1919,7 @@ moving and threatening is drawn here.
 
 ```json
 "moves": [{ "patterns": ["pawn_take"], "fill": "empty",
-            "where": ["tagged:last_acted@behind", "tagged:pawn@behind", "rank@behind == 4"] }]
+            "needs": { "where": ["tagged:last_acted@behind", "tagged:pawn@behind", "rank@behind == 4"] } }]
 ```
 
 `@behind`, `@across` and `@beside` point at the other cards from the square being considered.
@@ -1909,7 +1930,7 @@ moving and threatening is drawn here.
 ```json
 { "key": "jump_left",
   "moves": [{ "patterns": ["leap_up_left"], "fill": "empty",
-              "where": ["tagged:piece@enemy.down_right"] }],
+              "needs": { "where": ["tagged:piece@enemy.down_right"] } }],
   "action": ["move_to:target", "move:enemy.down_right:taken"] }
 ```
 
@@ -1966,7 +1987,7 @@ The player *is* a card, so everything that works on a card works on a seat.
 ### Whose is it?
 
 ```json
-"needs": ["count:player@enemy.owner_of.target >= 1"]
+"needs": { "req": ["count:player@enemy.owner_of.target >= 1"] }
 ```
 
 ### The seat names itself.

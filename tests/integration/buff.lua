@@ -34,8 +34,8 @@ local GAME = [==[{
     { "key": "wounds", "on": ["unit"], "start": 0, "min": 0 }
   ],
   "computed_tags": {
-    "dead": { "needs": ["hp@self < 1"] },
-    "hurt": { "needs": ["wounds@self >= 1"] }
+    "dead": { "needs": { "req": ["hp@self < 1"] } },
+    "hurt": { "needs": { "req": ["wounds@self >= 1"] } }
   },
   "tags": {
     "elite": { "buffs": { "atk": 1 } },

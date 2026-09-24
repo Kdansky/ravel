@@ -21,12 +21,12 @@
     "leap_down_right": { "vectors": [[2, -2]] }
   },
   "computed_tags": {
-    "jump_fl": { "needs": ["aims:jump_left >= 1"] },
-    "jump_fr": { "needs": ["aims:jump_right >= 1"] },
-    "jump_bl": { "needs": ["aims:jump_back_left >= 1"] },
-    "jump_br": { "needs": ["aims:jump_back_right >= 1"] },
+    "jump_fl": { "needs": { "req": ["aims:jump_left >= 1"] } },
+    "jump_fr": { "needs": { "req": ["aims:jump_right >= 1"] } },
+    "jump_bl": { "needs": { "req": ["aims:jump_back_left >= 1"] } },
+    "jump_br": { "needs": { "req": ["aims:jump_back_right >= 1"] } },
     "can_jump": { "any_of": ["jump_fl", "jump_fr", "jump_bl", "jump_br"] },
-    "chain_open": { "needs": ["chaining@self >= 1", "tagged:can_jump@self"] }
+    "chain_open": { "needs": { "req": ["chaining@self >= 1", "tagged:can_jump@self"] } }
   },
   "zones": [
     {
@@ -110,7 +110,7 @@
       "comment": "One ability per jump direction, because the action has to name the square it flew over and only the rule that chose that direction knows which one that is. The gate is the same on all of them: 'chaining' is 1 on a piece in the middle of a chain, so max:chaining over my side is 0 while nobody is mid-jump (everyone matches) and 1 once somebody is (only they match). A step is gated the other way round, on nothing of mine having a jump, which is the rulebook making a capture compulsory.",
       "card_stats": { "rank": 0, "chaining": 0 },
       "challenge": {
-        "needs": ["rank@self == 8"],
+        "needs": { "req": ["rank@self == 8"] },
         "pass": ["transform:self:king", "stat_set:chaining@each.mine.piece:0"],
         "fail": []
       },
@@ -118,15 +118,15 @@
         {
           "key": "step",
           "text": "Move",
-          "needs": ["not_tagged:can_jump@mine.board"],
+          "needs": { "req": ["not_tagged:can_jump@mine.board"] },
           "moves": [{ "patterns": ["up_left", "up_right"], "fill": "empty" }],
           "action": ["move_to:target", "resolve_challenge", "end_phase"]
         },
         {
           "key": "jump_left",
           "text": "Jump left",
-          "needs": ["max:chaining@mine.board == chaining@self"],
-          "moves": [{ "patterns": ["leap_up_left"], "fill": "empty", "where": ["tagged:piece@enemy.down_right"] }],
+          "needs": { "req": ["max:chaining@mine.board == chaining@self"] },
+          "moves": [{ "needs": { "where": ["tagged:piece@enemy.down_right"] }, "patterns": ["leap_up_left"], "fill": "empty" }],
           "action": [
             "move_to:target",
             "move:enemy.down_right:taken",
@@ -138,8 +138,8 @@
         {
           "key": "jump_right",
           "text": "Jump right",
-          "needs": ["max:chaining@mine.board == chaining@self"],
-          "moves": [{ "patterns": ["leap_up_right"], "fill": "empty", "where": ["tagged:piece@enemy.down_left"] }],
+          "needs": { "req": ["max:chaining@mine.board == chaining@self"] },
+          "moves": [{ "needs": { "where": ["tagged:piece@enemy.down_left"] }, "patterns": ["leap_up_right"], "fill": "empty" }],
           "action": [
             "move_to:target",
             "move:enemy.down_left:taken",
@@ -161,36 +161,36 @@
         {
           "key": "step",
           "text": "Move",
-          "needs": ["not_tagged:can_jump@mine.board"],
+          "needs": { "req": ["not_tagged:can_jump@mine.board"] },
           "moves": [{ "patterns": ["up_left", "up_right", "down_left", "down_right"], "fill": "empty" }],
           "action": ["move_to:target", "end_phase"]
         },
         {
           "key": "jump_left",
           "text": "Jump forward left",
-          "needs": ["max:chaining@mine.board == chaining@self"],
-          "moves": [{ "patterns": ["leap_up_left"], "fill": "empty", "where": ["tagged:piece@enemy.down_right"] }],
+          "needs": { "req": ["max:chaining@mine.board == chaining@self"] },
+          "moves": [{ "needs": { "where": ["tagged:piece@enemy.down_right"] }, "patterns": ["leap_up_left"], "fill": "empty" }],
           "action": ["move_to:target", "move:enemy.down_right:taken", "stat_set:chaining@self:1", "end_phase"]
         },
         {
           "key": "jump_right",
           "text": "Jump forward right",
-          "needs": ["max:chaining@mine.board == chaining@self"],
-          "moves": [{ "patterns": ["leap_up_right"], "fill": "empty", "where": ["tagged:piece@enemy.down_left"] }],
+          "needs": { "req": ["max:chaining@mine.board == chaining@self"] },
+          "moves": [{ "needs": { "where": ["tagged:piece@enemy.down_left"] }, "patterns": ["leap_up_right"], "fill": "empty" }],
           "action": ["move_to:target", "move:enemy.down_left:taken", "stat_set:chaining@self:1", "end_phase"]
         },
         {
           "key": "jump_back_left",
           "text": "Jump back left",
-          "needs": ["max:chaining@mine.board == chaining@self"],
-          "moves": [{ "patterns": ["leap_down_left"], "fill": "empty", "where": ["tagged:piece@enemy.up_right"] }],
+          "needs": { "req": ["max:chaining@mine.board == chaining@self"] },
+          "moves": [{ "needs": { "where": ["tagged:piece@enemy.up_right"] }, "patterns": ["leap_down_left"], "fill": "empty" }],
           "action": ["move_to:target", "move:enemy.up_right:taken", "stat_set:chaining@self:1", "end_phase"]
         },
         {
           "key": "jump_back_right",
           "text": "Jump back right",
-          "needs": ["max:chaining@mine.board == chaining@self"],
-          "moves": [{ "patterns": ["leap_down_right"], "fill": "empty", "where": ["tagged:piece@enemy.up_left"] }],
+          "needs": { "req": ["max:chaining@mine.board == chaining@self"] },
+          "moves": [{ "needs": { "where": ["tagged:piece@enemy.up_left"] }, "patterns": ["leap_down_right"], "fill": "empty" }],
           "action": ["move_to:target", "move:enemy.up_left:taken", "stat_set:chaining@self:1", "end_phase"]
         }
       ]

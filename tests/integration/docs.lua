@@ -342,7 +342,8 @@ local function walk(where, def, fields, found)
 		end
 		if RUNS[k] and type(v) == "table" then
 			for _, str in ipairs(v) do
-				local op = type(str) == "string" and str:match("^[^:]+")
+				-- A line behind a gate names it first: "init? hit:…".
+				local op = type(str) == "string" and str:gsub("^!?[%w_]+%?%s+", ""):match("^[^:]+")
 				if op and not actions.ops()[op] and not declared[op] then
 					found[#found + 1] = where .. "." .. k .. ": '" .. op .. "' is no action"
 				end

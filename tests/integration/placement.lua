@@ -43,13 +43,13 @@ local GAME = [==[{
     { "key": "two", "text": "Two" },
     { "key": "mark", "text": "Mark", "tags": ["mark"],
       "abilities": [{
-        "target": { "type": "slot", "count": 1, "zones": ["board"], "fill": "empty",
-                    "where": ["row@target == 1"] },
+        "needs": { "where": ["row@target == 1"] },
+        "target": { "type": "slot", "count": 1, "zones": ["board"], "fill": "empty" },
         "action": ["move_to:target"] }] },
     { "key": "blocker", "text": "Blocker", "tags": ["mark"],
       "abilities": [{
-        "target": { "type": "slot", "count": 1, "zones": ["board"], "fill": "empty",
-                    "where": ["row@target == 2", "count:mark@across >= 1"] },
+        "needs": { "where": ["row@target == 2", "count:mark@across >= 1"] },
+        "target": { "type": "slot", "count": 1, "zones": ["board"], "fill": "empty" },
         "action": ["move_to:target"] }] }
   ]
 }]==]

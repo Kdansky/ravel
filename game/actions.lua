@@ -1765,39 +1765,21 @@ end
 
 -- A body's `param1`, `param2` … are the call's arguments in order, matched as whole words so `param1` is never the front
 -- of `param10`. The last takes the rest of the string, so an argument may carry colons of its own. Returns the lines
--- ready to run, or nil and how many arguments the body wants. An if's condition takes them too.
+-- ready to run, or nil and how many arguments the body wants.
 local PARAM = "%f[%w_]param(%d+)%f[^%w_]"
-
--- Every string an action list says, an if's conditions and its do included.
-function M.strings(v, out)
-	out = out or {}
-	if type(v) == "string" then
-		out[#out + 1] = v
-	elseif type(v) == "table" then
-		for _, k in ipairs({ "if", "do" }) do M.strings(v[k], out) end
-		for _, x in ipairs(v) do M.strings(x, out) end
-	end
-	return out
-end
-
-local function fill(v, args)
-	if type(v) == "string" then return (v:gsub(PARAM, function(d) return args[tonumber(d)] end)) end
-	if type(v) ~= "table" then return v end
-	local out = {}
-	for k, x in pairs(v) do out[k] = fill(x, args) end
-	return out
-end
 
 function M.expand(vd, p)
 	local n = 0
-	for _, line in ipairs(M.strings(vd.action)) do
+	for _, line in ipairs(vd.action) do
 		for d in line:gmatch(PARAM) do n = math.max(n, tonumber(d)) end
 	end
 	if #p - 1 < n then return nil, n end
 	local args = {}
 	for i = 1, n - 1 do args[i] = p[i + 1] end
 	if n > 0 then args[n] = table.concat(p, ":", n + 1) end
-	return fill(vd.action, args)
+	local out = {}
+	for i, line in ipairs(vd.action) do out[i] = (line:gsub(PARAM, function(d) return args[tonumber(d)] end)) end
+	return out
 end
 
 -- How deep one body may call another's before the engine stops. The validator refuses a verb that performs itself
@@ -1902,21 +1884,29 @@ local function park(list, from, ctx)
 	local a = last_ask.after
 	a[#a + 1] = { action = rest, seat = zones.active_seat(),
 		card = ctx and ctx.card_id or nil, targets = ctx and ctx.targets or nil,
-		event = ctx and ctx.event or nil, let = ctx and ctx.let or nil, within = ctx and ctx.within or nil }
+		event = ctx and ctx.event or nil, let = ctx and ctx.let or nil, within = ctx and ctx.within or nil,
+		gated = ctx and ctx.gated or nil }
 end
 
--- **An if that holds is its lines, written where it stands.** So what follows it waits behind a question its do asks
--- exactly as it would behind one written inline, and a parked tail is still a plain list. One that fails is nothing.
+-- **A gated line runs only if every gate it is behind says so** (needs.lua writes them). A gate is asked once, at the
+-- first line behind it, and the answer is kept on the ctx for the rest of the list — parked tail included — so a line
+-- that changes what the gate reads cannot turn the lines after it off, and "!name?" reads the answer "name?" got.
+local function open(line, ctx)
+	ctx.gated = ctx.gated or {}
+	for _, g in ipairs(line.gates) do
+		if ctx.gated[g.name] == nil then ctx.gated[g.name] = predicate.meets_all(g.when, ctx) end
+		if ctx.gated[g.name] ~= g.holds then return false end
+	end
+	return true
+end
+
 function M.run(list, ctx)
 	for i, line in ipairs(list or {}) do
 		if type(line) == "table" then
-			if line["if"] ~= nil and predicate.meets_all(line["if"], ctx) then
-				local rest = {}
-				for _, s in ipairs(line["do"] or {}) do rest[#rest + 1] = s end
-				for j = i + 1, #list do rest[#rest + 1] = list[j] end
-				return M.run(rest, ctx)
-			end
-		else
+			ctx = ctx or {}
+			line = open(line, ctx) and line.line
+		end
+		if line then
 			local before = asked
 			M.execute(line, ctx)
 			if asked > before and i < #list then

@@ -390,7 +390,10 @@
       "start": 0
     }
   ],
-  "computed_tags": { "noble_ready": { "needs": ["ok@self >= 1"] }, "has_gold": { "needs": ["stock@self >= 1"] } },
+  "computed_tags": {
+    "noble_ready": { "needs": { "req": ["ok@self >= 1"] } },
+    "has_gold": { "needs": { "req": ["stock@self >= 1"] } }
+  },
   "tags": {
     "development": {
       "abilities": [
@@ -443,7 +446,7 @@
       ],
       "play": {
         "phases": ["act"],
-        "needs": ["buyable@self >= 1"],
+        "needs": { "req": ["buyable@self >= 1"] },
         "action": [
           "stat_damage:t_white@mine.player:sum:due_white@self",
           "stat_damage:t_blue@mine.player:sum:due_blue@self",
@@ -502,7 +505,7 @@
       ],
       "play": {
         "phases": ["noble_pick"],
-        "needs": ["ok@self >= 1"],
+        "needs": { "req": ["ok@self >= 1"] },
         "action": [
           "stat_gain:score@mine.player:3",
           "stat_set:ok@self:0",
@@ -928,7 +931,7 @@
           "key": "take2_white",
           "text": "Take two diamond",
           "phases": ["act"],
-          "needs": ["stock@self >= 4"],
+          "needs": { "req": ["stock@self >= 4"] },
           "cost": { "exhaust": 1, "stock@self": 2, "first_take@mine.player": 1 },
           "action": [
             "stat_gain:t_white@mine.player:2",
@@ -969,7 +972,7 @@
           "key": "take2_blue",
           "text": "Take two sapphire",
           "phases": ["act"],
-          "needs": ["stock@self >= 4"],
+          "needs": { "req": ["stock@self >= 4"] },
           "cost": { "exhaust": 1, "stock@self": 2, "first_take@mine.player": 1 },
           "action": [
             "stat_gain:t_blue@mine.player:2",
@@ -1010,7 +1013,7 @@
           "key": "take2_green",
           "text": "Take two emerald",
           "phases": ["act"],
-          "needs": ["stock@self >= 4"],
+          "needs": { "req": ["stock@self >= 4"] },
           "cost": { "exhaust": 1, "stock@self": 2, "first_take@mine.player": 1 },
           "action": [
             "stat_gain:t_green@mine.player:2",
@@ -1051,7 +1054,7 @@
           "key": "take2_red",
           "text": "Take two ruby",
           "phases": ["act"],
-          "needs": ["stock@self >= 4"],
+          "needs": { "req": ["stock@self >= 4"] },
           "cost": { "exhaust": 1, "stock@self": 2, "first_take@mine.player": 1 },
           "action": [
             "stat_gain:t_red@mine.player:2",
@@ -1092,7 +1095,7 @@
           "key": "take2_black",
           "text": "Take two onyx",
           "phases": ["act"],
-          "needs": ["stock@self >= 4"],
+          "needs": { "req": ["stock@self >= 4"] },
           "cost": { "exhaust": 1, "stock@self": 2, "first_take@mine.player": 1 },
           "action": [
             "stat_gain:t_black@mine.player:2",
@@ -1155,7 +1158,7 @@
       "tags": ["immutable"],
       "play": {
         "phases": ["act"],
-        "needs": ["takes@mine.player >= 1"],
+        "needs": { "req": ["takes@mine.player >= 1"] },
         "action": ["stat_set:done@mine.player:1", "end_phase"]
       }
     },

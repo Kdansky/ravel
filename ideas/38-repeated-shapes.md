@@ -128,9 +128,10 @@ own sentence and would take the accident out. `buffs` cannot do this: the amount
 
 ### 7. An ability cannot act and then ask
 
-**The gate half of this split is now [42](42-an-if-inside-an-action-list.md)**,
-which counted it: all 22 of Spellstorm's `cast2`/`cast3` abilities carry a
-`needs` and not one is a genuine second step. What stays here is the
+**The gate half of this split shipped** as gates in `needs`
+([46](46-one-list-of-conditions.md)): all 22 of Spellstorm's `cast2`/`cast3`
+abilities were a gate and not one a genuine second step, and they are lines
+in `cast` now. What stays here is the
 `cast_ask` half — acting and then asking, which is about the offer queue rather
 than about a condition.
 

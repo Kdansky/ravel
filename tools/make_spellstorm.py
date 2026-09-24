@@ -23,7 +23,8 @@ trailing "[Simplified: ...]" note and the deviation is listed in
 ideas/spellstorm/09-engine-gaps.md. Nothing is silently wrong.
 """
 
-import json, os, re, sys
+import json
+import re, os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import jsonfmt
 import guard
@@ -659,10 +660,10 @@ def choice_templates():
         t = {"key": key, "text": text, "tags": ["immutable"] + list(tags),
              "asset": "auto", "tooltip": tooltip, "play": {"action": list(action)}}
         if stats: t["card_stats"] = dict(stats)
-        if needs: t["play"]["needs"] = list(needs)
+        if needs: t["play"]["needs"] = {"req": list(needs)}
         if chosen:
             t["chosen"] = {"action": list(chosen)}
-            if where: t["chosen"]["where"] = list(where)
+            if where: t["chosen"]["needs"] = {"where": list(where)}
         return t
 
     return [
@@ -766,7 +767,7 @@ def trap_templates():
             # has been swapped back onto its pile inert without saying so.
             "reactions": [{
                 "to": to, "whose": whose, "in": "traps",
-                "needs": ["sprung@self <= 0"] + list(needs),
+                "needs": {"req": ["sprung@self <= 0"] + list(needs)},
                 "action": ["stat_set:sprung@self:1"] + list(action)}],
         }
 
@@ -801,7 +802,7 @@ def swap_templates():
              "tags": ["immutable"], "asset": "auto",
              "tooltip": "Lower your %s beaker by 2 to raise your %s beaker by 2. "
                         "Needs 2 in the %s beaker." % (a.title(), b.title(), a.title()),
-             "play": {"needs": ["%s_el@mine.player >= 2" % a],
+             "play": {"needs": {"req": ["%s_el@mine.player >= 2" % a]},
                       "action": ["stat_damage:%s_el@mine.player:2" % a,
                                  "stat_gain:%s_el@mine.player:2" % b]}}
             for a, b in SWAPS]
@@ -1062,7 +1063,7 @@ WIZARDS = [
            # the battle spots when it does; `round_end` sweeps them a phase later.
            passive={"to": "round_over", "whose": "mine", "in": "wizard",
                     "cost": {"energy@mine.player": 1, "mana@mine.player": 1},
-                    "needs": ["tier_req@enemy.battle == 2"],
+                    "needs": {"req": ["tier_req@enemy.battle == 2"]},
                     "action": ["copy:enemy.battle:activate"]},
            blurb="A hacker who used to work for Central Intelligence. She can play cards from the VOID, and is good for players who like to feel like they're cheating.",
            start=["stat_gain:energy@mine.player:2"],
@@ -1093,7 +1094,7 @@ WIZARDS = [
 JOURNAL = [
     (1, "Gain 1 mana.", [MANA], None),
     (2, "You may VOID a card from your hand.",
-        [OFFER_HAND], {"where": VOIDABLE, "action": ["move:target:void"]}),
+        [OFFER_HAND], {"needs": {"where": VOIDABLE}, "action": ["move:target:void"]}),
     (3, "Gain 1 mana.", [MANA], None),
     (4, "Move an ICE, ASH or CURSE from your discard to your opponent's.",
         ["show:mine.discard.junk:optional"],
@@ -1252,10 +1253,36 @@ def tip(base, flavour=None, simplified=None):
     return out
 
 
+# What a rider's gate is called in the file: the card text's own "if", in a word.
+# One that is another's negation is that gate's other branch, "!init", so the two
+# read one answer — Swamp Silt lost the Initiative and then, asking again, took it
+# straight back.
+GATE_NAMES = {
+    HAS_INIT: "init",
+    "count:fire@enemy.battle >= 1": "vs_fire",
+    "count:water@enemy.battle >= 1": "vs_water",
+    "count:water@battle >= 1": "water",
+    "count:junk@curse_pile <= 0": "no_curses",
+    "count:junk@enemy.discard <= 0": "clean_discard",
+    "count:spell@mine.hand >= count:spell@enemy.hand": "more_spells",
+    "tier@opponent <= 1": "low_tier",
+    "mana@mine.player >= 2": "can_pay",
+    "ult_free@mine.player <= 0": "no_pass",
+}
+NEGATION = {NO_INIT: HAS_INIT}
+
+def gate_name(cond, gates):
+    if NEGATION.get(cond) in gates.values():
+        return "!" + GATE_NAMES[NEGATION[cond]]
+    name = GATE_NAMES[cond]
+    gates[name] = cond
+    return name
+
+
 def ability(key, actions, when=None, text=None):
     a = {"key": key}
     if text: a["text"] = text
-    if when: a["needs"] = list(when)
+    if when: a["needs"] = {"req": list(when)}
     a["action"] = list(actions)
     return a
 
@@ -1314,10 +1341,21 @@ def spell_template(c):
             "%s: the offers have to be the last thing its %s does" % (c["key"], col)
 
     abil = []
-    riders = [{"if": [c[col][0]], "do": list(c[col][1])} for col in ("cast2", "cast3") if c[col]]
-    # Kept even when it is empty, so the resolve phase's first pass always has
-    # something to name.
-    abil.append(ability("cast", does + riders, text="Resolve"))
+    riders = [c[col] for col in ("cast2", "cast3") if c[col]]
+    if not does and len(riders) == 1:
+        # The whole resolution is the if, and nobody chooses to resolve a card, so
+        # failing it is skipping it: a plain requirement.
+        abil.append(ability("cast", riders[0][1], when=[riders[0][0]], text="Resolve"))
+    else:
+        # Kept even when it is empty, so the resolve phase's first pass always
+        # has something to name.
+        cast = ability("cast", does, text="Resolve")
+        gates = {}
+        for cond, steps in riders:
+            name = gate_name(cond, gates)
+            cast["action"] += ["%s? %s" % (name, a) for a in steps]
+        if gates: cast["needs"] = gates
+        abil.append(cast)
     if asks: abil.append(ability("cast_ask", asks, text="Resolve"))
     t["abilities"] = abil
     # On Discard is not an ability. An ability is something the card does, and
@@ -1330,7 +1368,7 @@ def spell_template(c):
         t["leaves"] = {"from": "hand", "into": "discard", "action": list(c["disc"])}
     if c["chosen"]:
         t["chosen"] = {"action": list(c["chosen"])}
-        if c["chosen_where"]: t["chosen"]["where"] = list(c["chosen_where"])
+        if c["chosen_where"]: t["chosen"]["needs"] = {"where": list(c["chosen_where"])}
     return t
 
 
@@ -1350,7 +1388,7 @@ def weather_template(w):
     # back to it, exactly as it does for a spell.
     if w["chosen"]:
         t["chosen"] = {"action": list(w["chosen"])}
-        if w["chosen_where"]: t["chosen"]["where"] = list(w["chosen_where"])
+        if w["chosen_where"]: t["chosen"]["needs"] = {"where": list(w["chosen_where"])}
     return t
 
 
@@ -1370,7 +1408,7 @@ def wizard_templates(w):
     # beside it. Nothing is lost by that -- free is the better of the two every
     # time, and the card that hands out the pass says the Ultimate is free.
     ult = {"to": "resolving", "whose": "mine", "in": "wizard",
-           "needs": ["ult_free@mine.player <= 0"],
+           "needs": {"req": ["ult_free@mine.player <= 0"]},
            "cost": {"mana@mine.player": w["ult_cost"]},
            "action": list(w["ult_action"])}
     if w["ult_compute"]:
@@ -1398,7 +1436,7 @@ def wizard_templates(w):
     if w["ult_chosen"]:
         char["chosen"] = {"action": list(w["ult_chosen"])}
         if w["ult_chosen_where"]:
-            char["chosen"]["where"] = list(w["ult_chosen_where"])
+            char["chosen"]["needs"] = {"where": list(w["ult_chosen_where"])}
     out.append(char)
 
     pick_action = [
@@ -2179,7 +2217,7 @@ def build():
         "tooltip": "If your hand is nothing but ICE, ASH and CURSE, use this: discard them all with their effects, take 1 damage, and draw a new hand of 4.",
         # Read each time it is pressed, so a new hand of junk may press it again.
         "abilities": [{"phases": ["play_card"],
-                     "needs": ["count@mine.hand >= 1", "count:playable@mine.hand <= 0"],
+                     "needs": {"req": ["count@mine.hand >= 1", "count:playable@mine.hand <= 0"]},
                      "action": ["destroy:mine.hand",
                                 SELF_DMG(1),
                                 "draw_from:mine.deck:mine.hand:4"]}]})
@@ -2321,29 +2359,29 @@ def build():
         # over `everywhere`, which is every card in the game. "held" is a word
         # both zones wear now, so a scope's place half says it: `mine.held.ice`.
         "computed_tags": {
-            "has_init": {"needs": ["initiative@self >= 1"]},
+            "has_init": {"needs": {"req": ["initiative@self >= 1"]}},
             "curse_or_ice": {"any_of": ["curse", "ice"]},
             # ICE, ASH and CURSE are the cards with no play, and they are the junk.
-            "playable": {"needs": ["not_tagged:junk@self"]},
+            "playable": {"needs": {"req": ["not_tagged:junk@self"]}},
             # One card in the box, and no tag of its own says so: an element and
             # the word "essence" name it between them, and a list of conditions
             # already means and. Derby's opening takes the real card off the shelf.
-            "earth_essence": {"needs": ["tagged:earth@self", "tagged:essence@self"]},
+            "earth_essence": {"needs": {"req": ["tagged:earth@self", "tagged:essence@self"]}},
             # What may be taken, by the kind of gain under way. The Regroup takes
             # from anywhere that hands out `takeable`; a [GAIN] only off the
             # shelf, at or below your Tier, or an Essence's element at I or II.
-            "take_regroup": {"needs": ["gain_kind@mine.player == 0", "tier_req@self <= tier@mine.player"]},
-            "take_tier": {"needs": ["tagged:shelved@self", "gain_kind@mine.player >= 4",
-                                    "tier_req@self <= tier@mine.player"]},
-            "take_fire": {"needs": ["tagged:shelved@self", "gain_kind@mine.player == 1", "tagged:fire@self",
-                                    "tier_req@self <= 2"]},
-            "take_water": {"needs": ["tagged:shelved@self", "gain_kind@mine.player == 2", "tagged:water@self",
-                                     "tier_req@self <= 2"]},
-            "take_earth": {"needs": ["tagged:shelved@self", "gain_kind@mine.player == 3", "tagged:earth@self",
-                                     "tier_req@self <= 2"]},
+            "take_regroup": {"needs": {"req": ["gain_kind@mine.player == 0", "tier_req@self <= tier@mine.player"]}},
+            "take_tier": {"needs": {"req": ["tagged:shelved@self", "gain_kind@mine.player >= 4",
+                                    "tier_req@self <= tier@mine.player"]}},
+            "take_fire": {"needs": {"req": ["tagged:shelved@self", "gain_kind@mine.player == 1", "tagged:fire@self",
+                                    "tier_req@self <= 2"]}},
+            "take_water": {"needs": {"req": ["tagged:shelved@self", "gain_kind@mine.player == 2", "tagged:water@self",
+                                     "tier_req@self <= 2"]}},
+            "take_earth": {"needs": {"req": ["tagged:shelved@self", "gain_kind@mine.player == 3", "tagged:earth@self",
+                                     "tier_req@self <= 2"]}},
             "takeable_now": {"any_of": ["take_regroup", "take_tier", "take_fire", "take_water", "take_earth"]},
-            "owes_gain": {"needs": ["gain_owed@self >= 1"]},
-            "owes_init": {"needs": ["gain_owed@self >= 1", "initiative@self >= 1"]},
+            "owes_gain": {"needs": {"req": ["gain_owed@self >= 1"]}},
+            "owes_init": {"needs": {"req": ["gain_owed@self >= 1", "initiative@self >= 1"]}},
         },
         # **The number is the condition, so there is no condition.** Derby's
         # Ultimate gives two mana at an odd number of health and none at an even
@@ -2394,7 +2432,7 @@ def build():
                 "abilities": [{
                     "key": "take", "text": "Gain this card", "merge": "this",
                     "phases": ["gain_card", "gaining"],
-                    "needs": ["tagged:takeable_now@self"],
+                    "needs": {"req": ["tagged:takeable_now@self"]},
                     # Through `gained`, offscreen, so the rules after it can ask what
                     # was taken and send it where this kind of gain puts it.
                     "action": ["move_to:gained", REFILL_CLOUD] + ["activate_zone:rules:by_column:" + k for k in GAINED]}]},
@@ -2423,7 +2461,7 @@ def build():
             "overhealing": {
                 "adjusts": [{"key": "spare", "verb": "heal", "stat": "health",
                              "covers": "mine.player",
-                             "needs": ["health@mine.player >= 10"],
+                             "needs": {"req": ["health@mine.player >= 10"]},
                              "instead": ["draw_from:mine.deck:mine.hand:amount"]}]},
             # The Power Track, on every wizard because an aura is read off a card in
             # play and the wizard is the one each seat has. The gain lands, then the
@@ -2455,16 +2493,16 @@ def build():
             "dodging": {
                 "adjusts": [
                     {"key": "soak_one", "verb": "wound", "stat": "health",
-                     "covers": "mine.player", "needs": ["guard@mine.traps >= 1"], "by": -1},
+                     "covers": "mine.player", "needs": {"req": ["guard@mine.traps >= 1"]}, "by": -1},
                     {"key": "soak_two", "verb": "wound", "stat": "health",
-                     "covers": "mine.player", "needs": ["guard@mine.traps >= 2"], "by": -1},
+                     "covers": "mine.player", "needs": {"req": ["guard@mine.traps >= 2"]}, "by": -1},
                     {"key": "soak", "verb": "hit", "stat": "health",
-                     "covers": "mine.player", "needs": ["guard@mine.traps >= 1"],
+                     "covers": "mine.player", "needs": {"req": ["guard@mine.traps >= 1"]},
                      "instead": SOAK},
                     # Damage you take is damage you take, whoever dealt it, so the
                     # same replacement answers the blow you do to yourself.
                     {"key": "soak_self", "verb": "hurt", "stat": "health",
-                     "covers": "mine.player", "needs": ["guard@mine.traps >= 1"],
+                     "covers": "mine.player", "needs": {"req": ["guard@mine.traps >= 1"]},
                      "instead": SOAK}]},
         },
         "zones": zones(),

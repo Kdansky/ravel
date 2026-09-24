@@ -199,7 +199,11 @@ Treat it as disposable.
    holds every known field of the merged file to its type before
    `declaration.parse` reads it**, reporting and leaving out a value of the
    wrong type, so nothing past parse meets a string where a number goes or
-   one word where a list goes — which is what `tests/fuzz.lua` checks; a
+   one word where a list goes — which is what `tests/fuzz.lua` checks.
+   **`needs.lua` then unfolds each keyed `needs`** into the flat fields the
+   engine reads (`req` → the `needs` list, `where` → the target, move rule or
+   reveal, `event` → a reaction's `where`, a gate → the lines behind it as
+   tables `actions.run` answers), so no read site learned the authored shape; a
    name that points at nothing (a card, a phase, a host zone) is skipped
    where it is used; `predicate.met`/`meets_all` coerce and
    type-check before every comparison and fail closed (false) rather than

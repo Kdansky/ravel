@@ -54,7 +54,8 @@ local UTIL = { json = true, table_ext = true, log = true, rng = true }
 local FLOOR = {
 	entity      = {},
 	shape       = {},
-	declaration = { entity = true, shape = true },
+	needs       = { shape = true },
+	declaration = { entity = true, shape = true, needs = true },
 	tags        = { entity = true, declaration = true },
 	stats       = { declaration = true, tags = true },
 }

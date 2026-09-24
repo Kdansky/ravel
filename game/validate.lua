@@ -170,7 +170,7 @@ local ARRIVES_FIELDS   = { needs = true, action = true }
 local ROUND_FIELDS     = { action = true }
 -- What a card does when somebody picks out of the offer it opened with `show:`.
 -- The pick is the target; the card that asked is the one acting.
-local CHOSEN_FIELDS    = { where = true, action = true }
+local CHOSEN_FIELDS    = { needs = true, where = true, action = true }
 -- A card on its way out. "from" is which departure is meant -- out of play
 -- when it is left out, out of the zone it names when it is not.
 local LEAVES_FIELDS    = { from = true, into = true, needs = true, action = true }
@@ -1381,25 +1381,11 @@ function M.check(G)
 	local expanding = {}
 	local check_action
 	function check_action(where, str, bound)
-		-- An if standing in the list: the `needs` grammar in "if", and "do" holding the lines it gates. One level —
-		-- a nested one is refused rather than read, since a condition that needs two gates is a list of two.
+		-- A line behind a gate (needs.lua wrote it): the line is an action like any other, and each gate's conditions
+		-- are asked as it runs, so they may read what the ability computed.
 		if type(str) == "table" then
-			for k in pairs(str) do
-				if k ~= "if" and k ~= "do" then
-					warn('%s: an if takes "if" and "do", not "%s"%s', where, tostring(k),
-						k == "else" and " — the other branch is a second if, saying its own condition" or "")
-				end
-			end
-			if str["if"] == nil then warn('%s: a "do" with no "if" — its lines belong in the list itself', where) end
-			if type(str["do"]) ~= "table" or #str["do"] == 0 then warn('%s: an "if" with no "do" does nothing', where) end
-			check_conditions(where .. " if", str["if"], bound)
-			for i, line in ipairs(type(str["do"]) == "table" and str["do"] or {}) do
-				if type(line) == "table" then
-					warn("%s: an if inside another — write both conditions in the outer one's \"if\"", where)
-				else
-					check_action(where .. " do[" .. i .. "]", line, bound)
-				end
-			end
+			for _, g in ipairs(str.gates or {}) do check_conditions(where .. " needs " .. tostring(g.name), g.when, bound) end
+			check_action(where, str.line, bound)
 			return
 		end
 		local p = {}
@@ -3621,8 +3607,8 @@ function M.check(G)
 	-- A body's arguments count from param1, and one it skips is an argument every call has to write for nothing.
 	local function gap(body)
 		local seen, n = {}, 0
-		for _, line in ipairs(actions.strings(body)) do
-			for w in line:gmatch("%f[%w_]param(%d+)%f[^%w_]") do
+		for _, line in ipairs(type(body) == "table" and body or {}) do
+			for w in tostring(line):gmatch("%f[%w_]param(%d+)%f[^%w_]") do
 				local d = tonumber(w)
 				if d == 0 then return "writes param0, but arguments count from param1" end
 				seen[d], n = true, math.max(n, d)

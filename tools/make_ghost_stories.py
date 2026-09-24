@@ -462,7 +462,7 @@ def haunt_steps():
             for near in range(1, d):
                 needs.append("haunted@%s%d >= 1" % (pat, near))
             needs.append("haunted@%s%d == 0" % (pat, d))
-            out.append({"key": "haunt_%s%d" % (axis, d), "needs": needs,
+            out.append({"key": "haunt_%s%d" % (axis, d), "needs": {"req": needs},
                         "action": ["stat_gain:haunted@%s%d:1" % (pat, d),
                                    "stat_set:to_haunt@self:0"]})
     return out
@@ -476,21 +476,21 @@ def tags():
     # condition has no "or" and needs none here.
     stamp = []
     for name, _c, side, _p, _pat in SIDES:
-        stamp.append({"key": "stamp_" + name, "needs": ON_BOARD[name][0].replace("@target", "@self"),
+        stamp.append({"key": "stamp_" + name, "needs": {"req": ON_BOARD[name][0].replace("@target", "@self")},
                       "action": ["stat_set:board@self:%d" % side]})
     t["ghost"] = {
         "abilities": stamp + haunt_steps() + [
             # The exorcism is two beats: the click marks the ghost, and the
             # aftermath phase does the rest, so a curse still has the ghost
             # standing there to be about.
-            {"key": "death_go", "needs": ["dying@self >= 1"], "action": ["destroy:self"]},
+            {"key": "death_go", "needs": {"req": ["dying@self >= 1"]}, "action": ["destroy:self"]},
         ],
     }
 
     t["haunter"] = {"abilities": [
-        {"key": "haunt_step", "needs": ["board@self == side@mine.player", "haunt@self <= 1"],
+        {"key": "haunt_step", "needs": {"req": ["board@self == side@mine.player", "haunt@self <= 1"]},
          "action": ["stat_gain:haunt@self:1"]},
-        {"key": "haunt_strike", "needs": ["board@self == side@mine.player", "haunt@self >= 2"],
+        {"key": "haunt_strike", "needs": {"req": ["board@self == side@mine.player", "haunt@self >= 2"]},
          "action": ["stat_set:haunt@self:0", "stat_gain:to_haunt@self:1"]},
     ]}
 
@@ -499,14 +499,14 @@ def tags():
     # three rolls rather than one shared between them.
     t["tormentor"] = {"abilities": [
         {"key": "curse_roll",
-         "needs": ["board@self == side@mine.player", "rolled@self == 0",
-                   "rolling@mine.player == 0"],
+         "needs": {"req": ["board@self == side@mine.player", "rolled@self == 0",
+                   "rolling@mine.player == 0"]},
          "action": roll_curse() + ["stat_set:rolled@self:1", "stat_set:rolls@self:1",
                                    "stat_set:rolling@mine.player:1"]},
     ] + curse_effects("rolls")}
 
     t["dying_curse"] = {"abilities": [
-        {"key": "death_roll", "needs": ["dying@self >= 1"],
+        {"key": "death_roll", "needs": {"req": ["dying@self >= 1"]},
          "action": roll_curse() + ["stat_set:rolls@self:1"]},
     ]}
 
@@ -516,15 +516,15 @@ def tags():
 def curse_effects(flag):
     """What the face lying in `curse` does, read by the ghost that rolled it."""
     return [
-        {"key": "curse_qi", "needs": ["%s@self >= 1" % flag, "count:c_qi@curse >= 1"],
+        {"key": "curse_qi", "needs": {"req": ["%s@self >= 1" % flag, "count:c_qi@curse >= 1"]},
          "action": ["stat_damage:qi@mine.player:1"]},
-        {"key": "curse_tao", "needs": ["%s@self >= 1" % flag, "count:c_tao@curse >= 1"],
+        {"key": "curse_tao", "needs": {"req": ["%s@self >= 1" % flag, "count:c_tao@curse >= 1"]},
          "action": ["purge:mine.tao"]},
-        {"key": "curse_ghost", "needs": ["%s@self >= 1" % flag, "count:c_ghost@curse >= 1"],
+        {"key": "curse_ghost", "needs": {"req": ["%s@self >= 1" % flag, "count:c_ghost@curse >= 1"]},
          "action": ["stat_gain:incoming@mine.player:1"]},
-        {"key": "curse_haunt", "needs": ["%s@self >= 1" % flag, "count:c_haunt@curse >= 1"],
+        {"key": "curse_haunt", "needs": {"req": ["%s@self >= 1" % flag, "count:c_haunt@curse >= 1"]},
          "action": ["stat_gain:to_haunt@self:1"]},
-        {"key": "curse_done", "needs": ["%s@self >= 1" % flag],
+        {"key": "curse_done", "needs": {"req": ["%s@self >= 1" % flag]},
          "action": ["stat_set:%s@self:0" % flag, "stat_set:rolling@mine.player:0"]},
     ]
 
@@ -579,9 +579,9 @@ def monks():
              "target": {"type": "card", "count": 1, "tags": ["centre_tile"]},
              "action": ["attach_to_target", "end_phase"]},
             {"key": "step", "phases": ["yang_move"],
-             "needs": ["moved@mine.player == 0"],
-             "target": {"type": "card", "count": 1, "tags": ["village"],
-                        "where": ["count:taoist@mine.attached_to.adjacent >= 1"]},
+             "needs": {"req": ["moved@mine.player == 0"],
+                       "where": ["count:taoist@mine.attached_to.adjacent >= 1"]},
+             "target": {"type": "card", "count": 1, "tags": ["village"]},
              "action": ["attach_to_target", "stat_set:moved@mine.player:1", "end_phase"]},
         ],
     }]
@@ -596,11 +596,11 @@ def plaques():
             "tooltip": "The %s board: the three ghost spaces beside this plaque. Ask the "
                        "Night Watchman here to send this board's haunting figures home." % colour,
             "abilities": [
-                {"key": "overrun", "needs": ["count@mine.self >= 1", "count:ghost@%s >= 3" % pat],
+                {"key": "overrun", "needs": {"req": ["count@mine.self >= 1", "count:ghost@%s >= 3" % pat]},
                  "action": ["stat_damage:qi@mine.player:1", "stat_set:skip@mine.player:1"]},
                 {"key": "watch", "phases": ["yang_act"],
-                 "needs": ["count:taoist@mine.attached_to.watchman >= 1",
-                           "haunted@watchman == 0", "acted@mine.player == 0"],
+                 "needs": {"req": ["count:taoist@mine.attached_to.watchman >= 1",
+                           "haunted@watchman == 0", "acted@mine.player == 0"]},
                  "action": ["stat_set:haunt@%s:0" % pat,
                             "spend_action"]},
             ],
@@ -608,13 +608,15 @@ def plaques():
     return out
 
 
-def _villager(key, needs, action, target=None):
+def _villager(key, needs, action, target=None, where=None):
     rule = {"key": "ask", "phases": ["yang_act"],
-            "needs": ["count:taoist@mine.attached_to.self >= 1", "haunted@self == 0",
-                      "acted@mine.player == 0"] + needs,
+            "needs": {"req": ["count:taoist@mine.attached_to.self >= 1", "haunted@self == 0",
+                      "acted@mine.player == 0"] + needs},
             "action": action + ["spend_action"]}
     if target:
         rule["target"] = target
+    if where:
+        rule["needs"]["where"] = where
     return rule
 
 
@@ -627,11 +629,11 @@ def village():
         "cemetery": _villager(
             "cemetery", [],
             ["stat_set:qi@target:2"] + roll_curse() + ["stat_set:rolls@self:1"],
-            {"type": "card", "count": 1, "tags": ["player"], "where": ["qi@target == 0"]}),
+            {"type": "card", "count": 1, "tags": ["player"]}, ["qi@target == 0"]),
         "altar": _villager(
             "altar", [],
             ["stat_set:haunted@target:0", "stat_gain:incoming@mine.player:1"],
-            {"type": "card", "count": 1, "tags": ["village"], "where": ["haunted@target >= 1"]}),
+            {"type": "card", "count": 1, "tags": ["village"]}, ["haunted@target >= 1"]),
         "herbalist": _villager(
             "herbalist", [],
             ["move:dice.d3:bag3"] + roll_tao()[3:5] + ["draw_from:bag1:dice:1",
@@ -667,26 +669,26 @@ def village():
             # haunting face turns this very tile over, which is the one place
             # the die is not about a ghost.
             rules += [
-                {"key": "curse_qi", "needs": ["rolls@self >= 1", "count:c_qi@curse >= 1"],
+                {"key": "curse_qi", "needs": {"req": ["rolls@self >= 1", "count:c_qi@curse >= 1"]},
                  "action": ["stat_damage:qi@mine.player:1"]},
-                {"key": "curse_tao", "needs": ["rolls@self >= 1", "count:c_tao@curse >= 1"],
+                {"key": "curse_tao", "needs": {"req": ["rolls@self >= 1", "count:c_tao@curse >= 1"]},
                  "action": ["purge:mine.tao"]},
-                {"key": "curse_ghost", "needs": ["rolls@self >= 1", "count:c_ghost@curse >= 1"],
+                {"key": "curse_ghost", "needs": {"req": ["rolls@self >= 1", "count:c_ghost@curse >= 1"]},
                  "action": ["stat_gain:incoming@mine.player:1"]},
-                {"key": "curse_haunt", "needs": ["rolls@self >= 1", "count:c_haunt@curse >= 1"],
+                {"key": "curse_haunt", "needs": {"req": ["rolls@self >= 1", "count:c_haunt@curse >= 1"]},
                  "action": ["stat_gain:haunted@self:1"]},
-                {"key": "curse_done", "needs": ["rolls@self >= 1"],
+                {"key": "curse_done", "needs": {"req": ["rolls@self >= 1"]},
                  "action": ["stat_set:rolls@self:0"]},
             ]
         if key == "herbalist":
             for c in TAO_KEYS:
                 rules.append({"key": "herb_" + c,
-                              "needs": ["rolls@self >= 1", "count:%s@dice >= 1" % c],
+                              "needs": {"req": ["rolls@self >= 1", "count:%s@dice >= 1" % c]},
                               "action": ["take:box.%s:mine.tao:1" % c]})
             rules.append({"key": "herb_white",
-                          "needs": ["rolls@self >= 1", "count:white@dice >= 1"],
+                          "needs": {"req": ["rolls@self >= 1", "count:white@dice >= 1"]},
                           "action": ["stat_gain:owed@mine.player:count:white@dice"]})
-            rules.append({"key": "herb_done", "needs": ["rolls@self >= 1"],
+            rules.append({"key": "herb_done", "needs": {"req": ["rolls@self >= 1"]},
                           "action": ["stat_set:rolls@self:0"]})
         if rules:
             card["abilities"] = rules
@@ -729,7 +731,7 @@ def ghost_card(key, name, colour, res, left, mid, right, incarnation=False):
         needs += ["count:ghost@vert4 == 0", "count:ghost@horiz4 == 0"]
     rules = [{
         "key": "exorcise", "phases": ["yang_exorcise"], "compute": powers,
-        "needs": ["count:taoist@mine.attached_to.orthogonal >= 1"] + needs,
+        "needs": {"req": ["count:taoist@mine.attached_to.orthogonal >= 1"] + needs},
         "action": ["drive_out"],
     }]
 
@@ -745,7 +747,7 @@ def ghost_card(key, name, colour, res, left, mid, right, incarnation=False):
     if "CIRCLE_OFF" in left:
         arrive.append("purge:circle")
     if arrive:
-        rules.append({"key": "arrive", "needs": ["fresh@self >= 1"], "action": arrive})
+        rules.append({"key": "arrive", "needs": {"req": ["fresh@self >= 1"]}, "action": arrive})
 
     reward = []
     if "R_QI" in right:
@@ -757,10 +759,10 @@ def ghost_card(key, name, colour, res, left, mid, right, incarnation=False):
     if incarnation:
         reward += ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"]
     if reward:
-        rules.append({"key": "reward", "needs": ["dying@self >= 1"], "action": reward})
+        rules.append({"key": "reward", "needs": {"req": ["dying@self >= 1"]}, "action": reward})
 
     if "GROUP_TAO" in mid:
-        rules.append({"key": "yin_tithe", "needs": ["board@self == side@mine.player"],
+        rules.append({"key": "yin_tithe", "needs": {"req": ["board@self == side@mine.player"]},
                       "action": ["each_seat:purge:random.mine.tao:1"]})
 
     card = {
@@ -838,9 +840,8 @@ def placement():
     t = {}
     for name, colour, side, _p, _pat in SIDES:
         t[colour + "_ghost"] = {"abilities": [
-            {"key": "place_home", "phases": ["yin_place"],
-             "target": {"type": "slot", "count": 1, "zones": ["table"], "fill": "empty",
-                        "where": ON_BOARD[name]},
+            {"key": "place_home", "phases": ["yin_place"], "needs": {"where": ON_BOARD[name]},
+             "target": {"type": "slot", "count": 1, "zones": ["table"], "fill": "empty"},
              "action": ["place_ghost"]},
         ]}
     # A black ghost goes to whoever is playing, so its home board is whichever
@@ -849,9 +850,8 @@ def placement():
     black = []
     for name, _c, side, _p, _pat in SIDES:
         black.append({"key": "place_home_" + name, "phases": ["yin_place"],
-                      "needs": ["side@mine.player == %d" % side],
-                      "target": {"type": "slot", "count": 1, "zones": ["table"],
-                                 "fill": "empty", "where": ON_BOARD[name]},
+                      "needs": {"req": ["side@mine.player == %d" % side], "where": ON_BOARD[name]},
+                      "target": {"type": "slot", "count": 1, "zones": ["table"], "fill": "empty"},
                       "action": ["place_ghost"]})
     t["black_ghost"] = {"abilities": black}
     t["multi_ghost"] = {"abilities": [dict(b, key=b["key"]) for b in black]}
@@ -874,8 +874,8 @@ def anywhere_rules():
     for name, _c, side, _p, _pat in SIDES:
         out.append({
             "key": "place_free_" + name, "phases": ["yin_place"],
-            "needs": ["side@mine.player == %d" % side, "aims:place_home == 0",
-                      "aims:place_home_%s == 0" % name],
+            "needs": {"req": ["side@mine.player == %d" % side, "aims:place_home == 0",
+                      "aims:place_home_%s == 0" % name]},
             "target": {"type": "slot", "count": 1, "zones": ["table"], "fill": "empty"},
             "action": ["place_ghost"]})
     out += [
@@ -909,12 +909,12 @@ def pieces():
             "asset": "circle:" + colour,
             "tooltip": "A %s Tao token. Commit it to an exorcism against a %s ghost."
                        % (key, key),
-            "play": {"phases": ["yang_exorcise"], "needs": ["count:tao_off@table == 0"],
+            "play": {"phases": ["yang_exorcise"], "needs": {"req": ["count:tao_off@table == 0"]},
                      "action": ["move_to:mine.spent"]},
             "abilities": [
-                {"key": "take", "phases": ["spoils"], "needs": ["owed@mine.player >= 1"],
+                {"key": "take", "phases": ["spoils"], "needs": {"req": ["owed@mine.player >= 1"]},
                  "action": ["take:self:mine.tao:1", "stat_damage:owed@mine.player:1"]},
-                {"key": "pray", "phases": ["prayer"], "needs": ["owed_c@mine.player >= 1"],
+                {"key": "pray", "phases": ["prayer"], "needs": {"req": ["owed_c@mine.player >= 1"]},
                  "action": ["take:self:circle:1", "stat_damage:owed_c@mine.player:1"]},
             ],
         })
@@ -923,9 +923,8 @@ def pieces():
                 "tooltip": "A mystical trap. Placed on an empty ghost space, it sends "
                            "whatever is laid there straight to hell and goes home.",
                 "abilities": [
-                    {"key": "set", "phases": ["yang_buddha"],
-                     "target": {"type": "slot", "count": 1, "zones": ["table"], "fill": "empty",
-                                "where": ["row@target >= 1"]},
+                    {"key": "set", "phases": ["yang_buddha"], "needs": {"where": ["row@target >= 1"]},
+                     "target": {"type": "slot", "count": 1, "zones": ["table"], "fill": "empty"},
                      "action": ["move_to:target", "end_phase"]},
                 ]})
     return out
@@ -951,7 +950,7 @@ def buttons():
         btn("no_buddha", "End your turn",
             {"phases": ["yang_buddha"], "action": ["end_phase"]}),
         btn("roll_dice", "Attempt an exorcism",
-            {"phases": ["yang_act"], "needs": ["acted@mine.player == 0"],
+            {"phases": ["yang_act"], "needs": {"req": ["acted@mine.player == 0"]},
              "action": roll_tao() + ["stat_set:exorcising@mine.player:1",
                                      "spend_action"]},
             "Roll the three Tao dice, then commit tokens and name a ghost you face."),
@@ -961,16 +960,16 @@ def buttons():
                         "end_phase"]},
             "Take back every token you committed and let the ghost stand."),
         btn("use_yy", "Spend your Yin-Yang",
-            {"phases": ["yang_move", "yang_act"], "needs": ["yy@mine.player >= 1"],
-             "target": {"type": "card", "count": 1, "tags": ["village"],
-                        "where": ["haunted@target >= 1"]},
+            {"phases": ["yang_move", "yang_act"],
+             "needs": {"req": ["yy@mine.player >= 1"], "where": ["haunted@target >= 1"]},
+             "target": {"type": "card", "count": 1, "tags": ["village"]},
              "action": ["stat_set:haunted@target:0", "stat_damage:yy@mine.player:1"]},
             "Turn one haunted tile back to its active side. The villager comes home."),
         btn("take_qi", "Take 1 Qi",
             {"phases": ["boon"], "action": ["stat_gain:qi@mine.player:1",
                                             "stat_damage:boons@mine.player:1"]}),
         btn("take_yy", "Take your Yin-Yang back",
-            {"phases": ["boon"], "needs": ["yy@mine.player == 0"],
+            {"phases": ["boon"], "needs": {"req": ["yy@mine.player == 0"]},
              "action": ["stat_set:yy@mine.player:1", "stat_damage:boons@mine.player:1"]}),
     ]
 
