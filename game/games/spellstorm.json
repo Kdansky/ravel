@@ -306,12 +306,21 @@
     {
       "key": "drink",
       "tooltip": "Drink this potion: its effect, again if the last potion was Gasoline, then the TOXIC check.",
+      "needs": { "toxic": "toxic@mine.player >= 3" },
       "action": [
         "activate_zone:reveal:by_column:sip",
         "activate_zone:reveal:by_column:sip2",
         "activate_zone:reveal:by_column:again",
         "activate_zone:reveal:by_column:again2",
-        "activate_zone:rules:by_column:potion_toxic",
+        "toxic? gain_junk:ash",
+        "toxic? gain_junk:curse",
+        "toxic? gain_junk:ice",
+        "toxic? stat_set:doubled@mine.player:0",
+        "toxic? stat_set:fire_el@mine.player:3",
+        "toxic? stat_set:earth_el@mine.player:3",
+        "toxic? stat_set:water_el@mine.player:3",
+        "toxic? stat_set:toxic@mine.player:0",
+        "toxic? pop_phase",
         "move_to:potion_discard"
       ]
     },
@@ -379,6 +388,120 @@
       ]
     },
     {
+      "key": "top_up",
+      "tooltip": "At the start of a battle every player draws until they hold three cards: once per call, if short.",
+      "needs": { "short": "count:spell@mine.hand <= 2" },
+      "action": ["short? draw_from:mine.deck:mine.hand:1"]
+    },
+    {
+      "key": "rate_initiative",
+      "tooltip": "The wizard with the lower Initiative rating takes the Initiative Tracker at the start of the game.",
+      "needs": { "lower": "init_rating@mine.player < init_rating@opponent" },
+      "action": ["lower? take_initiative"]
+    },
+    {
+      "key": "break_initiative_tie",
+      "tooltip": "With equal ratings, the player up as the game begins takes the Initiative Tracker.",
+      "needs": { "nobody": ["initiative@mine.player <= 0", "initiative@opponent <= 0"] },
+      "action": ["nobody? take_initiative"]
+    },
+    {
+      "key": "strike_first",
+      "tooltip": "A revealed Shuriken resolves before anything else, whoever holds the Initiative Tracker.",
+      "needs": { "shuriken": "count:first_strike@mine.battle >= 1" },
+      "action": ["shuriken? stat_gain:lead@mine.player:9"]
+    },
+    {
+      "key": "settle_dust",
+      "tooltip": "While Glittering Dust is the weather, Earth cards do nothing when resolved but heal 2.",
+      "needs": { "dust": ["card:glitteringdust@weather_now >= 1", "count:earth@mine.battle >= 1"] },
+      "action": ["dust? heal:health@mine.player:2", "dust? destroy:mine.battle.earth"]
+    },
+    {
+      "key": "award_shards",
+      "tooltip": "The single highest Blast Score gains 2 Storm Shards; a tie gains 1 each.",
+      "needs": {
+        "highest": "blast@mine.player > blast@opponent",
+        "tied": "blast@mine.player == blast@opponent"
+      },
+      "action": ["highest? stat_gain:shards@mine.player:2", "tied? stat_gain:shards@mine.player:1"]
+    },
+    {
+      "key": "fill_track",
+      "tooltip": "Six Power Tokens fill the track. Filling it raises your Tier by one and returns the six; at Tier III a filled track gains you a Dragon instead.",
+      "needs": {
+        "up": ["power@mine.player >= 6", "tier@mine.player <= 2"],
+        "top": ["power@mine.player >= 6", "tier@mine.player >= 3"]
+      },
+      "action": [
+        "up? stat_damage:power@mine.player:6",
+        "up? stat_gain:tier@mine.player:1",
+        "top? stat_damage:power@mine.player:6",
+        "top? dragons_gone",
+        "top? draw_from:dragon_deck:mine.hand:1"
+      ]
+    },
+    {
+      "key": "dragons_gone",
+      "tooltip": "When the Dragon pile is empty, gaining a Dragon deals 2 damage and gains 2 Storm Shards instead.",
+      "needs": { "empty": "count:dragon@dragon_deck <= 0" },
+      "action": ["empty? hit:health@opponent:2", "empty? stat_gain:shards@mine.player:2"]
+    },
+    {
+      "key": "ruby_pick",
+      "tooltip": "Ruby: taking the flame deals 1 damage for each Fire card among the three; taking one of the three VOIDs it.",
+      "needs": { "flame": "count:burn@options >= 1" },
+      "action": ["flame? hit:health@opponent:sum:counted@options", "!flame? move:options:void"]
+    },
+    {
+      "key": "lapis_heal",
+      "tooltip": "Lapis heals 1 for each Water card you discard to it.",
+      "needs": { "water": "count:water@options >= 1" },
+      "action": ["water? heal:health@mine.player:1"]
+    },
+    {
+      "key": "star_shot",
+      "tooltip": "May deals 1 more damage if the card she discarded was Tier II.",
+      "needs": { "tier2": "sum:tier_req@options == 2" },
+      "action": ["tier2? hit:health@opponent:1"]
+    },
+    {
+      "key": "open_gain",
+      "tooltip": "Whoever is owed a gain from the Storm Cloud chooses it, the player with Initiative first. With nothing on the shelf they may take, the gain passes.",
+      "needs": {
+        "first": "count:owes_init >= 1",
+        "may": "gain_kind@mine.player != 7",
+        "none": "count:takeable_now@storm_cloud <= 0"
+      },
+      "action": [
+        "first? set_priority:owes_init",
+        "!first? set_priority:owes_gain",
+        "may? create:menu:btn_no_gain:1",
+        "none? stat_damage:gain_owed@mine.player:1",
+        "none? purge:menu.no_gain",
+        "none? pop_phase"
+      ]
+    },
+    {
+      "key": "settle_gain",
+      "tooltip": "A card gained goes to your hand, or your discard if the gain said so. Coffee Run's Earth card takes the Initiative too.",
+      "needs": {
+        "coffee": ["gain_kind@mine.player == 6", "count:earth@gained >= 1"],
+        "discard": "gain_kind@mine.player == 5",
+        "took": "gain_kind@mine.player == 0",
+        "owed": "gain_kind@mine.player >= 1"
+      },
+      "action": [
+        "coffee? take_initiative",
+        "!discard? move:gained:mine.hand",
+        "discard? move:gained:mine.discard",
+        "took? stat_damage:gain_owed@mine.player:1",
+        "owed? stat_damage:gain_owed@mine.player:1",
+        "owed? purge:menu.no_gain",
+        "owed? pop_phase"
+      ]
+    },
+    {
       "key": "heal",
       "does": "stat_gain",
       "tooltip": "Healing. Named as a moment of its own so that a rule can answer it - the engine's own stat_gain is unwatchable on purpose."
@@ -432,15 +555,7 @@
           "merge": "this",
           "phases": ["gain_card", "gaining"],
           "needs": { "req": ["tagged:takeable_now@self"] },
-          "action": [
-            "move_to:gained",
-            "draw_from:spellstorm_deck:storm_cloud:1",
-            "activate_zone:rules:by_column:gained_coffee",
-            "activate_zone:rules:by_column:gained_hand",
-            "activate_zone:rules:by_column:gained_discard",
-            "activate_zone:rules:by_column:gained_took",
-            "activate_zone:rules:by_column:gained_done"
-          ]
+          "action": ["move_to:gained", "draw_from:spellstorm_deck:storm_cloud:1", "settle_gain"]
         }
       ]
     },
@@ -464,11 +579,7 @@
           "verb": "power_up",
           "stat": "power",
           "covers": "mine.player",
-          "instead": [
-            "stat_gain:power@mine.player:amount",
-            "activate_zone:rules:by_column:tier_up",
-            "activate_zone:rules:by_column:tier_gem"
-          ]
+          "instead": ["stat_gain:power@mine.player:amount", "fill_track"]
         }
       ]
     },
@@ -873,8 +984,8 @@
         "each_seat:create:mine.deck:block:2",
         "each_seat:create:mine.deck:powergem:2",
         "each_seat:shuffle:mine.deck",
-        "each_seat:activate_zone:rules:by_column:first",
-        "activate_zone:rules:by_column:first_tie"
+        "each_seat:rate_initiative",
+        "break_initiative_tie"
       ],
       "next": [{ "then": "battle_start" }]
     },
@@ -885,9 +996,9 @@
         "stat_set:battle_round@plan:0",
         "each_seat:stat_set:ice_pen@mine.player:0",
         "each_seat:activate_zone:rules:by_column:bstart",
-        "each_seat:activate_zone:rules:by_column:topup",
-        "each_seat:activate_zone:rules:by_column:topup",
-        "each_seat:activate_zone:rules:by_column:topup"
+        "each_seat:top_up",
+        "each_seat:top_up",
+        "each_seat:top_up"
       ],
       "next": [{ "then": "journal" }]
     },
@@ -947,7 +1058,7 @@
       "actions": [
         "each_seat:move:mine.commit:mine.battle",
         "each_seat:stat_set:lead@mine.player:sum:initiative@mine.player",
-        "each_seat:activate_zone:rules:by_column:first_strike",
+        "each_seat:strike_first",
         "each_seat:activate_zone:rules:by_column:check",
         "each_seat:activate_zone:weather_now:by_column:wy"
       ],
@@ -970,7 +1081,7 @@
       "key": "resolve",
       "type": "automatic",
       "actions": [
-        "activate_zone:rules:by_column:dust",
+        "settle_dust",
         "activate_zone:mine.battle:by_column:cast",
         "activate_zone:mine.battle:by_column:cast_ask"
       ]
@@ -1004,9 +1115,9 @@
         "move:weather_now:weather_discard",
         "each_seat:destroy:mine.hand.has_discard",
         "each_seat:destroy:mine.hand.junk",
-        "each_seat:activate_zone:rules:by_column:score",
-        "each_seat:activate_zone:rules:by_column:award_win",
-        "each_seat:activate_zone:rules:by_column:award_tie",
+        "each_seat:stat_set:blast@mine.player:count:spell@mine.hand",
+        "each_seat:stat_damage:blast@mine.player:sum:ice_pen@mine.player",
+        "each_seat:award_shards",
         "each_seat:destroy:mine.hand",
         "each_seat:stat_set:gain_owed@mine.player:1",
         "each_seat:stat_set:gain_kind@mine.player:0"
@@ -1039,12 +1150,7 @@
       "type": "player_input",
       "label": "Gain a card from the Storm Cloud",
       "zone": ["menu"],
-      "actions": [
-        "activate_zone:rules:by_column:gain_seat_init",
-        "activate_zone:rules:by_column:gain_seat",
-        "activate_zone:rules:by_column:gain_may",
-        "activate_zone:rules:by_column:gain_none"
-      ]
+      "actions": ["open_gain"]
     }
   ],
   "cards": [
@@ -1328,12 +1434,7 @@
         { "key": "cast_ask", "text": "Resolve", "action": ["show:sifting"] }
       ],
       "chosen": {
-        "action": [
-          "activate_zone:rules:by_column:ruby_pick",
-          "purge:options.burn",
-          "purge:sifting.burn",
-          "move:sifting:mine.discard"
-        ]
+        "action": ["ruby_pick", "purge:options.burn", "purge:sifting.burn", "move:sifting:mine.discard"]
       }
     },
     {
@@ -1453,7 +1554,7 @@
           "action": ["show:mine.hand:optional", "show:mine.hand:optional"]
         }
       ],
-      "chosen": { "action": ["activate_zone:rules:by_column:lapis_heal", "destroy:target"] }
+      "chosen": { "action": ["lapis_heal", "destroy:target"] }
     },
     {
       "key": "leap",
@@ -2166,11 +2267,11 @@
           "to": "resolving",
           "whose": "mine",
           "in": "wizard",
-          "needs": { "req": ["ult_free@mine.player <= 0"] },
+          "needs": { "none": "doom@mine.player <= 0", "req": ["ult_free@mine.player <= 0"] },
           "cost": { "mana@mine.player": 6 },
           "action": [
             "copy:everywhere.croh_redraw:activate:sum:doom@mine.player",
-            "activate_zone:rules:by_column:croh_doom"
+            "none? stat_gain:doom@mine.player:1"
           ]
         },
         {
@@ -2180,8 +2281,9 @@
           "cost": { "ult_free@mine.player": 1 },
           "action": [
             "copy:everywhere.croh_redraw:activate:sum:doom@mine.player",
-            "activate_zone:rules:by_column:croh_doom"
-          ]
+            "none? stat_gain:doom@mine.player:1"
+          ],
+          "needs": { "none": "doom@mine.player <= 0" }
         }
       ],
       "card_stats": { "ult_cost": 6 }
@@ -2615,9 +2717,7 @@
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
       ],
-      "chosen": {
-        "action": ["activate_zone:rules:by_column:starshot", "destroy:target", "hit:health@opponent:1"]
-      }
+      "chosen": { "action": ["star_shot", "destroy:target", "hit:health@opponent:1"] }
     },
     {
       "key": "nice_breeze",
@@ -3120,20 +3220,12 @@
         {
           "key": "sip",
           "needs": { "req": ["earth_el@mine.player >= 4"] },
-          "action": [
-            "stat_damage:earth_el@mine.player:4",
-            "activate_zone:rules:by_column:dry_dragon",
-            "copy:dragon_deck:activate"
-          ]
+          "action": ["stat_damage:earth_el@mine.player:4", "dragons_gone", "copy:dragon_deck:activate"]
         },
         {
           "key": "again",
           "needs": { "req": ["earth_el@mine.player >= 4", "doubled@mine.player >= 1"] },
-          "action": [
-            "activate_zone:rules:by_column:dry_dragon",
-            "copy:dragon_deck:activate",
-            "stat_set:doubled@mine.player:0"
-          ]
+          "action": ["dragons_gone", "copy:dragon_deck:activate", "stat_set:doubled@mine.player:0"]
         }
       ]
     },
@@ -3538,97 +3630,6 @@
       ]
     },
     {
-      "key": "r_lapis",
-      "text": "Lapis",
-      "tags": ["immutable"],
-      "tooltip": "Lapis *heals 1* for each *Water* card you discard to it.",
-      "asset": "auto",
-      "abilities": [
-        {
-          "key": "lapis_heal",
-          "needs": { "req": ["count:water@options >= 1"] },
-          "action": ["heal:health@mine.player:1"]
-        }
-      ]
-    },
-    {
-      "key": "r_ruby_burn",
-      "text": "Ruby: the flame",
-      "tags": ["immutable"],
-      "tooltip": "Ruby: taking the flame deals *1 damage* for each *Fire* card among the three.",
-      "asset": "auto",
-      "abilities": [
-        {
-          "key": "ruby_pick",
-          "needs": { "req": ["count:burn@options >= 1"] },
-          "action": ["hit:health@opponent:sum:counted@options"]
-        }
-      ]
-    },
-    {
-      "key": "r_ruby_void",
-      "text": "Ruby: the card",
-      "tags": ["immutable"],
-      "tooltip": "Ruby: taking one of the three VOIDs it.",
-      "asset": "auto",
-      "abilities": [
-        {
-          "key": "ruby_pick",
-          "needs": { "req": ["count:burn@options <= 0"] },
-          "action": ["move:options:void"]
-        }
-      ]
-    },
-    {
-      "key": "r_blast",
-      "text": "Blast Score",
-      "tags": ["immutable"],
-      "tooltip": "*Blast Score* is the cards left in your hand after discard effects, less one per *ICE* discarded. The single highest score gains *2 Storm Shards*; a tie gains 1 each.",
-      "asset": "auto",
-      "abilities": [
-        {
-          "key": "score",
-          "action": [
-            "stat_set:blast@mine.player:count:spell@mine.hand",
-            "stat_damage:blast@mine.player:sum:ice_pen@mine.player"
-          ]
-        },
-        {
-          "key": "award_win",
-          "needs": { "req": ["blast@mine.player > blast@opponent"] },
-          "action": ["stat_gain:shards@mine.player:2"]
-        },
-        {
-          "key": "award_tie",
-          "needs": { "req": ["blast@mine.player == blast@opponent"] },
-          "action": ["stat_gain:shards@mine.player:1"]
-        }
-      ]
-    },
-    {
-      "key": "r_tier",
-      "text": "The Power Track",
-      "tags": ["immutable"],
-      "tooltip": "Six *Power Tokens* fill the track. Filling it raises your *Tier* by one and returns the six; at *Tier III* a filled track gains you a Dragon instead.",
-      "asset": "auto",
-      "abilities": [
-        {
-          "key": "tier_up",
-          "needs": { "req": ["power@mine.player >= 6", "tier@mine.player <= 2"] },
-          "action": ["stat_damage:power@mine.player:6", "stat_gain:tier@mine.player:1"]
-        },
-        {
-          "key": "tier_gem",
-          "needs": { "req": ["power@mine.player >= 6", "tier@mine.player >= 3"] },
-          "action": [
-            "stat_damage:power@mine.player:6",
-            "activate_zone:rules:by_column:dry_dragon",
-            "draw_from:dragon_deck:mine.hand:1"
-          ]
-        }
-      ]
-    },
-    {
       "key": "r_dry_take_ash",
       "text": "The ASH pile is empty",
       "tags": ["immutable", "ash"],
@@ -3717,67 +3718,6 @@
         }
       ],
       "chosen": { "action": ["move:target:ice_pile"] }
-    },
-    {
-      "key": "r_dry_dragon",
-      "text": "The Dragon pile is empty",
-      "tags": ["immutable"],
-      "tooltip": "When the Dragon pile is empty, gaining a Dragon deals *2 damage* and gains *2 Storm Shards* instead.",
-      "asset": "auto",
-      "abilities": [
-        {
-          "key": "dry_dragon",
-          "needs": { "req": ["count:dragon@dragon_deck <= 0"] },
-          "action": ["hit:health@opponent:2", "stat_gain:shards@mine.player:2"]
-        }
-      ]
-    },
-    {
-      "key": "r_dust",
-      "text": "Glittering Dust",
-      "tags": ["immutable"],
-      "tooltip": "While Glittering Dust is the weather, *Earth* cards do nothing when resolved but *heal 2*.",
-      "asset": "auto",
-      "abilities": [
-        {
-          "key": "dust",
-          "needs": { "req": ["card:glitteringdust@weather_now >= 1", "count:earth@mine.battle >= 1"] },
-          "action": ["heal:health@mine.player:2", "destroy:mine.battle.earth"]
-        }
-      ]
-    },
-    {
-      "key": "r_first_strike",
-      "text": "Going first",
-      "tags": ["immutable"],
-      "tooltip": "A revealed Shuriken resolves before anything else, whoever holds the *Initiative* Tracker.",
-      "asset": "auto",
-      "abilities": [
-        {
-          "key": "first_strike",
-          "needs": { "req": ["count:first_strike@mine.battle >= 1"] },
-          "action": ["stat_gain:lead@mine.player:9"]
-        }
-      ]
-    },
-    {
-      "key": "r_first",
-      "text": "Initiative rating",
-      "tags": ["immutable"],
-      "tooltip": "The wizard with the lower *Initiative rating* takes the *Initiative* Tracker at the start of the game.",
-      "asset": "auto",
-      "abilities": [
-        {
-          "key": "first",
-          "needs": { "req": ["init_rating@mine.player < init_rating@opponent"] },
-          "action": ["take_initiative"]
-        },
-        {
-          "key": "first_tie",
-          "needs": { "req": ["initiative@mine.player <= 0", "initiative@opponent <= 0"] },
-          "action": ["take_initiative"]
-        }
-      ]
     },
     {
       "key": "r_journal_1",
@@ -3902,30 +3842,6 @@
       "card_stats": { "researched": 0 }
     },
     {
-      "key": "r_potion",
-      "text": "A third TOXIC",
-      "tags": ["immutable"],
-      "tooltip": "Drawing a third TOXIC potion ends Oren's *Ultimate* after that potion resolves, and gives him an *ASH*, a *CURSE* and an *ICE*.",
-      "asset": "auto",
-      "abilities": [
-        {
-          "key": "potion_toxic",
-          "needs": { "req": ["toxic@mine.player >= 3"] },
-          "action": [
-            "gain_junk:ash",
-            "gain_junk:curse",
-            "gain_junk:ice",
-            "stat_set:doubled@mine.player:0",
-            "stat_set:fire_el@mine.player:3",
-            "stat_set:earth_el@mine.player:3",
-            "stat_set:water_el@mine.player:3",
-            "stat_set:toxic@mine.player:0",
-            "pop_phase"
-          ]
-        }
-      ]
-    },
-    {
       "key": "r_breach",
       "text": "Data Breach",
       "tags": ["immutable"],
@@ -3941,94 +3857,12 @@
       "chosen": { "action": ["destroy:target"] }
     },
     {
-      "key": "r_gain",
-      "text": "Gaining",
-      "tags": ["immutable"],
-      "tooltip": "Whoever is owed a gain from the *Storm Cloud* chooses it, the player with *Initiative* first. With nothing on the shelf they may take, the gain passes.",
-      "asset": "auto",
-      "abilities": [
-        {
-          "key": "gain_seat_init",
-          "needs": { "req": ["count:owes_init >= 1"] },
-          "action": ["set_priority:owes_init"]
-        },
-        {
-          "key": "gain_seat",
-          "needs": { "req": ["count:owes_init <= 0"] },
-          "action": ["set_priority:owes_gain"]
-        },
-        {
-          "key": "gain_may",
-          "needs": { "req": ["gain_kind@mine.player != 7"] },
-          "action": ["create:menu:btn_no_gain:1"]
-        },
-        {
-          "key": "gain_none",
-          "needs": { "req": ["count:takeable_now@storm_cloud <= 0"] },
-          "action": ["stat_damage:gain_owed@mine.player:1", "purge:menu.no_gain", "pop_phase"]
-        },
-        {
-          "key": "gained_coffee",
-          "needs": { "req": ["gain_kind@mine.player == 6", "count:earth@gained >= 1"] },
-          "action": ["take_initiative"]
-        },
-        {
-          "key": "gained_hand",
-          "needs": { "req": ["gain_kind@mine.player != 5"] },
-          "action": ["move:gained:mine.hand"]
-        },
-        {
-          "key": "gained_discard",
-          "needs": { "req": ["gain_kind@mine.player == 5"] },
-          "action": ["move:gained:mine.discard"]
-        },
-        {
-          "key": "gained_took",
-          "needs": { "req": ["gain_kind@mine.player == 0"] },
-          "action": ["stat_damage:gain_owed@mine.player:1"]
-        },
-        {
-          "key": "gained_done",
-          "needs": { "req": ["gain_kind@mine.player >= 1"] },
-          "action": ["stat_damage:gain_owed@mine.player:1", "purge:menu.no_gain", "pop_phase"]
-        }
-      ]
-    },
-    {
-      "key": "r_starshot",
-      "text": "Star Shot",
-      "tags": ["immutable"],
-      "tooltip": "May deals *1 more damage* if the card she discarded was *Tier II*.",
-      "asset": "auto",
-      "abilities": [
-        {
-          "key": "starshot",
-          "needs": { "req": ["sum:tier_req@options == 2"] },
-          "action": ["hit:health@opponent:1"]
-        }
-      ]
-    },
-    {
       "key": "r_croh_redraw",
       "text": "DOOM Token",
       "tags": ["immutable", "croh_redraw"],
       "tooltip": "For each *DOOM Token*, Croh takes a card from his discard or draws.",
       "asset": "auto",
       "abilities": [{ "key": "croh_redraw", "action": ["options:croh_take,croh_draw:optional"] }]
-    },
-    {
-      "key": "r_doom",
-      "text": "Looming",
-      "tags": ["immutable"],
-      "tooltip": "Croh Vosh gains a *DOOM Token* from his *Ultimate* only when he has none left.",
-      "asset": "auto",
-      "abilities": [
-        {
-          "key": "croh_doom",
-          "needs": { "req": ["doom@mine.player <= 0"] },
-          "action": ["stat_gain:doom@mine.player:1"]
-        }
-      ]
     },
     {
       "key": "r_curriculum",
@@ -4063,20 +3897,6 @@
           "key": "bstart",
           "needs": { "req": ["count:abra@mine.wizard >= 1"] },
           "action": ["power_up:power@mine.player:1"]
-        }
-      ]
-    },
-    {
-      "key": "r_topup",
-      "text": "Battle Start",
-      "tags": ["immutable"],
-      "tooltip": "At the start of a battle every player draws until they hold three cards.",
-      "asset": "auto",
-      "abilities": [
-        {
-          "key": "topup",
-          "needs": { "req": ["count:spell@mine.hand <= 2"] },
-          "action": ["draw_from:mine.deck:mine.hand:1"]
         }
       ]
     },
@@ -4206,21 +4026,12 @@
       { "card": "r_ctr_fire", "zone": "rules" },
       { "card": "r_ctr_earth", "zone": "rules" },
       { "card": "r_ctr_water", "zone": "rules" },
-      { "card": "r_lapis", "zone": "rules" },
-      { "card": "r_ruby_burn", "zone": "rules" },
-      { "card": "r_ruby_void", "zone": "rules" },
-      { "card": "r_blast", "zone": "rules" },
-      { "card": "r_tier", "zone": "rules" },
       { "card": "r_dry_take_ash", "zone": "dry_take" },
       { "card": "r_dry_give_ash", "zone": "dry_give" },
       { "card": "r_dry_take_curse", "zone": "dry_take" },
       { "card": "r_dry_give_curse", "zone": "dry_give" },
       { "card": "r_dry_take_ice", "zone": "dry_take" },
       { "card": "r_dry_give_ice", "zone": "dry_give" },
-      { "card": "r_dry_dragon", "zone": "rules" },
-      { "card": "r_dust", "zone": "rules" },
-      { "card": "r_first_strike", "zone": "rules" },
-      { "card": "r_first", "zone": "rules" },
       { "card": "r_journal_1", "zone": "rules" },
       { "card": "r_journal_2", "zone": "rules" },
       { "card": "r_journal_3", "zone": "rules" },
@@ -4229,16 +4040,11 @@
       { "card": "r_journal_6", "zone": "rules" },
       { "card": "r_journal_7", "zone": "rules" },
       { "card": "r_journal_8", "zone": "rules" },
-      { "card": "r_potion", "zone": "rules" },
       { "card": "r_breach", "zone": "rules" },
-      { "card": "r_gain", "zone": "rules" },
-      { "card": "r_starshot", "zone": "rules" },
       { "card": "r_croh_redraw", "zone": "rules" },
-      { "card": "r_doom", "zone": "rules" },
       { "card": "r_curriculum", "zone": "rules" },
       { "card": "r_round_over", "zone": "rules" },
-      { "card": "r_research", "zone": "rules" },
-      { "card": "r_topup", "zone": "rules" }
+      { "card": "r_research", "zone": "rules" }
     ]
   }
 }

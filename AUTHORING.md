@@ -4860,9 +4860,22 @@ whole verb.
 Like every declared verb it **announces itself**, so a reaction may answer
 `"to": "disable"`.
 
-What it will not do: return a value (that is `computes`), branch, or repeat. A
-routine gated by a `needs` is still a rules zone called with
-`activate_zone:<zone>:by_column:<key>`. A verb that performs itself is refused.
+**It may branch, on gates.** A verb takes a `needs` of gates and nothing else,
+and its lines sit behind them exactly as an ability's do (see *Gates*). A gate
+may read an argument, since `param1` is filled in there too:
+
+```json
+{ "key": "finish", "needs": { "low": "hp@param1 < 5" },
+  "action": ["low? destroy:param1", "!low? stat_damage:hp@param1:1"] }
+```
+
+The gates are the body's own: a caller that asked `low?` already has answered
+nothing here. `req`, `where`, `fizzle` and `event` are refused — the verb runs
+inside the caller's list, which has already started, so there is nothing left
+for them to stop.
+
+What it will not do: return a value (that is `computes`) or repeat. A verb that
+performs itself is refused.
 
 ### `does: "target"` — naming the aim, so the target can answer it
 

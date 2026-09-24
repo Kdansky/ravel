@@ -13,13 +13,15 @@ was already the caller, and a body change being the verb's change is what makes
 - **Moved so far** (each checked by seeded bot games reaching the same states):
   Puzzle Strike `crash_gems`, `pick_fighter`; Codex `deploy`, `summon_hero`,
   `leave_patrol`, `disable`; Spellstorm `drink`, `take_initiative`,
-  `lose_initiative`, `gain_<kind>`, `give_junk`, `gain_junk`; Ghost Stories `drive_out`, `place_ghost`,
+  `lose_initiative`, `gain_<kind>`, `give_junk`, `gain_junk`, and thirteen gated
+  rules cards once a verb took gates (DONE.md, *A verb with gates*); Ghost Stories `drive_out`, `place_ghost`,
   `spend_action`. Splendor and Grimm have only short or gated runs, and were left.
-- **A routine behind a `needs`.** A body has no `needs`, so it has no gates, and
-  gated routines still sit on rules cards — reached by `activate_zone`, or by tag
-  through `copy:<zone>.<tag>:activate` as `give_junk` does. Moving them wants a
-  verb that takes a `needs` of gates only ([46](46-one-list-of-conditions.md) left
-  that open: add it when a routine asks for it). A `req` on a verb stays refused —
-  it would be asked halfway through the caller's list.
+- **Rules zones in other games that are an if.** Puzzle Strike's `rules_ante`,
+  `rules_combine`, `rules_upgrade*` and `rules_height` are a switch on a number, one
+  card per value (the cookbook's *Take the gem the panic level says*); `rules_piggy`
+  is one if. Arnak's `rules_market`, `rules_win` and `rules_temple` likewise. Each
+  would be a gated verb. Codex's `rules_death`, `rules_upkeep` and `rules_endturn`
+  are a different shape — a phase sweeping a column of independent rules — and are
+  [38](38-repeated-shapes.md)'s death half, not this.
 - **The 18 phase hooks** are a moment rather than a call, and stay out of this
   track.

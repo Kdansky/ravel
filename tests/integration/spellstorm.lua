@@ -363,9 +363,9 @@ function M.test_spellstorm_blast_scoring(check)
 			zones.move_card(zone_of("deck", "seat_two").cards[1], hand_of("seat_two").id)
 		end
 		actions.execute("each_seat:stat_set:ice_pen@mine.player:0", {})
-		actions.execute("each_seat:activate_zone:rules:by_column:score", {})
-		actions.execute("each_seat:activate_zone:rules:by_column:award_win", {})
-		actions.execute("each_seat:activate_zone:rules:by_column:award_tie", {})
+		actions.execute("each_seat:stat_set:blast@mine.player:count:spell@mine.hand", {})
+		actions.execute("each_seat:stat_damage:blast@mine.player:sum:ice_pen@mine.player", {})
+		actions.execute("each_seat:award_shards", {})
 	end
 
 	local s1, s2 = one.stats.shards, two.stats.shards
@@ -386,7 +386,8 @@ function M.test_spellstorm_blast_scoring(check)
 	zones.move_card(zone_of("deck", "seat_one").cards[1], hand_of("seat_one").id)
 	actions.execute("set_active_seat:seat_one", {})
 	actions.execute("stat_set:ice_pen@mine.player:5", {})
-	actions.execute("activate_zone:rules:by_column:score", {})
+	actions.execute("stat_set:blast@mine.player:count:spell@mine.hand", {})
+	actions.execute("stat_damage:blast@mine.player:sum:ice_pen@mine.player", {})
 	check("five ICE against one card is a Blast Score of nothing, not minus four",
 		one.stats.blast == 0, tostring(one.stats.blast))
 end
@@ -399,13 +400,13 @@ function M.test_spellstorm_the_power_track_becomes_a_tier(check)
 
 	check("everyone starts at Tier I", one.stats.tier == 1, tostring(one.stats.tier))
 	actions.execute("stat_set:power@mine.player:5", {})
-	actions.execute("activate_zone:rules:by_column:tier_up", {})
+	actions.execute("fill_track", {})
 	check("five tokens is not a Tier", one.stats.tier == 1 and one.stats.power == 5)
 
 	-- Six fills the track: the Tier goes up and the six go back to the supply.
 	-- The overflow is kept, which is why this is a subtraction and not a reset.
 	actions.execute("stat_set:power@mine.player:8", {})
-	actions.execute("activate_zone:rules:by_column:tier_up", {})
+	actions.execute("fill_track", {})
 	check("a filled track is a Tier", one.stats.tier == 2, tostring(one.stats.tier))
 	check("and the two spare tokens stay on it", one.stats.power == 2,
 		tostring(one.stats.power))
@@ -414,7 +415,7 @@ function M.test_spellstorm_the_power_track_becomes_a_tier(check)
 	actions.execute("stat_set:tier@mine.player:3", {})
 	actions.execute("stat_set:power@mine.player:6", {})
 	local before = #hand_of("seat_one").cards
-	actions.execute("activate_zone:rules:by_column:tier_gem", {})
+	actions.execute("fill_track", {})
 	check("at Tier III a filled track gains a Dragon",
 		#hand_of("seat_one").cards == before + 1, tostring(#hand_of("seat_one").cards - before))
 	check("and the Tier does not go past III", one.stats.tier == 3, tostring(one.stats.tier))
@@ -612,7 +613,7 @@ function M.test_spellstorm_shuriken_goes_first_whoever_holds_the_tracker(check)
 		stage_battle("seat_one", played)
 		stage_battle("seat_two", "magicdart")
 		actions.execute("each_seat:stat_set:lead@mine.player:sum:initiative@mine.player", {})
-		actions.execute("each_seat:activate_zone:rules:by_column:first_strike", {})
+		actions.execute("each_seat:strike_first", {})
 		phase.push("duel")
 		-- The group picks its order on entry; handing the seat over is the next
 		-- step the flow takes, which is what settling runs.
@@ -678,7 +679,7 @@ function M.test_spellstorm_glittering_dust_replaces_what_an_earth_card_does(chec
 		local me = seat_card("seat_one")
 		me.stats.health = 8
 		local power = me.stats.power
-		actions.execute("activate_zone:rules:by_column:dust", {})
+		actions.execute("settle_dust", {})
 		actions.execute("activate_zone:mine.battle:by_column:cast", {})
 		return me.stats.health, me.stats.power - power, entity.get(card.zone_id).key
 	end
@@ -934,16 +935,19 @@ end
 
 -- Croh's DOOM Tokens come only from failure states, which is the trap his whole
 -- design is built on: a token when he has none, and a token for a CURSE pile he
--- has already emptied. Both are ifs, and an if lives in an ability.
+-- has already emptied. Both are ifs: the first is a gate on the Ultimate's last line, run here on its own so no
+-- redraw question stands in front of it.
 function M.test_spellstorm_dooms_arrive_only_from_failure(check)
 	opening(3, "croh", "eve")
 	local one = "seat_one"
 	become(one)
+	local ult = declaration.G.card_defs.wiz_croh.reactions[1].action
+	local function loom() actions.run({ ult[#ult] }, { card_id = seat_card(one).id }) end
 	actions.execute("stat_set:doom@mine.player:0", {})
-	actions.execute("activate_zone:rules:by_column:croh_doom", {})
+	loom()
 	check("with no DOOM Token, the Ultimate grants one",
 		seat_card(one).stats.doom == 1, seat_card(one).stats.doom)
-	actions.execute("activate_zone:rules:by_column:croh_doom", {})
+	loom()
 	check("holding one, it grants nothing",
 		seat_card(one).stats.doom == 1, seat_card(one).stats.doom)
 
@@ -1235,8 +1239,8 @@ function M.test_spellstorm_exactly_one_seat_holds_initiative(check)
 		seat_card(k).stats.initiative = 0
 		seat_card(k).stats.init_rating = 4
 	end
-	actions.execute("each_seat:activate_zone:rules:by_column:first", {})
-	actions.execute("activate_zone:rules:by_column:first_tie", {})
+	actions.execute("each_seat:rate_initiative", {})
+	actions.execute("break_initiative_tie", {})
 	local tied = seat_card("seat_one").stats.initiative + seat_card("seat_two").stats.initiative
 	check("equal ratings still leave exactly one holding it", tied == 1, tied)
 

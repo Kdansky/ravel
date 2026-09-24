@@ -6,6 +6,8 @@
 local entity  = require("entity")
 local flow    = require("flow")
 local actions = require("actions")
+local declaration = require("declaration")
+local validate = require("validate")
 
 local M = {}
 
@@ -21,7 +23,9 @@ local GAME = [==[{
     { "key": "burn", "action": ["stat_damage:hp@param1:param2", "stat_gain:tally@self:1"],
       "tooltip": "Burn — the first argument is who, the second how much." },
     { "key": "scorch", "action": ["damage:hp@param1:param2"] },
-    { "key": "twice", "action": ["param1", "param1"] }
+    { "key": "twice", "action": ["param1", "param1"] },
+    { "key": "finish", "needs": { "low": "hp@param1 < 5" },
+      "action": ["low? stat_damage:hp@param1:9", "!low? stat_gain:tally@self:1", "stat_gain:tally@self:1"] }
   ],
   "tags": {
     "fireproof": { "adjusts": [{ "key": "fireproof", "verb": "burn", "stat": "hp", "covers": "self", "by": -1 }] },
@@ -113,6 +117,58 @@ function M.test_verb_body_a_played_card_performs_it(check)
 		check("and the burn lands, less the fireproofing", find("salamander").stats.hp == 8,
 			tostring(find("salamander").stats.hp))
 	end)
+end
+
+-- A gate may ask about an argument, and the lines behind it run or not as they would on a card.
+function M.test_verb_body_a_gate_reads_the_argument(check)
+	with_game(function()
+		as("mage", "finish:target", "grunt")
+		check("a grunt at ten is not low, so the other branch", find("grunt").stats.hp == 10 and find("mage").stats.tally == 2,
+			find("grunt").stats.hp .. "/" .. find("mage").stats.tally)
+		find("grunt").stats.hp = 4
+		as("mage", "finish:target", "grunt")
+		check("at four it is, and the line behind the gate lands", find("grunt").stats.hp == 0 and find("mage").stats.tally == 3,
+			find("grunt").stats.hp .. "/" .. find("mage").stats.tally)
+	end)
+end
+
+-- The caller asked a gate of the same name already; the body asks its own.
+function M.test_verb_body_a_callers_gate_is_not_the_bodys(check)
+	with_game(function()
+		actions.execute("finish:target", { card_id = find("mage").id, targets = { find("grunt").id }, gated = { low = true } })
+		check("the grunt at ten is spared", find("grunt").stats.hp == 10, tostring(find("grunt").stats.hp))
+	end)
+end
+
+-- The fixture's verbs are performed by the tests rather than by its cards, so that is the one thing said of them.
+function M.test_verb_body_a_gated_body_passes_the_validator(check)
+	with_game(function()
+		local problems = {}
+		for _, s in ipairs(validate.check(declaration.parse("tmp_verb_body.json"))) do
+			if s:find("finish", 1, true) and not s:find("no action performs it", 1, true) then problems[#problems + 1] = s end
+		end
+		check("nothing said of finish's gate", #problems == 0, table.concat(problems, "; "))
+	end)
+end
+
+-- A req would be asked once the caller's list is already under way, so a verb is refused one and told why.
+function M.test_verb_body_a_req_is_refused(check)
+	local path = "game/games/tmp_verb_req.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+		"title": "Verb Req",
+		"stats": [{ "key": "hp", "on": ["unit"], "start": 10 }],
+		"verbs": [{ "key": "maul", "needs": { "req": "hp@param1 < 5" }, "action": ["stat_damage:hp@param1:1"] }],
+		"zones": [{ "key": "hand", "layout": "row" }],
+		"phases": [{ "key": "turn", "type": "player_input", "zone": "hand" }],
+		"cards": [{ "key": "claw", "text": "Claw", "play": { "action": ["maul:self"] } }]
+	}]==])
+	f:close()
+	local ok, G = pcall(declaration.parse, "tmp_verb_req.json")
+	os.remove(path)
+	if not ok then error(G, 2) end
+	local said = table.concat(validate.check(G), "; ")
+	check("named, with the reason", said:find("verb 'maul': needs takes no \"req\" here — a verb takes gates only", 1, true), said)
 end
 
 return M

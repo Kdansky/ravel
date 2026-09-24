@@ -153,6 +153,16 @@ GAIN = lambda kind="tier": ["gain_" + kind]
 # and the step closed so whatever it interrupted goes on.
 GAIN_DONE = ["stat_damage:gain_owed@mine.player:1", "purge:menu.no_gain", "pop_phase"]
 
+# What ends the Ultimate, whichever way it ends: the beakers go back to 3 and the
+# phase the Ultimate pushed comes off. The pushed phase is on top by now -- a
+# revealed page pops before the card it showed acts -- so this pops the loop.
+POTION_END = ["stat_set:doubled@mine.player:0",
+              "stat_set:fire_el@mine.player:3",
+              "stat_set:earth_el@mine.player:3",
+              "stat_set:water_el@mine.player:3",
+              "stat_set:toxic@mine.player:0",
+              "pop_phase"]
+
 # The game's own actions, each written once. A gain is owed and the gaining step
 # opened, the kind saying what may be taken and where it goes.
 VERBS = [
@@ -173,18 +183,108 @@ VERBS = [
     # while this runs and that is the zone its own steps are reached through. A
     # step the potion does not carry -- a second effect, Gasoline's second
     # helping -- finds nothing to run.
+    # A third TOXIC ends the Ultimate whatever the player wanted, and costs one
+    # of each junk card on the way out. Asked after the sips, which are what add it.
     {"key": "drink", "tooltip": "Drink this potion: its effect, again if the last potion was Gasoline, then the TOXIC check.",
+     "needs": {"toxic": "toxic@mine.player >= 3"},
      "action": ["activate_zone:reveal:by_column:sip", "activate_zone:reveal:by_column:sip2",
-                "activate_zone:reveal:by_column:again", "activate_zone:reveal:by_column:again2",
-                "activate_zone:rules:by_column:potion_toxic", "move_to:potion_discard"]},
+                "activate_zone:reveal:by_column:again", "activate_zone:reveal:by_column:again2"]
+               + ["toxic? " + a for a in GAIN_JUNK("ash") + GAIN_JUNK("curse") + GAIN_JUNK("ice") + POTION_END]
+               + ["move_to:potion_discard"]},
 ] + [{"key": GAIN(kind)[0], "tooltip": "Gain a card from the Storm Cloud%s." % where,
       "action": ["stat_gain:gain_owed@mine.player:1", "stat_set:gain_kind@mine.player:%d" % n, "push_phase:gaining"]}
      for (kind, n), where in zip(GAIN_KINDS.items(), [
          ": a Fire card at Tier I or II", ": a Water card at Tier I or II", ": an Earth card at Tier I or II",
          " at your Tier, into your hand", " at your Tier, into your discard", " for Coffee Run", " at your Tier - you must take one"])]
-# The rules a step runs as it opens, and the ones a take runs, in order: r_gain's.
-GAIN_STEP = ["gain_seat_init", "gain_seat", "gain_may", "gain_none"]
-GAINED = ["gained_coffee", "gained_hand", "gained_discard", "gained_took", "gained_done"]
+# The ifs a phase, a take or a pick asks, each a verb so the caller says it in a word.
+VERBS += [
+    {"key": "top_up", "tooltip": "At the start of a battle every player draws until they hold three cards: once per call, if short.",
+     "needs": {"short": "count:spell@mine.hand <= 2"}, "action": ["short? " + DRAW]},
+    {"key": "rate_initiative",
+     "tooltip": "The wizard with the lower Initiative rating takes the Initiative Tracker at the start of the game.",
+     "needs": {"lower": "init_rating@mine.player < init_rating@opponent"}, "action": ["lower? " + a for a in GAIN_INIT]},
+    # "At all times exactly one player holds the Initiative Tracker", and two
+    # wizards with the same rating -- a mirror match -- left nobody holding it.
+    # The printed game does not say how to break the tie, so the engine gives it
+    # to the player who is up as the game begins. Run once rather than once per
+    # seat, or the second seat would take it back off the first.
+    {"key": "break_initiative_tie", "tooltip": "With equal ratings, the player up as the game begins takes the Initiative Tracker.",
+     "needs": {"nobody": ["initiative@mine.player <= 0", "initiative@opponent <= 0"]},
+     "action": ["nobody? " + a for a in GAIN_INIT]},
+    # "SPECIAL: this card ALWAYS goes first." The duel is ordered by `lead`, which
+    # the reveal sets to the Initiative Tracker; this is the one thing that beats it.
+    {"key": "strike_first", "tooltip": "A revealed Shuriken resolves before anything else, whoever holds the Initiative Tracker.",
+     "needs": {"shuriken": "count:first_strike@mine.battle >= 1"}, "action": ["shuriken? stat_gain:lead@mine.player:9"]},
+    # **Glittering Dust: "[EARTH] cards do nothing when resolved but Heal 2."**
+    #
+    # "Does nothing when resolved" is said by not being there to do it. The step
+    # runs at the top of each seat's resolution, and what it takes out is what the
+    # cast columns under it would otherwise have walked -- so the effect is
+    # skipped without a word on any Earth card, which is the whole point: a
+    # weather card that rewrote every Earth card would want rewriting every time
+    # one was printed. The card goes where the round would have sent it anyway,
+    # one step early, and nothing between here and there reads a battle spot.
+    #
+    # **The Ultimate icon still fires**, because the [ULT] window is a phase of
+    # its own and runs before this one. The card says the Earth card's *effect*
+    # is replaced, and casting your Ultimate here is not that.
+    {"key": "settle_dust", "tooltip": "While Glittering Dust is the weather, Earth cards do nothing when resolved but heal 2.",
+     "needs": {"dust": ["card:glitteringdust@weather_now >= 1", "count:earth@mine.battle >= 1"]},
+     "action": ["dust? " + HEAL(2), "dust? destroy:mine.battle.earth"]},
+    # Your Blast Score is what you still hold once the discard effects have gone;
+    # a single highest takes two Shards, a tie takes one each. Every seat scores
+    # before any is compared, so this is its own pass.
+    {"key": "award_shards", "tooltip": "The single highest Blast Score gains 2 Storm Shards; a tie gains 1 each.",
+     "needs": {"highest": "blast@mine.player > blast@opponent", "tied": "blast@mine.player == blast@opponent"},
+     "action": ["highest? " + SHARD(2), "tied? " + SHARD(1)]},
+    # The Power Track. Six tokens fill it; the seventh is a Tier, and at Tier III
+    # a filled track is a Dragon instead. Performed by the power_track aura each
+    # time Power is gained. `top` is asked after `up` has run, so a track that
+    # reaches Tier III by filling does not also pay out a Dragon.
+    {"key": "fill_track",
+     "tooltip": "Six Power Tokens fill the track. Filling it raises your Tier by one and returns the six; at Tier III a filled track gains you a Dragon instead.",
+     "needs": {"up": ["power@mine.player >= 6", "tier@mine.player <= 2"],
+               "top": ["power@mine.player >= 6", "tier@mine.player >= 3"]},
+     "action": ["up? stat_damage:power@mine.player:6", "up? stat_gain:tier@mine.player:1",
+                "top? stat_damage:power@mine.player:6", "top? dragons_gone",
+                "top? draw_from:dragon_deck:mine.hand:1"]},
+    # The Dragon pile is the one whose empty rule is a reward rather than a
+    # penalty, because a Dragon is what you were owed.
+    {"key": "dragons_gone", "tooltip": "When the Dragon pile is empty, gaining a Dragon deals 2 damage and gains 2 Storm Shards instead.",
+     "needs": {"empty": "count:dragon@dragon_deck <= 0"}, "action": ["empty? " + DMG(2), "empty? " + SHARD(2)]},
+    # Ruby's two branches, told apart by which card came back in the offer. A
+    # pick leaves the offer holding exactly the card that was taken -- the rest go
+    # home before the chosen actions run -- so "@options" is the answer and not
+    # the question.
+    {"key": "ruby_pick", "tooltip": "Ruby: taking the flame deals 1 damage for each Fire card among the three; taking one of the three VOIDs it.",
+     "needs": {"flame": "count:burn@options >= 1"},
+     "action": ["flame? hit:health@opponent:sum:counted@options", "!flame? move:options:void"]},
+    {"key": "lapis_heal", "tooltip": "Lapis heals 1 for each Water card you discard to it.",
+     "needs": {"water": "count:water@options >= 1"}, "action": ["water? " + HEAL(1)]},
+    # Star Shot asks about the card the player just chose, which is still lying
+    # in the offer while the `chosen` list runs.
+    {"key": "star_shot", "tooltip": "May deals 1 more damage if the card she discarded was Tier II.",
+     "needs": {"tier2": "sum:tier_req@options == 2"}, "action": ["tier2? " + DMG(1)]},
+]
+
+# Who a gain step is for, and whether it has anything to offer them. Two seats
+# owed at once is Falling Star, and the one with Initiative goes first.
+VERBS += [
+    {"key": "open_gain",
+     "tooltip": "Whoever is owed a gain from the Storm Cloud chooses it, the player with Initiative first. With nothing on the shelf they may take, the gain passes.",
+     "needs": {"first": "count:owes_init >= 1", "may": "gain_kind@mine.player != %d" % GAIN_KINDS["must"],
+               "none": "count:takeable_now@storm_cloud <= 0"},
+     "action": ["first? set_priority:owes_init", "!first? set_priority:owes_gain",
+                "may? create:menu:btn_no_gain:1"] + ["none? " + a for a in GAIN_DONE]},
+    # Where a taken card goes, read off `gained` while it waits there.
+    {"key": "settle_gain", "tooltip": "A card gained goes to your hand, or your discard if the gain said so. Coffee Run's Earth card takes the Initiative too.",
+     "needs": {"coffee": ["gain_kind@mine.player == %d" % GAIN_KINDS["coffee"], "count:earth@gained >= 1"],
+               "discard": "gain_kind@mine.player == %d" % GAIN_KINDS["discard"],
+               "took": "gain_kind@mine.player == 0", "owed": "gain_kind@mine.player >= 1"},
+     "action": ["coffee? " + a for a in GAIN_INIT]
+               + ["!discard? move:gained:mine.hand", "discard? move:gained:mine.discard",
+                  "took? stat_damage:gain_owed@mine.player:1"] + ["owed? " + a for a in GAIN_DONE]},
+]
 
 FIRE, WATER, EARTH = "fire", "water", "earth"
 
@@ -321,7 +421,7 @@ SPELLS = [
                "create:sifting:ruby_burn:1",
                "stat_set:counted@sifting.burn:count:fire@sifting",
                "show:sifting"],
-         chosen=["activate_zone:rules:by_column:ruby_pick",
+         chosen=["ruby_pick",
                  "purge:options.burn", "purge:sifting.burn",
                  "move:sifting:mine.discard"]),
     card("shockwave", "Shockwave", FIRE, tier=2,
@@ -360,7 +460,7 @@ SPELLS = [
          tooltip="Draw a card. You may discard up to 2 cards, and heal 1 for each Water card discarded.",
          flavour="Doctors throughout Omia have used Water Magic to heal the sick for generations.",
          cast=[DRAW, OFFER_HAND, OFFER_HAND],
-         chosen=["activate_zone:rules:by_column:lapis_heal", "destroy:target"]),
+         chosen=["lapis_heal", "destroy:target"]),
     card("leap", "Leap", WATER, tier=2,
          tooltip="Gain Initiative and heal 1. If your opponent revealed Fire, you may VOID a card from your hand or discard.",
          flavour="Azure wizards historically specialized in Water Gems, but they have since taken others from throughout the globe.",
@@ -819,7 +919,7 @@ def swap_templates():
 def wizard(key, name, epithet, elements, health, rating, ult_cost, ult_name,
            ult_tooltip, ult_action, spells, start=(), ult_chosen=None,
            ult_chosen_where=None, passive=None, keywords=(), max_health=None,
-           simplified=None, blurb="", ult_compute=()):
+           simplified=None, blurb="", ult_compute=(), ult_gates=None):
     return dict(key=key, name=name, epithet=epithet, elements=elements,
                 health=health, rating=rating, ult_cost=ult_cost,
                 ult_name=ult_name, ult_tooltip=ult_tooltip,
@@ -828,7 +928,7 @@ def wizard(key, name, epithet, elements, health, rating, ult_cost, ult_name,
                 passive=passive, keywords=list(keywords), spells=spells,
                 max_health=max_health or health,
                 start=list(start), simplified=simplified, blurb=blurb,
-                ult_compute=list(ult_compute))
+                ult_compute=list(ult_compute), ult_gates=ult_gates or {})
 
 
 WIZARDS = [
@@ -917,8 +1017,10 @@ WIZARDS = [
            "DOOOOOOOOOM!",
            "For each DOOM Token you have, take a card of your choice from your discard"
            " or draw one. If you have none, gain a DOOM Token.",
-           ["copy:everywhere.croh_redraw:activate:sum:doom@mine.player",
-            "activate_zone:rules:by_column:croh_doom"],
+           # Croh gains DOOM Tokens only from failure states -- having none, or an
+           # empty CURSE pile -- which is the trap his whole design is built around.
+           ["copy:everywhere.croh_redraw:activate:sum:doom@mine.player", "none? stat_gain:doom@mine.player:1"],
+           ult_gates={"none": "doom@mine.player <= 0"},
            keywords=["accursed"],
            blurb="An undead Lich back from a thousand-year slumber. Enormous health, but he cannot heal -- healing becomes a CURSE for his opponent instead.",
            spells=[
@@ -1080,7 +1182,7 @@ WIZARDS = [
                     flavour='"Hey, YOU! Eat this!"',
                     cast=["stat_gain:mana@mine.player:sum:energy@mine.player",
                           "stat_damage:energy@mine.player:2", OFFER_HAND],
-                    chosen=["activate_zone:rules:by_column:starshot",
+                    chosen=["star_shot",
                             "destroy:target", DMG(1)]),
            ]),
 ]
@@ -1134,7 +1236,7 @@ POTIONS = [
     # Resolve it where it lies: the printed card says resolve, not gain, and
     # `copy:` is the word for running a card's whole list without taking it.
     ("pot_dragon", "Dragon Elixir", "Resolve the top card of the Dragon Deck.",
-     EARTH, 4, False, (None, ["activate_zone:rules:by_column:dry_dragon",
+     EARTH, 4, False, (None, ["dragons_gone",
                               "copy:dragon_deck:activate"]), None),
     ("pot_frost", "Frost Bomb", "Your opponent loses 1 mana. Give an ICE.",
      WATER, 2, False, (None, ["stat_damage:mana@opponent:1"] + GIVE("ice")), None),
@@ -1143,16 +1245,6 @@ POTIONS = [
     ("pot_soda", "Health Soda", "Heal 2.",
      WATER, 4, True, (None, [HEAL(2)]), None),
 ]
-
-# What ends the Ultimate, whichever way it ends: the beakers go back to 3 and the
-# phase the Ultimate pushed comes off. The pushed phase is on top by now -- a
-# revealed page pops before the card it showed acts -- so this pops the loop.
-POTION_END = ["stat_set:doubled@mine.player:0",
-              "stat_set:fire_el@mine.player:3",
-              "stat_set:earth_el@mine.player:3",
-              "stat_set:water_el@mine.player:3",
-              "stat_set:toxic@mine.player:0",
-              "pop_phase"]
 
 # ---------------------------------------------------------------------------
 # Assembly
@@ -1408,7 +1500,7 @@ def wizard_templates(w):
     # beside it. Nothing is lost by that -- free is the better of the two every
     # time, and the card that hands out the pass says the Ultimate is free.
     ult = {"to": "resolving", "whose": "mine", "in": "wizard",
-           "needs": {"req": ["ult_free@mine.player <= 0"]},
+           "needs": dict(w["ult_gates"], req=["ult_free@mine.player <= 0"]),
            "cost": {"mana@mine.player": w["ult_cost"]},
            "action": list(w["ult_action"])}
     if w["ult_compute"]:
@@ -1418,6 +1510,8 @@ def wizard_templates(w):
     ult_free = {"to": "resolving", "whose": "mine", "in": "wizard",
                 "cost": {"ult_free@mine.player": 1},
                 "action": list(w["ult_action"])}
+    if w["ult_gates"]:
+        ult_free["needs"] = dict(w["ult_gates"])
     if w["ult_compute"]:
         ult_free["compute"] = list(w["ult_compute"])
     char = {
@@ -1505,54 +1599,6 @@ def rules_templates():
                      when=["count:%s@mine.battle >= 1" % a,
                            "count:%s@enemy.battle >= 1" % b])]))
 
-    out.append(rules_card(
-        "r_lapis", "Lapis",
-        "Lapis heals 1 for each Water card you discard to it.",
-        [ability("lapis_heal", [HEAL(1)], when=["count:water@options >= 1"])]))
-
-    # Ruby's two branches, told apart by which card came back in the offer.
-    # A pick leaves the offer holding exactly the card that was taken -- the
-    # rest go home before the chosen actions run -- so "@options" here is the
-    # answer and not the question.
-    # One card per branch, because a card may not wear the same ability key
-    # twice -- the same reason countering is three cards rather than one.
-    out.append(rules_card(
-        "r_ruby_burn", "Ruby: the flame",
-        "Ruby: taking the flame deals 1 damage for each Fire card among the three.",
-        [ability("ruby_pick", ["hit:health@opponent:sum:counted@options"],
-                 when=["count:burn@options >= 1"])]))
-    out.append(rules_card(
-        "r_ruby_void", "Ruby: the card",
-        "Ruby: taking one of the three VOIDs it.",
-        [ability("ruby_pick", ["move:options:void"],
-                 when=["count:burn@options <= 0"])]))
-
-    # Blast Scoring. Your Blast Score is what you still hold once the discard
-    # effects have gone; a single highest takes two Shards, a tie takes one each.
-    out.append(rules_card(
-        "r_blast", "Blast Score",
-        "Blast Score is the cards left in your hand after discard effects, less one per ICE discarded. The single highest score gains 2 Storm Shards; a tie gains 1 each.",
-        [ability("score", ["stat_set:blast@mine.player:count:spell@mine.hand",
-                           "stat_damage:blast@mine.player:sum:ice_pen@mine.player"]),
-         ability("award_win", [SHARD(2)],
-                 when=["blast@mine.player > blast@opponent"]),
-         ability("award_tie", [SHARD(1)],
-                 when=["blast@mine.player == blast@opponent"])]))
-
-    # The Power Track. Six tokens fill it; the seventh is a Tier, and at Tier III
-    # a filled track is a Dragon instead. Walked by the power_track aura each time
-    # Power is gained.
-    out.append(rules_card(
-        "r_tier", "The Power Track",
-        "Six Power Tokens fill the track. Filling it raises your Tier by one and returns the six; at Tier III a filled track gains you a Dragon instead.",
-        [ability("tier_up", ["stat_damage:power@mine.player:6",
-                             "stat_gain:tier@mine.player:1"],
-                 when=["power@mine.player >= 6", "tier@mine.player <= 2"]),
-         ability("tier_gem", ["stat_damage:power@mine.player:6",
-                              "activate_zone:rules:by_column:dry_dragon",
-                              "draw_from:dragon_deck:mine.hand:1"],
-                 when=["power@mine.player >= 6", "tier@mine.player >= 3"])]))
-
     # What the board prints for a pile that has run out. Six ICE, six ASH and
     # six CURSE is few enough to reach in a long game, and until now giving from
     # an empty pile did nothing at all -- which made running the supply dry a
@@ -1586,64 +1632,6 @@ def rules_templates():
                 [ability("dry_" + way, acts, when=["count:junk@%s_pile <= 0" % kind])],
                 chosen={"action": ["move:target:%s_pile" % kind]}, tags=[kind]))
 
-    # The Dragon pile is the one whose empty rule is a reward rather than a
-    # penalty, because a Dragon is what you were owed.
-    out.append(rules_card(
-        "r_dry_dragon", "The Dragon pile is empty",
-        "When the Dragon pile is empty, gaining a Dragon deals 2 damage and gains 2 Storm Shards instead.",
-        [ability("dry_dragon", [DMG(2), SHARD(2)],
-                 when=["count:dragon@dragon_deck <= 0"])]))
-
-    # **Glittering Dust: "[EARTH] cards do nothing when resolved but Heal 2."**
-    #
-    # "Does nothing when resolved" is said by not being there to do it. The step
-    # runs at the top of each seat's resolution, and what it takes out is what the
-    # four cast columns under it would otherwise have walked -- so the effect is
-    # skipped without a word on any Earth card, which is the whole point: a
-    # weather card that rewrote every Earth card would want rewriting every time
-    # one was printed.
-    #
-    # The card goes where the round would have sent it anyway, by the same verb
-    # the round-end sweep uses. It goes one step early, and nothing between here
-    # and there reads a battle spot.
-    #
-    # **The Ultimate icon still fires**, because the [ULT] window is a phase of
-    # its own and runs before this one. The card says the Earth card's *effect*
-    # is replaced, and casting your Ultimate here is not that.
-    out.append(rules_card(
-        "r_dust", "Glittering Dust",
-        "While Glittering Dust is the weather, Earth cards do nothing when resolved but heal 2.",
-        [ability("dust", [HEAL(2), "destroy:mine.battle.earth"],
-                 when=["card:glitteringdust@weather_now >= 1",
-                       "count:earth@mine.battle >= 1"])]))
-
-    # "SPECIAL: this card ALWAYS goes first." The duel is ordered by `lead`, which
-    # the reveal sets to the Initiative Tracker; this is the one thing that beats
-    # it, and it is a rules card because a rules card is where this game keeps its
-    # ifs and because a player can read it there.
-    out.append(rules_card(
-        "r_first_strike", "Going first",
-        "A revealed Shuriken resolves before anything else, whoever holds the Initiative Tracker.",
-        [ability("first_strike", ["stat_gain:lead@mine.player:9"],
-                 when=["count:first_strike@mine.battle >= 1"])]))
-
-    # Who begins with the Initiative Tracker: the lower Initiative rating.
-    out.append(rules_card(
-        "r_first", "Initiative rating",
-        "The wizard with the lower Initiative rating takes the Initiative Tracker at the start of the game.",
-        [ability("first", GAIN_INIT,
-                 when=["init_rating@mine.player < init_rating@opponent"]),
-         # "At all times exactly one player holds the Initiative Tracker", and
-         # two wizards with the same rating -- a mirror match -- left nobody
-         # holding it, which quietly turned every "starting with the player who
-         # has Initiative" into "starting with whoever happened to be up". The
-         # printed game does not say how to break the tie, so the engine gives it
-         # to the player who is up as the game begins. Run once rather than once
-         # per seat, or the second seat would take it back off the first.
-         ability("first_tie", GAIN_INIT,
-                 when=["initiative@mine.player <= 0",
-                       "initiative@opponent <= 0"])]))
-
     # Abragail's journal: every researched space fires at battle start. The
     # three that ask a question run under their own step so a phase can open
     # them one at a time.
@@ -1657,15 +1645,6 @@ def rules_templates():
                      when=["count:abra@mine.wizard >= 1", "researched@self >= 1"])],
             chosen=chosen if isinstance(chosen, dict) else None, tags=["jspace"], stats={"researched": 0}))
 
-    # A third TOXIC ends the Ultimate whatever the player wanted, and costs one
-    # of each junk card on the way out.
-    out.append(rules_card(
-        "r_potion", "A third TOXIC",
-        "Drawing a third TOXIC potion ends Oren's Ultimate after that potion resolves, and gives him an ASH, a CURSE and an ICE.",
-        [ability("potion_toxic",
-                 GAIN_JUNK("ash") + GAIN_JUNK("curse") + GAIN_JUNK("ice") + POTION_END,
-                 when=["toxic@mine.player >= 3"])]))
-
     # The second half of May's *Data Breach*, here rather than on the card
     # because it is an if asked after the player has answered a question -- and
     # an offer written into a cast runs last, after every rider.
@@ -1675,30 +1654,6 @@ def rules_templates():
         [ability("breach", ["show:enemy.hand"], when=["energy@mine.player >= 2"])],
         chosen={"action": ["destroy:target"]}))
 
-    # Coffee Run's Initiative and Star Shot's extra damage both ask about the
-    # card the player just chose, which is still lying in the offer while the
-    # `chosen` list runs -- the same reading Potion Gun takes its Element from.
-    # Who a gain step is for, and whether it has anything to offer them. Two
-    # seats owed at once is Falling Star, and the one with Initiative goes first.
-    out.append(rules_card(
-        "r_gain", "Gaining",
-        "Whoever is owed a gain from the Storm Cloud chooses it, the player with Initiative first. With nothing on the shelf they may take, the gain passes.",
-        [ability("gain_seat_init", ["set_priority:owes_init"], when=["count:owes_init >= 1"]),
-         ability("gain_seat", ["set_priority:owes_gain"], when=["count:owes_init <= 0"]),
-         ability("gain_may", ["create:menu:btn_no_gain:1"], when=["gain_kind@mine.player != %d" % GAIN_KINDS["must"]]),
-         ability("gain_none", GAIN_DONE, when=["count:takeable_now@storm_cloud <= 0"]),
-         # Where a taken card goes, read off `gained` while it waits there.
-         ability("gained_coffee", GAIN_INIT, when=["gain_kind@mine.player == %d" % GAIN_KINDS["coffee"],
-                                            "count:earth@gained >= 1"]),
-         ability("gained_hand", ["move:gained:mine.hand"], when=["gain_kind@mine.player != %d" % GAIN_KINDS["discard"]]),
-         ability("gained_discard", ["move:gained:mine.discard"], when=["gain_kind@mine.player == %d" % GAIN_KINDS["discard"]]),
-         ability("gained_took", ["stat_damage:gain_owed@mine.player:1"], when=["gain_kind@mine.player == 0"]),
-         ability("gained_done", GAIN_DONE, when=["gain_kind@mine.player >= 1"])]))
-    out.append(rules_card(
-        "r_starshot", "Star Shot",
-        "May deals 1 more damage if the card she discarded was Tier II.",
-        [ability("starshot", [DMG(1)], when=["sum:tier_req@options == 2"])]))
-
     # Asked once per DOOM Token: the Ultimate copies this ability as many times as
     # the stat reads, so the rule holds whatever doom's ceiling is.
     out.append(rules_card(
@@ -1706,15 +1661,6 @@ def rules_templates():
         "For each DOOM Token, Croh takes a card from his discard or draws.",
         [ability("croh_redraw", ["options:croh_take,croh_draw:optional"])],
         tags=["croh_redraw"]))
-
-    # Croh gains DOOM Tokens only from failure states -- having none, or an
-    # empty CURSE pile -- which is the trap his whole design is built around.
-    # An if lives in an ability, so the Ultimate calls one rather than saying it.
-    out.append(rules_card(
-        "r_doom", "Looming",
-        "Croh Vosh gains a DOOM Token from his Ultimate only when he has none left.",
-        [ability("croh_doom", ["stat_gain:doom@mine.player:1"],
-                 when=["doom@mine.player <= 0"])]))
 
     # The VOIDing half of Abragail's *New Curriculum*, which is here rather than
     # on the card because the card is already asking a question of its own and
@@ -1740,8 +1686,7 @@ def rules_templates():
     # Abragail's BATTLE START. The `bstart` column is already walked once per
     # seat at the top of every battle, so a wizard power that happens then is a
     # rules card and its `when` is which wizard is sitting there -- the same
-    # sentence Croh's below, and the same one her journal spaces say with a
-    # Research Token counted as well.
+    # sentence her journal spaces say with a Research Token counted as well.
     out.append(rules_card(
         "r_research", "Did Her Research",
         "At the start of each battle, Abragail powers up.",
@@ -1990,7 +1935,7 @@ def zones():
 
 
 # Every step the resolve phases walk, in the order a round runs them.
-RESOLVE = ["activate_zone:rules:by_column:dust",
+RESOLVE = ["settle_dust",
            "activate_zone:mine.battle:by_column:cast",
            "activate_zone:mine.battle:by_column:cast_ask"]
 
@@ -2031,8 +1976,8 @@ def phases():
                      "each_seat:create:mine.deck:block:2",
                      "each_seat:create:mine.deck:powergem:2",
                      "each_seat:shuffle:mine.deck",
-                     "each_seat:activate_zone:rules:by_column:first",
-                     "activate_zone:rules:by_column:first_tie"],
+                     "each_seat:rate_initiative",
+                     "break_initiative_tie"],
          "next": [{"then": "battle_start"}]},
 
         # A battle begins with three cards in hand. After the first one you are
@@ -2042,9 +1987,7 @@ def phases():
          "actions": ["stat_set:battle_round@plan:0",
                      "each_seat:stat_set:ice_pen@mine.player:0",
                      "each_seat:activate_zone:rules:by_column:bstart",
-                     "each_seat:activate_zone:rules:by_column:topup",
-                     "each_seat:activate_zone:rules:by_column:topup",
-                     "each_seat:activate_zone:rules:by_column:topup"],
+                     "each_seat:top_up", "each_seat:top_up", "each_seat:top_up"],
          "next": [{"then": "journal"}]},
 
         # Resolution order all round is the Initiative Tracker, and it is said
@@ -2092,7 +2035,7 @@ def phases():
         {"key": "showdown", "type": "automatic",
          "actions": ["each_seat:move:mine.commit:mine.battle",
                      "each_seat:stat_set:lead@mine.player:sum:initiative@mine.player",
-                     "each_seat:activate_zone:rules:by_column:first_strike",
+                     "each_seat:strike_first",
                      "each_seat:activate_zone:rules:by_column:check",
                      "each_seat:activate_zone:weather_now:by_column:wy"],
          "next": [{"then": "duel"}]},
@@ -2139,9 +2082,9 @@ def phases():
          "actions": ["move:weather_now:weather_discard",
                      "each_seat:destroy:mine.hand.has_discard",
                      "each_seat:destroy:mine.hand.junk",
-                     "each_seat:activate_zone:rules:by_column:score",
-                     "each_seat:activate_zone:rules:by_column:award_win",
-                     "each_seat:activate_zone:rules:by_column:award_tie",
+                     "each_seat:stat_set:blast@mine.player:count:spell@mine.hand",
+                     "each_seat:stat_damage:blast@mine.player:sum:ice_pen@mine.player",
+                     "each_seat:award_shards",
                      "each_seat:destroy:mine.hand",
                      # Everybody is owed the Regroup's gain, which takes from anywhere
                      # that hands out `takeable`.
@@ -2169,7 +2112,7 @@ def phases():
         # "may" puts a way out beside the shelf, and a shelf with nothing to take
         # passes at once.
         {"key": "gaining", "type": "player_input", "label": "Gain a card from the Storm Cloud", "zone": ["menu"],
-         "actions": ["activate_zone:rules:by_column:" + k for k in GAIN_STEP]},
+         "actions": ["open_gain"]},
 
     ]
 
@@ -2189,13 +2132,6 @@ def build():
     cards += choice_templates()
     cards += trap_templates()
     cards += rules_templates()
-
-    # Top-up: three abilities' worth of "draw if you are short", because a
-    # phase cannot say "draw until you hold three" in one line.
-    cards.append(rules_card(
-        "r_topup", "Battle Start",
-        "At the start of a battle every player draws until they hold three cards.",
-        [ability("topup", [DRAW], when=["count:spell@mine.hand <= 2"])]))
 
     # The two seats. Health carries its own ceiling because a wizard raises it
     # when it is chosen, and stat_boost can only move a ceiling that exists.
@@ -2435,7 +2371,7 @@ def build():
                     "needs": {"req": ["tagged:takeable_now@self"]},
                     # Through `gained`, offscreen, so the rules after it can ask what
                     # was taken and send it where this kind of gain puts it.
-                    "action": ["move_to:gained", REFILL_CLOUD] + ["activate_zone:rules:by_column:" + k for k in GAINED]}]},
+                    "action": ["move_to:gained", REFILL_CLOUD] + ["settle_gain"]}]},
             # The [ULT] icon, said once for the twenty-seven cards that carry
             # it. A phase of its own walks the battle spots for this one
             # ability, so only a card wearing the icon announces itself -- and
@@ -2470,8 +2406,7 @@ def build():
                 "adjusts": [{"key": "track", "verb": "power_up", "stat": "power",
                              "covers": "mine.player",
                              "instead": ["stat_gain:power@mine.player:amount",
-                                         "activate_zone:rules:by_column:tier_up",
-                                         "activate_zone:rules:by_column:tier_gem"]}]},
+                                         "fill_track"]}]},
             "accursed": {
                 "adjusts": [{"key": "curse", "verb": "heal", "stat": "health",
                              "covers": "mine.player",

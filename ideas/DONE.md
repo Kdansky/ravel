@@ -1493,6 +1493,28 @@ keeping the answer on the ctx, parked tails included.
   play identical in every game but Spellstorm, where the one divergence in 20
   seeds is Swamp Silt.
 
+# A verb with gates · shipped
+
+A declared verb takes a `needs` of gates, unfolded by the same `needs.lua` pass an
+ability goes through (`BLOCKS.verb`), and `actions.expand` fills `paramN` into a
+gate's conditions as well as its line. That moved thirteen of Spellstorm's rules
+cards into verbs, or into a gate on a caller that already took one (`drink`,
+Croh's Ultimate): r_gain's nine abilities are `open_gain` and `settle_gain`,
+the Power Track is `fill_track`, the two Ruby cards are one `ruby_pick`.
+
+- **Gates only.** A `req` would be asked once the caller's list had started, so
+  there is nothing left for it to stop; a routine that is all-or-nothing puts
+  every line behind one gate.
+- **Trap:** `perform` copied the caller's ctx whole, and with it the caller's
+  gate answers, so a body gate sharing a name with one the caller had asked read
+  the caller's answer. The body starts with no gates answered.
+- **What stays a rules card:** a card walked for its own state (`researched@self`
+  on a journal space, `fresh@self` on a ghost), a zone walked for whichever card
+  is in it (weather, the revealed potion, countering), and a rules card that asks
+  a question and owns the answer (Data Breach, New Curriculum, the dry junk piles).
+- **Migration:** random play over 80 seeds × 200 moves reads the same board card
+  by card before and after.
+
 # Bugs found on the way, and what they bought
 
 Recorded because each was invisible to a green test suite, and the fix in each

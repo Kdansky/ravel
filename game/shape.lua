@@ -224,7 +224,7 @@ local FILE = rec({
 	tags = map(TAG),
 	computes = list(rec({ key = STR, value = either(STR, NUM), tooltip = STR })),
 	computed_tags = map(rec({ needs = NEEDS, any_of = STRS })),
-	verbs = list(rec({ key = STR, does = STR, action = ACTIONS, tooltip = STR, effect = STR })),
+	verbs = list(rec({ key = STR, does = STR, action = ACTIONS, needs = NEEDS, tooltip = STR, effect = STR })),
 	effects = map(rec({ base = STR, size = NUM, speed = NUM, count = NUM, color = COLOUR })),
 	end_conditions = list(rec({ when = COND, ["then"] = ACTIONS })),
 	setup = rec({

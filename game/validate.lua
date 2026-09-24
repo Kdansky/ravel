@@ -252,7 +252,7 @@ local RETIRED       = { activate = true, ends_after = true, zone_empty = true,
 	stat = true, less_than = true, less_than_stat = true, less_than_max = true,
 	at_least = true, equals = true, all_of = true }
 
-local VERB_FIELDS   = { key = true, does = true, action = true, tooltip = true, effect = true }
+local VERB_FIELDS   = { key = true, does = true, action = true, needs = true, tooltip = true, effect = true }
 local ADJUST_FIELDS = { key = true, verb = true, stat = true, covers = true, needs = true, by = true,
 	instead = true }
 -- Stats the engine writes on a card for itself. A game declaring one gets it

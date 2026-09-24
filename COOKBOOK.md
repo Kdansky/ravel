@@ -1121,10 +1121,64 @@ something says so itself:
 of the string, colons and all. The body runs as the caller, so `@self` is the card that said
 `disable`. The call writes arguments by position, so the tooltip says what each one is.
 
-Also: a verb announces itself, so a reaction may answer `"to": "disable"`. A routine that runs
-only when a `needs` holds is still a rules zone of invisible cards, called with
-`activate_zone:rules:by_column:<key>` — a body has no if. The next entry reaches one by tag
-instead, which a verb can take as an argument.
+Also: a verb announces itself, so a reaction may answer `"to": "disable"`, and it may take gates
+(*Gain a Dragon*). The next entry keeps its rule on a card for another reason — the rule asks the
+player, and a card that asks owns the answer — and reaches it by tag, which a verb can take as an
+argument.
+
+### Gain a Dragon — or, if the pile is empty, 2 damage and 2 Shards instead.
+
+```json
+"verbs": [{ "key": "dragons_gone", "needs": { "empty": "count:dragon@dragon_deck <= 0" },
+            "action": ["empty? hit:health@opponent:2", "empty? stat_gain:shards@mine.player:2"] }],
+"action": ["dragons_gone", "draw_from:dragon_deck:mine.hand:1"]
+```
+
+A verb takes gates, as an ability does, and a gate may read `param1`. Gates only: the verb runs
+inside the caller's list, so a `req` would have nothing left to stop.
+
+**Also:** an if that every line sits behind is still a gate — `empty?` on each. It used to be
+a rules card in an offscreen zone, reached with `activate_zone`; the verb is one entry and the
+call reads as a word.
+
+### Finish it: destroy it if it has less than 5 health, otherwise deal 1 damage.
+
+```json
+"verbs": [{ "key": "finish", "tooltip": "Finish <a unit>.",
+            "needs": { "low": "hp@param1 < 5" },
+            "action": ["low? destroy:param1", "!low? stat_damage:hp@param1:1"] }],
+"play": { "target": { "type": "card", "tags": ["unit"], "count": 1 }, "action": ["finish:target"] }
+```
+
+A gate may ask about an argument: `param1` is filled in there as in the line. The body's gates
+are its own, so a caller that asked a `low?` of its own has answered nothing here.
+
+### Six Power fills the track: a Tier — or, at Tier III, a Dragon instead.
+
+```json
+"verbs": [{ "key": "fill_track",
+  "needs": { "up": ["power@mine.player >= 6", "tier@mine.player <= 2"],
+             "top": ["power@mine.player >= 6", "tier@mine.player >= 3"] },
+  "action": ["up? stat_damage:power@mine.player:6", "up? stat_gain:tier@mine.player:1",
+             "top? stat_damage:power@mine.player:6", "top? dragons_gone",
+             "top? draw_from:dragon_deck:mine.hand:1"] }]
+```
+
+A gate is asked at the first line behind it and kept, so `top` reads the track *after* `up` has
+run: filling it to Tier III is not also a Dragon. **Trap:** a line sits behind one gate, so a
+condition two branches share is written in both.
+
+### Take the gem the panic level says: a 1 at panic 1, a 2 at panic 2, and so on.
+
+```json
+"verbs": [{ "key": "ante", "tooltip": "Take the gem this turn's panic level names.",
+  "needs": { "p1": "panic@clock <= 1", "p2": "panic@clock == 2", "p3": "panic@clock == 3", "p4": "panic@clock >= 4" },
+  "action": ["p1? take:bank.gem_1:mine.gem_pile:1", "p2? take:bank.gem_2:mine.gem_pile:1",
+             "p3? take:bank.gem_3:mine.gem_pile:1", "p4? take:bank.gem_4:mine.gem_pile:1"] }]
+```
+
+A number choosing one of several is one gate per value. Name splicing is refused — `gem_param1`
+is not `gem_2` — so the value cannot pick the key by itself.
 
 ### Give your opponent an ICE — or, if the ICE pile is empty, the penalty instead.
 

@@ -35,6 +35,7 @@ local BLOCKS = {
 	move = { req = true, where = "self" },
 	chosen = { where = "self" },
 	plain = { req = true },
+	verb = { gates = true, refuses = "a verb takes gates only: it runs inside the caller's list, which has already started" },
 }
 
 local MOMENT_BLOCK = { play = "play", chosen = "chosen" }
@@ -103,7 +104,7 @@ local function unfold(b, what, takes, pp)
 		if not conds_ok(v) then
 			pp[#pp + 1] = ('%s: needs "%s" should be a condition or a list of them'):format(what, tostring(k))
 		elseif KINDS[k] and not takes[k] then
-			pp[#pp + 1] = ('%s: needs takes no "%s" here'):format(what, k)
+			pp[#pp + 1] = ('%s: needs takes no "%s" here%s'):format(what, k, takes.refuses and " — " .. takes.refuses or "")
 		elseif not KINDS[k] then
 			if takes.gates then
 				gates[k] = listed(v)
@@ -190,6 +191,9 @@ function M.unfold(file, pp)
 	end
 	for name, ct in pairs(type(file.computed_tags) == "table" and file.computed_tags or {}) do
 		unfold(ct, "computed tag '" .. tostring(name) .. "'", BLOCKS.plain, pp)
+	end
+	for _, vd in ipairs(type(file.verbs) == "table" and file.verbs or {}) do
+		if type(vd) == "table" then unfold(vd, "verb '" .. tostring(vd.key) .. "'", BLOCKS.verb, pp) end
 	end
 	return file
 end

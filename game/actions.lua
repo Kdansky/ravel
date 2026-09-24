@@ -1765,20 +1765,37 @@ end
 
 -- A body's `param1`, `param2` … are the call's arguments in order, matched as whole words so `param1` is never the front
 -- of `param10`. The last takes the rest of the string, so an argument may carry colons of its own. Returns the lines
--- ready to run, or nil and how many arguments the body wants.
+-- ready to run, or nil and how many arguments the body wants. A gate may ask about an argument too, so its conditions
+-- are filled in with the line they stand in front of.
 local PARAM = "%f[%w_]param(%d+)%f[^%w_]"
+
+local function each_string(line, fn)
+	if type(line) == "string" then return fn(line) end
+	local gates = {}
+	for i, g in ipairs(line.gates) do
+		local when = {}
+		for j, s in ipairs(g.when) do when[j] = fn(s) end
+		gates[i] = { name = g.name, when = when, holds = g.holds }
+	end
+	return { line = fn(line.line), gates = gates }
+end
 
 function M.expand(vd, p)
 	local n = 0
 	for _, line in ipairs(vd.action) do
-		for d in line:gmatch(PARAM) do n = math.max(n, tonumber(d)) end
+		each_string(line, function(s)
+			for d in s:gmatch(PARAM) do n = math.max(n, tonumber(d)) end
+			return s
+		end)
 	end
 	if #p - 1 < n then return nil, n end
 	local args = {}
 	for i = 1, n - 1 do args[i] = p[i + 1] end
 	if n > 0 then args[n] = table.concat(p, ":", n + 1) end
 	local out = {}
-	for i, line in ipairs(vd.action) do out[i] = (line:gsub(PARAM, function(d) return args[tonumber(d)] end)) end
+	for i, line in ipairs(vd.action) do
+		out[i] = each_string(line, function(s) return (s:gsub(PARAM, function(d) return args[tonumber(d)] end)) end)
+	end
 	return out
 end
 
@@ -1809,6 +1826,8 @@ local function perform(p, ctx)
 	local c = {}
 	for k, v in pairs(ctx or {}) do c[k] = v end
 	c.within = p[1]
+	-- The body's gates are its own: a caller's "init?" answered is no answer to a gate of the same name in here.
+	c.gated = nil
 	body_depth = body_depth + 1
 	M.run(list, c)
 	body_depth = body_depth - 1
