@@ -48,10 +48,14 @@ local function either(...)
 end
 
 local STRS    = list(STR)
-local ACTIONS = list(STR)
-ACTIONS.what  = 'a list of actions like ["stat_gain:gold:1"]'
 -- One condition, or a list that must all hold.
 local COND    = either(STR, list(STR))
+-- An action is a string, or an if standing in its place. Its `do` takes the same entries, so an if inside an if is
+-- still the right shape here and reaches the validator, which is what refuses it by name.
+local IF      = rec({ ["if"] = COND }, '{ "if": ["gold >= 3"], "do": ["stat_gain:mana:1"] }')
+local ACTIONS = list(either(STR, IF))
+ACTIONS.what  = 'a list of actions like ["stat_gain:gold:1"]'
+IF.fields["do"] = ACTIONS
 local WORDS   = either(STR, list(STR))
 local RECT    = list(NUM, 4, "[0.1, 0.1, 0.4, 0.3]")
 local COLOUR  = list(NUM, { 3, 4 }, "[0.8, 0.2, 0.2]")

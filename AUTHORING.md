@@ -62,7 +62,7 @@ and a line here names a section that exists:
 - **What a file holds** — Top-level fields · One game out of several files · `comment` — the one field the engine will not read · `ravel_` — the fields that are the engine's · Stats · Zones · A shelf — several zones on one rect · The system column · Players · Setup · Card templates · Two marks in card text · A caption that reads the board · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · A turn each · Two or more players · The player is a card · A stat says whose number it is
 - **Asking the board a question** — Conditions (one vocabulary everywhere) · `lowest:` and `highest:` — a pool in order · `aims:` — what an ability could point at · `spread` — an aim that spends points rather than cards · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `select` — a cost the player settles · `@owner_of` — the seat a card belongs to · `@attached_to` and `@host_of` — a card standing on another · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A place may be a word several zones wear · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
-- **What a card does** — Actions · A card that can do several things · Readiness — spent, given back, and asked about · `merge` — what an ability says to the others on its card · `needs` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag, or a counter, that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · A verb with a body — the game's own action · `does: "target"` — naming the aim, so the target can answer it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
+- **What a card does** — Actions · A card that can do several things · Readiness — spent, given back, and asked about · `merge` — what an ability says to the others on its card · `needs` — an ability with an if in it · `if` and `do` — an if inside an action list · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag, or a counter, that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · A verb with a body — the game's own action · `does: "target"` — naming the aim, so the target can answer it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
 - **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · A second asker is a second answer · `chosen.where` — which of the revealed cards may be taken · An answer may have a price · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · A list waits for the question it asked
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `answered` — the announcement itself · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · An automatic phase can ask, if the ask is the last thing it does · A mandatory reaction is how you ask somebody else a question · What it will not do yet
 - **Boards and pieces** — Pieces that move · Asking about the square you are considering · Moves with fixed destinations (castling) · Legality between two cards · Which end of a deck a card lands on · A cell, where the destination is a grid · Filling a row up · `origin` — back where it came from · `fan` — a stack you can read
@@ -3356,6 +3356,31 @@ after   when   ["attacking@self >= 1", "overkill >= 1"]
 
 Every rule about conditions holds here — a list means *and*, one comparison per
 string, and an absent stat fails every comparison.
+
+### `if` and `do` — an if inside an action list
+
+A `needs` gates a whole ability. When a card does one thing and then, *if*
+something, a second, the second is an entry of its own in the action list:
+
+```json
+"action": ["stat_gain:mana@mine.player:1",
+           { "if": ["initiative@mine.player >= 1"], "do": ["hit:health@opponent:1"] },
+           "stat_gain:power@mine.player:1"]
+```
+
+*"Gain 1 mana. If you have Initiative, deal 1 damage. Power up."* It runs where
+it stands: the condition is asked when the list reaches it, after everything
+above it has happened, and the lines below run whether it held or not.
+
+- `if` is the `needs` grammar unchanged — one condition or a list, all of which
+  must hold, bare yes/no questions included.
+- `do` is an ordinary action list. A question in it (`options:`, `show:`) holds
+  back the rest of `do` *and* the rest of the outer list, exactly as if they had
+  been written inline.
+- A verb body may hold one, and `param1` … are filled in on both halves.
+- One level. An if inside a `do` is refused: two gates are two conditions in one
+  `if`. There is no `else` — the other branch is a second if saying its own
+  condition, which reads better than a negation nobody wrote.
 
 ### Reactions — answering another player's action
 

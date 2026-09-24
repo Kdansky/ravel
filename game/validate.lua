@@ -1380,7 +1380,28 @@ function M.check(G)
 
 	local expanding = {}
 	local check_action
-	function check_action(where, str)
+	function check_action(where, str, bound)
+		-- An if standing in the list: the `needs` grammar in "if", and "do" holding the lines it gates. One level —
+		-- a nested one is refused rather than read, since a condition that needs two gates is a list of two.
+		if type(str) == "table" then
+			for k in pairs(str) do
+				if k ~= "if" and k ~= "do" then
+					warn('%s: an if takes "if" and "do", not "%s"%s', where, tostring(k),
+						k == "else" and " — the other branch is a second if, saying its own condition" or "")
+				end
+			end
+			if str["if"] == nil then warn('%s: a "do" with no "if" — its lines belong in the list itself', where) end
+			if type(str["do"]) ~= "table" or #str["do"] == 0 then warn('%s: an "if" with no "do" does nothing', where) end
+			check_conditions(where .. " if", str["if"], bound)
+			for i, line in ipairs(type(str["do"]) == "table" and str["do"] or {}) do
+				if type(line) == "table" then
+					warn("%s: an if inside another — write both conditions in the outer one's \"if\"", where)
+				else
+					check_action(where .. " do[" .. i .. "]", line, bound)
+				end
+			end
+			return
+		end
 		local p = {}
 		for w in str:gmatch("[^:]+") do
 			local prev = p[#p]
@@ -1660,17 +1681,17 @@ function M.check(G)
 		end
 	end
 
-	local function check_list(where, list)
+	local function check_list(where, list, bound)
 		if list == nil then return end
 		if type(list) ~= "table" then
 			warn('%s: should be a list of actions like ["stat_gain:gold:1"], not a single value', where)
 			return
 		end
 		for _, str in ipairs(list) do
-			if type(str) ~= "string" then
+			if type(str) ~= "string" and type(str) ~= "table" then
 				warn("%s: every action must be a text string", where)
 			else
-				check_action(where, str)
+				check_action(where, str, bound)
 			end
 		end
 
@@ -1938,7 +1959,7 @@ function M.check(G)
 		if type(ab) ~= "table" then return end
 		local bound = check_compute(where, ab.compute)
 		check_cost(where .. " cost", ab.cost, "activate", bound)
-		check_list(where .. " action", ab.action)
+		check_list(where .. " action", ab.action, bound)
 		check_phases(where, ab.phases)
 		-- What this ability says when it meets the others on the same card.
 		if ab.merge ~= nil and ab.merge ~= "both" and ab.merge ~= "this" and ab.merge ~= "other" then
@@ -3600,8 +3621,8 @@ function M.check(G)
 	-- A body's arguments count from param1, and one it skips is an argument every call has to write for nothing.
 	local function gap(body)
 		local seen, n = {}, 0
-		for _, line in ipairs(type(body) == "table" and body or {}) do
-			for w in tostring(line):gmatch("%f[%w_]param(%d+)%f[^%w_]") do
+		for _, line in ipairs(actions.strings(body)) do
+			for w in line:gmatch("%f[%w_]param(%d+)%f[^%w_]") do
 				local d = tonumber(w)
 				if d == 0 then return "writes param0, but arguments count from param1" end
 				seen[d], n = true, math.max(n, d)

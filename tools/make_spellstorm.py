@@ -191,8 +191,8 @@ FIRE, WATER, EARTH = "fire", "water", "earth"
 # Cards
 #
 # One row per printed card. `cast` is what resolving it does; `cast2` and
-# `cast3` are riders with an "if" in them, run as later steps so that a
-# condition is read before the main effect has changed it. `disc` is the
+# `cast3` are riders with an "if" in them, which follow it in the same list
+# and so read the condition after the main effect has run. `disc` is the
 # On Discard effect, run in the Regroup phase.
 # ---------------------------------------------------------------------------
 
@@ -1314,12 +1314,11 @@ def spell_template(c):
             "%s: the offers have to be the last thing its %s does" % (c["key"], col)
 
     abil = []
+    riders = [{"if": [c[col][0]], "do": list(c[col][1])} for col in ("cast2", "cast3") if c[col]]
     # Kept even when it is empty, so the resolve phase's first pass always has
     # something to name.
-    abil.append(ability("cast", does, text="Resolve"))
-    if c["cast2"]: abil.append(ability("cast2", c["cast2"][1], when=[c["cast2"][0]], text="Resolve"))
-    if c["cast3"]: abil.append(ability("cast3", c["cast3"][1], when=[c["cast3"][0]], text="Resolve"))
-    if asks:       abil.append(ability("cast_ask", asks, text="Resolve"))
+    abil.append(ability("cast", does + riders, text="Resolve"))
+    if asks: abil.append(ability("cast_ask", asks, text="Resolve"))
     t["abilities"] = abil
     # On Discard is not an ability. An ability is something the card does, and
     # every rule that runs abilities would run this one -- resolving it, copying
@@ -1955,8 +1954,6 @@ def zones():
 # Every step the resolve phases walk, in the order a round runs them.
 RESOLVE = ["activate_zone:rules:by_column:dust",
            "activate_zone:mine.battle:by_column:cast",
-           "activate_zone:mine.battle:by_column:cast2",
-           "activate_zone:mine.battle:by_column:cast3",
            "activate_zone:mine.battle:by_column:cast_ask"]
 
 

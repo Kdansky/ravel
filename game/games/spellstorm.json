@@ -960,8 +960,6 @@
       "actions": [
         "activate_zone:rules:by_column:dust",
         "activate_zone:mine.battle:by_column:cast",
-        "activate_zone:mine.battle:by_column:cast2",
-        "activate_zone:mine.battle:by_column:cast3",
         "activate_zone:mine.battle:by_column:cast_ask"
       ]
     },
@@ -1045,12 +1043,13 @@
       "tags": ["fire", "ember", "spell", "basic", "ult"],
       "tooltip": "Gain *1 mana*. If you have *Initiative*, deal *1 damage*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_Fire magic is often banned from use in many parts of the world, due to its unpredictable nature._",
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["stat_gain:mana@mine.player:1"] },
         {
-          "key": "cast2",
+          "key": "cast",
           "text": "Resolve",
-          "needs": ["initiative@mine.player >= 1"],
-          "action": ["hit:health@opponent:1"]
+          "action": [
+            "stat_gain:mana@mine.player:1",
+            { "if": ["initiative@mine.player >= 1"], "do": ["hit:health@opponent:1"] }
+          ]
         }
       ]
     },
@@ -1136,13 +1135,14 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["hit:health@opponent:1", "gain_junk:ash"]
-        },
-        {
-          "key": "cast2",
-          "text": "Resolve",
-          "needs": ["initiative@mine.player >= 1"],
-          "action": ["hit:health@opponent:2", "lose_initiative"]
+          "action": [
+            "hit:health@opponent:1",
+            "gain_junk:ash",
+            {
+              "if": ["initiative@mine.player >= 1"],
+              "do": ["hit:health@opponent:2", "lose_initiative"]
+            }
+          ]
         }
       ]
     },
@@ -1154,12 +1154,13 @@
       "tooltip": "Deal *2 damage*. If you have *Initiative*, deal *2 more damage*.\n\n_It is customary to say \"shaboom-ya!\" when one reveals the Fireball II card._",
       "card_stats": { "tier_req": 3 },
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["hit:health@opponent:2"] },
         {
-          "key": "cast2",
+          "key": "cast",
           "text": "Resolve",
-          "needs": ["initiative@mine.player >= 1"],
-          "action": ["hit:health@opponent:2"]
+          "action": [
+            "hit:health@opponent:2",
+            { "if": ["initiative@mine.player >= 1"], "do": ["hit:health@opponent:2"] }
+          ]
         }
       ]
     },
@@ -1204,13 +1205,14 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["stat_gain:mana@mine.player:1", "stat_gain:mana@mine.player:1"]
-        },
-        {
-          "key": "cast2",
-          "text": "Resolve",
-          "needs": ["count:water@enemy.battle >= 1"],
-          "action": ["move_to:void", "gain_junk:curse", "hurt:health@mine.player:1"]
+          "action": [
+            "stat_gain:mana@mine.player:1",
+            "stat_gain:mana@mine.player:1",
+            {
+              "if": ["count:water@enemy.battle >= 1"],
+              "do": ["move_to:void", "gain_junk:curse", "hurt:health@mine.player:1"]
+            }
+          ]
         }
       ]
     },
@@ -1266,22 +1268,21 @@
       "tooltip": "Take *1 damage* and lose *2 mana*. If you did, you may cast your *Ultimate* here without paying its mana cost.\n\n_\"Whenever I close my eyes, I see my twisted reflection in that black mirrored gem.\" - Unknown_",
       "card_stats": { "tier_req": 2 },
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["hurt:health@mine.player:1"] },
         {
-          "key": "cast2",
+          "key": "cast",
           "text": "Resolve",
-          "needs": ["mana@mine.player >= 2"],
           "action": [
-            "stat_damage:mana@mine.player:2",
-            "stat_gain:ult_free@mine.player:1",
-            "emit:resolving"
+            "hurt:health@mine.player:1",
+            {
+              "if": ["mana@mine.player >= 2"],
+              "do": [
+                "stat_damage:mana@mine.player:2",
+                "stat_gain:ult_free@mine.player:1",
+                "emit:resolving"
+              ]
+            },
+            { "if": ["ult_free@mine.player <= 0"], "do": ["stat_damage:mana@mine.player:2"] }
           ]
-        },
-        {
-          "key": "cast3",
-          "text": "Resolve",
-          "needs": ["ult_free@mine.player <= 0"],
-          "action": ["stat_damage:mana@mine.player:2"]
         }
       ]
     },
@@ -1293,12 +1294,16 @@
       "tooltip": "*Draw a card*. If you have *Initiative*, deal *2 damage* and you may redraw this to your hand.\n\n_When going for a fire-based strategy, it's important to keep the pressure on._",
       "card_stats": { "tier_req": 2 },
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["draw_from:mine.deck:mine.hand:1"] },
         {
-          "key": "cast2",
+          "key": "cast",
           "text": "Resolve",
-          "needs": ["initiative@mine.player >= 1"],
-          "action": ["hit:health@opponent:2", "options:rf_back:optional"]
+          "action": [
+            "draw_from:mine.deck:mine.hand:1",
+            {
+              "if": ["initiative@mine.player >= 1"],
+              "do": ["hit:health@opponent:2", "options:rf_back:optional"]
+            }
+          ]
         }
       ]
     },
@@ -1359,19 +1364,12 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["draw_from:mine.deck:mine.hand:1", "give_junk:curse"]
-        },
-        {
-          "key": "cast2",
-          "text": "Resolve",
-          "needs": ["initiative@mine.player >= 1"],
-          "action": ["lose_initiative"]
-        },
-        {
-          "key": "cast3",
-          "text": "Resolve",
-          "needs": ["initiative@mine.player <= 0"],
-          "action": ["take_initiative"]
+          "action": [
+            "draw_from:mine.deck:mine.hand:1",
+            "give_junk:curse",
+            { "if": ["initiative@mine.player >= 1"], "do": ["lose_initiative"] },
+            { "if": ["initiative@mine.player <= 0"], "do": ["take_initiative"] }
+          ]
         }
       ]
     },
@@ -1383,12 +1381,15 @@
       "tooltip": "If you have *Initiative*, deal *3 damage*, lose *Initiative*, and put this in your opponent's discard.\n\n_\"The first lesson in using fire magic always must be... how not to burn one's self.\" - B Underbrom, Professor of Fire Magic_",
       "card_stats": { "tier_req": 2 },
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": [] },
         {
-          "key": "cast2",
+          "key": "cast",
           "text": "Resolve",
-          "needs": ["initiative@mine.player >= 1"],
-          "action": ["hit:health@opponent:3", "lose_initiative", "move_to:enemy.discard"]
+          "action": [
+            {
+              "if": ["initiative@mine.player >= 1"],
+              "do": ["hit:health@opponent:3", "lose_initiative", "move_to:enemy.discard"]
+            }
+          ]
         }
       ]
     },
@@ -1466,13 +1467,11 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["take_initiative", "heal:health@mine.player:1"]
-        },
-        {
-          "key": "cast2",
-          "text": "Resolve",
-          "needs": ["count:fire@enemy.battle >= 1"],
-          "action": ["show:mine.held:optional"]
+          "action": [
+            "take_initiative",
+            "heal:health@mine.player:1",
+            { "if": ["count:fire@enemy.battle >= 1"], "do": ["show:mine.held:optional"] }
+          ]
         }
       ],
       "chosen": { "action": ["move:target:void"], "where": ["not_tagged:no_void@target"] }
@@ -1498,13 +1497,12 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["draw_from:mine.deck:mine.hand:1", "take_initiative", "heal:health@mine.player:1"]
-        },
-        {
-          "key": "cast2",
-          "text": "Resolve",
-          "needs": ["count:fire@enemy.battle >= 1"],
-          "action": ["hit:health@opponent:2"]
+          "action": [
+            "draw_from:mine.deck:mine.hand:1",
+            "take_initiative",
+            "heal:health@mine.player:1",
+            { "if": ["count:fire@enemy.battle >= 1"], "do": ["hit:health@opponent:2"] }
+          ]
         }
       ]
     },
@@ -1529,18 +1527,13 @@
       "tags": ["water", "tide", "spell", "has_discard"],
       "tooltip": "If you have *Initiative*, *heal 1*. Otherwise, gain *Initiative*. On discard: gain *Initiative*.\n\n_From the year 366-1182, the Water Kingdom reigned over much of the Eastern Continent._",
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": [] },
         {
-          "key": "cast2",
+          "key": "cast",
           "text": "Resolve",
-          "needs": ["initiative@mine.player >= 1"],
-          "action": ["heal:health@mine.player:1"]
-        },
-        {
-          "key": "cast3",
-          "text": "Resolve",
-          "needs": ["initiative@mine.player <= 0"],
-          "action": ["take_initiative"]
+          "action": [
+            { "if": ["initiative@mine.player >= 1"], "do": ["heal:health@mine.player:1"] },
+            { "if": ["initiative@mine.player <= 0"], "do": ["take_initiative"] }
+          ]
         }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["take_initiative"] }
@@ -1637,12 +1630,20 @@
       "tags": ["earth", "loam", "spell", "has_discard"],
       "tooltip": "If you hold 3 or more other cards, discard 3 of them and *power up 3 times*. On discard: *power up*.\n\n_\"Learned more spells in 1 day at the Spellstorm, than I had in the past 3 years.\" - Azura Spellstorm Scholar_",
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": [] },
         {
-          "key": "cast2",
+          "key": "cast",
           "text": "Resolve",
-          "needs": ["count:spell@mine.hand >= 3"],
-          "action": ["power_up:power@mine.player:3", "show:mine.hand", "show:mine.hand", "show:mine.hand"]
+          "action": [
+            {
+              "if": ["count:spell@mine.hand >= 3"],
+              "do": [
+                "power_up:power@mine.player:3",
+                "show:mine.hand",
+                "show:mine.hand",
+                "show:mine.hand"
+              ]
+            }
+          ]
         }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:1"] },
@@ -1763,12 +1764,13 @@
       "tooltip": "*Power up twice* and you may gain a card from the *Storm Cloud* at or below your *Tier*. If anyone revealed *Water*, *power up* again. On discard: *power up twice*.\n\n_When you see the \"Gain Card\" icon on a card, keep in mind that you may choose not to gain a card._",
       "card_stats": { "tier_req": 2 },
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["power_up:power@mine.player:2"] },
         {
-          "key": "cast2",
+          "key": "cast",
           "text": "Resolve",
-          "needs": ["count:water@battle >= 1"],
-          "action": ["power_up:power@mine.player:1"]
+          "action": [
+            "power_up:power@mine.player:2",
+            { "if": ["count:water@battle >= 1"], "do": ["power_up:power@mine.player:1"] }
+          ]
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["gain_tier"] }
       ],
@@ -1976,14 +1978,9 @@
             "stat_gain:mana@mine.player:1",
             "power_up:power@mine.player:1",
             "hit:health@opponent:1",
-            "gain_junk:ash"
+            "gain_junk:ash",
+            { "if": ["initiative@mine.player >= 1"], "do": ["hit:health@opponent:1"] }
           ]
-        },
-        {
-          "key": "cast2",
-          "text": "Resolve",
-          "needs": ["initiative@mine.player >= 1"],
-          "action": ["hit:health@opponent:1"]
         }
       ]
     },
@@ -2237,14 +2234,9 @@
           "action": [
             "stat_gain:mana@mine.player:1",
             "stat_gain:mana@mine.player:1",
-            "hit:health@opponent:sum:doom@mine.player"
+            "hit:health@opponent:sum:doom@mine.player",
+            { "if": ["count:junk@curse_pile <= 0"], "do": ["stat_gain:doom@mine.player:1"] }
           ]
-        },
-        {
-          "key": "cast2",
-          "text": "Resolve",
-          "needs": ["count:junk@curse_pile <= 0"],
-          "action": ["stat_gain:doom@mine.player:1"]
         }
       ]
     },
@@ -2258,13 +2250,14 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["destroy:random.enemy.hand", "draw_from:mine.deck:mine.hand:1"]
-        },
-        {
-          "key": "cast2",
-          "text": "Resolve",
-          "needs": ["count:spell@mine.hand >= count:spell@enemy.hand"],
-          "action": ["stat_gain:doom@mine.player:1"]
+          "action": [
+            "destroy:random.enemy.hand",
+            "draw_from:mine.deck:mine.hand:1",
+            {
+              "if": ["count:spell@mine.hand >= count:spell@enemy.hand"],
+              "do": ["stat_gain:doom@mine.player:1"]
+            }
+          ]
         }
       ]
     },
@@ -2416,13 +2409,11 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["power_up:power@mine.player:1", "stat_gain:mana@mine.player:1"]
-        },
-        {
-          "key": "cast2",
-          "text": "Resolve",
-          "needs": ["tier@opponent <= 1"],
-          "action": ["power_up:power@opponent:1"]
+          "action": [
+            "power_up:power@mine.player:1",
+            "stat_gain:mana@mine.player:1",
+            { "if": ["tier@opponent <= 1"], "do": ["power_up:power@opponent:1"] }
+          ]
         },
         {
           "key": "cast_ask",
@@ -2439,12 +2430,13 @@
       "tags": ["water", "tide", "spell", "wizard_spell", "no_void", "ult"],
       "tooltip": "*Heal 2*. Give an *ICE* to your opponent if they have none in their discard.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The Stuffies are a species of stuffed animals that have been brought to life by powerful Star magic._",
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["heal:health@mine.player:2"] },
         {
-          "key": "cast2",
+          "key": "cast",
           "text": "Resolve",
-          "needs": ["count:junk@enemy.discard <= 0"],
-          "action": ["give_junk:ice"]
+          "action": [
+            "heal:health@mine.player:2",
+            { "if": ["count:junk@enemy.discard <= 0"], "do": ["give_junk:ice"] }
+          ]
         }
       ]
     },
@@ -2538,13 +2530,11 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["power_up:power@mine.player:1", "stat_gain:mana@mine.player:1"]
-        },
-        {
-          "key": "cast2",
-          "text": "Resolve",
-          "needs": ["count:water@battle >= 1"],
-          "action": ["stat_gain:earth_el@mine.player:1"]
+          "action": [
+            "power_up:power@mine.player:1",
+            "stat_gain:mana@mine.player:1",
+            { "if": ["count:water@battle >= 1"], "do": ["stat_gain:earth_el@mine.player:1"] }
+          ]
         },
         {
           "key": "cast_ask",

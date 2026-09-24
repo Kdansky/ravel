@@ -1470,6 +1470,24 @@ burn is made of. A declared verb in the body keeps its own name.
   its own is no zone and no stat; it refuses `param0`, a skipped number, too few
   arguments and a verb that performs itself.
 
+# An if inside an action list · shipped
+
+An action list may hold `{ "if": [conditions], "do": [actions] }` in place of a
+string. The `if` is the `needs` grammar unchanged; `actions.run` splices a `do`
+that holds into the list where it stands, so a question inside it parks the rest
+of `do` and of the outer list as one plain tail.
+
+- **Why an object, not `when:<cond>:<action>`:** a condition may contain a colon,
+  so the wrapper had no reading. Naming each gate as a `computes` key was the
+  write-up's first choice until the count: Spellstorm's 65 step gates are 53
+  distinct conditions, 400 of 790 `needs` lists are conjunctions, and a compute
+  is a value, not a condition. The object carries every existing condition as it
+  is.
+- **Refused:** an if inside a `do`, and `else` — the other branch is a second if
+  with its own condition.
+- **Spellstorm:** `cast2`/`cast3` folded into `cast` as ifs; the `resolve` phase
+  lost two passes. Random play over 80 seeds is identical before and after.
+
 # Bugs found on the way, and what they bought
 
 Recorded because each was invisible to a green test suite, and the fix in each

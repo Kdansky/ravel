@@ -948,13 +948,13 @@ function M.test_spellstorm_dooms_arrive_only_from_failure(check)
 		seat_card(one).stats.doom == 1, seat_card(one).stats.doom)
 
 	local sinking = stage_battle(one, "croh_sinking")
-	actions.execute("activate_zone:mine.battle:by_column:cast2",
+	actions.execute("activate_zone:mine.battle:by_column:cast",
 		{ card_id = sinking.id, targets = {} })
 	check("and Sinking Strike grants none while the CURSE pile is stocked",
 		seat_card(one).stats.doom == 1, seat_card(one).stats.doom)
 	local pile = zones.find("curse_pile")
 	for _, id in ipairs({ unpack(pile.cards) }) do zones.move_card(id, zones.find_id("void")) end
-	actions.execute("activate_zone:mine.battle:by_column:cast2",
+	actions.execute("activate_zone:mine.battle:by_column:cast",
 		{ card_id = sinking.id, targets = {} })
 	check("emptied, it does", seat_card(one).stats.doom == 2, seat_card(one).stats.doom)
 end
@@ -969,7 +969,7 @@ function M.test_spellstorm_rapid_fire_comes_back(check)
 	become(one)
 	actions.execute("stat_set:initiative@mine.player:0", {})
 	local rf = stage_battle(one, "rapidfire")
-	actions.execute("activate_zone:mine.battle:by_column:cast2", { card_id = rf.id, targets = {} })
+	actions.execute("activate_zone:mine.battle:by_column:cast", { card_id = rf.id, targets = {} })
 	check("without Initiative it stays where it fell",
 		entity.get(rf.id).zone_id == zone_of("battle", one).id)
 
@@ -977,7 +977,7 @@ function M.test_spellstorm_rapid_fire_comes_back(check)
 	-- redraw this" is a part of the card you may decline, and a cost is one map
 	-- settled in full, so the only way to say it is an offer of one.
 	actions.execute("stat_set:initiative@mine.player:1", {})
-	actions.execute("activate_zone:mine.battle:by_column:cast2", { card_id = rf.id, targets = {} })
+	actions.execute("activate_zone:mine.battle:by_column:cast", { card_id = rf.id, targets = {} })
 	check("with it, the card asks", phase.current().key == "options"
 		and #zones.find("options").cards == 1, phase.current().key)
 	flow.play_card(zones.find("options").cards[1], {})
@@ -990,7 +990,7 @@ function M.test_spellstorm_rapid_fire_comes_back(check)
 
 	-- And declined, it is left standing to be swept like any other card.
 	local rf2 = stage_battle(one, "rapidfire")
-	actions.execute("activate_zone:mine.battle:by_column:cast2", { card_id = rf2.id, targets = {} })
+	actions.execute("activate_zone:mine.battle:by_column:cast", { card_id = rf2.id, targets = {} })
 	check("declining leaves it in the battle spot", flow.dismiss_offer()
 		and entity.get(rf2.id).zone_id == zone_of("battle", one).id,
 		entity.get(entity.get(rf2.id).zone_id).key)
@@ -2198,9 +2198,9 @@ local function offered(key)
 	end
 end
 
--- The four passes the resolve phase makes over a battle spot, in its order.
+-- The two passes the resolve phase makes over a battle spot, in its order.
 local function resolve_battle()
-	for _, col in ipairs({ "cast", "cast2", "cast3", "cast_ask" }) do
+	for _, col in ipairs({ "cast", "cast_ask" }) do
 		actions.execute("activate_zone:mine.battle:by_column:" .. col, {})
 	end
 end
@@ -2476,7 +2476,7 @@ function M.test_spellstorm_wind_dragon_resolves_two(check)
 		zones.move_card(find(k).id, hand_of("seat_one").id)
 	end
 	stage_battle("seat_one", "winddragon")
-	for _, col in ipairs({ "cast", "cast2", "cast3", "cast_ask" }) do
+	for _, col in ipairs({ "cast", "cast_ask" }) do
 		actions.execute("activate_zone:mine.battle:by_column:" .. col, {})
 	end
 	check("it asks once", phase.current().key == "options"
@@ -3001,7 +3001,7 @@ function M.test_spellstorm_diamond_discards_three_of_your_choosing(check)
 
 	local me = seat_card("seat_one")
 	local power, disc = me.stats.power, #zone_of("discard", "seat_one").cards
-	actions.execute("activate_zone:mine.battle:by_column:cast2", { card_id = diamond.id })
+	actions.execute("activate_zone:mine.battle:by_column:cast", { card_id = diamond.id })
 	check("holding four, it asks", phase.current().key == "options", phase.current().key)
 	check("it powered up three times", me.stats.power == power + 3, me.stats.power)
 
@@ -3031,7 +3031,7 @@ function M.test_spellstorm_diamond_asks_nothing_when_you_hold_too_few(check)
 
 	local me = seat_card("seat_one")
 	local power = me.stats.power
-	actions.execute("activate_zone:mine.battle:by_column:cast2", { card_id = diamond.id })
+	actions.execute("activate_zone:mine.battle:by_column:cast", { card_id = diamond.id })
 	check("it asks nothing", phase.current().key ~= "options", phase.current().key)
 	check("no power came of it", me.stats.power == power, me.stats.power)
 	check("and the hand is untouched", #hand.cards == 2, #hand.cards)

@@ -1024,6 +1024,18 @@ zone that granted it.
 The box answers, rather than the card on top of it becoming clickable. No `target` and no
 `moves` — there is no arrow to draw from a deck.
 
+### Gain 1 mana. If you have Initiative, deal 1 damage.
+
+```json
+"play": { "action": ["stat_gain:mana@mine.player:1",
+  { "if": ["initiative@mine.player >= 1"], "do": ["hit:health@opponent:1"] }] }
+```
+
+The if sits in the list where the sentence has it, and is asked when the list
+gets there — after the mana. `if` takes what `needs` takes; `do` is any action
+list, and a question inside it holds back everything after it. One level, no
+`else`: the other branch is a second if with its own condition.
+
 ### Do what that card does, without playing it.
 
 ```json
