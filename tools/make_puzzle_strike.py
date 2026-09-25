@@ -757,8 +757,7 @@ def zones():
     # Each rule family is its own hidden zone rather than one zone walked with a
     # step word: a step needs an order named beside it, and these are decks with
     # no columns to order by. One zone per question is cheaper and reads better.
-    for key in ("rules_ante", "rules_combine", "rules_upgrade", "rules_upgrade_hand",
-                "rules_upgrade_pile", "rules_height", "rules_piggy", "rules_signature"):
+    for key in ("rules_piggy", "rules_signature"):
         z.append({"key": key, "layout": "stack", "visibility": "secret", "display": "offscreen"})
     # South below, north above, mirrored through the middle line — and south's
     # rect is first in every pair because south is seat one. Read from the
@@ -1004,6 +1003,27 @@ VERBS = [
                 "set_name:mine.player:text@self",
                 "stat_gain:picked@mine.player:1",
                 "set_owner:self:mine.player"]},
+    # A number choosing one gem is one gate per value: name splicing is refused,
+    # so `gem_param1` is not `gem_2`. The ante grows as the bank empties — Panic,
+    # Danger and Deadly Time, at one empty stack per player and then two and
+    # three more (rules.md §9).
+    {"key": "ante", "tooltip": "Take the gem this turn's panic level names into your gem pile.",
+     "needs": {"p1": "panic@clock <= 1", "p2": "panic@clock == 2", "p3": "panic@clock == 3", "p4": "panic@clock >= 4"},
+     "action": ["p%d? take:bank.gem_%d:mine.gem_pile:1" % (n, n) for n in (1, 2, 3, 4)]},
+    # Two gems out, one gem in, and their sum is what says which.
+    {"key": "take_combined", "tooltip": "Take the gem worth what the two combined gems were into your gem pile.",
+     "needs": {"c%d" % n: "combined@mine.player == %d" % n for n in (2, 3, 4)},
+     "action": ["c%d? take:bank.gem_%d:mine.gem_pile:1" % (n, n) for n in (2, 3, 4)]},
+    # A gem one bigger than the one given up — Risky Move's other half, Big
+    # Rocks', and Strength of Earth's. Same question, three places for the
+    # answer to land.
+    {"key": "take_upgrade", "tooltip": "Take the gem one bigger than the one given up, into <a zone>.",
+     "needs": {"u%d" % n: "combined@mine.player == %d" % (n - 1) for n in (2, 3, 4)},
+     "action": ["u%d? take:bank.gem_%d:param1:1" % (n, n) for n in (2, 3, 4)]},
+    # Cumulative, so three gates rather than one per value: a pile of 9 passes all three.
+    {"key": "height_bonus", "tooltip": "Draw one more next turn for every 3 your gem pile is worth, up to 9.",
+     "needs": {"h%d" % n: "sum:value@mine.gem_pile >= %d" % n for n in (3, 6, 9)},
+     "action": ["h%d? stat_gain:to_draw@mine.player:1" % n for n in (3, 6, 9)]},
 ]
 
 
@@ -1023,7 +1043,7 @@ def purple_cards():
          "challenge": {"needs": {"req": ["sum:value@target <= 4"]},
                        "pass": ["stat_set:combined@mine.player:sum:value@target",
                                 "purge:target",
-                                "activate_zone:rules_combine",
+                                "take_combined",
                                 "stat_damage:money@mine.player:1",
                                 "stat_gain:acts@mine.player:1",
                                 "move_to:mine.table"],
@@ -1091,7 +1111,7 @@ def puzzle_cards():
                   "target": dict(hand_gem, tags=["upgradable"]),
                   "action": ["stat_set:combined@mine.player:sum:value@target",
                              "move:target:mine.gem_pile",
-                             "activate_zone:rules_upgrade",
+                             "take_upgrade:mine.discard",
                              "stat_gain:money@mine.player:3",
                              "move_to:mine.table"]}},
         {"key": "really_annoying", "text": "Really Annoying", "tags": ["chip", "trashable", "puzzle", "red"],
@@ -1177,7 +1197,7 @@ def puzzle_cards():
          "challenge": {"needs": {"req": ["sum:value@target <= 4"]},
                        "pass": ["stat_set:combined@mine.player:sum:value@target",
                                 "purge:target",
-                                "activate_zone:rules_combine",
+                                "take_combined",
                                 "stat_gain:act_red@mine.player:1"],
                        "fail": ["stat_gain:act_red@mine.player:1"]}},
         {"key": "sale_prices", **shape("sale_prices", "brown"),
@@ -1549,7 +1569,7 @@ def character_chips():
                   "target": dict(hand_gem, tags=["upgradable"]),
                   "action": ["stat_set:combined@mine.player:sum:value@target",
                              "purge:target",
-                             "activate_zone:rules_upgrade_hand",
+                             "take_upgrade:mine.hand",
                              "move_to:mine.table"]}},
         {"key": "strength_of_earth", "text": "Strength of Earth", "tags": ["chip", "character", "purple"],
          "asset": "polygon:7:ash",
@@ -1559,7 +1579,7 @@ def character_chips():
                              "owner": "anyone", "count": 1},
                   "action": ["stat_set:combined@mine.player:sum:value@target",
                              "purge:target",
-                             "activate_zone:rules_upgrade_pile",
+                             "take_upgrade:mine.gem_pile",
                              "stat_damage:stock@bank.gem_1:1",
                              "stat_gain:act_brown@mine.player:1",
                              "move_to:mine.table"]}},
@@ -1991,46 +2011,11 @@ def choice_cards():
 
 # --- the rules zone -------------------------------------------------------
 #
-# Four rules in this game turn on a number the action list has just written and
-# choose a *card* from it, which no amount grammar can do: which gem an ante
-# puts down, what two combined gems become, what a gem upgrades to, and how much
-# a full pile draws. Each is one card in a hidden zone with one `when`, walked
-# by activate_zone — which is ungated for permission and still honours the if.
+# Two rules ask the player something, and a card that asks owns the answer — its
+# `chosen` — so they stay cards in hidden zones walked by activate_zone, which
+# is ungated for permission and still honours the if. Every other rule is a verb.
 def rule_cards():
-    """(zone, card) for each. A rule that has to choose a *card* from a number
-    the action list just wrote cannot be an amount — no grammar turns 3 into
-    `gem_3` — so it is one card with one `when`, walked by activate_zone."""
     out = []
-
-    def rule(zone, key, when, action):
-        out.append((zone, {"key": key, "text": key, "tags": ["immutable"],
-                           "abilities": [{"key": key, "text": key, "needs": {"req": when}, "action": action}]}))
-
-    def ante_gem(n, where):
-        return ["take:bank.%s:%s:1" % (gem_key(n), where)]
-
-    # The ante grows as the bank empties: Panic, Danger and Deadly Time, at one
-    # empty stack per player and then two and three more (rules.md §9).
-    for n, lo, hi in [(1, None, 1), (2, 2, 2), (3, 3, 3), (4, 4, None)]:
-        when = []
-        if lo is not None:
-            when.append("panic@clock >= %d" % lo)
-        if hi is not None:
-            when.append("panic@clock <= %d" % hi)
-        rule("rules_ante", "ante_%d" % n, when, ante_gem(n, "mine.gem_pile"))
-    # Two gems out, one gem in, and their sum is what says which.
-    for n in (2, 3, 4):
-        rule("rules_combine", "comb_%d" % n, ["combined@mine.player == %d" % n],
-             ante_gem(n, "mine.gem_pile"))
-    # A gem one bigger than the one you gave up — Risky Move's other half, Big
-    # Rocks', and Strength of Earth's. Same question, three different places
-    # for the answer to land.
-    for where, zone, suffix in [("rules_upgrade", "mine.discard", ""),
-                                ("rules_upgrade_hand", "mine.hand", "h"),
-                                ("rules_upgrade_pile", "mine.gem_pile", "p")]:
-        for n in (2, 3, 4):
-            rule(where, "up%s_%d" % (suffix, n), ["combined@mine.player == %d" % (n - 1)],
-                 ante_gem(n, zone))
     # The piggy bank: your own hand comes up in the offer and you may keep one
     # chip out of the discard, drawing one fewer for it. Declinable, because
     # keeping nothing is the usual answer — and a `chosen` block rather than an
@@ -2056,10 +2041,6 @@ def rule_cards():
                        "action": ["show:mine.hand:optional"]}],
         "chosen": {"needs": {"where": ["tagged:character@target"]},
                    "action": ["copy:target:play", "move:target:mine.table"]}}))
-    # The height bonus is cumulative, so three separate ifs add up to +1/+2/+3.
-    for n in (3, 6, 9):
-        rule("rules_height", "height_%d" % n, ["sum:value@mine.gem_pile >= %d" % n],
-             ["stat_gain:to_draw@mine.player:1"])
     return out
 
 
@@ -2195,7 +2176,7 @@ def phases():
                        # is a zone rather than a flag on a chip.
                        "move:mine.stash:mine.hand",
                        "activate_zone:mine.ongoing",
-                       "activate_zone:rules_ante"],
+                       "ante"],
          "next": [{"then": "buy"}]},
         {"key": "buy", "type": "player_input", "zone": "hand",
          "label": "Play gems for money, then buy",
@@ -2222,7 +2203,7 @@ def phases():
         {"key": "cleanup", "type": "automatic",
          "actions": ["destroy:mine.table",
                      "stat_set:to_draw@mine.player:%d" % HAND,
-                     "activate_zone:rules_height",
+                     "height_bonus",
                      "activate_zone:rules_piggy",
                      "stat_set:on_sale@each.bank:0"],
          "next": [{"then": "cleanup_draw"}]},

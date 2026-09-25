@@ -209,9 +209,6 @@
       "contents": ["asst_scout", "asst_digger", "asst_scribe", "asst_trader"] },
 
     { "key": "sys", "layout": "grid", "grid": [1, 1], "display": "offscreen" },
-    { "key": "rules_win", "layout": "stack", "visibility": "secret", "display": "offscreen" },
-    { "key": "rules_temple", "layout": "stack", "visibility": "secret", "display": "offscreen" },
-    { "key": "rules_market", "layout": "stack", "visibility": "secret", "display": "offscreen" },
 
     { "key": "bag", "label": "Deck", "layout": "stack", "visibility": "secret", "copies": "per_seat",
       "pos": [[0.190, 0.815, 0.240, 0.995], [0.005, 0.005, 0.055, 0.185]],
@@ -241,6 +238,15 @@
       "tooltip": "Your two archaeologists. Send one to a site to dig; it stays there until the round wraps, and comes home with a Fear card if a guardian was still standing when it left." }
   ],
 
+  "verbs": [
+    { "key": "first_market", "tooltip": "In the first round, deal the market: one artifact and five items.",
+      "needs": { "first": "round_no@clock == 1" },
+      "action": ["first? draw_from:artifact_deck:row:1:a1", "first? draw_from:item_deck:row:5"] },
+    { "key": "crown", "tooltip": "The higher score wins; a tie crowns nobody.",
+      "needs": { "south": "score@south_side > score@north_side", "north": "score@north_side > score@south_side" },
+      "action": ["south? stat_gain:won@south_side:1", "north? stat_gain:won@north_side:1"] }
+  ],
+
   "phases": [
     { "key": "setup", "type": "automatic",
       "actions": ["purge:each.guardian",
@@ -252,7 +258,7 @@
 
     { "key": "round_start", "type": "automatic",
       "actions": ["stat_gain:round_no@clock:1",
-                  "activate_zone:rules_market",
+                  "first_market",
                   "activate_zone:row:by_column:step",
                   "each_seat:stat_set:passed@mine.player:0",
                   "each_seat:draw_from:mine.bag:mine.hand:5"],
@@ -280,7 +286,7 @@
                   "each_seat:stat_gain:score@mine.player:2:x:sum:note@mine.player",
                   "each_seat:stat_gain:score@mine.player:sum:points@mine.everywhere",
                   "each_seat:stat_damage:score@mine.player:count:fear@mine.everywhere",
-                  "activate_zone:rules_win",
+                  "crown",
                   "reveal:game_over"],
       "next": [{ "then": "over" }] },
 
@@ -310,11 +316,7 @@
       { "card": "site_cave", "zone": "island", "at": "e1" },
       { "card": "pos_1", "zone": "island", "at": ["a2", "b2", "c2", "d2", "e2"] },
       { "card": "pos_2", "zone": "island", "at": ["a3", "b3", "c3", "d3", "e3"] },
-      { "card": "market_first", "zone": "rules_market" },
-      { "card": "moon_staff", "zone": "row", "at": "b1" },
-      { "card": "win_south", "zone": "rules_win" },
-      { "card": "win_north", "zone": "rules_win" },
-      { "card": "first_temple", "zone": "rules_temple" }
+      { "card": "moon_staff", "zone": "row", "at": "b1" }
     ]
   },
 
@@ -543,22 +545,10 @@
       "tooltip": "The Lost Temple, and only the magnifying glass reaches it: two jewels for five points, and five more for whoever arrives first.",
       "abilities": [
         { "key": "glass", "text": "Reach the Lost Temple", "phases": ["turn"],
-          "needs": { "req": ["glass@mine.player == 5"] },
+          "needs": { "req": ["glass@mine.player == 5"], "first": "temple_taken@clock == 0" },
           "cost": { "main@mine.player": 1, "jewel@mine.player": 2 },
           "action": ["stat_set:glass@mine.player:6", "stat_gain:score@mine.player:5",
-                     "activate_zone:rules_temple"] }
-      ] },
-
-    { "key": "first_temple", "text": "first_temple", "tags": ["immutable"],
-      "abilities": [
-        { "key": "first_temple", "text": "first_temple", "needs": { "req": ["temple_taken@clock == 0"] },
-          "action": ["stat_gain:score@mine.player:5", "stat_set:temple_taken@clock:1"] }
-      ] },
-
-    { "key": "market_first", "text": "market_first", "tags": ["immutable"],
-      "abilities": [
-        { "key": "market_first", "text": "market_first", "needs": { "req": ["round_no@clock == 1"] },
-          "action": ["draw_from:artifact_deck:row:1:a1", "draw_from:item_deck:row:5"] }
+                     "first? stat_gain:score@mine.player:5", "first? stat_set:temple_taken@clock:1"] }
       ] },
 
     { "key": "moon_staff", "text": "Moon Staff", "tags": ["immutable", "staff"], "asset": "circle:silver",
@@ -583,18 +573,6 @@
       "abilities": [
         { "key": "pass", "text": "Pass", "phases": ["turn"],
           "action": ["stat_set:passed@mine.player:1", "end_phase"] }
-      ] },
-
-    { "key": "win_south", "text": "win_south", "tags": ["immutable"],
-      "abilities": [
-        { "key": "win_south", "text": "win_south", "needs": { "req": ["score@south_side > score@north_side"] },
-          "action": ["stat_gain:won@south_side:1"] }
-      ] },
-
-    { "key": "win_north", "text": "win_north", "tags": ["immutable"],
-      "abilities": [
-        { "key": "win_north", "text": "win_north", "needs": { "req": ["score@north_side > score@south_side"] },
-          "action": ["stat_gain:won@north_side:1"] }
       ] },
 
     { "key": "game_over", "text": "The season is over",

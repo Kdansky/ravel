@@ -21,6 +21,64 @@
         "stat_gain:picked@mine.player:1",
         "set_owner:self:mine.player"
       ]
+    },
+    {
+      "key": "ante",
+      "tooltip": "Take the gem this turn's panic level names into your gem pile.",
+      "needs": {
+        "p1": "panic@clock <= 1",
+        "p2": "panic@clock == 2",
+        "p3": "panic@clock == 3",
+        "p4": "panic@clock >= 4"
+      },
+      "action": [
+        "p1? take:bank.gem_1:mine.gem_pile:1",
+        "p2? take:bank.gem_2:mine.gem_pile:1",
+        "p3? take:bank.gem_3:mine.gem_pile:1",
+        "p4? take:bank.gem_4:mine.gem_pile:1"
+      ]
+    },
+    {
+      "key": "take_combined",
+      "tooltip": "Take the gem worth what the two combined gems were into your gem pile.",
+      "needs": {
+        "c2": "combined@mine.player == 2",
+        "c3": "combined@mine.player == 3",
+        "c4": "combined@mine.player == 4"
+      },
+      "action": [
+        "c2? take:bank.gem_2:mine.gem_pile:1",
+        "c3? take:bank.gem_3:mine.gem_pile:1",
+        "c4? take:bank.gem_4:mine.gem_pile:1"
+      ]
+    },
+    {
+      "key": "take_upgrade",
+      "tooltip": "Take the gem one bigger than the one given up, into <a zone>.",
+      "needs": {
+        "u2": "combined@mine.player == 1",
+        "u3": "combined@mine.player == 2",
+        "u4": "combined@mine.player == 3"
+      },
+      "action": [
+        "u2? take:bank.gem_2:param1:1",
+        "u3? take:bank.gem_3:param1:1",
+        "u4? take:bank.gem_4:param1:1"
+      ]
+    },
+    {
+      "key": "height_bonus",
+      "tooltip": "Draw one more next turn for every 3 your gem pile is worth, up to 9.",
+      "needs": {
+        "h3": "sum:value@mine.gem_pile >= 3",
+        "h6": "sum:value@mine.gem_pile >= 6",
+        "h9": "sum:value@mine.gem_pile >= 9"
+      },
+      "action": [
+        "h3? stat_gain:to_draw@mine.player:1",
+        "h6? stat_gain:to_draw@mine.player:1",
+        "h9? stat_gain:to_draw@mine.player:1"
+      ]
     }
   ],
   "stats": [
@@ -329,32 +387,6 @@
     { "key": "box", "layout": "stack", "visibility": "secret", "display": "offscreen" },
     { "key": "chip_box", "layout": "stack", "visibility": "secret", "display": "offscreen" },
     { "key": "sys", "layout": "grid", "display": "offscreen", "grid": [1, 1] },
-    { "key": "rules_ante", "layout": "stack", "visibility": "secret", "display": "offscreen" },
-    {
-      "key": "rules_combine",
-      "layout": "stack",
-      "visibility": "secret",
-      "display": "offscreen"
-    },
-    {
-      "key": "rules_upgrade",
-      "layout": "stack",
-      "visibility": "secret",
-      "display": "offscreen"
-    },
-    {
-      "key": "rules_upgrade_hand",
-      "layout": "stack",
-      "visibility": "secret",
-      "display": "offscreen"
-    },
-    {
-      "key": "rules_upgrade_pile",
-      "layout": "stack",
-      "visibility": "secret",
-      "display": "offscreen"
-    },
-    { "key": "rules_height", "layout": "stack", "visibility": "secret", "display": "offscreen" },
     { "key": "rules_piggy", "layout": "stack", "visibility": "secret", "display": "offscreen" },
     {
       "key": "rules_signature",
@@ -507,7 +539,7 @@
         "stat_set:panic@clock:count:spent@bank",
         "move:mine.stash:mine.hand",
         "activate_zone:mine.ongoing",
-        "activate_zone:rules_ante"
+        "ante"
       ],
       "next": [{ "then": "buy" }]
     },
@@ -531,7 +563,7 @@
       "actions": [
         "destroy:mine.table",
         "stat_set:to_draw@mine.player:5",
-        "activate_zone:rules_height",
+        "height_bonus",
         "activate_zone:rules_piggy",
         "stat_set:on_sale@each.bank:0"
       ],
@@ -719,7 +751,7 @@
         "pass": [
           "stat_set:combined@mine.player:sum:value@target",
           "purge:target",
-          "activate_zone:rules_combine",
+          "take_combined",
           "stat_damage:money@mine.player:1",
           "stat_gain:acts@mine.player:1",
           "move_to:mine.table"
@@ -798,7 +830,7 @@
         "action": [
           "stat_set:combined@mine.player:sum:value@target",
           "move:target:mine.gem_pile",
-          "activate_zone:rules_upgrade",
+          "take_upgrade:mine.discard",
           "stat_gain:money@mine.player:3"
         ],
         "spent": "mine.table"
@@ -1072,7 +1104,7 @@
         "pass": [
           "stat_set:combined@mine.player:sum:value@target",
           "purge:target",
-          "activate_zone:rules_combine",
+          "take_combined",
           "stat_gain:act_red@mine.player:1"
         ],
         "fail": ["stat_gain:act_red@mine.player:1"]
@@ -2114,7 +2146,7 @@
         "action": [
           "stat_set:combined@mine.player:sum:value@target",
           "purge:target",
-          "activate_zone:rules_upgrade_hand"
+          "take_upgrade:mine.hand"
         ],
         "spent": "mine.table"
       }
@@ -2138,7 +2170,7 @@
         "action": [
           "stat_set:combined@mine.player:sum:value@target",
           "purge:target",
-          "activate_zone:rules_upgrade_pile",
+          "take_upgrade:mine.gem_pile",
           "stat_damage:stock@bank.gem_1:1",
           "stat_gain:act_brown@mine.player:1"
         ],
@@ -3523,214 +3555,6 @@
       }
     },
     {
-      "key": "ante_1",
-      "text": "ante_1",
-      "tags": ["immutable"],
-      "abilities": [
-        {
-          "key": "ante_1",
-          "text": "ante_1",
-          "needs": { "req": ["panic@clock <= 1"] },
-          "action": ["take:bank.gem_1:mine.gem_pile:1"]
-        }
-      ]
-    },
-    {
-      "key": "ante_2",
-      "text": "ante_2",
-      "tags": ["immutable"],
-      "abilities": [
-        {
-          "key": "ante_2",
-          "text": "ante_2",
-          "needs": { "req": ["panic@clock >= 2", "panic@clock <= 2"] },
-          "action": ["take:bank.gem_2:mine.gem_pile:1"]
-        }
-      ]
-    },
-    {
-      "key": "ante_3",
-      "text": "ante_3",
-      "tags": ["immutable"],
-      "abilities": [
-        {
-          "key": "ante_3",
-          "text": "ante_3",
-          "needs": { "req": ["panic@clock >= 3", "panic@clock <= 3"] },
-          "action": ["take:bank.gem_3:mine.gem_pile:1"]
-        }
-      ]
-    },
-    {
-      "key": "ante_4",
-      "text": "ante_4",
-      "tags": ["immutable"],
-      "abilities": [
-        {
-          "key": "ante_4",
-          "text": "ante_4",
-          "needs": { "req": ["panic@clock >= 4"] },
-          "action": ["take:bank.gem_4:mine.gem_pile:1"]
-        }
-      ]
-    },
-    {
-      "key": "comb_2",
-      "text": "comb_2",
-      "tags": ["immutable"],
-      "abilities": [
-        {
-          "key": "comb_2",
-          "text": "comb_2",
-          "needs": { "req": ["combined@mine.player == 2"] },
-          "action": ["take:bank.gem_2:mine.gem_pile:1"]
-        }
-      ]
-    },
-    {
-      "key": "comb_3",
-      "text": "comb_3",
-      "tags": ["immutable"],
-      "abilities": [
-        {
-          "key": "comb_3",
-          "text": "comb_3",
-          "needs": { "req": ["combined@mine.player == 3"] },
-          "action": ["take:bank.gem_3:mine.gem_pile:1"]
-        }
-      ]
-    },
-    {
-      "key": "comb_4",
-      "text": "comb_4",
-      "tags": ["immutable"],
-      "abilities": [
-        {
-          "key": "comb_4",
-          "text": "comb_4",
-          "needs": { "req": ["combined@mine.player == 4"] },
-          "action": ["take:bank.gem_4:mine.gem_pile:1"]
-        }
-      ]
-    },
-    {
-      "key": "up_2",
-      "text": "up_2",
-      "tags": ["immutable"],
-      "abilities": [
-        {
-          "key": "up_2",
-          "text": "up_2",
-          "needs": { "req": ["combined@mine.player == 1"] },
-          "action": ["take:bank.gem_2:mine.discard:1"]
-        }
-      ]
-    },
-    {
-      "key": "up_3",
-      "text": "up_3",
-      "tags": ["immutable"],
-      "abilities": [
-        {
-          "key": "up_3",
-          "text": "up_3",
-          "needs": { "req": ["combined@mine.player == 2"] },
-          "action": ["take:bank.gem_3:mine.discard:1"]
-        }
-      ]
-    },
-    {
-      "key": "up_4",
-      "text": "up_4",
-      "tags": ["immutable"],
-      "abilities": [
-        {
-          "key": "up_4",
-          "text": "up_4",
-          "needs": { "req": ["combined@mine.player == 3"] },
-          "action": ["take:bank.gem_4:mine.discard:1"]
-        }
-      ]
-    },
-    {
-      "key": "uph_2",
-      "text": "uph_2",
-      "tags": ["immutable"],
-      "abilities": [
-        {
-          "key": "uph_2",
-          "text": "uph_2",
-          "needs": { "req": ["combined@mine.player == 1"] },
-          "action": ["take:bank.gem_2:mine.hand:1"]
-        }
-      ]
-    },
-    {
-      "key": "uph_3",
-      "text": "uph_3",
-      "tags": ["immutable"],
-      "abilities": [
-        {
-          "key": "uph_3",
-          "text": "uph_3",
-          "needs": { "req": ["combined@mine.player == 2"] },
-          "action": ["take:bank.gem_3:mine.hand:1"]
-        }
-      ]
-    },
-    {
-      "key": "uph_4",
-      "text": "uph_4",
-      "tags": ["immutable"],
-      "abilities": [
-        {
-          "key": "uph_4",
-          "text": "uph_4",
-          "needs": { "req": ["combined@mine.player == 3"] },
-          "action": ["take:bank.gem_4:mine.hand:1"]
-        }
-      ]
-    },
-    {
-      "key": "upp_2",
-      "text": "upp_2",
-      "tags": ["immutable"],
-      "abilities": [
-        {
-          "key": "upp_2",
-          "text": "upp_2",
-          "needs": { "req": ["combined@mine.player == 1"] },
-          "action": ["take:bank.gem_2:mine.gem_pile:1"]
-        }
-      ]
-    },
-    {
-      "key": "upp_3",
-      "text": "upp_3",
-      "tags": ["immutable"],
-      "abilities": [
-        {
-          "key": "upp_3",
-          "text": "upp_3",
-          "needs": { "req": ["combined@mine.player == 2"] },
-          "action": ["take:bank.gem_3:mine.gem_pile:1"]
-        }
-      ]
-    },
-    {
-      "key": "upp_4",
-      "text": "upp_4",
-      "tags": ["immutable"],
-      "abilities": [
-        {
-          "key": "upp_4",
-          "text": "upp_4",
-          "needs": { "req": ["combined@mine.player == 3"] },
-          "action": ["take:bank.gem_4:mine.gem_pile:1"]
-        }
-      ]
-    },
-    {
       "key": "piggy_bank",
       "text": "Piggy bank",
       "tags": ["immutable"],
@@ -3759,45 +3583,6 @@
         "needs": { "where": ["tagged:character@target"] },
         "action": ["copy:target:play", "move:target:mine.table"]
       }
-    },
-    {
-      "key": "height_3",
-      "text": "height_3",
-      "tags": ["immutable"],
-      "abilities": [
-        {
-          "key": "height_3",
-          "text": "height_3",
-          "needs": { "req": ["sum:value@mine.gem_pile >= 3"] },
-          "action": ["stat_gain:to_draw@mine.player:1"]
-        }
-      ]
-    },
-    {
-      "key": "height_6",
-      "text": "height_6",
-      "tags": ["immutable"],
-      "abilities": [
-        {
-          "key": "height_6",
-          "text": "height_6",
-          "needs": { "req": ["sum:value@mine.gem_pile >= 6"] },
-          "action": ["stat_gain:to_draw@mine.player:1"]
-        }
-      ]
-    },
-    {
-      "key": "height_9",
-      "text": "height_9",
-      "tags": ["immutable"],
-      "abilities": [
-        {
-          "key": "height_9",
-          "text": "height_9",
-          "needs": { "req": ["sum:value@mine.gem_pile >= 9"] },
-          "action": ["stat_gain:to_draw@mine.player:1"]
-        }
-      ]
     }
   ],
   "setup": {
@@ -3861,27 +3646,8 @@
       { "card": "combinatorics", "zone": "chip_box" },
       { "card": "custom_combo", "zone": "chip_box" },
       { "card": "dashing_strike", "zone": "chip_box" },
-      { "card": "ante_1", "zone": "rules_ante" },
-      { "card": "ante_2", "zone": "rules_ante" },
-      { "card": "ante_3", "zone": "rules_ante" },
-      { "card": "ante_4", "zone": "rules_ante" },
-      { "card": "comb_2", "zone": "rules_combine" },
-      { "card": "comb_3", "zone": "rules_combine" },
-      { "card": "comb_4", "zone": "rules_combine" },
-      { "card": "up_2", "zone": "rules_upgrade" },
-      { "card": "up_3", "zone": "rules_upgrade" },
-      { "card": "up_4", "zone": "rules_upgrade" },
-      { "card": "uph_2", "zone": "rules_upgrade_hand" },
-      { "card": "uph_3", "zone": "rules_upgrade_hand" },
-      { "card": "uph_4", "zone": "rules_upgrade_hand" },
-      { "card": "upp_2", "zone": "rules_upgrade_pile" },
-      { "card": "upp_3", "zone": "rules_upgrade_pile" },
-      { "card": "upp_4", "zone": "rules_upgrade_pile" },
       { "card": "piggy_bank", "zone": "rules_piggy" },
-      { "card": "signature_play", "zone": "rules_signature" },
-      { "card": "height_3", "zone": "rules_height" },
-      { "card": "height_6", "zone": "rules_height" },
-      { "card": "height_9", "zone": "rules_height" }
+      { "card": "signature_play", "zone": "rules_signature" }
     ]
   }
 }

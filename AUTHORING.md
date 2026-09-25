@@ -1239,7 +1239,7 @@ player acts in, using its own `actions`:
 ```json
 { "key": "action", "type": "player_input", "seat": "next", "zone": "hand",
   "actions": ["stat_set:money@mine.player:0", "stat_set:acts@mine.player:1",
-              "activate_zone:mine.ongoing", "activate_zone:rules_ante"],
+              "activate_zone:mine.ongoing", "take:bank.gem_1:mine.gem_pile:1"],
   "ends_when": "acts@mine.player == 0", "next": [{ "then": "buy" }] }
 ```
 

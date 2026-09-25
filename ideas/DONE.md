@@ -1512,8 +1512,13 @@ the Power Track is `fill_track`, the two Ruby cards are one `ruby_pick`.
   on a journal space, `fresh@self` on a ghost), a zone walked for whichever card
   is in it (weather, the revealed potion, countering), and a rules card that asks
   a question and owns the answer (Data Breach, New Curriculum, the dry junk piles).
+- **Puzzle Strike and Arnak followed.** Six Puzzle Strike rules zones became four
+  verbs — `ante`, `take_combined`, `take_upgrade:<zone>` (three zones that differed
+  only in where the gem lands), `height_bonus` — and Arnak's three became
+  `first_market`, `crown` and a `first` gate on the Temple ability. `rules_piggy`
+  and `rules_signature` stay: each opens an offer and owns its `chosen`.
 - **Migration:** random play over 80 seeds × 200 moves reads the same board card
-  by card before and after.
+  by card before and after (Puzzle Strike and Arnak: 40 seeds, every move's board).
 
 # Bugs found on the way, and what they bought
 
