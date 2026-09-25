@@ -118,21 +118,18 @@ hero in play, as itself.
 
 Left, from the rulebook's *Codex 3-Hero Game* pages (pp. 10–11):
 
-- **Tech II declares a spec.** *"When you start building your tech II
-  building, declare which spec it's going to be. You have a mini-card for each
-  spec, and you'll place the mini-card of the spec you want to build on your
-  base. Your tech II (and then later your tech III) buildings are tied to that
-  spec and they can only produce units, upgrades, and buildings that match that
-  spec. Once you make this choice, it's locked in for the rest of the game."*
-  Today `t2_ok` and `t3_ok` read only whether the building stands, so all three
-  specs' tech II and III are buildable. The largest gap left, and a balance
-  one. [Assumption: a per-spec tech II building (`tech_2_anarchy`, …) chosen at
-  *raise*, with `t2_ok` an `any_of` over one computed tag per spec — 18 tags,
-  no new word; *rebuild* must raise the same spec again.]
 - **Tech lab** — *"When you build the tech lab, you get to unlock a spec … Now
   you can build stuff from EITHER of those specs."* **Heroes' hall** — *"simply
   allows you to have one more hero in play than usual."* Both add-ons; neither
   card is in the file. The hall is `+ count:hall@mine.addon` on `hero_limit`.
+  The lab is `options:specs` once more: the spec lock shipped as a mini-card
+  per spec, dealt into `specs` by the colour pick and moved into `spec` when
+  tech II goes up, and `in_spec` counts whatever stands in `spec` — so a second
+  mini-card there unlocks its cards with no other change.
+- **The two neutral specs cannot be declared.** Bashing and Finesse have no
+  hero in the file and so no mini-card, which leaves their tech II and III
+  unbuildable now rather than free. Scaffolding either way until a neutral
+  hero is.
 - **A hero's death levels one opposing hero twice.** *"The active player
   chooses which hero if there are multiple opposing heroes, and they can only
   choose a hero that actually can level up at least once."* Modelled as two

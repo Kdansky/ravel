@@ -1042,11 +1042,178 @@
         ]
       }
     },
+    "sp_anarchy": {
+      "needs": {
+        "req": [
+          "tagged:anarchy@self",
+          "count:anarchy@mine.spec >= 1"
+        ]
+      }
+    },
+    "sp_blood": {
+      "needs": {
+        "req": [
+          "tagged:blood@self",
+          "count:blood@mine.spec >= 1"
+        ]
+      }
+    },
+    "sp_fire": {
+      "needs": {
+        "req": [
+          "tagged:fire@self",
+          "count:fire@mine.spec >= 1"
+        ]
+      }
+    },
+    "sp_balance": {
+      "needs": {
+        "req": [
+          "tagged:balance@self",
+          "count:balance@mine.spec >= 1"
+        ]
+      }
+    },
+    "sp_feral": {
+      "needs": {
+        "req": [
+          "tagged:feral@self",
+          "count:feral@mine.spec >= 1"
+        ]
+      }
+    },
+    "sp_growth": {
+      "needs": {
+        "req": [
+          "tagged:growth@self",
+          "count:growth@mine.spec >= 1"
+        ]
+      }
+    },
+    "sp_law": {
+      "needs": {
+        "req": [
+          "tagged:law@self",
+          "count:law@mine.spec >= 1"
+        ]
+      }
+    },
+    "sp_peace": {
+      "needs": {
+        "req": [
+          "tagged:peace@self",
+          "count:peace@mine.spec >= 1"
+        ]
+      }
+    },
+    "sp_truth": {
+      "needs": {
+        "req": [
+          "tagged:truth@self",
+          "count:truth@mine.spec >= 1"
+        ]
+      }
+    },
+    "sp_demonology": {
+      "needs": {
+        "req": [
+          "tagged:demonology@self",
+          "count:demonology@mine.spec >= 1"
+        ]
+      }
+    },
+    "sp_disease": {
+      "needs": {
+        "req": [
+          "tagged:disease@self",
+          "count:disease@mine.spec >= 1"
+        ]
+      }
+    },
+    "sp_necromancy": {
+      "needs": {
+        "req": [
+          "tagged:necromancy@self",
+          "count:necromancy@mine.spec >= 1"
+        ]
+      }
+    },
+    "sp_discipline": {
+      "needs": {
+        "req": [
+          "tagged:discipline@self",
+          "count:discipline@mine.spec >= 1"
+        ]
+      }
+    },
+    "sp_ninjutsu": {
+      "needs": {
+        "req": [
+          "tagged:ninjutsu@self",
+          "count:ninjutsu@mine.spec >= 1"
+        ]
+      }
+    },
+    "sp_strength": {
+      "needs": {
+        "req": [
+          "tagged:strength@self",
+          "count:strength@mine.spec >= 1"
+        ]
+      }
+    },
+    "sp_future": {
+      "needs": {
+        "req": [
+          "tagged:future@self",
+          "count:future@mine.spec >= 1"
+        ]
+      }
+    },
+    "sp_past": {
+      "needs": {
+        "req": [
+          "tagged:past@self",
+          "count:past@mine.spec >= 1"
+        ]
+      }
+    },
+    "sp_present": {
+      "needs": {
+        "req": [
+          "tagged:present@self",
+          "count:present@mine.spec >= 1"
+        ]
+      }
+    },
+    "in_spec": {
+      "any_of": [
+        "sp_anarchy",
+        "sp_blood",
+        "sp_fire",
+        "sp_balance",
+        "sp_feral",
+        "sp_growth",
+        "sp_law",
+        "sp_peace",
+        "sp_truth",
+        "sp_demonology",
+        "sp_disease",
+        "sp_necromancy",
+        "sp_discipline",
+        "sp_ninjutsu",
+        "sp_strength",
+        "sp_future",
+        "sp_past",
+        "sp_present"
+      ]
+    },
     "t2_ok": {
       "needs": {
         "req": [
           "tagged:tech2@self",
-          "count:t2@mine.tech >= 1"
+          "count:t2@mine.tech >= 1",
+          "tagged:in_spec@self"
         ]
       }
     },
@@ -1054,7 +1221,8 @@
       "needs": {
         "req": [
           "tagged:tech3@self",
-          "count:t3@mine.tech >= 1"
+          "count:t3@mine.tech >= 1",
+          "tagged:in_spec@self"
         ]
       }
     },
@@ -1790,7 +1958,7 @@
         ],
         "needs": {
           "req": [
-            "count:t2@mine.tech >= 1"
+            "tagged:t2_ok@self"
           ]
         },
         "cost": {
@@ -1813,7 +1981,7 @@
         ],
         "needs": {
           "req": [
-            "count:t3@mine.tech >= 1"
+            "tagged:t3_ok@self"
           ]
         },
         "cost": {
@@ -3133,16 +3301,60 @@
         [
           0.143,
           0.805,
-          0.64,
+          0.575,
           0.995
         ],
         [
           0.143,
           0.005,
-          0.64,
+          0.575,
           0.195
         ]
       ]
+    },
+    {
+      "key": "spec",
+      "label": "Spec",
+      "layout": "row",
+      "visibility": "public",
+      "copies": "per_seat",
+      "pos": [
+        [
+          0.579,
+          0.805,
+          0.64,
+          0.995
+        ],
+        [
+          0.579,
+          0.005,
+          0.64,
+          0.195
+        ]
+      ],
+      "tooltip": "The spec declared with tech II. Tech II and III build only what matches it."
+    },
+    {
+      "key": "specs",
+      "layout": "stack",
+      "visibility": "owner",
+      "display": "offscreen",
+      "copies": "per_seat",
+      "pos": [
+        [
+          0.579,
+          0.805,
+          0.64,
+          0.995
+        ],
+        [
+          0.579,
+          0.005,
+          0.64,
+          0.195
+        ]
+      ],
+      "tooltip": "The specs still to choose from: the three your colour's heroes lead."
     },
     {
       "key": "workers",
@@ -5563,7 +5775,7 @@
         "build_face"
       ],
       "asset": "polygon:4:silver",
-      "tooltip": "Lets you play tech II cards. Needs 8 workers and a tech I building.",
+      "tooltip": "Lets you play tech II cards of your declared spec. Needs 8 workers and a tech I building.",
       "card_stats": {
         "integrity": {
           "value": 5,
@@ -5582,7 +5794,7 @@
         "build_face"
       ],
       "asset": "polygon:5:gold",
-      "tooltip": "Lets you play tech III cards. Needs 10 workers and a tech II building.",
+      "tooltip": "Lets you play tech III cards of your declared spec. Needs 10 workers and a tech II building.",
       "card_stats": {
         "integrity": {
           "value": 5,
@@ -5780,7 +5992,7 @@
         "immutable"
       ],
       "asset": "square:silver",
-      "tooltip": "Needs 8 workers and a finished tech I building.",
+      "tooltip": "Needs 8 workers and a finished tech I building. Raising it declares one of your three specs, for the rest of the game.",
       "abilities": [
         {
           "key": "raise",
@@ -5801,8 +6013,7 @@
             ]
           },
           "action": [
-            "create:mine.site:tech_2:1",
-            "stat_set:t2_ever@mine.player:1"
+            "options:specs"
           ]
         },
         {
@@ -5878,6 +6089,312 @@
           ]
         }
       ]
+    },
+    {
+      "key": "spec_anarchy",
+      "text": "Anarchy",
+      "tags": [
+        "immutable",
+        "anarchy"
+      ],
+      "asset": "circle:crimson",
+      "tooltip": "Tech II and III build only Anarchy cards. Locked for the rest of the game.",
+      "play": {
+        "action": [
+          "move:mine.specs.anarchy:mine.spec",
+          "create:mine.site:tech_2:1",
+          "stat_set:t2_ever@mine.player:1"
+        ]
+      }
+    },
+    {
+      "key": "spec_blood",
+      "text": "Blood",
+      "tags": [
+        "immutable",
+        "blood"
+      ],
+      "asset": "circle:crimson",
+      "tooltip": "Tech II and III build only Blood cards. Locked for the rest of the game.",
+      "play": {
+        "action": [
+          "move:mine.specs.blood:mine.spec",
+          "create:mine.site:tech_2:1",
+          "stat_set:t2_ever@mine.player:1"
+        ]
+      }
+    },
+    {
+      "key": "spec_fire",
+      "text": "Fire",
+      "tags": [
+        "immutable",
+        "fire"
+      ],
+      "asset": "circle:crimson",
+      "tooltip": "Tech II and III build only Fire cards. Locked for the rest of the game.",
+      "play": {
+        "action": [
+          "move:mine.specs.fire:mine.spec",
+          "create:mine.site:tech_2:1",
+          "stat_set:t2_ever@mine.player:1"
+        ]
+      }
+    },
+    {
+      "key": "spec_balance",
+      "text": "Balance",
+      "tags": [
+        "immutable",
+        "balance"
+      ],
+      "asset": "circle:forest",
+      "tooltip": "Tech II and III build only Balance cards. Locked for the rest of the game.",
+      "play": {
+        "action": [
+          "move:mine.specs.balance:mine.spec",
+          "create:mine.site:tech_2:1",
+          "stat_set:t2_ever@mine.player:1"
+        ]
+      }
+    },
+    {
+      "key": "spec_feral",
+      "text": "Feral",
+      "tags": [
+        "immutable",
+        "feral"
+      ],
+      "asset": "circle:forest",
+      "tooltip": "Tech II and III build only Feral cards. Locked for the rest of the game.",
+      "play": {
+        "action": [
+          "move:mine.specs.feral:mine.spec",
+          "create:mine.site:tech_2:1",
+          "stat_set:t2_ever@mine.player:1"
+        ]
+      }
+    },
+    {
+      "key": "spec_growth",
+      "text": "Growth",
+      "tags": [
+        "immutable",
+        "growth"
+      ],
+      "asset": "circle:forest",
+      "tooltip": "Tech II and III build only Growth cards. Locked for the rest of the game.",
+      "play": {
+        "action": [
+          "move:mine.specs.growth:mine.spec",
+          "create:mine.site:tech_2:1",
+          "stat_set:t2_ever@mine.player:1"
+        ]
+      }
+    },
+    {
+      "key": "spec_law",
+      "text": "Law",
+      "tags": [
+        "immutable",
+        "law"
+      ],
+      "asset": "circle:blue",
+      "tooltip": "Tech II and III build only Law cards. Locked for the rest of the game.",
+      "play": {
+        "action": [
+          "move:mine.specs.law:mine.spec",
+          "create:mine.site:tech_2:1",
+          "stat_set:t2_ever@mine.player:1"
+        ]
+      }
+    },
+    {
+      "key": "spec_peace",
+      "text": "Peace",
+      "tags": [
+        "immutable",
+        "peace"
+      ],
+      "asset": "circle:blue",
+      "tooltip": "Tech II and III build only Peace cards. Locked for the rest of the game.",
+      "play": {
+        "action": [
+          "move:mine.specs.peace:mine.spec",
+          "create:mine.site:tech_2:1",
+          "stat_set:t2_ever@mine.player:1"
+        ]
+      }
+    },
+    {
+      "key": "spec_truth",
+      "text": "Truth",
+      "tags": [
+        "immutable",
+        "truth"
+      ],
+      "asset": "circle:blue",
+      "tooltip": "Tech II and III build only Truth cards. Locked for the rest of the game.",
+      "play": {
+        "action": [
+          "move:mine.specs.truth:mine.spec",
+          "create:mine.site:tech_2:1",
+          "stat_set:t2_ever@mine.player:1"
+        ]
+      }
+    },
+    {
+      "key": "spec_demonology",
+      "text": "Demonology",
+      "tags": [
+        "immutable",
+        "demonology"
+      ],
+      "asset": "circle:indigo",
+      "tooltip": "Tech II and III build only Demonology cards. Locked for the rest of the game.",
+      "play": {
+        "action": [
+          "move:mine.specs.demonology:mine.spec",
+          "create:mine.site:tech_2:1",
+          "stat_set:t2_ever@mine.player:1"
+        ]
+      }
+    },
+    {
+      "key": "spec_disease",
+      "text": "Disease",
+      "tags": [
+        "immutable",
+        "disease"
+      ],
+      "asset": "circle:indigo",
+      "tooltip": "Tech II and III build only Disease cards. Locked for the rest of the game.",
+      "play": {
+        "action": [
+          "move:mine.specs.disease:mine.spec",
+          "create:mine.site:tech_2:1",
+          "stat_set:t2_ever@mine.player:1"
+        ]
+      }
+    },
+    {
+      "key": "spec_necromancy",
+      "text": "Necromancy",
+      "tags": [
+        "immutable",
+        "necromancy"
+      ],
+      "asset": "circle:indigo",
+      "tooltip": "Tech II and III build only Necromancy cards. Locked for the rest of the game.",
+      "play": {
+        "action": [
+          "move:mine.specs.necromancy:mine.spec",
+          "create:mine.site:tech_2:1",
+          "stat_set:t2_ever@mine.player:1"
+        ]
+      }
+    },
+    {
+      "key": "spec_discipline",
+      "text": "Discipline",
+      "tags": [
+        "immutable",
+        "discipline"
+      ],
+      "asset": "circle:ash",
+      "tooltip": "Tech II and III build only Discipline cards. Locked for the rest of the game.",
+      "play": {
+        "action": [
+          "move:mine.specs.discipline:mine.spec",
+          "create:mine.site:tech_2:1",
+          "stat_set:t2_ever@mine.player:1"
+        ]
+      }
+    },
+    {
+      "key": "spec_ninjutsu",
+      "text": "Ninjutsu",
+      "tags": [
+        "immutable",
+        "ninjutsu"
+      ],
+      "asset": "circle:ash",
+      "tooltip": "Tech II and III build only Ninjutsu cards. Locked for the rest of the game.",
+      "play": {
+        "action": [
+          "move:mine.specs.ninjutsu:mine.spec",
+          "create:mine.site:tech_2:1",
+          "stat_set:t2_ever@mine.player:1"
+        ]
+      }
+    },
+    {
+      "key": "spec_strength",
+      "text": "Strength",
+      "tags": [
+        "immutable",
+        "strength"
+      ],
+      "asset": "circle:ash",
+      "tooltip": "Tech II and III build only Strength cards. Locked for the rest of the game.",
+      "play": {
+        "action": [
+          "move:mine.specs.strength:mine.spec",
+          "create:mine.site:tech_2:1",
+          "stat_set:t2_ever@mine.player:1"
+        ]
+      }
+    },
+    {
+      "key": "spec_future",
+      "text": "Future",
+      "tags": [
+        "immutable",
+        "future"
+      ],
+      "asset": "circle:violet",
+      "tooltip": "Tech II and III build only Future cards. Locked for the rest of the game.",
+      "play": {
+        "action": [
+          "move:mine.specs.future:mine.spec",
+          "create:mine.site:tech_2:1",
+          "stat_set:t2_ever@mine.player:1"
+        ]
+      }
+    },
+    {
+      "key": "spec_past",
+      "text": "Past",
+      "tags": [
+        "immutable",
+        "past"
+      ],
+      "asset": "circle:violet",
+      "tooltip": "Tech II and III build only Past cards. Locked for the rest of the game.",
+      "play": {
+        "action": [
+          "move:mine.specs.past:mine.spec",
+          "create:mine.site:tech_2:1",
+          "stat_set:t2_ever@mine.player:1"
+        ]
+      }
+    },
+    {
+      "key": "spec_present",
+      "text": "Present",
+      "tags": [
+        "immutable",
+        "present"
+      ],
+      "asset": "circle:violet",
+      "tooltip": "Tech II and III build only Present cards. Locked for the rest of the game.",
+      "play": {
+        "action": [
+          "move:mine.specs.present:mine.spec",
+          "create:mine.site:tech_2:1",
+          "stat_set:t2_ever@mine.player:1"
+        ]
+      }
     },
     {
       "key": "build_surplus",
@@ -18218,7 +18735,10 @@
           "create:mine.codex:flame_arrow:2",
           "create:mine.codex:burning_volley:2",
           "create:mine.command:jaina:1",
-          "stat_gain:picked@mine.player:1"
+          "stat_gain:picked@mine.player:1",
+          "create:mine.specs:spec_anarchy:1",
+          "create:mine.specs:spec_blood:1",
+          "create:mine.specs:spec_fire:1"
         ]
       }
     },
@@ -18279,7 +18799,10 @@
           "create:mine.codex:spirit_of_the_panda:2",
           "create:mine.codex:stampede:2",
           "create:mine.command:argagarg:1",
-          "stat_gain:picked@mine.player:1"
+          "stat_gain:picked@mine.player:1",
+          "create:mine.specs:spec_balance:1",
+          "create:mine.specs:spec_feral:1",
+          "create:mine.specs:spec_growth:1"
         ]
       }
     },
@@ -18873,7 +19396,7 @@
         ],
         "needs": {
           "req": [
-            "count:t2@mine.tech >= 1"
+            "tagged:t2_ok@self"
           ]
         },
         "cost": {
@@ -18920,7 +19443,7 @@
         ],
         "needs": {
           "req": [
-            "count:t2@mine.tech >= 1"
+            "tagged:t2_ok@self"
           ]
         },
         "cost": {
@@ -19626,7 +20149,7 @@
         ],
         "needs": {
           "req": [
-            "count:t3@mine.tech >= 1"
+            "tagged:t3_ok@self"
           ]
         },
         "cost": {
@@ -19807,7 +20330,7 @@
         ],
         "needs": {
           "req": [
-            "count:t2@mine.tech >= 1"
+            "tagged:t2_ok@self"
           ]
         },
         "cost": {
@@ -20741,7 +21264,7 @@
         ],
         "needs": {
           "req": [
-            "count:t2@mine.tech >= 1"
+            "tagged:t2_ok@self"
           ],
           "where": [
             "tech_level@target <= 2",
@@ -20802,7 +21325,7 @@
         ],
         "needs": {
           "req": [
-            "count:t2@mine.tech >= 1"
+            "tagged:t2_ok@self"
           ]
         },
         "cost": {
@@ -20882,7 +21405,7 @@
         ],
         "needs": {
           "req": [
-            "count:t3@mine.tech >= 1"
+            "tagged:t3_ok@self"
           ]
         },
         "cost": {
@@ -21148,7 +21671,7 @@
         ],
         "needs": {
           "req": [
-            "count:t2@mine.tech >= 1"
+            "tagged:t2_ok@self"
           ]
         },
         "compute": [
@@ -21319,7 +21842,7 @@
         ],
         "needs": {
           "req": [
-            "count:t3@mine.tech >= 1"
+            "tagged:t3_ok@self"
           ]
         },
         "cost": {
@@ -21677,7 +22200,7 @@
         ],
         "needs": {
           "req": [
-            "count:t2@mine.tech >= 1"
+            "tagged:t2_ok@self"
           ]
         },
         "cost": {
@@ -21887,7 +22410,7 @@
         ],
         "needs": {
           "req": [
-            "count:t3@mine.tech >= 1",
+            "tagged:t3_ok@self",
             "count:guargum@mine.army == 0",
             "count:guargum@mine.patrol == 0"
           ]
@@ -22175,7 +22698,10 @@
           "create:mine.codex:hallucination:2",
           "create:mine.codex:mind_control:2",
           "create:mine.command:sirus:1",
-          "stat_gain:picked@mine.player:1"
+          "stat_gain:picked@mine.player:1",
+          "create:mine.specs:spec_law:1",
+          "create:mine.specs:spec_peace:1",
+          "create:mine.specs:spec_truth:1"
         ]
       }
     },
@@ -22309,7 +22835,10 @@
           "create:mine.codex:lichs_bargain:2",
           "create:mine.codex:nether_drain:2",
           "create:mine.command:garth:1",
-          "stat_gain:picked@mine.player:1"
+          "stat_gain:picked@mine.player:1",
+          "create:mine.specs:spec_demonology:1",
+          "create:mine.specs:spec_disease:1",
+          "create:mine.specs:spec_necromancy:1"
         ]
       }
     },
@@ -22370,7 +22899,10 @@
           "create:mine.codex:entangling_vines:2",
           "create:mine.codex:thunderclap:2",
           "create:mine.command:garus:1",
-          "stat_gain:picked@mine.player:1"
+          "stat_gain:picked@mine.player:1",
+          "create:mine.specs:spec_discipline:1",
+          "create:mine.specs:spec_ninjutsu:1",
+          "create:mine.specs:spec_strength:1"
         ]
       }
     },
@@ -22541,7 +23073,10 @@
           "create:mine.codex:research__development:2",
           "create:mine.codex:temporal_distortion:2",
           "create:mine.command:maxg:1",
-          "stat_gain:picked@mine.player:1"
+          "stat_gain:picked@mine.player:1",
+          "create:mine.specs:spec_future:1",
+          "create:mine.specs:spec_past:1",
+          "create:mine.specs:spec_present:1"
         ]
       }
     }

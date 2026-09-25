@@ -1716,6 +1716,27 @@ with their own order, and any space past the counter's ceiling can never light a
 
 A zone instead of a list is how a variable set of choices is written.
 
+### Choose one of your three specs; from now on only its cards may be built.
+
+```json
+{ "key": "spec_fire", "text": "Fire", "tags": ["immutable", "fire"],
+  "play": { "action": ["move:mine.specs.fire:mine.spec", "create:mine.site:tech_2:1"] } }
+```
+
+```json
+"computed_tags": {
+  "sp_fire": { "needs": { "req": ["tagged:fire@self", "count:fire@mine.spec >= 1"] } },
+  "in_spec": { "any_of": ["sp_anarchy", "sp_blood", "sp_fire"] } }
+```
+
+**A choice that is kept is a card put somewhere.** The colour pick deals its three mini-cards into
+`specs`, the raise asks `options:specs`, and the one chosen moves its own twin into `spec`. A gate
+reads `tagged:in_spec@self`, one computed tag per spec asking whether that spec's card stands in
+`spec`. Nothing is stored that the table cannot show, and unlocking a second spec is a second card
+in the same zone.
+
+---
+
 ### You may decline.
 
 ```json

@@ -101,6 +101,13 @@ local function summon(def_key, zone_key)
 	return c
 end
 
+-- Tech II standing, with a spec declared as raising it would have: the mini-card
+-- leaves the three to choose from and takes the spec slot.
+local function tech_2(spec)
+	require("cards").create("tech_2", zones.find_id("tech", "mine"))
+	zones.move_card(in_zone("mine.specs", "spec_" .. spec).id, zones.find_id("spec", "mine"))
+end
+
 function M.test_codex_setup(check)
 	start("pick_red", "pick_green")
 
@@ -1610,7 +1617,7 @@ end
 -- since the plain half of this card is doing nothing.
 function M.test_codex_a_dearer_half_is_offered_only_when_it_can_be_paid(check)
 	start("pick_red", "pick_green")
-	require("cards").create("tech_2", zones.find_id("tech", "mine"))
+	tech_2("anarchy")
 	local me, them = seat("south"), seat("north")
 	me.stats.gold = 4
 	local raider = require("cards").create("marauder", zones.find_id("hand", "mine"))
@@ -1793,7 +1800,7 @@ end
 function M.test_codex_haste_is_asked_as_a_union(check)
 	start("pick_green", "pick_green")
 	seat("south").stats.gold = 20
-	require("cards").create("tech_2", zones.find_id("tech", "mine"))
+	tech_2("balance")
 
 	local slow = require("cards").create("wandering_mimic", zones.find_id("hand", "mine"))
 	flow.play_card(slow.id, {})
@@ -1872,7 +1879,7 @@ end
 -- number with nothing bound, so a hand said nought and the pile took seven.
 function M.test_codex_a_price_may_be_worked_out(check)
 	start("pick_green", "pick_green")
-	require("cards").create("tech_2", zones.find_id("tech", "mine"))
+	tech_2("feral")
 	seat("south").stats.gold = 20
 	local beast = require("cards").create("gigadon", zones.find_id("hand", "mine"))
 	local cost  = require("cards").def(entity.get(beast.id)).cost
@@ -2053,7 +2060,7 @@ function M.test_codex_a_tier_gate_is_a_union(check)
 	check("a tech 0 unit needs no building", pool().tiger_cub == true)
 	check("a tech 2 one does", pool().stalking_tiger == nil)
 	require("cards").create("tech_1", zones.find_id("tech", "mine"))
-	require("cards").create("tech_2", zones.find_id("tech", "mine"))
+	tech_2("feral")
 	check("and is offered once it stands", pool().stalking_tiger == true)
 
 	flow.play_card(blow.id, { cub.id, tiger.id })
@@ -2280,6 +2287,43 @@ function M.test_codex_three_heroes_a_side(check)
 	actions.execute("stat_damage:hero_wait@each.mine.command:1", {})
 	check("a hero's wait ticks where it waits", jaina.stats.hero_wait == 1, tostring(jaina.stats.hero_wait))
 	check("and holds it back meanwhile", not offers(jaina, "summon"))
+end
+
+-- Tech II declares a spec, and tech II and III then build only that spec's cards
+-- for the rest of the game. The spec is a mini-card, as in the box: the three a
+-- colour leads are dealt at the pick, and the one declared leaves them.
+function M.test_codex_tech_ii_locks_a_spec(check)
+	start("pick_red", "pick_green")
+	local me = seat("south")
+	me.stats.gold, me.stats.workers = 20, 8
+	require("cards").create("tech_1", zones.find_id("tech", "mine"))
+	use(in_zone("controls", "build_t2"), "raise")
+	flow.settle()
+	local offered = {}
+	for _, id in ipairs(zones.find("options").cards) do offered[#offered + 1] = entity.get(id).def_key end
+	table.sort(offered)
+	check("raising it asks for one of the colour's three specs",
+		table.concat(offered, ",") == "spec_anarchy,spec_blood,spec_fire", table.concat(offered, ","))
+
+	flow.play_card(in_zone("options", "spec_fire").id, {})
+	flow.settle()
+	check("the choice is declared", in_zone("mine.spec", "spec_fire") ~= nil)
+	check("and the other two stay undeclared", count_in("mine.specs") == 2, tostring(count_in("mine.specs")))
+	check("tech II goes up on the site", in_zone("mine.site", "tech_2") ~= nil)
+	check("and it is the first one", me.stats.t2_ever == 1)
+
+	zones.move_card(in_zone("mine.site", "tech_2").id, zones.find_id("tech", "mine"))
+	local fire = require("cards").create("bamstamper_lizzo", zones.find_id("hand", "mine"))
+	local off = require("cards").create("marauder", zones.find_id("hand", "mine"))
+	check("the declared spec's tech II builds", tags.entity_has(fire, "t2_ok"))
+	check("another spec's does not", not tags.entity_has(off, "t2_ok"))
+	flow.play_card(off.id, {})
+	flow.settle()
+	check("and cannot be played", in_zone("mine.hand", "marauder") ~= nil)
+
+	flow.play_card(fire.id, {})
+	flow.settle()
+	check("while the spec's own can", in_zone("mine.hand", "bamstamper_lizzo") == nil)
 end
 
 return M
