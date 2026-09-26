@@ -108,7 +108,8 @@ The pick is six colours, each dealing its starter ten, three specs' codex and
 three heroes (mono-colour; the rulebook's mixed-colour team is a later variant).
 `hero_wait` and `ripe` are each hero's own, levels are gated on
 `not_self@mine.command`, and summoning is capped by the `hero_limit` compute —
-1, 2 with tech II, 3 with tech III. The one-hero beginner's game is gone.
+1, 2 with tech II, 3 with tech III, one more with a heroes' hall. The one-hero
+beginner's game is gone.
 
 **The engine question answered no, and did not need to be asked.** An `each`
 cannot read the card it stands on: `stat_set` works its amount out once, before
@@ -116,16 +117,9 @@ the sweep (`actions.lua`, `HANDLERS["stat_set"]`). `ripe` moved into an `upkeep`
 ability on the `hero` tag instead, which the upkeep walk already runs on every
 hero in play, as itself.
 
-Left, from the rulebook's *Codex 3-Hero Game* pages (pp. 10–11):
+Left, from the rulebook's *Codex 3-Hero Game* pages (pp. 10–12). The tech lab and heroes' hall
+shipped; their costs, 1 and 2 gold, are not in the rulebook and were not checked against the cards.
 
-- **Tech lab** — *"When you build the tech lab, you get to unlock a spec … Now
-  you can build stuff from EITHER of those specs."* **Heroes' hall** — *"simply
-  allows you to have one more hero in play than usual."* Both add-ons; neither
-  card is in the file. The hall is `+ count:hall@mine.addon` on `hero_limit`.
-  The lab is `options:specs` once more: the spec lock shipped as a mini-card
-  per spec, dealt into `specs` by the colour pick and moved into `spec` when
-  tech II goes up, and `in_spec` counts whatever stands in `spec` — so a second
-  mini-card there unlocks its cards with no other change.
 - **The two neutral specs cannot be declared.** Bashing and Finesse have no
   hero in the file and so no mini-card, which leaves their tech II and III
   unbuildable now rather than free. Scaffolding either way until a neutral

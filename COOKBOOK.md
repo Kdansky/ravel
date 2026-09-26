@@ -1720,20 +1720,26 @@ A zone instead of a list is how a variable set of choices is written.
 
 ```json
 { "key": "spec_fire", "text": "Fire", "tags": ["immutable", "fire"],
-  "play": { "action": ["move:mine.specs.fire:mine.spec", "create:mine.site:tech_2:1"] } }
+  "play": { "needs": { "lab": "tagged:unlocks_spec@target" },
+            "action": ["lab? move:mine.specs.fire:mine.lab_pick", "!lab? move:mine.specs.fire:mine.spec"] } }
 ```
 
 ```json
+"zones": [{ "key": "spec", "tags": ["declared"] }, { "key": "lab_spec", "tags": ["declared"] }],
 "computed_tags": {
-  "sp_fire": { "needs": { "req": ["tagged:fire@self", "count:fire@mine.spec >= 1"] } },
+  "sp_fire": { "needs": { "req": ["tagged:fire@self", "count:fire@mine.declared >= 1"] } },
   "in_spec": { "any_of": ["sp_anarchy", "sp_blood", "sp_fire"] } }
 ```
 
 **A choice that is kept is a card put somewhere.** The colour pick deals its three mini-cards into
 `specs`, the raise asks `options:specs`, and the one chosen moves its own twin into `spec`. A gate
-reads `tagged:in_spec@self`, one computed tag per spec asking whether that spec's card stands in
-`spec`. Nothing is stored that the table cannot show, and unlocking a second spec is a second card
-in the same zone.
+reads `tagged:in_spec@self`, one computed tag per spec asking whether that spec's card stands in a
+`declared` zone. Nothing is stored that the table cannot show.
+
+The tech lab asks the same question. The chosen card is played with the asker as its `target`,
+so one gate tells the lab's pick from tech II's and sends it to the lab's slot instead: a second
+spec is a second card in a second place both zones' word names. The lab's slot empties when the lab
+falls, and the spec goes with it.
 
 ---
 

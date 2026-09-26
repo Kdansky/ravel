@@ -2326,4 +2326,50 @@ function M.test_codex_tech_ii_locks_a_spec(check)
 	check("while the spec's own can", in_zone("mine.hand", "bamstamper_lizzo") == nil)
 end
 
+-- The tech lab unlocks a second spec beside tech II's, and only for as long as it
+-- stands: the pick waits with the lab until it finishes, goes back when it falls,
+-- and a rebuilt lab may choose again.
+function M.test_codex_tech_lab_unlocks_a_second_spec(check)
+	start("pick_red", "pick_green")
+	local me = seat("south")
+	me.stats.gold = 20
+	tech_2("fire")
+	local blood = require("cards").create("crashbarrow", zones.find_id("hand", "mine"))
+	check("tech II alone builds only its own spec", not tags.entity_has(blood, "t2_ok"))
+
+	flow.activate(in_zone("controls", "build_lab").id, {}, 1)
+	flow.settle()
+	local offered = {}
+	for _, id in ipairs(zones.find("options").cards) do offered[#offered + 1] = entity.get(id).def_key end
+	table.sort(offered)
+	check("the lab offers the two specs left", table.concat(offered, ",") == "spec_anarchy,spec_blood",
+		table.concat(offered, ","))
+	flow.play_card(in_zone("options", "spec_blood").id, {})
+	flow.settle()
+	check("the tech II spec stays where it was", in_zone("mine.spec", "spec_fire") ~= nil)
+	check("the lab's spec waits with the lab", in_zone("mine.lab_pick", "spec_blood") ~= nil)
+	check("and unlocks nothing while it is built", not tags.entity_has(blood, "t2_ok"))
+
+	actions.execute("move:mine.site.attachment:mine.addon", {})
+	actions.execute("move:mine.lab_pick:mine.lab_spec", {})
+	check("a finished lab unlocks its spec", tags.entity_has(blood, "t2_ok"))
+
+	in_zone("mine.addon", "tech_lab").stats.integrity = 0
+	actions.execute("activate_zone:rules_death", {})
+	flow.settle()
+	check("a fallen lab takes its spec with it", not tags.entity_has(blood, "t2_ok"))
+	check("back among the ones to choose", in_zone("mine.specs", "spec_blood") ~= nil)
+	check("and tech II's is kept", in_zone("mine.spec", "spec_fire") ~= nil)
+end
+
+function M.test_codex_heroes_hall_seats_one_more_hero(check)
+	start("pick_red", "pick_green")
+	seat("south").stats.gold = 20
+	zones.move_card(in_zone("command", "zane").id, zones.find_id("army", "mine"))
+	local drakk = in_zone("command", "drakk")
+	check("one hero is the limit without tech II", not offers(drakk, "summon"))
+	require("cards").create("heroes_hall", zones.find_id("addon", "mine"))
+	check("the hall lets a second one in", offers(drakk, "summon"))
+end
+
 return M

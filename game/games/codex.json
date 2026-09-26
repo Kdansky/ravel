@@ -1046,7 +1046,7 @@
       "needs": {
         "req": [
           "tagged:anarchy@self",
-          "count:anarchy@mine.spec >= 1"
+          "count:anarchy@mine.declared >= 1"
         ]
       }
     },
@@ -1054,7 +1054,7 @@
       "needs": {
         "req": [
           "tagged:blood@self",
-          "count:blood@mine.spec >= 1"
+          "count:blood@mine.declared >= 1"
         ]
       }
     },
@@ -1062,7 +1062,7 @@
       "needs": {
         "req": [
           "tagged:fire@self",
-          "count:fire@mine.spec >= 1"
+          "count:fire@mine.declared >= 1"
         ]
       }
     },
@@ -1070,7 +1070,7 @@
       "needs": {
         "req": [
           "tagged:balance@self",
-          "count:balance@mine.spec >= 1"
+          "count:balance@mine.declared >= 1"
         ]
       }
     },
@@ -1078,7 +1078,7 @@
       "needs": {
         "req": [
           "tagged:feral@self",
-          "count:feral@mine.spec >= 1"
+          "count:feral@mine.declared >= 1"
         ]
       }
     },
@@ -1086,7 +1086,7 @@
       "needs": {
         "req": [
           "tagged:growth@self",
-          "count:growth@mine.spec >= 1"
+          "count:growth@mine.declared >= 1"
         ]
       }
     },
@@ -1094,7 +1094,7 @@
       "needs": {
         "req": [
           "tagged:law@self",
-          "count:law@mine.spec >= 1"
+          "count:law@mine.declared >= 1"
         ]
       }
     },
@@ -1102,7 +1102,7 @@
       "needs": {
         "req": [
           "tagged:peace@self",
-          "count:peace@mine.spec >= 1"
+          "count:peace@mine.declared >= 1"
         ]
       }
     },
@@ -1110,7 +1110,7 @@
       "needs": {
         "req": [
           "tagged:truth@self",
-          "count:truth@mine.spec >= 1"
+          "count:truth@mine.declared >= 1"
         ]
       }
     },
@@ -1118,7 +1118,7 @@
       "needs": {
         "req": [
           "tagged:demonology@self",
-          "count:demonology@mine.spec >= 1"
+          "count:demonology@mine.declared >= 1"
         ]
       }
     },
@@ -1126,7 +1126,7 @@
       "needs": {
         "req": [
           "tagged:disease@self",
-          "count:disease@mine.spec >= 1"
+          "count:disease@mine.declared >= 1"
         ]
       }
     },
@@ -1134,7 +1134,7 @@
       "needs": {
         "req": [
           "tagged:necromancy@self",
-          "count:necromancy@mine.spec >= 1"
+          "count:necromancy@mine.declared >= 1"
         ]
       }
     },
@@ -1142,7 +1142,7 @@
       "needs": {
         "req": [
           "tagged:discipline@self",
-          "count:discipline@mine.spec >= 1"
+          "count:discipline@mine.declared >= 1"
         ]
       }
     },
@@ -1150,7 +1150,7 @@
       "needs": {
         "req": [
           "tagged:ninjutsu@self",
-          "count:ninjutsu@mine.spec >= 1"
+          "count:ninjutsu@mine.declared >= 1"
         ]
       }
     },
@@ -1158,7 +1158,7 @@
       "needs": {
         "req": [
           "tagged:strength@self",
-          "count:strength@mine.spec >= 1"
+          "count:strength@mine.declared >= 1"
         ]
       }
     },
@@ -1166,7 +1166,7 @@
       "needs": {
         "req": [
           "tagged:future@self",
-          "count:future@mine.spec >= 1"
+          "count:future@mine.declared >= 1"
         ]
       }
     },
@@ -1174,7 +1174,7 @@
       "needs": {
         "req": [
           "tagged:past@self",
-          "count:past@mine.spec >= 1"
+          "count:past@mine.declared >= 1"
         ]
       }
     },
@@ -1182,7 +1182,14 @@
       "needs": {
         "req": [
           "tagged:present@self",
-          "count:present@mine.spec >= 1"
+          "count:present@mine.declared >= 1"
+        ]
+      }
+    },
+    "unbacked": {
+      "needs": {
+        "req": [
+          "count:lab@mine.addon == 0"
         ]
       }
     },
@@ -1653,8 +1660,8 @@
   "computes": [
     {
       "key": "hero_limit",
-      "value": "1 + count:t2@mine.tech + count:t3@mine.tech",
-      "tooltip": "How many heroes you may have in play: one, two with a tech II building, three with tech III."
+      "value": "1 + count:t2@mine.tech + count:t3@mine.tech + count:hall@mine.addon",
+      "tooltip": "How many heroes you may have in play: one, two with a tech II building, three with tech III, and one more with a heroes' hall."
     },
     {
       "key": "watching",
@@ -3301,16 +3308,39 @@
         [
           0.143,
           0.805,
-          0.575,
+          0.51,
           0.995
         ],
         [
           0.143,
           0.005,
-          0.575,
+          0.51,
           0.195
         ]
       ]
+    },
+    {
+      "key": "lab_spec",
+      "label": "Lab",
+      "layout": "row",
+      "visibility": "public",
+      "copies": "per_seat",
+      "tags": ["declared"],
+      "pos": [
+        [
+          0.514,
+          0.805,
+          0.575,
+          0.995
+        ],
+        [
+          0.514,
+          0.005,
+          0.575,
+          0.195
+        ]
+      ],
+      "tooltip": "The spec the tech lab unlocked. Tech II and III build its cards too, while the lab stands."
     },
     {
       "key": "spec",
@@ -3318,6 +3348,7 @@
       "layout": "row",
       "visibility": "public",
       "copies": "per_seat",
+      "tags": ["declared"],
       "pos": [
         [
           0.579,
@@ -3357,6 +3388,28 @@
       "tooltip": "The specs still to choose from: the three your colour's heroes lead."
     },
     {
+      "key": "lab_pick",
+      "layout": "stack",
+      "visibility": "owner",
+      "display": "offscreen",
+      "copies": "per_seat",
+      "pos": [
+        [
+          0.579,
+          0.805,
+          0.64,
+          0.995
+        ],
+        [
+          0.579,
+          0.005,
+          0.64,
+          0.195
+        ]
+      ],
+      "tooltip": "The spec a tech lab under construction will unlock when it finishes."
+    },
+    {
       "key": "workers",
       "label": "Workers",
       "layout": "stack",
@@ -3382,7 +3435,7 @@
       "key": "controls",
       "layout": "grid",
       "grid": [
-        5,
+        6,
         2
       ],
       "use": "abilities",
@@ -3479,6 +3532,7 @@
         "stat_damage:hero_wait@each.mine.command:1",
         "move:mine.site.tech_building:mine.tech",
         "move:mine.site.attachment:mine.addon",
+        "move:mine.lab_pick:mine.lab_spec",
         "stat_gain:gold@mine.player:sum:workers@mine.player",
         "stat_set:guard@each.mine.patrol:0",
         "stat_set:guard@each.mine.patrol.at_lead:1",
@@ -3640,6 +3694,20 @@
         "zone": "controls",
         "at": [
           "e2"
+        ]
+      },
+      {
+        "card": "build_lab",
+        "zone": "controls",
+        "at": [
+          "f1"
+        ]
+      },
+      {
+        "card": "build_hall",
+        "zone": "controls",
+        "at": [
+          "f2"
         ]
       },
       {
@@ -5850,6 +5918,44 @@
       }
     },
     {
+      "key": "tech_lab",
+      "text": "Tech lab",
+      "tags": [
+        "building",
+        "attachment",
+        "lab",
+        "stone",
+        "build_face"
+      ],
+      "asset": "polygon:3:teal",
+      "tooltip": "Add-on. Tech II and III also build the spec it unlocked, for as long as it stands.",
+      "card_stats": {
+        "integrity": {
+          "value": 4,
+          "max": 4
+        }
+      }
+    },
+    {
+      "key": "heroes_hall",
+      "text": "Heroes' hall",
+      "tags": [
+        "building",
+        "attachment",
+        "hall",
+        "stone",
+        "build_face"
+      ],
+      "asset": "polygon:8:gold",
+      "tooltip": "Add-on. You may have one more hero in play. Losing it sends none of them away.",
+      "card_stats": {
+        "integrity": {
+          "value": 4,
+          "max": 4
+        }
+      }
+    },
+    {
       "key": "end_turn",
       "text": "End turn",
       "tags": [
@@ -6013,7 +6119,9 @@
             ]
           },
           "action": [
-            "options:specs"
+            "options:specs",
+            "create:mine.site:tech_2:1",
+            "stat_set:t2_ever@mine.player:1"
           ]
         },
         {
@@ -6098,12 +6206,12 @@
         "anarchy"
       ],
       "asset": "circle:crimson",
-      "tooltip": "Tech II and III build only Anarchy cards. Locked for the rest of the game.",
+      "tooltip": "Tech II and III may build Anarchy cards.",
       "play": {
+        "needs": { "lab": "tagged:unlocks_spec@target" },
         "action": [
-          "move:mine.specs.anarchy:mine.spec",
-          "create:mine.site:tech_2:1",
-          "stat_set:t2_ever@mine.player:1"
+          "lab? move:mine.specs.anarchy:mine.lab_pick",
+          "!lab? move:mine.specs.anarchy:mine.spec"
         ]
       }
     },
@@ -6115,12 +6223,12 @@
         "blood"
       ],
       "asset": "circle:crimson",
-      "tooltip": "Tech II and III build only Blood cards. Locked for the rest of the game.",
+      "tooltip": "Tech II and III may build Blood cards.",
       "play": {
+        "needs": { "lab": "tagged:unlocks_spec@target" },
         "action": [
-          "move:mine.specs.blood:mine.spec",
-          "create:mine.site:tech_2:1",
-          "stat_set:t2_ever@mine.player:1"
+          "lab? move:mine.specs.blood:mine.lab_pick",
+          "!lab? move:mine.specs.blood:mine.spec"
         ]
       }
     },
@@ -6132,12 +6240,12 @@
         "fire"
       ],
       "asset": "circle:crimson",
-      "tooltip": "Tech II and III build only Fire cards. Locked for the rest of the game.",
+      "tooltip": "Tech II and III may build Fire cards.",
       "play": {
+        "needs": { "lab": "tagged:unlocks_spec@target" },
         "action": [
-          "move:mine.specs.fire:mine.spec",
-          "create:mine.site:tech_2:1",
-          "stat_set:t2_ever@mine.player:1"
+          "lab? move:mine.specs.fire:mine.lab_pick",
+          "!lab? move:mine.specs.fire:mine.spec"
         ]
       }
     },
@@ -6149,12 +6257,12 @@
         "balance"
       ],
       "asset": "circle:forest",
-      "tooltip": "Tech II and III build only Balance cards. Locked for the rest of the game.",
+      "tooltip": "Tech II and III may build Balance cards.",
       "play": {
+        "needs": { "lab": "tagged:unlocks_spec@target" },
         "action": [
-          "move:mine.specs.balance:mine.spec",
-          "create:mine.site:tech_2:1",
-          "stat_set:t2_ever@mine.player:1"
+          "lab? move:mine.specs.balance:mine.lab_pick",
+          "!lab? move:mine.specs.balance:mine.spec"
         ]
       }
     },
@@ -6166,12 +6274,12 @@
         "feral"
       ],
       "asset": "circle:forest",
-      "tooltip": "Tech II and III build only Feral cards. Locked for the rest of the game.",
+      "tooltip": "Tech II and III may build Feral cards.",
       "play": {
+        "needs": { "lab": "tagged:unlocks_spec@target" },
         "action": [
-          "move:mine.specs.feral:mine.spec",
-          "create:mine.site:tech_2:1",
-          "stat_set:t2_ever@mine.player:1"
+          "lab? move:mine.specs.feral:mine.lab_pick",
+          "!lab? move:mine.specs.feral:mine.spec"
         ]
       }
     },
@@ -6183,12 +6291,12 @@
         "growth"
       ],
       "asset": "circle:forest",
-      "tooltip": "Tech II and III build only Growth cards. Locked for the rest of the game.",
+      "tooltip": "Tech II and III may build Growth cards.",
       "play": {
+        "needs": { "lab": "tagged:unlocks_spec@target" },
         "action": [
-          "move:mine.specs.growth:mine.spec",
-          "create:mine.site:tech_2:1",
-          "stat_set:t2_ever@mine.player:1"
+          "lab? move:mine.specs.growth:mine.lab_pick",
+          "!lab? move:mine.specs.growth:mine.spec"
         ]
       }
     },
@@ -6200,12 +6308,12 @@
         "law"
       ],
       "asset": "circle:blue",
-      "tooltip": "Tech II and III build only Law cards. Locked for the rest of the game.",
+      "tooltip": "Tech II and III may build Law cards.",
       "play": {
+        "needs": { "lab": "tagged:unlocks_spec@target" },
         "action": [
-          "move:mine.specs.law:mine.spec",
-          "create:mine.site:tech_2:1",
-          "stat_set:t2_ever@mine.player:1"
+          "lab? move:mine.specs.law:mine.lab_pick",
+          "!lab? move:mine.specs.law:mine.spec"
         ]
       }
     },
@@ -6217,12 +6325,12 @@
         "peace"
       ],
       "asset": "circle:blue",
-      "tooltip": "Tech II and III build only Peace cards. Locked for the rest of the game.",
+      "tooltip": "Tech II and III may build Peace cards.",
       "play": {
+        "needs": { "lab": "tagged:unlocks_spec@target" },
         "action": [
-          "move:mine.specs.peace:mine.spec",
-          "create:mine.site:tech_2:1",
-          "stat_set:t2_ever@mine.player:1"
+          "lab? move:mine.specs.peace:mine.lab_pick",
+          "!lab? move:mine.specs.peace:mine.spec"
         ]
       }
     },
@@ -6234,12 +6342,12 @@
         "truth"
       ],
       "asset": "circle:blue",
-      "tooltip": "Tech II and III build only Truth cards. Locked for the rest of the game.",
+      "tooltip": "Tech II and III may build Truth cards.",
       "play": {
+        "needs": { "lab": "tagged:unlocks_spec@target" },
         "action": [
-          "move:mine.specs.truth:mine.spec",
-          "create:mine.site:tech_2:1",
-          "stat_set:t2_ever@mine.player:1"
+          "lab? move:mine.specs.truth:mine.lab_pick",
+          "!lab? move:mine.specs.truth:mine.spec"
         ]
       }
     },
@@ -6251,12 +6359,12 @@
         "demonology"
       ],
       "asset": "circle:indigo",
-      "tooltip": "Tech II and III build only Demonology cards. Locked for the rest of the game.",
+      "tooltip": "Tech II and III may build Demonology cards.",
       "play": {
+        "needs": { "lab": "tagged:unlocks_spec@target" },
         "action": [
-          "move:mine.specs.demonology:mine.spec",
-          "create:mine.site:tech_2:1",
-          "stat_set:t2_ever@mine.player:1"
+          "lab? move:mine.specs.demonology:mine.lab_pick",
+          "!lab? move:mine.specs.demonology:mine.spec"
         ]
       }
     },
@@ -6268,12 +6376,12 @@
         "disease"
       ],
       "asset": "circle:indigo",
-      "tooltip": "Tech II and III build only Disease cards. Locked for the rest of the game.",
+      "tooltip": "Tech II and III may build Disease cards.",
       "play": {
+        "needs": { "lab": "tagged:unlocks_spec@target" },
         "action": [
-          "move:mine.specs.disease:mine.spec",
-          "create:mine.site:tech_2:1",
-          "stat_set:t2_ever@mine.player:1"
+          "lab? move:mine.specs.disease:mine.lab_pick",
+          "!lab? move:mine.specs.disease:mine.spec"
         ]
       }
     },
@@ -6285,12 +6393,12 @@
         "necromancy"
       ],
       "asset": "circle:indigo",
-      "tooltip": "Tech II and III build only Necromancy cards. Locked for the rest of the game.",
+      "tooltip": "Tech II and III may build Necromancy cards.",
       "play": {
+        "needs": { "lab": "tagged:unlocks_spec@target" },
         "action": [
-          "move:mine.specs.necromancy:mine.spec",
-          "create:mine.site:tech_2:1",
-          "stat_set:t2_ever@mine.player:1"
+          "lab? move:mine.specs.necromancy:mine.lab_pick",
+          "!lab? move:mine.specs.necromancy:mine.spec"
         ]
       }
     },
@@ -6302,12 +6410,12 @@
         "discipline"
       ],
       "asset": "circle:ash",
-      "tooltip": "Tech II and III build only Discipline cards. Locked for the rest of the game.",
+      "tooltip": "Tech II and III may build Discipline cards.",
       "play": {
+        "needs": { "lab": "tagged:unlocks_spec@target" },
         "action": [
-          "move:mine.specs.discipline:mine.spec",
-          "create:mine.site:tech_2:1",
-          "stat_set:t2_ever@mine.player:1"
+          "lab? move:mine.specs.discipline:mine.lab_pick",
+          "!lab? move:mine.specs.discipline:mine.spec"
         ]
       }
     },
@@ -6319,12 +6427,12 @@
         "ninjutsu"
       ],
       "asset": "circle:ash",
-      "tooltip": "Tech II and III build only Ninjutsu cards. Locked for the rest of the game.",
+      "tooltip": "Tech II and III may build Ninjutsu cards.",
       "play": {
+        "needs": { "lab": "tagged:unlocks_spec@target" },
         "action": [
-          "move:mine.specs.ninjutsu:mine.spec",
-          "create:mine.site:tech_2:1",
-          "stat_set:t2_ever@mine.player:1"
+          "lab? move:mine.specs.ninjutsu:mine.lab_pick",
+          "!lab? move:mine.specs.ninjutsu:mine.spec"
         ]
       }
     },
@@ -6336,12 +6444,12 @@
         "strength"
       ],
       "asset": "circle:ash",
-      "tooltip": "Tech II and III build only Strength cards. Locked for the rest of the game.",
+      "tooltip": "Tech II and III may build Strength cards.",
       "play": {
+        "needs": { "lab": "tagged:unlocks_spec@target" },
         "action": [
-          "move:mine.specs.strength:mine.spec",
-          "create:mine.site:tech_2:1",
-          "stat_set:t2_ever@mine.player:1"
+          "lab? move:mine.specs.strength:mine.lab_pick",
+          "!lab? move:mine.specs.strength:mine.spec"
         ]
       }
     },
@@ -6353,12 +6461,12 @@
         "future"
       ],
       "asset": "circle:violet",
-      "tooltip": "Tech II and III build only Future cards. Locked for the rest of the game.",
+      "tooltip": "Tech II and III may build Future cards.",
       "play": {
+        "needs": { "lab": "tagged:unlocks_spec@target" },
         "action": [
-          "move:mine.specs.future:mine.spec",
-          "create:mine.site:tech_2:1",
-          "stat_set:t2_ever@mine.player:1"
+          "lab? move:mine.specs.future:mine.lab_pick",
+          "!lab? move:mine.specs.future:mine.spec"
         ]
       }
     },
@@ -6370,12 +6478,12 @@
         "past"
       ],
       "asset": "circle:violet",
-      "tooltip": "Tech II and III build only Past cards. Locked for the rest of the game.",
+      "tooltip": "Tech II and III may build Past cards.",
       "play": {
+        "needs": { "lab": "tagged:unlocks_spec@target" },
         "action": [
-          "move:mine.specs.past:mine.spec",
-          "create:mine.site:tech_2:1",
-          "stat_set:t2_ever@mine.player:1"
+          "lab? move:mine.specs.past:mine.lab_pick",
+          "!lab? move:mine.specs.past:mine.spec"
         ]
       }
     },
@@ -6387,12 +6495,12 @@
         "present"
       ],
       "asset": "circle:violet",
-      "tooltip": "Tech II and III build only Present cards. Locked for the rest of the game.",
+      "tooltip": "Tech II and III may build Present cards.",
       "play": {
+        "needs": { "lab": "tagged:unlocks_spec@target" },
         "action": [
-          "move:mine.specs.present:mine.spec",
-          "create:mine.site:tech_2:1",
-          "stat_set:t2_ever@mine.player:1"
+          "lab? move:mine.specs.present:mine.lab_pick",
+          "!lab? move:mine.specs.present:mine.spec"
         ]
       }
     },
@@ -6453,6 +6561,66 @@
       ]
     },
     {
+      "key": "build_lab",
+      "text": "Build a tech lab",
+      "tags": [
+        "immutable",
+        "unlocks_spec"
+      ],
+      "asset": "polygon:3:teal",
+      "tooltip": "Add-on, 1 gold. Unlock a second spec: tech II and III build its cards too. Rebuilt, it may unlock another.",
+      "abilities": [
+        {
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "gold@mine.player": 1
+          },
+          "needs": {
+            "req": [
+              "count:attachment@mine.addon == 0",
+              "count:attachment@mine.site == 0"
+            ]
+          },
+          "action": [
+            "move:mine.lab_spec:mine.specs",
+            "move:mine.lab_pick:mine.specs",
+            "options:specs",
+            "create:mine.site:tech_lab:1"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "build_hall",
+      "text": "Build a heroes' hall",
+      "tags": [
+        "immutable"
+      ],
+      "asset": "polygon:8:gold",
+      "tooltip": "Add-on, 2 gold. You may have one more hero in play.",
+      "abilities": [
+        {
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "gold@mine.player": 2
+          },
+          "needs": {
+            "req": [
+              "count:attachment@mine.addon == 0",
+              "count:attachment@mine.site == 0"
+            ]
+          },
+          "action": [
+            "create:mine.site:heroes_hall:1"
+          ]
+        }
+      ]
+    },
+    {
       "key": "sacrifice_addon",
       "text": "Scrap the add-on",
       "tags": [
@@ -6472,6 +6640,7 @@
           },
           "action": [
             "purge:mine.addon",
+            "move:mine.lab_spec:mine.specs",
             "stat_damage:integrity@mine.base:2"
           ]
         }
@@ -6790,7 +6959,8 @@
           "phases": [],
           "action": [
             "each_seat:stat_damage:integrity@mine.base:count:rubble@mine.addon:x:2",
-            "each_seat:purge:mine.addon.rubble"
+            "each_seat:purge:mine.addon.rubble",
+            "each_seat:move:mine.lab_spec.unbacked:mine.specs"
           ]
         }
       ]
