@@ -64,7 +64,8 @@ Forgotten Ones clear it. Blue's two powers are four numbers rather than routing:
 `asks`, `tries`, `mix` and `most`, against this turn's `asked`, `tried` and
 `acts`, and the aftermath goes back to `yang_act` while `acts < most`. Strength
 of a Mountain needed no term in the computes: `count:<colour>@dice` counts a
-fourth bag's face like any other.
+fourth bag's face like any other. The Twin Winds are two clicks on the power
+card, because the validator takes `target` as a card destination and not `self`.
 
 **A stat set on a zone reaches its first card only** without `each.` —
 `designated` takes one bearer. `fresh`, `rolled` and the Night Watchman's reset
@@ -77,13 +78,11 @@ arrival again on the next one's. Tested now.
    is the only term that would change: it would have to reach every seat whose
    Taoist shares a tile with the one acting, which is `attached_to.host_of.
    mine.taoist` and an owner word the scope grammar does not have.
-2. **The Dance of the Twin Winds**, and the Pavilion's second half with it:
-   both move *another* Taoist, and nothing can — another seat's figure is not
-   the active seat's to click, and `attach_to_target` moves only the card
-   running it. Wants an action word that stands a named card on the target.
-   [Assumption: one word serves both; the Pavilion moves the Taoist anywhere,
-   the Twin Winds one tile, and that difference is the target's `where`.]
-   The card is dealt and does nothing, and says so.
+2. **The Pavilion's second half**, *"then move a different Taoist to any
+   tile"*. The Dance of the Twin Winds shipped in the shape it wants: pick the
+   Taoist (a stat that a computed tag `led` reads), then a tile, and
+   `move:table.led:target` stands it there — a move onto a card is an attach.
+   The Pavilion is the same two clicks with no `adjacent` in the `where`.
 3. **The captive Tao die.** "Exorcisms roll one die fewer" is one die not
    dealt, and the roll is a fixed list of actions with no if in it — which a
    gate in its `needs` now says ([46](46-one-list-of-conditions.md)), not a new word.

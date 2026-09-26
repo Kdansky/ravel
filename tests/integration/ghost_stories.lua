@@ -967,4 +967,27 @@ function M.test_ghost_stories_every_ghost_forgets_it_has_just_arrived(check)
 	check("and none of them is still arriving", fresh == 0, tostring(fresh))
 end
 
+
+function M.test_ghost_stories_the_twin_winds_move_another_taoist_one_tile(check)
+	start()
+	stack_deck(QUIET)
+	take_places()
+	to_yang_move()
+	give_power("south", "twin_winds")
+	press("no_move")
+	local card = card_in(box("power", "south"), "p_twin_winds")
+	local lead = ability(card, "lead")
+	check("South's own Taoist is not another",
+		not (lead and flow.activate(card.id, { monk_of("south").id }, lead)))
+	local west = monk_of("west")
+	check("West's is", lead ~= nil and flow.activate(card.id, { west.id }, lead))
+	check("and a tile is asked for", phase.current().key == "winds", phase.current().key)
+	local altar = on_table("t_altar")
+	check("a tile beside it takes it", flow.activate(card.id, { altar.id }, ability(card, "lead_to")))
+	check("West's Taoist stands there", west.parent_id == altar.id)
+	check("and is no longer being led", west.stats.guided == 0)
+	check("South still has its action", phase.current().key == "yang_act", phase.current().key)
+	check("and the winds blow once a turn", ability(card, "lead") == nil)
+end
+
 return M

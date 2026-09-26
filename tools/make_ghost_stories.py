@@ -213,7 +213,7 @@ POWERS = [
     ("red", "spires", "Dance of the Spires",
      "You may move to any village tile, not only one beside yours."),
     ("red", "twin_winds", "Dance of the Twin Winds",
-     "After your move, move one other Taoist one tile. Not in this file yet: it does nothing."),
+     "After your move, move one other Taoist one tile."),
     ("green", "favour", "The Gods' Favourite",
      "Roll any Tao die of an exorcism a second time. The second result stands."),
     ("green", "strength", "Strength of a Mountain",
@@ -294,7 +294,7 @@ def stats():
     seat_work = ["side", "incoming", "skip", "rolling", "moved",
                  "exorcising", "owed_c", "blowing", "in_yang", "facing",
                  "asked", "tried", "acts", "asks", "tries", "mix", "most",
-                 "powered", "mountain", "pocketed", "chanted"]
+                 "powered", "mountain", "pocketed", "chanted", "winded"]
     for k in seat_work:
         out.append({"key": k, "min": 0, "max": 9, "display": "offscreen",
                     "on": ["player"], "start": 0})
@@ -315,6 +315,8 @@ def stats():
                     "on": ["ghost"], "start": 0})
     out.append({"key": "mantra", "label": "Mantra", "icon": "banner", "color": "gold",
                 "min": 0, "max": 1, "display": "nonzero", "on": ["ghost"], "start": 0})
+    # The Taoist the Dance of the Twin Winds is about to move, between the click that picks it and the one that picks its tile.
+    out.append({"key": "guided", "min": 0, "max": 1, "display": "offscreen", "on": ["taoist"], "start": 0})
     # A die the Gods' Favourite has rolled a second time, which may not be rolled a third.
     out.append({"key": "again", "min": 0, "max": 1, "display": "offscreen", "on": ["face"], "start": 0})
     out.append({"key": "stock", "icon": "none", "min": 0, "max": 99, "display": "offscreen"})
@@ -1038,6 +1040,18 @@ def powers():
                 {"key": "settle", "needs": {"req": ["powered@mine.player == 0"]},
                  "action": ["stat_set:mantra@each.table.ghost:0", "purge:self"]},
             ]
+        elif tag == "twin_winds":
+            rules = [{"key": "lead", "text": "Move another Taoist", "phases": ["yang_act"],
+                      "needs": {"req": ["powered@mine.player >= 1", "winded@mine.player == 0", "acts@mine.player == 0"],
+                                "where": ["count@mine.target == 0"]},
+                      "target": {"type": "card", "count": 1, "tags": ["taoist"]},
+                      "action": ["stat_set:guided@target:1", "stat_set:winded@mine.player:1", "end_phase"]},
+                     # The second click: a tile beside the Taoist the first one picked. Moved onto a card, a card
+                     # stands on it, which is all a Taoist walking is.
+                     {"key": "lead_to", "phases": ["winds"],
+                      "needs": {"where": ["count:led@attached_to.adjacent >= 1"]},
+                      "target": {"type": "card", "count": 1, "tags": ["village"]},
+                      "action": ["move:table.led:target", "stat_set:guided@each.attached_to.target:0", "end_phase"]}]
         elif tag == "strength":
             rules = [{"key": "settle", "needs": {"req": ["powered@mine.player >= 1"]},
                       "action": ["stat_set:mountain@mine.player:1"]}]
@@ -1116,8 +1130,7 @@ def endings():
                   "will never see daylight again."},
         {"key": "rules_card", "text": "Not in this file yet", "tags": ["page"],
          "story": "Left out of this telling: "
-                  "Tao tokens lent between Taoists standing on the same tile; the Dance "
-                  "of the Twin Winds; the Gods' Favourite's second roll of the Curse die "
+                  "Tao tokens lent between Taoists standing on the same tile; the Gods' Favourite's second roll of the Curse die "
                   "and of the Herbalist's dice; neutral boards for fewer than four players; the second half of the "
                   "Pavilion of the Heavenly Wind, which moves another Taoist; the "
                   "Yin-Yang spent to ask a distant villager; and the Tao die a ghost "
@@ -1158,6 +1171,7 @@ def phases():
          "actions": ["stat_set:moved@mine.player:0", "stat_set:asked@mine.player:0",
                      "stat_set:tried@mine.player:0", "stat_set:acts@mine.player:0",
                      "stat_set:pocketed@mine.player:0", "stat_set:chanted@mine.player:0",
+                     "stat_set:winded@mine.player:0",
                      "stat_set:skip@mine.player:0", "stat_set:incoming@mine.player:0",
                      "stat_set:rolling@mine.player:0", "stat_set:in_yang@mine.player:0",
                      "stat_set:rolled@each.table.ghost:0"] + stamps + settle,
@@ -1211,9 +1225,14 @@ def phases():
 
         {"key": "yang_act", "type": "player_input",
          "label": "Ask a villager, or attempt an exorcism",
-         "zone": ["choices", "table"],
+         "zone": ["choices", "power", "table"],
          "next": [{"when": "exorcising@mine.player >= 1", "then": "yang_exorcise"},
+                  {"when": "count:led@table >= 1", "then": "winds"},
                   {"then": "aftermath"}]},
+
+        {"key": "winds", "type": "player_input", "zone": ["power", "table"],
+         "label": "Move that Taoist to a tile beside it",
+         "next": [{"then": "yang_act"}]},
 
         {"key": "yang_exorcise", "type": "player_input",
          "label": "Commit Tao tokens, then name the ghost",
@@ -1341,6 +1360,7 @@ def build():
         },
         "assets": assets(),
         "patterns": patterns(),
+        "computed_tags": {"led": {"needs": {"req": ["guided@self >= 1"]}}},
         "computes": computes(),
         "stats": stats(),
         "tags": t,

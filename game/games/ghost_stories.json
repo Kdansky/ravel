@@ -131,6 +131,7 @@
     "vert4": { "vectors": [[0, 4], [0, -4]] },
     "horiz4": { "vectors": [[4, 0], [-4, 0]] }
   },
+  "computed_tags": { "led": { "needs": { "req": ["guided@self >= 1"] } } },
   "computes": [
     {
       "key": "power_yellow",
@@ -326,6 +327,14 @@
       "start": 0
     },
     {
+      "key": "winded",
+      "min": 0,
+      "max": 9,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
+    {
       "key": "haunted",
       "label": "Haunted",
       "icon": "none",
@@ -374,6 +383,14 @@
       "max": 1,
       "display": "nonzero",
       "on": ["ghost"],
+      "start": 0
+    },
+    {
+      "key": "guided",
+      "min": 0,
+      "max": 1,
+      "display": "offscreen",
+      "on": ["taoist"],
       "start": 0
     },
     { "key": "again", "min": 0, "max": 1, "display": "offscreen", "on": ["face"], "start": 0 },
@@ -1069,6 +1086,7 @@
         "stat_set:acts@mine.player:0",
         "stat_set:pocketed@mine.player:0",
         "stat_set:chanted@mine.player:0",
+        "stat_set:winded@mine.player:0",
         "stat_set:skip@mine.player:0",
         "stat_set:incoming@mine.player:0",
         "stat_set:rolling@mine.player:0",
@@ -1208,11 +1226,19 @@
       "key": "yang_act",
       "type": "player_input",
       "label": "Ask a villager, or attempt an exorcism",
-      "zone": ["choices", "table"],
+      "zone": ["choices", "power", "table"],
       "next": [
         { "when": "exorcising@mine.player >= 1", "then": "yang_exorcise" },
+        { "when": "count:led@table >= 1", "then": "winds" },
         { "then": "aftermath" }
       ]
+    },
+    {
+      "key": "winds",
+      "type": "player_input",
+      "zone": ["power", "table"],
+      "label": "Move that Taoist to a tile beside it",
+      "next": [{ "then": "yang_act" }]
     },
     {
       "key": "yang_exorcise",
@@ -4791,8 +4817,28 @@
       "text": "Dance of the Twin Winds",
       "tags": ["power_card", "twin_winds"],
       "asset": "square:crimson",
-      "story": "After your move, move one other Taoist one tile. Not in this file yet: it does nothing.",
-      "tooltip": "After your move, move one other Taoist one tile. Not in this file yet: it does nothing."
+      "story": "After your move, move one other Taoist one tile.",
+      "tooltip": "After your move, move one other Taoist one tile.",
+      "abilities": [
+        {
+          "key": "lead",
+          "text": "Move another Taoist",
+          "phases": ["yang_act"],
+          "needs": {
+            "req": ["powered@mine.player >= 1", "winded@mine.player == 0", "acts@mine.player == 0"],
+            "where": ["count@mine.target == 0"]
+          },
+          "target": { "type": "card", "count": 1, "tags": ["taoist"] },
+          "action": ["stat_set:guided@target:1", "stat_set:winded@mine.player:1", "end_phase"]
+        },
+        {
+          "key": "lead_to",
+          "phases": ["winds"],
+          "needs": { "where": ["count:led@attached_to.adjacent >= 1"] },
+          "target": { "type": "card", "count": 1, "tags": ["village"] },
+          "action": ["move:table.led:target", "stat_set:guided@each.attached_to.target:0", "end_phase"]
+        }
+      ]
     },
     {
       "key": "p_favour",
@@ -4989,7 +5035,7 @@
       "key": "rules_card",
       "text": "Not in this file yet",
       "tags": ["page"],
-      "story": "Left out of this telling: Tao tokens lent between Taoists standing on the same tile; the Dance of the Twin Winds; the Gods' Favourite's second roll of the Curse die and of the Herbalist's dice; neutral boards for fewer than four players; the second half of the Pavilion of the Heavenly Wind, which moves another Taoist; the Yin-Yang spent to ask a distant villager; and the Tao die a ghost holds captive. Two incarnations bend rather than break: the Uncatchable is exorcised like any other, since a Buddha here eats whatever is laid on it, and the Nameless does not stop the white dice counting as wild. A resistance printed in several colours spends the same white face on each of them. The village tiles are laid out in a fixed order rather than shuffled."
+      "story": "Left out of this telling: Tao tokens lent between Taoists standing on the same tile; the Gods' Favourite's second roll of the Curse die and of the Herbalist's dice; neutral boards for fewer than four players; the second half of the Pavilion of the Heavenly Wind, which moves another Taoist; the Yin-Yang spent to ask a distant villager; and the Tao die a ghost holds captive. Two incarnations bend rather than break: the Uncatchable is exorcised like any other, since a Buddha here eats whatever is laid on it, and the Nameless does not stop the white dice counting as wild. A resistance printed in several colours spends the same white face on each of them. The village tiles are laid out in a fixed order rather than shuffled."
     }
   ],
   "setup": {

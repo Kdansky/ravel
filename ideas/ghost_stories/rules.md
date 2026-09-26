@@ -220,7 +220,7 @@ Two per board, one used per game.
 | Yellow | Bottomless Pockets | Before your move, take a Tao token of any colour |
 | Yellow | Enfeeblement Mantra | Before your move, put the Mantra on any ghost: its resistance is 1 lower for everybody |
 | Red | Dance of the Spires | You may move to any Village tile, not only an adjacent one |
-| Red | Dance of the Twin Winds | Before your move, move one other Taoist one space |
+| Red | Dance of the Twin Winds | Move one other Taoist one space: *after* your move in the rulebook, *before* it in the play reference. Built as after |
 | Green | The Gods' Favorite | Reroll any Tao dice, and the Curse die; the second result stands |
 | Green | Strength of a Mountain | A fourth Tao die on exorcisms, and you never roll the Curse die |
 | Blue | Heavenly Gust | Ask a villager **and** attempt an exorcism, in either order |
