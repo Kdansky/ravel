@@ -582,6 +582,55 @@ do
 	assert(anim.visual_place("still", rest) == nil, "a bump at no distance does nothing")
 end
 
+-- A shuffle whirls copies round a card that never leaves its place, and a flip
+-- turns one over where it lies: both are over it, and both end where they began.
+do
+	local rest = { x = 100, y = 200, w = 40, h = 60 }
+	anim.whirl("pile")
+	anim.update(anim.whirl_time() * 0.5)
+	local out = anim.visual_place("pile", rest)
+	assert(out and #out.copies == 4, "a whirl lays four copies over the pile")
+	assert(out.x == rest.x and out.y == rest.y, "and the pile itself stays put")
+	local spread = 0
+	for _, c in ipairs(out.copies) do spread = math.max(spread, math.abs(c.x - rest.x)) end
+	assert(spread > 5, "half way round, the copies are out from under it")
+	anim.whirl("big", { count = 2 })
+	assert(#anim.visual_place("big", rest).copies == 8, "count scales the copies")
+	anim.update(1)
+	assert(anim.visual_place("pile", rest) == nil, "and it settles back into one card")
+
+	anim.flip("coin")
+	anim.update(0.1)
+	local f = anim.visual_place("coin", rest)
+	assert(f and f.flip > 0 and f.flip < 1, "a flip says how far over the card is")
+	anim.update(1)
+	assert(anim.visual_place("coin", rest) == nil, "and lies flat when it is done")
+end
+
+-- A card off a face-down pile into a hand turns over on the way; one reflowing
+-- along the hand it is already in does not.
+do
+	flow.init("castle.json", 7)
+	render.rescale()
+	for _ = 1, 40 do frame(0.016) end
+	anim.clear()
+	local deck, hand = zones.find("build_deck"), zones.find("hand")
+	local id = deck.cards[#deck.cards]
+	zones.move_card(id, hand.id)
+	render.sync_places()
+	local v = anim.visual_place(id, entity.get(id).place)
+	assert(v and v.flip, "a card drawn face down lands face up, turning over as it flies")
+	for _ = 1, 30 do frame(0.033) end
+	anim.clear()
+	zones.move_card(hand.cards[1], zones.find("graveyard").id)
+	render.sync_places()
+	for _, cid in ipairs(hand.cards) do
+		local r = anim.visual_place(cid, entity.get(cid).place)
+		assert(not (r and r.flip), "a hand closing up does not turn its cards over")
+	end
+	for _ = 1, 30 do frame(0.033) end
+end
+
 -- A whole click drawn as a run: the registry the drawing path reads is a state
 -- the rules have already left behind, so every derived answer it leans on —
 -- what a zone shows, whose hand it is, where the cells are — has to come out of

@@ -431,10 +431,10 @@
   },
   "effects": {
     "<your effect name>": {
-      "base": "one of damage, bleed, power_up, sparkle, stars, heal, smoke, explosion, bolt — which flies from the acting card to where it lands, and bursts there",
+      "base": "one of damage, bleed, power_up, sparkle, stars, heal, smoke, explosion, bolt — which flies from the acting card to where it lands, and bursts there — or one of the two that move the card itself: shuffle (copies of it fan out, whirl round it once and settle back) and flip (it turns over where it lies). Every shuffle of a pile on screen already whirls it, and every card going from face down to face up or back turns over on the way, so these two are for a moment the rules do not already show",
       "size": "number multiplying the base size, default 1",
       "speed": "number multiplying the base speed, default 1",
-      "count": "number multiplying how many particles, default 1",
+      "count": "number multiplying how many particles, or how many copies a shuffle whirls, default 1",
       "color": "[r, g, b] each 0 to 1, defaulting per base"
     }
   },

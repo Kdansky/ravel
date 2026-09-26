@@ -2165,6 +2165,19 @@ error.
 
 Not the same as `secret`, which is a zone you can see and cannot read.
 
+### Turn this card over where it lies.
+
+```json
+"effects": { "turn": { "base": "flip" }, "tumble": { "base": "shuffle", "count": 0.5 } },
+"action": ["effect:turn"]
+```
+
+On the acting card. A card moving between a face-down zone and a face-up one already turns over
+on the way, and a shuffle of a pile on screen already whirls it — this is for the moment that is
+neither. `shuffle` on one card is the same whirl, round that card.
+
+---
+
 ### Every blow throws a bolt at whoever it hits.
 
 ```json

@@ -5194,6 +5194,15 @@ default to 1; `color` is `[r, g, b]` and defaults per base. The effect plays
 on the acting card (mid-screen when there is none), is skipped headless, and
 a card losing hp gets a small damage burst automatically.
 
+Two bases move the card itself rather than drawing over it: `shuffle` (copies
+of the card fan out, whirl round it once and settle back — `count` scales the
+copies) and `flip` (it turns over where it lies, showing its other side
+first). Neither needs asking for where the rules already show it: **every
+shuffle of a pile on screen whirls it**, and **every card that changes zones
+from face down to face up, or back, turns over on the way**. They are for a
+moment that is not a shuffle or a move — a die rolled in place, a card
+revealed where it stands.
+
 **A look that belongs to a moment goes on its verb**, so no action list has to
 carry it:
 

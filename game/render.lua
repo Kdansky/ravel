@@ -1397,7 +1397,9 @@ local function draw_zone(zone_e)
 	elseif zt == "stack" and zone_e.use == "none" then
 		if #zone_e.cards > 0 then
 			local top = entity.get(zone_e.cards[#zone_e.cards])
-			if zone_e.visibility ~= "secret" then
+			if anim.visual_place(top.id, top.place) then
+				-- Whirling or turning over: drawn with the cards in the air.
+			elseif zone_e.visibility ~= "secret" then
 				draw_card_face(places[1], top, false)
 			else
 				draw_card_back(places[1], hue)
@@ -1723,19 +1725,32 @@ end
 -- One on its way into a face-down pile, or into a hand that is not ours, shows
 -- its back: being in the air is not a hole in what a zone promises to hide.
 local function draw_flying_card(vpl, card_e)
-	love.graphics.push()
-	if vpl.rot and vpl.rot ~= 0 then
-		local cx, cy = vpl.x + vpl.w * 0.5, vpl.y + vpl.h * 0.5
+	local z = card_e and card_e.zone_id and entity.get(card_e.zone_id)
+	local hue = M.seat_hue(z and z.seat)
+	local function turned(r, sx)
+		local cx, cy = r.x + r.w * 0.5, r.y + r.h * 0.5
 		love.graphics.translate(cx, cy)
-		love.graphics.rotate(vpl.rot)
+		if r.rot and r.rot ~= 0 then love.graphics.rotate(r.rot) end
+		if sx then love.graphics.scale(sx, 1) end
 		love.graphics.translate(-cx, -cy)
 	end
-	local z = card_e and card_e.zone_id and entity.get(card_e.zone_id)
-	if (z and z.visibility == "secret") or not zones.visible(card_e) then
-		draw_card_back(vpl, M.seat_hue(z and z.seat))
-	else
-		draw_card_face(vpl, card_e, false)
+	-- A shuffle's copies are the pile's backs, whatever the pile shows: the order is what is being hidden.
+	for _, r in ipairs(vpl.copies or {}) do
+		love.graphics.push()
+		turned(r)
+		draw_card_back(r, hue)
+		love.graphics.pop()
 	end
+	local face = not ((z and z.visibility == "secret") or not zones.visible(card_e))
+	local sx
+	if vpl.flip then
+		-- Edge-on at half way, where the side shown changes. Never quite zero wide: a flat card is a degenerate scale.
+		sx = math.max(0.02, math.abs(math.cos(math.pi * vpl.flip)))
+		if vpl.flip < 0.5 then face = not face end
+	end
+	love.graphics.push()
+	turned(vpl, sx)
+	if face then draw_card_face(vpl, card_e, false) else draw_card_back(vpl, hue) end
 	love.graphics.pop()
 end
 
@@ -2029,6 +2044,9 @@ end
 -- Sync card.place (used for hit-testing, tooltips and as the animation target)
 -- with the current layout. Runs every frame from love.update; position changes
 -- kick off a tween from the old rect.
+-- The zone each card was last laid out in, so a card is known to have changed zones rather than shuffled along one.
+local laid = {}
+
 function M.sync_places()
 	for z in entity.each("zone") do
 		-- A zone nobody sees has a rect above the window, and a card laid out there on its way through flew off the
@@ -2076,7 +2094,14 @@ function M.sync_places()
 					local supply = zones.supply_of(c.def_key)
 					from = supply and supply.place
 				end
-				if from then anim.move(c.id, from, new, kind) end
+				-- Face down where it was and face up where it lands, or the other way round, and it turns over on the way.
+				-- Only between zones: a hand closing up after a draw is the same cards, lying the same way up.
+				local was = laid[c.id] and laid[c.id] ~= z.id and entity.get(c.origin_zone_id)
+				laid[c.id] = z.id
+				local hid = was and (was.visibility == "secret" or (was.visibility == "owner" and was.seat
+					and was.seat ~= (zones.watching() or zones.shown_to or zones.active_seat())))
+				local shows = z.visibility ~= "secret" and zones.visible(c)
+				if from then anim.move(c.id, from, new, kind, was and hid == shows) end
 				c.place = new
 			end
 		end

@@ -9,6 +9,8 @@ local M = {}
 
 local tweens = {}
 local bumps  = {}   -- a card leaning into what it is acting on, and settling back
+local whirls = {}   -- a pile fanning out, spinning, and settling: a shuffle
+local flips  = {}   -- a card turning over where it lies
 
 -- kind → duration; slam = onto the board, drop = onto a pile/deck, glide = hand
 local DURATION = { glide = 0.22, drop = 0.26, slam = 0.32 }
@@ -56,8 +58,8 @@ end
 
 -- Begin animating card `id` from `from` rect to `to` rect. If the card is
 -- already mid-animation, the new tween starts from its current visual
--- position so motion stays smooth.
-function M.move(id, from, to, kind)
+-- position so motion stays smooth. `flip` turns it over on the way.
+function M.move(id, from, to, kind, flip)
 	if math.abs(from.x - to.x) < 0.5 and math.abs(from.y - to.y) < 0.5
 		and math.abs(from.w - to.w) < 0.5 and math.abs(from.h - to.h) < 0.5 then
 		return
@@ -78,7 +80,58 @@ function M.move(id, from, to, kind)
 		lift = math.min(46, dist * 0.18) * body,
 		pop  = math.min(0.18, 0.06 + dist * 0.0003) * body,
 		tilt = math.max(-0.14, math.min(0.14, dx / 900)) * body,
+		flip = flip,
 	}
+end
+
+local WHIRL, FLIP = 0.6, 0.3
+
+-- A shuffle: copies of the card fan out from under it, swing round it once and
+-- close back up. `o` carries an effect's size, speed and count.
+function M.whirl(id, o)
+	o = o or {}
+	local speed = math.max(0.25, tonumber(o.speed) or 1)
+	whirls[id] = { elapsed = 0, duration = WHIRL / speed, size = tonumber(o.size) or 1,
+		n = math.max(2, math.floor(4 * (tonumber(o.count) or 1) + 0.5)) }
+end
+
+-- The card turns over where it lies, showing the other side first.
+function M.flip(id, o)
+	flips[id] = { elapsed = 0, duration = FLIP / math.max(0.25, tonumber((o or {}).speed) or 1) }
+end
+
+-- How long a shuffle holds the board, so what is drawn off the pile leaves once it has settled.
+function M.whirl_time()
+	return WHIRL
+end
+
+local function smooth(t)
+	t = math.max(0, math.min(1, t))
+	return t * t * (3 - 2 * t)
+end
+
+-- The copies for one frame of a whirl. They open over the first fifth and close
+-- over the last, and the swing between carries them round the card.
+local function whirl_copies(w, r)
+	local p = w.elapsed / w.duration
+	local open = smooth(p / 0.2) * (1 - smooth((p - 0.8) / 0.2))
+	local q = smooth((p - 0.15) / 0.7)
+	local swing = math.sin(math.pi * q)
+	local spin = 2 * math.pi * q
+	local out = {}
+	for i = 1, w.n do
+		local fan = (i - (w.n + 1) / 2) * 0.22 * w.size
+		local phi = 2 * math.pi * (i - 1) / w.n + spin
+		local rad = r.w * 0.3 * w.size * swing * open
+		local rot = open * (fan * (1 - swing) + 0.35 * math.sin(phi) * swing)
+		out[i] = {
+			-- Fanned from the bottom edge, as a hand holds cards: turning about the centre would lift the whole pile.
+			x = r.x + math.cos(phi) * rad + math.sin(rot) * r.h * 0.5,
+			y = r.y + math.sin(phi) * rad * 0.5 + (1 - math.cos(rot)) * r.h * 0.5,
+			w = r.w, h = r.h, rot = rot,
+		}
+	end
+	return out
 end
 
 -- A card lunging at whatever it just acted on. Purely a displacement laid over
@@ -98,6 +151,12 @@ function M.bump(id, dx, dy)
 end
 
 function M.update(dt)
+	for _, list in ipairs({ whirls, flips }) do
+		for id, a in pairs(list) do
+			a.elapsed = a.elapsed + dt
+			if a.elapsed >= a.duration then list[id] = nil end
+		end
+	end
 	for id, b in pairs(bumps) do
 		b.elapsed = b.elapsed + dt
 		if b.elapsed >= BUMP then bumps[id] = nil end
@@ -119,13 +178,17 @@ end
 -- `rest` is where the rules have the card; it is only needed for a bump, which
 -- is an offset from a card that is otherwise standing still.
 function M.visual_place(id, rest)
-	local t, b = tweens[id], bumps[id]
+	local t, b, w, f = tweens[id], bumps[id], whirls[id], flips[id]
 	local out
 	if t then
 		out = interp(t)
-	elseif b and rest then
+		if t.flip then out.flip = math.min(1, t.elapsed / t.duration) end
+	elseif (b or w or f) and rest then
 		out = { x = rest.x, y = rest.y, w = rest.w, h = rest.h, rot = 0 }
 	end
+	-- `flip` is how far over the card has turned: before half way it still shows the side it had.
+	if out and f then out.flip = f.elapsed / f.duration end
+	if out and w then out.copies = whirl_copies(w, out) end
 	if out and b then
 		-- Out quickly, back slowly: the weight is in the return.
 		local p = b.elapsed / BUMP
@@ -144,6 +207,8 @@ end
 function M.clear()
 	tweens = {}
 	bumps  = {}
+	whirls = {}
+	flips  = {}
 end
 
 return M

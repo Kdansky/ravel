@@ -38,9 +38,9 @@ local zones = require("zones")
 local M = {}
 
 -- What the board waits before taking the next step. A shuffle is one gesture
--- however many cards it touched, and a beat of dead air after it is worse than
--- letting the next thing follow straight on.
-local GAP = { move = 0.10, add = 0.10, purge = 0.10, stat = 0.14, effect = 0.10 }
+-- however many cards it touched: the pile whirls once, and what is drawn off it
+-- leaves as it settles.
+local GAP = { move = 0.10, add = 0.10, purge = 0.10, stat = 0.14, effect = 0.10, shuffle = 0.45 }
 
 -- A cascade runs up to sixty-four phase transitions and an each_seat loop inside
 -- one of them can move the whole table. Past this the run stops being recorded

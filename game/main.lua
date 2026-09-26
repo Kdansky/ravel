@@ -351,7 +351,8 @@ function love.load()
 		local e = entity.get(id)
 		local was = stage.last(id)
 		local seen = what == "shuffle" and drawn(id) or drawn(e and e.zone_id) or drawn(was and was.zone_id)
-		stage.record(what, id, nil, not seen and { wait = 0 } or nil)
+		-- A shuffle is told as a fact, so the pile whirls on the other side of a network too.
+		stage.record(what, id, nil, not seen and { wait = 0 } or what == "shuffle" and {} or nil)
 	end
 
 	-- Stat changes float up from where they happened (card, or the HUD row).
@@ -369,7 +370,10 @@ function love.load()
 	end
 	stage.look = function(what, id, data)
 		local e = id and entity.get(id)
-		if what == "stat" then
+		if what == "shuffle" then
+			local top = e and e.layout == "stack" and zones.shown(e) and entity.get(e.cards[#e.cards])
+			if top then anim.whirl(top.id) end
+		elseif what == "stat" then
 			local delta = tonumber(data.delta)
 			if not delta then return end
 			local key = tostring(data.key)
@@ -394,6 +398,12 @@ function love.load()
 		elseif what == "effect" then
 			local def = declaration.G.effect_defs[tostring(data.effect)]
 			if not def then return end
+			-- The card itself moves, so there has to be one.
+			if def.base == "shuffle" or def.base == "flip" then
+				if not (e and e.kind == "card") then return end
+				if def.base == "shuffle" then anim.whirl(e.id, def) else anim.flip(e.id, def) end
+				return
+			end
 			local x, y = center(e)
 			if not x then
 				x, y = love.graphics.getWidth() * 0.5, love.graphics.getHeight() * 0.5
