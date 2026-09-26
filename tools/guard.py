@@ -56,9 +56,9 @@ def destination(default_out, argv=None):
     if force or os.environ.get("RAVEL_ALLOW_DIRTY"):
         return default_out
 
-    # Up from game/games/<name>.json until something looks like the checkout.
+    # Up from game/games/<name>.json until something looks like the checkout. A worktree's `.git` is a file.
     repo = os.path.dirname(default_out)
-    while repo != os.path.dirname(repo) and not os.path.isdir(os.path.join(repo, ".git")):
+    while repo != os.path.dirname(repo) and not os.path.exists(os.path.join(repo, ".git")):
         repo = os.path.dirname(repo)
     dirty = _porcelain(repo)
     if not dirty:

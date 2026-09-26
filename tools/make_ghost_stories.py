@@ -268,7 +268,7 @@ def stats():
          "min": 0, "max": 9, "display": "nonzero", "on": ["player"], "start": 0},
     ]
     seat_work = ["side", "incoming", "skip", "rolling", "acted", "moved",
-                 "exorcising", "owed_c", "blowing", "in_yang"]
+                 "exorcising", "owed_c", "blowing", "in_yang", "facing"]
     for k in seat_work:
         out.append({"key": k, "min": 0, "max": 9, "display": "offscreen",
                     "on": ["player"], "start": 0})
@@ -346,8 +346,14 @@ def zones():
          "tooltip": "The two Buddha figurines live on the Buddhist Temple tile until "
                     "somebody asks for one."},
 
-        {"key": "dice", "label": "Tao dice", "layout": "row", "status": "board", "use": "none",
-         "pos": [0.85, 0.36, 0.995, 0.48]},
+        # A corner tile faces two ghosts and one roll serves both, split as the player likes: a face moved to `aside` is kept
+        # for the second, and the first exorcism spends whatever is left in `dice`.
+        {"key": "dice", "label": "Tao dice", "layout": "row", "status": "board", "use": "abilities",
+         "applies": ["rolled"], "pos": [0.85, 0.36, 0.945, 0.48]},
+        {"key": "aside", "label": "Kept back", "layout": "row", "status": "board", "use": "abilities",
+         "applies": ["kept"], "pos": [0.95, 0.36, 0.995, 0.48],
+         "tooltip": "Dice kept back for the second ghost a corner tile faces."},
+        {"key": "used", "layout": "row", "display": "offscreen", "use": "none"},
         {"key": "curse", "label": "Curse die", "layout": "row", "status": "board", "use": "none",
          "pos": [0.85, 0.50, 0.92, 0.64]},
         {"key": "circle", "label": "Circle of Prayer", "layout": "row", "status": "board",
@@ -425,17 +431,18 @@ def _seat_rect(key, i):
 # Shared abilities, written once on a tag
 
 
-def roll_tao():
+def roll_tao(dice=(1, 2, 3)):
     """Three dice, each out of its own bag, so two of a colour is possible.
 
     A pile does not answer `count:` by its top card alone, so a die is a bag of
     six faces and the face it shows is the one card lying in `dice` wearing that
-    die's tag. Rolling is: send last turn's face home, shuffle, deal one.
+    die's tag. Rolling is: send every face home from wherever the last roll left
+    it, shuffle, deal one.
     """
     out = []
     for n in (1, 2, 3):
-        out.append("move:dice.d%d:bag%d" % (n, n))
-    for n in (1, 2, 3):
+        out += ["move:%s.d%d:bag%d" % (z, n, n) for z in ("dice", "aside", "used")]
+    for n in dice:
         out += ["shuffle:bag%d" % n, "draw_from:bag%d:dice:1" % n]
     return out
 
@@ -505,9 +512,25 @@ def tags():
                                    "stat_set:rolling@mine.player:1"]},
     ] + curse_effects("rolls")}
 
+    # Rolled and read in one ability, so two ghosts dying at once from a corner
+    # tile each read their own roll rather than both reading the last one.
+    faces = {"qi": "count:c_qi@curse >= 1", "tao": "count:c_tao@curse >= 1",
+             "more": "count:c_ghost@curse >= 1", "dark": "count:c_haunt@curse >= 1"}
     t["dying_curse"] = {"abilities": [
-        {"key": "death_roll", "needs": {"req": ["dying@self >= 1"]},
-         "action": roll_curse() + ["stat_set:rolls@self:1"]},
+        {"key": "death_roll", "needs": dict({"req": ["dying@self >= 1"]}, **faces),
+         "action": roll_curse() + ["qi? stat_damage:qi@mine.player:1", "tao? purge:mine.tao",
+                                   "more? stat_gain:incoming@mine.player:1",
+                                   "dark? stat_gain:to_haunt@self:1"]},
+    ]}
+
+    # Only offered while the Taoist faces two ghosts, which is a corner tile.
+    t["rolled"] = {"abilities": [
+        {"key": "keep_back", "text": "Keep for the second ghost", "phases": ["yang_exorcise"],
+         "needs": {"req": ["facing@mine.player >= 2"]}, "action": ["move_to:aside"]},
+    ]}
+    t["kept"] = {"abilities": [
+        {"key": "put_back", "text": "Spend on this ghost", "phases": ["yang_exorcise"],
+         "action": ["move_to:dice"]},
     ]}
 
     return t
@@ -636,9 +659,7 @@ def village():
             {"type": "card", "count": 1, "tags": ["village"]}, ["haunted@target >= 1"]),
         "herbalist": _villager(
             "herbalist", [],
-            ["move:dice.d3:bag3"] + roll_tao()[3:5] + ["draw_from:bag1:dice:1",
-                                                       "shuffle:bag2", "draw_from:bag2:dice:1",
-                                                       "stat_set:rolls@self:1"]),
+            roll_tao((1, 2)) + ["stat_set:rolls@self:1"]),
         "sorcerer": _villager(
             "sorcerer", [],
             ["purge:target", "stat_damage:qi@mine.player:1"],
@@ -731,9 +752,13 @@ def ghost_card(key, name, colour, res, left, mid, right, incarnation=False):
         needs += ["count:ghost@vert4 == 0", "count:ghost@horiz4 == 0"]
     rules = [{
         "key": "exorcise", "phases": ["yang_exorcise"], "compute": powers,
-        "needs": {"req": ["count:taoist@mine.attached_to.orthogonal >= 1"] + needs},
+        "needs": {"req": ["count:taoist@mine.attached_to.orthogonal >= 1", "dying@self == 0"] + needs},
         "action": ["drive_out"],
     }]
+    # Counted when the dice are rolled, so the tray knows whether a die may be
+    # kept back for a second ghost.
+    rules.append({"key": "faced", "needs": {"req": ["count:taoist@mine.attached_to.orthogonal >= 1"]},
+                  "action": ["stat_gain:facing@mine.player:1"]})
 
     arrive = []
     if "G" in left:
@@ -951,9 +976,10 @@ def buttons():
             {"phases": ["yang_buddha"], "action": ["end_phase"]}),
         btn("roll_dice", "Attempt an exorcism",
             {"phases": ["yang_act"], "needs": {"req": ["acted@mine.player == 0"]},
-             "action": roll_tao() + ["stat_set:exorcising@mine.player:1",
-                                     "spend_action"]},
-            "Roll the three Tao dice, then commit tokens and name a ghost you face."),
+             "action": roll_tao() + ["stat_set:facing@mine.player:0", "activate_zone:table:by_column:faced",
+                                     "stat_set:exorcising@mine.player:1", "spend_action"]},
+            "Roll the three Tao dice, then commit tokens and name a ghost you face. From a corner "
+            "tile, keep dice back for the second ghost."),
         btn("give_up", "Leave it be",
             {"phases": ["yang_exorcise"],
              "action": ["move:mine.spent:mine.tao", "stat_set:exorcising@mine.player:0",
@@ -989,7 +1015,7 @@ def endings():
          "story": "The last ghost card is laid and Wu-Feng is still walking. The village "
                   "will never see daylight again."},
         {"key": "rules_card", "text": "Not in this file yet", "tags": ["page"],
-         "story": "Left out of this telling: the two-ghost exorcism from a corner tile; "
+         "story": "Left out of this telling: "
                   "Tao tokens lent between Taoists standing on the same tile; the eight "
                   "Taoist powers, and with them the ghosts that switch a power off; "
                   "neutral boards for fewer than four players; the second half of the "
@@ -1086,7 +1112,7 @@ def phases():
 
         {"key": "yang_exorcise", "type": "player_input",
          "label": "Commit Tao tokens, then name the ghost",
-         "zone": ["choices", "tao", "table"],
+         "zone": ["choices", "tao", "dice", "aside", "table"],
          "next": [{"then": "aftermath"}]},
 
         {"key": "aftermath", "type": "automatic", "label": "What the ghost leaves behind",
@@ -1101,7 +1127,6 @@ def phases():
                        "activate_zone:table:by_column:herb_done",
                        "activate_zone:table:by_column:reward",
                        "activate_zone:table:by_column:death_go",
-                       "purge:mine.spent",
                        "stat_set:exorcising@mine.player:0"] + hauntings,
          "next": [fell,
                   {"when": "blowing@mine.player >= 1", "then": "pavilion"},
@@ -1165,9 +1190,12 @@ def setup():
 
 # The game's own actions, each written once.
 VERBS = [
-    # Marked rather than removed: the sweep after the exorcism resolves the dead.
+    # Marked rather than removed: the sweep after the exorcism resolves the dead. The dice and tokens it took are spent,
+    # and what was kept back is the purse for the second ghost, if the Taoist faces one.
     {"key": "drive_out", "tooltip": "This ghost is exorcised.",
-     "action": ["stat_set:dying@self:1", "end_phase"]},
+     "needs": {"more": "facing@mine.player >= 1"},
+     "action": ["stat_set:dying@self:1", "stat_damage:facing@mine.player:1", "purge:mine.spent",
+                "move:dice:used", "move:aside:dice", "!more? end_phase"]},
     {"key": "place_ghost", "tooltip": "The ghost takes the chosen space, and has only just arrived.",
      "action": ["move_to:target", "stat_set:fresh@self:1", "end_phase"]},
     {"key": "spend_action", "tooltip": "The Taoist has used their action for this Yang phase.",

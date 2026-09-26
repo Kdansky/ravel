@@ -57,41 +57,40 @@ into `COOKBOOK.md`.
 
 ## Left, in the order they are worth doing
 
-1. **The two-ghost exorcism from a corner tile.** One roll, the dice split as
-   the player likes, both ghosts gone. The engine has no trouble with two
-   targets; what it has no way to say is that a die spent on one is not
-   available to the other, since what an exorcism is worth is a `compute` read
-   fresh each time. Wants the dice to be *consumed* — a face moved out of the
-   tray — which is a third zone and an ordering question.
-2. **Tao tokens lent by Taoists on the same tile.** `count:<colour>@mine.spent`
+1. **Tao tokens lent by Taoists on the same tile.** `count:<colour>@mine.spent`
    is the only term that would change: it would have to reach every seat whose
    Taoist shares a tile with the one acting, which is `attached_to.host_of.
    mine.taoist` and an owner word the scope grammar does not have.
-3. **The eight Taoist powers**, and with them the four ghosts that switch a
+2. **The eight Taoist powers**, and with them the four ghosts that switch a
    board's power off. Two of the eight (Bottomless Pockets, Dance of the
    Spires) are a line each; Second Wind and Heavenly Gust are a second pass
    through the Yang phase, which is routing; Strength of a Mountain is a fourth
    die, which is a fourth bag and a fourth term in five computes.
-4. **The captive Tao die.** "Exorcisms roll one die fewer" is one die not
+3. **The captive Tao die.** "Exorcisms roll one die fewer" is one die not
    dealt, and the roll is a fixed list of actions with no if in it — which a
    gate in its `needs` now says ([46](46-one-list-of-conditions.md)), not a new word.
-5. **The Uncatchable.** It may only be exorcised standing on a Buddha, and a
+4. **The Uncatchable.** It may only be exorcised standing on a Buddha, and a
    Buddha here occupies the square and eats whatever is laid on it. Faithfully
    it wants a Buddha that is a *rider* on a space, which is the same want as
    [15](15-many-on-one-square.md)'s "a number on a square". Shipped exorcisable
    like any other incarnation rather than unwinnable, and the card says so.
-6. **The Nameless's white faces.** "The white sides no longer count as wild" is
+5. **The Nameless's white faces.** "The white sides no longer count as wild" is
    a term dropped from five computes while one card is in play, and a compute
    is bound before it is read. Every other global state in this file is a
    condition on a tag, and this is the one that is arithmetic.
-7. **A resistance printed in several colours** spends the same white face on
+6. **A resistance printed in several colours** spends the same white face on
    each of them, because the four conditions are read independently. Wrong for
    Hope Killer and the Nameless and nobody else; the same fix as item 1.
-8. **Neutral boards**, for one to three players. The rulebook's own appendix:
+7. **Neutral boards**, for one to three players. The rulebook's own appendix:
    a board with nobody behind it plays the first two steps of its Yin phase and
    no Yang phase, and the players carry Power tokens to borrow its power. It is
    [09](09-composition.md)'s seat-count module in its natural habitat, and the
    reason this file ships at four seats.
-9. **The village laid out at random.** Nine tiles into nine squares in a
+8. **The village laid out at random.** Nine tiles into nine squares in a
   shuffled order; `setup.place` says which card goes where and has no way to
   say "these nine, in any order". Cheap, and it changes how a game opens.
+9. **A dying ghost's haunting curse.** A haunting face rolled as a ghost is
+   exorcised does nothing: `death_go` destroys it before the aftermath's
+   hauntings run, and moving them ahead of it means a ghost with nowhere left
+   to haunt dies holding `to_haunt`, which the lost-village check then never
+   sees.

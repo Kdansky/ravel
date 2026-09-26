@@ -559,6 +559,7 @@ function M.test_ghost_stories_the_herbalist_hands_over_the_colours_the_dice_show
 	table.sort(got)
 	check("two rolled colours, two tokens", table.concat(got, " ") == "tao_blue tao_yellow",
 		table.concat(got, " "))
+	check("and two dice lie in the tray", #zones.find("dice").cards == 2, tostring(#zones.find("dice").cards))
 end
 
 function M.test_ghost_stories_the_circle_of_prayer_makes_one_colour_easier_for_everybody(check)
@@ -653,6 +654,102 @@ function M.test_ghost_stories_the_altar_turns_a_tile_back_and_calls_a_ghost(chec
 	check("the tile is lit again", on_table("t_tea_house").stats.haunted == 0)
 	check("and a ghost was called for", seat("south").stats.incoming >= 1
 		or #zones.find("deck").cards < before)
+end
+
+-- From the corner tile beside the cemetery the south Taoist faces a space on
+-- the south board and one on the west board, and one roll may serve both.
+local function corner_roll(...)
+	while phase.current().key ~= "yang_move" do
+		if not nudge() then break end
+	end
+	local m = monk_of("south")
+	flow.activate(m.id, { on_table("t_cemetery").id }, ability(m, "step"))
+	press("roll_dice")
+	set_dice(...)
+end
+
+local function face(zone_key, colour)
+	for _, id in ipairs(zones.find(zone_key).cards) do
+		local c = entity.get(id)
+		if c.def_key:match("_" .. colour .. "$") then return c end
+	end
+end
+
+function M.test_ghost_stories_one_roll_from_a_corner_splits_between_two_ghosts(check)
+	start()
+	stack_deck(QUIET)
+	take_places()
+	-- Ghoul: yellow, resistance one. Drowned Maiden: blue, resistance one.
+	local ghoul = put("g_ghoul", 2, 1)
+	local maiden = put("g_drowned_maiden", 1, 2)
+	corner_roll("yellow", "blue", "red")
+	check("the Taoist faces two ghosts", seat("south").stats.facing == 2,
+		tostring(seat("south").stats.facing))
+	local blue = face("dice", "blue")
+	check("a die may be kept back", ability(blue, "keep_back") ~= nil)
+	flow.activate(blue.id, {}, ability(blue, "keep_back"))
+	check("and it waits aside", face("aside", "blue") ~= nil)
+	check("the blue ghost cannot be had with it set aside", ability(maiden, "exorcise") == nil)
+	flow.activate(ghoul.id, {}, ability(ghoul, "exorcise"))
+	check("the first exorcism leaves the phase open", phase.current().key == "yang_exorcise",
+		phase.current().key)
+	check("the dice it took are spent", face("dice", "yellow") == nil and face("dice", "red") == nil)
+	check("and what was kept back is the purse now", face("dice", "blue") ~= nil)
+	check("the ghost already driven out is not offered twice", ability(ghoul, "exorcise") == nil)
+	check("the second ghost stands up", ability(maiden, "exorcise") ~= nil)
+	flow.activate(maiden.id, {}, ability(maiden, "exorcise"))
+	check("both go to hell", card_in(zones.find("hell"), "g_ghoul") ~= nil
+		and card_in(zones.find("hell"), "g_drowned_maiden") ~= nil)
+end
+
+function M.test_ghost_stories_a_die_spent_on_one_ghost_is_gone_for_the_other(check)
+	start()
+	stack_deck(QUIET)
+	take_places()
+	local ghoul = put("g_ghoul", 2, 1)
+	local maiden = put("g_drowned_maiden", 1, 2)
+	corner_roll("yellow", "white", "red")
+	check("the white face would do for blue", ability(maiden, "exorcise") ~= nil)
+	flow.activate(ghoul.id, {}, ability(ghoul, "exorcise"))
+	check("but it went with the yellow ghost", ability(maiden, "exorcise") == nil)
+	check("and the Taoist may walk away", press("give_up"))
+	check("the blue ghost still stands", card_in(zones.find("table"), "g_drowned_maiden") ~= nil)
+end
+
+function M.test_ghost_stories_an_edge_tile_keeps_nothing_back(check)
+	start()
+	stack_deck(QUIET)
+	take_places()
+	-- The Sorcerer's Hut is mid-edge on the west side, facing one space.
+	local ghoul = put("g_ghoul", 1, 3)
+	while phase.current().key ~= "yang_move" do
+		if not nudge() then break end
+	end
+	local m = monk_of("south")
+	flow.activate(m.id, { on_table("t_sorcerer").id }, ability(m, "step"))
+	press("roll_dice")
+	set_dice("yellow", "blue", "red")
+	check("one ghost faced, so no die is kept back", ability(face("dice", "blue"), "keep_back") == nil)
+	flow.activate(ghoul.id, {}, ability(ghoul, "exorcise"))
+	check("and the exorcism ends the phase", phase.current().key ~= "yang_exorcise", phase.current().key)
+end
+
+function M.test_ghost_stories_two_ghosts_dying_at_once_each_roll_their_own_curse(check)
+	start()
+	stack_deck(QUIET)
+	take_places()
+	rig_bag("curse_bag", "c_qi")
+	-- Zombie: yellow, resistance two. Blood Drinker: red, resistance two. Both
+	-- roll the Curse die as they go.
+	local zombie = put("g_zombie_a", 2, 1)
+	local drinker = put("g_blood_a", 1, 2)
+	corner_roll("yellow", "yellow", "red")
+	local red = face("dice", "red")
+	flow.activate(red.id, {}, ability(red, "keep_back"))
+	flow.activate(zombie.id, {}, ability(zombie, "exorcise"))
+	flow.play_card(cards.create("tao_red", box("tao", "south").id).id, {})
+	flow.activate(drinker.id, {}, ability(drinker, "exorcise"))
+	check("two curses, two Qi", seat("south").stats.qi == 2, tostring(seat("south").stats.qi))
 end
 
 return M
