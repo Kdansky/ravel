@@ -181,6 +181,11 @@ local function nudge()
 			end
 		end
 		return false
+	elseif k == "gust" then
+		local tile = on_table("t_pavilion")
+		local other = monk_of(zones.active_seat() == "south" and "west" or "south")
+		return flow.activate(tile.id, { other.id }, ability(tile, "gust"))
+			or flow.activate(tile.id, { tile.id }, ability(tile, "gust_to"))
 	elseif k == "yang_buddha" then
 		return press("no_buddha")
 	elseif k == "boon" then
@@ -988,6 +993,30 @@ function M.test_ghost_stories_the_twin_winds_move_another_taoist_one_tile(check)
 	check("and is no longer being led", west.stats.guided == 0)
 	check("South still has its action", phase.current().key == "yang_act", phase.current().key)
 	check("and the winds blow once a turn", ability(card, "lead") == nil)
+end
+
+
+function M.test_ghost_stories_the_pavilion_blows_a_ghost_then_another_taoist_anywhere(check)
+	start()
+	stack_deck(QUIET)
+	take_places()
+	put("g_restless_dead", 2, 1)
+	to_yang_move()
+	check("the Pavilion answers", ask_at("t_pavilion"))
+	check("a ghost is blown first", phase.current().key == "pavilion", phase.current().key)
+	local g = on_table("g_restless_dead")
+	check("to a free space", flow.activate(g.id, { slot_at(4, 1) }, ability(g, "blown")))
+	check("then another Taoist is asked for", phase.current().key == "gust", phase.current().key)
+	local tile = on_table("t_pavilion")
+	local gust = ability(tile, "gust")
+	check("not South's own", not (gust and flow.activate(tile.id, { monk_of("south").id }, gust)))
+	local west = monk_of("west")
+	check("West's will do", gust ~= nil and flow.activate(tile.id, { west.id }, gust))
+	local far = on_table("t_cemetery")
+	check("and any tile takes it, near or not", flow.activate(tile.id, { far.id }, ability(tile, "gust_to")))
+	check("West's Taoist stands there", west.parent_id == far.id)
+	check("and is no longer being led", west.stats.guided == 0)
+	check("and the turn goes on", phase.current().key ~= "gust", phase.current().key)
 end
 
 return M

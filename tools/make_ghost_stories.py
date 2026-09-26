@@ -294,7 +294,7 @@ def stats():
     seat_work = ["side", "incoming", "skip", "rolling", "moved",
                  "exorcising", "owed_c", "blowing", "in_yang", "facing",
                  "asked", "tried", "acts", "asks", "tries", "mix", "most",
-                 "powered", "mountain", "pocketed", "chanted", "winded"]
+                 "powered", "mountain", "pocketed", "chanted", "winded", "gusting"]
     for k in seat_work:
         out.append({"key": k, "min": 0, "max": 9, "display": "offscreen",
                     "on": ["player"], "start": 0})
@@ -755,6 +755,19 @@ def village():
                 {"key": "curse_done", "needs": {"req": ["rolls@self >= 1"]},
                  "action": ["stat_set:rolls@self:0"]},
             ]
+        if key == "pavilion":
+            # The wind's second gust, the Twin Winds' two clicks from the tile: a Taoist not the asker's, then any tile.
+            rules += [
+                {"key": "gust", "text": "Move another Taoist", "phases": ["gust"],
+                 "needs": {"req": ["count:led@table == 0"], "where": ["count@mine.target == 0"]},
+                 "target": {"type": "card", "count": 1, "tags": ["taoist"]},
+                 "action": ["stat_set:guided@target:1"]},
+                {"key": "gust_to", "phases": ["gust"],
+                 "needs": {"req": ["count:led@table >= 1"]},
+                 "target": {"type": "card", "count": 1, "tags": ["village"]},
+                 "action": ["move:table.led:target", "stat_set:guided@each.attached_to.target:0",
+                            "stat_set:gusting@mine.player:0"]},
+            ]
         if key == "herbalist":
             for c in TAO_KEYS:
                 rules.append({"key": "herb_" + c,
@@ -971,7 +984,7 @@ def anywhere_rules():
         # Wind blows about.
         {"key": "blown", "phases": ["pavilion"],
          "target": {"type": "slot", "count": 1, "zones": ["table"], "fill": "empty"},
-         "action": ["move_to:target", "stat_set:blowing@mine.player:0", "end_phase"]},
+         "action": ["move_to:target", "stat_set:blowing@mine.player:0", "stat_set:gusting@mine.player:1", "end_phase"]},
     ]
     return out
 
@@ -1131,8 +1144,7 @@ def endings():
         {"key": "rules_card", "text": "Not in this file yet", "tags": ["page"],
          "story": "Left out of this telling: "
                   "Tao tokens lent between Taoists standing on the same tile; the Gods' Favourite's second roll of the Curse die "
-                  "and of the Herbalist's dice; neutral boards for fewer than four players; the second half of the "
-                  "Pavilion of the Heavenly Wind, which moves another Taoist; the "
+                  "and of the Herbalist's dice; neutral boards for fewer than four players; the "
                   "Yin-Yang spent to ask a distant villager; and the Tao die a ghost "
                   "holds captive. Two incarnations bend rather than break: the "
                   "Uncatchable is exorcised like any other, since a Buddha here eats "
@@ -1254,6 +1266,7 @@ def phases():
                        "stat_set:exorcising@mine.player:0"] + settle + hauntings,
          "next": [fell,
                   {"when": "blowing@mine.player >= 1", "then": "pavilion"},
+                  {"when": "gusting@mine.player >= 1", "then": "gust"},
                   {"when": "owed@mine.player >= 1", "then": "spoils"},
                   {"when": "owed_c@mine.player >= 1", "then": "prayer"},
                   {"when": "boons@mine.player >= 1", "then": "boon"},
@@ -1264,6 +1277,9 @@ def phases():
         {"key": "pavilion", "type": "player_input", "zone": "table",
          "label": "Blow a ghost to a free space",
          "ends_when": "blowing@mine.player == 0", "next": [{"then": "aftermath"}]},
+        {"key": "gust", "type": "player_input", "zone": "table",
+         "label": "Move another Taoist to any tile",
+         "ends_when": "gusting@mine.player == 0", "next": [{"then": "aftermath"}]},
         {"key": "spoils", "type": "player_input", "zone": "box",
          "label": "Take your Tao tokens",
          "ends_when": "owed@mine.player == 0", "next": [{"then": "aftermath"}]},

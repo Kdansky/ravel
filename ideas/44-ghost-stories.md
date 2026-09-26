@@ -65,7 +65,8 @@ Forgotten Ones clear it. Blue's two powers are four numbers rather than routing:
 `acts`, and the aftermath goes back to `yang_act` while `acts < most`. Strength
 of a Mountain needed no term in the computes: `count:<colour>@dice` counts a
 fourth bag's face like any other. The Twin Winds are two clicks on the power
-card, because the validator takes `target` as a card destination and not `self`.
+card, because the validator takes `target` as a card destination and not `self`;
+the Pavilion's second gust is the same two clicks on its tile, with no `adjacent`.
 
 **A stat set on a zone reaches its first card only** without `each.` —
 `designated` takes one bearer. `fresh`, `rolled` and the Night Watchman's reset
@@ -78,45 +79,40 @@ arrival again on the next one's. Tested now.
    is the only term that would change: it would have to reach every seat whose
    Taoist shares a tile with the one acting, which is `attached_to.host_of.
    mine.taoist` and an owner word the scope grammar does not have.
-2. **The Pavilion's second half**, *"then move a different Taoist to any
-   tile"*. The Dance of the Twin Winds shipped in the shape it wants: pick the
-   Taoist (a stat that a computed tag `led` reads), then a tile, and
-   `move:table.led:target` stands it there — a move onto a card is an attach.
-   The Pavilion is the same two clicks with no `adjacent` in the `where`.
-3. **The captive Tao die.** "Exorcisms roll one die fewer" is one die not
+2. **The captive Tao die.** "Exorcisms roll one die fewer" is one die not
    dealt, and the roll is a fixed list of actions with no if in it — which a
    gate in its `needs` now says ([46](46-one-list-of-conditions.md)), not a new word.
-4. **The Uncatchable.** It may only be exorcised standing on a Buddha, and a
+3. **The Uncatchable.** It may only be exorcised standing on a Buddha, and a
    Buddha here occupies the square and eats whatever is laid on it. Faithfully
    it wants a Buddha that is a *rider* on a space, which is the same want as
    [15](15-many-on-one-square.md)'s "a number on a square". Shipped exorcisable
    like any other incarnation rather than unwinnable, and the card says so.
-5. **The Nameless's white faces.** "The white sides no longer count as wild" is
+4. **The Nameless's white faces.** "The white sides no longer count as wild" is
    a term dropped from five computes while one card is in play, and a compute
    is bound before it is read. Every other global state in this file is a
    condition on a tag, and this is the one that is arithmetic.
-6. **A resistance printed in several colours** spends the same white face on
+5. **A resistance printed in several colours** spends the same white face on
    each of them, because the four conditions are read independently. Wrong for
    Hope Killer and the Nameless and nobody else; the same fix as item 1.
-7. **Neutral boards**, for one to three players. The rulebook's own appendix:
+6. **Neutral boards**, for one to three players. The rulebook's own appendix:
    a board with nobody behind it plays the first two steps of its Yin phase and
    no Yang phase, and the players carry Power tokens to borrow its power. It is
    [09](09-composition.md)'s seat-count module in its natural habitat, and the
    reason this file ships at four seats.
-8. **The village laid out at random.** Nine tiles into nine squares in a
+7. **The village laid out at random.** Nine tiles into nine squares in a
   shuffled order; `setup.place` says which card goes where and has no way to
   say "these nine, in any order". Cheap, and it changes how a game opens.
-9. **A dying ghost's haunting curse.** A haunting face rolled as a ghost is
+8. **A dying ghost's haunting curse.** A haunting face rolled as a ghost is
    exorcised does nothing: `death_go` destroys it before the aftermath's
    hauntings run, and moving them ahead of it means a ghost with nowhere left
    to haunt dies holding `to_haunt`, which the lost-village check then never
    sees.
-10. **The Gods' Favourite's other two rolls.** The Tao dice of an exorcism may
+9. **The Gods' Favourite's other two rolls.** The Tao dice of an exorcism may
     be rolled again (`reroll` on a face, once per die); the Curse die and the
     Herbalist's two dice may not, because both are rolled and read inside one
     automatic phase and there is no moment between to ask. Routing: a pause
     after the roll, for a seat holding the power, before the faces are read.
-11. **The Mantra on a ghost printed in several colours** takes 1 off every
+10. **The Mantra on a ghost printed in several colours** takes 1 off every
     colour, because `mantra@self` is a term in each of the five computes; the
     rulebook has the player pick one colour after the roll. Hope Killer and the
-    Nameless only, and the same fix as item 6.
+    Nameless only, and the same fix as item 5.

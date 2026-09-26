@@ -335,6 +335,14 @@
       "start": 0
     },
     {
+      "key": "gusting",
+      "min": 0,
+      "max": 9,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
+    {
       "key": "haunted",
       "label": "Haunted",
       "icon": "none",
@@ -538,7 +546,12 @@
           "key": "blown",
           "phases": ["pavilion"],
           "target": { "type": "slot", "count": 1, "zones": ["table"], "fill": "empty" },
-          "action": ["move_to:target", "stat_set:blowing@mine.player:0", "end_phase"]
+          "action": [
+            "move_to:target",
+            "stat_set:blowing@mine.player:0",
+            "stat_set:gusting@mine.player:1",
+            "end_phase"
+          ]
         }
       ]
     },
@@ -1279,6 +1292,7 @@
       "next": [
         { "when": "max:to_haunt@ghost >= 1", "then": "lost_village" },
         { "when": "blowing@mine.player >= 1", "then": "pavilion" },
+        { "when": "gusting@mine.player >= 1", "then": "gust" },
         { "when": "owed@mine.player >= 1", "then": "spoils" },
         { "when": "owed_c@mine.player >= 1", "then": "prayer" },
         { "when": "boons@mine.player >= 1", "then": "boon" },
@@ -1293,6 +1307,14 @@
       "zone": "table",
       "label": "Blow a ghost to a free space",
       "ends_when": "blowing@mine.player == 0",
+      "next": [{ "then": "aftermath" }]
+    },
+    {
+      "key": "gust",
+      "type": "player_input",
+      "zone": "table",
+      "label": "Move another Taoist to any tile",
+      "ends_when": "gusting@mine.player == 0",
       "next": [{ "then": "aftermath" }]
     },
     {
@@ -1843,6 +1865,25 @@
             ]
           },
           "action": ["stat_set:blowing@mine.player:1", "spend_action:asked"]
+        },
+        {
+          "key": "gust",
+          "text": "Move another Taoist",
+          "phases": ["gust"],
+          "needs": { "req": ["count:led@table == 0"], "where": ["count@mine.target == 0"] },
+          "target": { "type": "card", "count": 1, "tags": ["taoist"] },
+          "action": ["stat_set:guided@target:1"]
+        },
+        {
+          "key": "gust_to",
+          "phases": ["gust"],
+          "needs": { "req": ["count:led@table >= 1"] },
+          "target": { "type": "card", "count": 1, "tags": ["village"] },
+          "action": [
+            "move:table.led:target",
+            "stat_set:guided@each.attached_to.target:0",
+            "stat_set:gusting@mine.player:0"
+          ]
         }
       ]
     },
@@ -5035,7 +5076,7 @@
       "key": "rules_card",
       "text": "Not in this file yet",
       "tags": ["page"],
-      "story": "Left out of this telling: Tao tokens lent between Taoists standing on the same tile; the Gods' Favourite's second roll of the Curse die and of the Herbalist's dice; neutral boards for fewer than four players; the second half of the Pavilion of the Heavenly Wind, which moves another Taoist; the Yin-Yang spent to ask a distant villager; and the Tao die a ghost holds captive. Two incarnations bend rather than break: the Uncatchable is exorcised like any other, since a Buddha here eats whatever is laid on it, and the Nameless does not stop the white dice counting as wild. A resistance printed in several colours spends the same white face on each of them. The village tiles are laid out in a fixed order rather than shuffled."
+      "story": "Left out of this telling: Tao tokens lent between Taoists standing on the same tile; the Gods' Favourite's second roll of the Curse die and of the Herbalist's dice; neutral boards for fewer than four players; the Yin-Yang spent to ask a distant villager; and the Tao die a ghost holds captive. Two incarnations bend rather than break: the Uncatchable is exorcised like any other, since a Buddha here eats whatever is laid on it, and the Nameless does not stop the white dice counting as wild. A resistance printed in several colours spends the same white face on each of them. The village tiles are laid out in a fixed order rather than shuffled."
     }
   ],
   "setup": {
