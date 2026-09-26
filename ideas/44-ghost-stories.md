@@ -55,17 +55,35 @@ where a hand is dealt, and a Yin phase deals nothing, so the turn is passed by
 each seat card naming the one that follows it and `set_active_seat`. Folded
 into `COOKBOOK.md`.
 
+**A power is a card in a per-seat `power` zone, and whether it works is one
+seat stat.** Each seat's two sides wait in `sides`, owned by it, and the station
+phase deals `random.mine.sides` — the rulebook picks the side at random.
+`settle_powers`, run through `each_seat:` wherever a ghost may have come or
+gone, sets `powered` and lets a plaque (a `power_off` ghost on its board) or the
+Forgotten Ones clear it. Blue's two powers are four numbers rather than routing:
+`asks`, `tries`, `mix` and `most`, against this turn's `asked`, `tried` and
+`acts`, and the aftermath goes back to `yang_act` while `acts < most`. Strength
+of a Mountain needed no term in the computes: `count:<colour>@dice` counts a
+fourth bag's face like any other.
+
+**A stat set on a zone reaches its first card only** without `each.` —
+`designated` takes one bearer. `fresh`, `rolled` and the Night Watchman's reset
+had been clearing one ghost apiece, so a second ghost kept `fresh` and fired its
+arrival again on the next one's. Tested now.
+
 ## Left, in the order they are worth doing
 
 1. **Tao tokens lent by Taoists on the same tile.** `count:<colour>@mine.spent`
    is the only term that would change: it would have to reach every seat whose
    Taoist shares a tile with the one acting, which is `attached_to.host_of.
    mine.taoist` and an owner word the scope grammar does not have.
-2. **The eight Taoist powers**, and with them the four ghosts that switch a
-   board's power off. Two of the eight (Bottomless Pockets, Dance of the
-   Spires) are a line each; Second Wind and Heavenly Gust are a second pass
-   through the Yang phase, which is routing; Strength of a Mountain is a fourth
-   die, which is a fourth bag and a fourth term in five computes.
+2. **The Dance of the Twin Winds**, and the Pavilion's second half with it:
+   both move *another* Taoist, and nothing can — another seat's figure is not
+   the active seat's to click, and `attach_to_target` moves only the card
+   running it. Wants an action word that stands a named card on the target.
+   [Assumption: one word serves both; the Pavilion moves the Taoist anywhere,
+   the Twin Winds one tile, and that difference is the target's `where`.]
+   The card is dealt and does nothing, and says so.
 3. **The captive Tao die.** "Exorcisms roll one die fewer" is one die not
    dealt, and the roll is a fixed list of actions with no if in it — which a
    gate in its `needs` now says ([46](46-one-list-of-conditions.md)), not a new word.
@@ -94,3 +112,12 @@ into `COOKBOOK.md`.
    hauntings run, and moving them ahead of it means a ghost with nowhere left
    to haunt dies holding `to_haunt`, which the lost-village check then never
    sees.
+10. **The Gods' Favourite's other two rolls.** The Tao dice of an exorcism may
+    be rolled again (`reroll` on a face, once per die); the Curse die and the
+    Herbalist's two dice may not, because both are rolled and read inside one
+    automatic phase and there is no moment between to ask. Routing: a pause
+    after the roll, for a seat holding the power, before the faces are read.
+11. **The Mantra on a ghost printed in several colours** takes 1 off every
+    colour, because `mantra@self` is a term in each of the five computes; the
+    rulebook has the player pick one colour after the roll. Hope Killer and the
+    Nameless only, and the same fix as item 6.

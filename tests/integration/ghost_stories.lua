@@ -21,6 +21,8 @@ local cards = require("cards")
 local phase = require("phase")
 local flow = require("flow")
 local tags = require("tags")
+local actions = require("actions")
+local declaration = require("declaration")
 
 local unpack = table.unpack or unpack
 
@@ -750,6 +752,219 @@ function M.test_ghost_stories_two_ghosts_dying_at_once_each_roll_their_own_curse
 	flow.play_card(cards.create("tao_red", box("tao", "south").id).id, {})
 	flow.activate(drinker.id, {}, ability(drinker, "exorcise"))
 	check("two curses, two Qi", seat("south").stats.qi == 2, tostring(seat("south").stats.qi))
+end
+
+
+-- Each seat is dealt one side of its board at random, so a test about a power
+-- hands the seat the one it is about and has every seat ask again.
+local function give_power(seat_key, tag)
+	local pz, sides = box("power", seat_key), zones.find("sides")
+	for _, id in ipairs({ unpack(pz.cards) }) do zones.move_card(id, sides.id) end
+	for e in entity.each("card") do
+		if e.def_key == "p_" .. tag and e.zone_id then
+			zones.move_card(e.id, pz.id)
+			e.stats.owner = declaration.G.seat_index[seat_key]
+		end
+	end
+	actions.execute("each_seat:settle_powers", {})
+end
+
+local function to_yang_move()
+	while phase.current().key ~= "yang_move" do
+		if not nudge() then return false end
+	end
+	return true
+end
+
+local BOARD = { south = { "pockets", "enfeeble" }, west = { "gust", "second_wind" },
+                north = { "favour", "strength" }, east = { "spires", "twin_winds" } }
+
+function M.test_ghost_stories_each_seat_is_dealt_one_side_of_its_own_board(check)
+	start()
+	take_places()
+	for _, s in ipairs(SEATS) do
+		local pz = box("power", s)
+		local k = #pz.cards == 1 and entity.get(pz.cards[1]).def_key
+		check(s .. " holds one power", k ~= false, tostring(#pz.cards))
+		check(s .. "'s is one of its board's two",
+			k == "p_" .. BOARD[s][1] or k == "p_" .. BOARD[s][2], tostring(k))
+	end
+	check("the other four sides stay in the box", #zones.find("sides").cards == 4)
+end
+
+function M.test_ghost_stories_bottomless_pockets_takes_a_token_before_the_move(check)
+	start()
+	stack_deck(QUIET)
+	take_places()
+	to_yang_move()
+	give_power("south", "pockets")
+	local before = #box("tao", "south").cards
+	local token = card_in(zones.find("box"), "tao_red")
+	check("a token in the supply may be taken", ability(token, "pocket") ~= nil)
+	flow.activate(token.id, {}, ability(token, "pocket"))
+	check("it is in South's hand", #box("tao", "south").cards == before + 1)
+	token = card_in(zones.find("box"), "tao_blue")
+	check("but only one a turn", ability(token, "pocket") == nil)
+end
+
+function M.test_ghost_stories_a_ghost_on_the_board_switches_its_power_off(check)
+	start()
+	stack_deck(QUIET)
+	take_places()
+	to_yang_move()
+	give_power("south", "pockets")
+	local token = card_in(zones.find("box"), "tao_red")
+	check("the power works", ability(token, "pocket") ~= nil)
+
+	local breakers = put("g_coffin_a", 3, 1)
+	actions.execute("each_seat:settle_powers", {})
+	check("Coffin Breakers on the south board switch it off", seat("south").stats.powered == 0)
+	check("and there is nothing to take", ability(token, "pocket") == nil)
+	check("the west board keeps its own", seat("west").stats.powered == 1)
+
+	zones.move_card(breakers.id, zones.find("hell").id)
+	actions.execute("each_seat:settle_powers", {})
+	check("gone, and the power is back", ability(token, "pocket") ~= nil)
+
+	put("i_forgotten", 1, 3)
+	actions.execute("each_seat:settle_powers", {})
+	local on = 0
+	for _, s in ipairs(SEATS) do on = on + seat(s).stats.powered end
+	check("the Forgotten Ones switch off every power", on == 0, tostring(on))
+end
+
+function M.test_ghost_stories_the_mantra_weakens_a_ghost_and_is_lost_with_the_power(check)
+	start()
+	stack_deck(QUIET)
+	take_places()
+	to_yang_move()
+	give_power("south", "enfeeble")
+	local vampire = put("g_hopping_a", 2, 1)
+	local card = card_in(box("power", "south"), "p_enfeeble")
+	check("the Mantra goes on a ghost",
+		flow.activate(card.id, { vampire.id }, ability(card, "chant")) and vampire.stats.mantra == 1)
+	check("once a turn", ability(card, "chant") == nil)
+
+	local m = monk_of("south")
+	flow.activate(m.id, { on_table("t_cemetery").id }, ability(m, "step"))
+	press("roll_dice")
+	set_dice("yellow", "white", "blue")
+	check("two yellows now beat a resistance of three", ability(vampire, "exorcise") ~= nil)
+	press("give_up")
+
+	put("g_coffin_a", 4, 1)
+	actions.execute("each_seat:settle_powers", {})
+	check("the power switched off takes the Mantra off the ghost", vampire.stats.mantra == 0)
+	check("and out of the game", #box("power", "south").cards == 0)
+end
+
+function M.test_ghost_stories_the_dance_of_the_spires_flies_to_any_tile(check)
+	start()
+	stack_deck(QUIET)
+	take_places()
+	to_yang_move()
+	local m = monk_of("south")
+	flow.activate(m.id, { on_table("t_cemetery").id }, ability(m, "step"))
+	check("South comes round", next_turn_of("south"))
+	give_power("south", "spires")
+	check("the far corner is no step",
+		not flow.activate(m.id, { on_table("t_tea_house").id }, ability(m, "step") or 0))
+	local fly = ability(m, "fly")
+	check("a tile beside is not a flight",
+		not (fly and flow.activate(m.id, { on_table("t_altar").id }, fly)))
+	check("but the far corner is",
+		fly ~= nil and flow.activate(m.id, { on_table("t_tea_house").id }, fly))
+	check("and the Taoist stands there", m.parent_id == on_table("t_tea_house").id)
+end
+
+function M.test_ghost_stories_strength_of_a_mountain_rolls_four_and_never_curses(check)
+	start()
+	stack_deck(QUIET)
+	take_places()
+	to_yang_move()
+	give_power("south", "strength")
+	local zombie = put("g_zombie_a", 2, 1)
+	local m = monk_of("south")
+	flow.activate(m.id, { on_table("t_cemetery").id }, ability(m, "step"))
+	press("roll_dice")
+	check("four dice", #zones.find("dice").cards == 4, tostring(#zones.find("dice").cards))
+	set_dice("yellow", "yellow")
+	flow.activate(zombie.id, {}, ability(zombie, "exorcise"))
+	check("the Zombie is exorcised", card_in(zones.find("hell"), "g_zombie_a") ~= nil)
+	check("and no Curse die was rolled", #zones.find("curse").cards == 0)
+end
+
+function M.test_ghost_stories_the_gods_favourite_rolls_a_die_once_more(check)
+	start()
+	stack_deck(QUIET)
+	take_places()
+	to_yang_move()
+	give_power("south", "favour")
+	press("no_move")
+	press("roll_dice")
+	local face = entity.get(zones.find("dice").cards[1])
+	local n = face.def_key:sub(2, 2)
+	check("a die may be rolled again", flow.activate(face.id, {}, ability(face, "reroll")))
+	local again
+	for _, id in ipairs(zones.find("dice").cards) do
+		local c = entity.get(id)
+		if c.def_key:sub(2, 2) == n then again = c end
+	end
+	check("it is back in the tray", again ~= nil and #zones.find("dice").cards == 3)
+	check("and may not be rolled a third time", again and ability(again, "reroll") == nil)
+end
+
+function M.test_ghost_stories_second_wind_acts_twice_of_one_kind(check)
+	start()
+	stack_deck(QUIET)
+	take_places()
+	to_yang_move()
+	give_power("south", "second_wind")
+	press("no_move")
+	press("roll_dice")
+	press("give_up")
+	check("after one exorcism the Taoist may act again", phase.current().key == "yang_act",
+		phase.current().key)
+	check("not with a villager", ability(on_table("t_temple"), "ask") == nil)
+	check("but with a second roll", press("roll_dice"))
+	press("give_up")
+	check("and then the turn moves on", phase.current().key == "yang_buddha", phase.current().key)
+end
+
+function M.test_ghost_stories_heavenly_gust_asks_and_exorcises(check)
+	start()
+	stack_deck(QUIET)
+	take_places()
+	to_yang_move()
+	give_power("south", "gust")
+	press("no_move")
+	local temple = on_table("t_temple")
+	check("the villager is asked", flow.activate(temple.id, {}, ability(temple, "ask")))
+	check("the Taoist may act again", phase.current().key == "yang_act", phase.current().key)
+	check("not with a second villager", ability(temple, "ask") == nil)
+	check("but with an exorcism", press("roll_dice"))
+	press("give_up")
+	check("and then the turn moves on", phase.current().key == "yang_buddha", phase.current().key)
+end
+
+
+function M.test_ghost_stories_every_ghost_forgets_it_has_just_arrived(check)
+	start()
+	stack_deck(QUIET)
+	take_places()
+	check("round the table twice", next_turn_of("south") and next_turn_of("south"))
+	local ghosts, fresh = 0, 0
+	for _, id in ipairs(zones.find("table").cards) do
+		local c = entity.get(id)
+		if c.def_key:sub(1, 2) == "g_" then
+			ghosts = ghosts + 1
+			fresh = fresh + (c.stats.fresh or 0)
+		end
+	end
+	check("several ghosts have arrived", ghosts >= 4, tostring(ghosts))
+	-- A stat set on a zone without `each.` reaches its first card only, so every
+	-- ghost after the first kept `fresh` and fired its arrival again.
+	check("and none of them is still arriving", fresh == 0, tostring(fresh))
 end
 
 return M

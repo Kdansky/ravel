@@ -22,8 +22,22 @@
     },
     {
       "key": "spend_action",
-      "tooltip": "The Taoist has used their action for this Yang phase.",
-      "action": ["stat_set:acted@mine.player:1", "end_phase"]
+      "tooltip": "The Taoist has used an action of this Yang phase.",
+      "action": ["stat_gain:param1@mine.player:1", "stat_gain:acts@mine.player:1", "end_phase"]
+    },
+    {
+      "key": "settle_powers",
+      "tooltip": "Whether this Taoist's power works, asked again.",
+      "action": [
+        "stat_set:powered@mine.player:1",
+        "stat_set:mountain@mine.player:0",
+        "stat_set:asks@mine.player:1",
+        "stat_set:tries@mine.player:1",
+        "stat_set:mix@mine.player:1",
+        "stat_set:most@mine.player:1",
+        "activate_zone:table:by_column:mute",
+        "activate_zone:mine.power:by_column:settle"
+      ]
     }
   ],
   "comment": "Antoine Bauza's cooperative game, four seats at Initiation level. The village and the four player boards are one 5x5 grid, which is what makes 'the space in front of your tile' a pattern rather than a table of coordinates, and every pattern here names both directions because the engine turns y round for every seat but the first. What the file does not say yet is on the 'Not in this file yet' card.",
@@ -231,7 +245,6 @@
       "on": ["player"],
       "start": 0
     },
-    { "key": "acted", "min": 0, "max": 9, "display": "offscreen", "on": ["player"], "start": 0 },
     { "key": "moved", "min": 0, "max": 9, "display": "offscreen", "on": ["player"], "start": 0 },
     {
       "key": "exorcising",
@@ -267,6 +280,45 @@
     },
     {
       "key": "facing",
+      "min": 0,
+      "max": 9,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
+    { "key": "asked", "min": 0, "max": 9, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "tried", "min": 0, "max": 9, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "acts", "min": 0, "max": 9, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "asks", "min": 0, "max": 9, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "tries", "min": 0, "max": 9, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "mix", "min": 0, "max": 9, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "most", "min": 0, "max": 9, "display": "offscreen", "on": ["player"], "start": 0 },
+    {
+      "key": "powered",
+      "min": 0,
+      "max": 9,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
+    {
+      "key": "mountain",
+      "min": 0,
+      "max": 9,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
+    {
+      "key": "pocketed",
+      "min": 0,
+      "max": 9,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
+    {
+      "key": "chanted",
       "min": 0,
       "max": 9,
       "display": "offscreen",
@@ -310,10 +362,21 @@
       "on": ["ghost"],
       "start": 0
     },
-    { "key": "mantra", "min": 0, "max": 9, "display": "offscreen", "on": ["ghost"], "start": 0 },
     { "key": "rolled", "min": 0, "max": 9, "display": "offscreen", "on": ["ghost"], "start": 0 },
     { "key": "dying", "min": 0, "max": 9, "display": "offscreen", "on": ["ghost"], "start": 0 },
     { "key": "fresh", "min": 0, "max": 9, "display": "offscreen", "on": ["ghost"], "start": 0 },
+    {
+      "key": "mantra",
+      "label": "Mantra",
+      "icon": "banner",
+      "color": "gold",
+      "min": 0,
+      "max": 1,
+      "display": "nonzero",
+      "on": ["ghost"],
+      "start": 0
+    },
+    { "key": "again", "min": 0, "max": 1, "display": "offscreen", "on": ["face"], "start": 0 },
     { "key": "stock", "icon": "none", "min": 0, "max": 99, "display": "offscreen" }
   ],
   "tags": {
@@ -481,7 +544,12 @@
         {
           "key": "curse_roll",
           "needs": {
-            "req": ["board@self == side@mine.player", "rolled@self == 0", "rolling@mine.player == 0"]
+            "req": [
+              "board@self == side@mine.player",
+              "rolled@self == 0",
+              "rolling@mine.player == 0",
+              "mountain@mine.player == 0"
+            ]
           },
           "action": [
             "move:curse:curse_bag",
@@ -524,7 +592,7 @@
         {
           "key": "death_roll",
           "needs": {
-            "req": ["dying@self >= 1"],
+            "req": ["dying@self >= 1", "mountain@mine.player == 0"],
             "qi": "count:c_qi@curse >= 1",
             "tao": "count:c_tao@curse >= 1",
             "more": "count:c_ghost@curse >= 1",
@@ -865,6 +933,14 @@
       "contents": ["f3_yellow", "f3_green", "f3_red", "f3_blue", "f3_black", "f3_white"]
     },
     {
+      "key": "bag4",
+      "layout": "stack",
+      "display": "offscreen",
+      "tags": ["shuffle"],
+      "use": "none",
+      "contents": ["f4_yellow", "f4_green", "f4_red", "f4_blue", "f4_black", "f4_white"]
+    },
+    {
       "key": "curse_bag",
       "layout": "stack",
       "display": "offscreen",
@@ -873,6 +949,7 @@
       "contents": ["c_blank:2", "c_haunt:1", "c_ghost:1", "c_tao:1", "c_qi:1"]
     },
     { "key": "rules", "layout": "stack", "display": "offscreen" },
+    { "key": "sides", "layout": "stack", "display": "offscreen", "use": "none" },
     {
       "key": "seat_home",
       "label": "{owner}",
@@ -881,9 +958,9 @@
       "copies": "per_seat",
       "pos": [
         [0.12, 0.86, 0.1905, 0.98],
-        [0.12, 0.15, 0.2675, 0.286],
+        [0.12, 0.15, 0.2675, 0.2588],
         [0.12, 0.02, 0.1905, 0.14],
-        [0.6975, 0.15, 0.845, 0.286]
+        [0.6975, 0.15, 0.845, 0.2588]
       ]
     },
     {
@@ -894,11 +971,26 @@
       "copies": "per_seat",
       "pos": [
         [0.1955, 0.86, 0.259, 0.98],
-        [0.12, 0.291, 0.2675, 0.4066],
+        [0.12, 0.2638, 0.2675, 0.359],
         [0.1955, 0.02, 0.259, 0.14],
-        [0.6975, 0.291, 0.845, 0.4066]
+        [0.6975, 0.2638, 0.845, 0.359]
       ],
       "tooltip": "Your Taoist, before it takes its place on the central tile."
+    },
+    {
+      "key": "power",
+      "label": "Power",
+      "layout": "stack",
+      "status": "board",
+      "use": "abilities",
+      "copies": "per_seat",
+      "pos": [
+        [0.264, 0.86, 0.3627, 0.98],
+        [0.12, 0.364, 0.2675, 0.4864],
+        [0.264, 0.02, 0.3627, 0.14],
+        [0.6975, 0.364, 0.845, 0.4864]
+      ],
+      "tooltip": "The side of your board you play. A ghost that switches the power off switches this off."
     },
     {
       "key": "tao",
@@ -907,10 +999,10 @@
       "status": "board",
       "copies": "per_seat",
       "pos": [
-        [0.264, 0.86, 0.5177, 0.98],
-        [0.12, 0.4116, 0.2675, 0.568],
-        [0.264, 0.02, 0.5177, 0.14],
-        [0.6975, 0.4116, 0.845, 0.568]
+        [0.3677, 0.86, 0.5721, 0.98],
+        [0.12, 0.4914, 0.2675, 0.6138],
+        [0.3677, 0.02, 0.5721, 0.14],
+        [0.6975, 0.4914, 0.845, 0.6138]
       ]
     },
     {
@@ -921,10 +1013,10 @@
       "use": "none",
       "copies": "per_seat",
       "pos": [
-        [0.5228, 0.86, 0.6779, 0.98],
-        [0.12, 0.573, 0.2675, 0.709],
-        [0.5228, 0.02, 0.6779, 0.14],
-        [0.6975, 0.573, 0.845, 0.709]
+        [0.5771, 0.86, 0.7111, 0.98],
+        [0.12, 0.6188, 0.2675, 0.7344],
+        [0.5771, 0.02, 0.7111, 0.14],
+        [0.6975, 0.6188, 0.845, 0.7344]
       ],
       "tooltip": "Tokens put behind this exorcism. They come back if you walk away from it."
     },
@@ -936,10 +1028,10 @@
       "use": "abilities",
       "copies": "per_seat",
       "pos": [
-        [0.6829, 0.86, 0.845, 0.98],
-        [0.12, 0.714, 0.2675, 0.85],
-        [0.6829, 0.02, 0.845, 0.14],
-        [0.6975, 0.714, 0.845, 0.85]
+        [0.7161, 0.86, 0.85, 0.98],
+        [0.12, 0.7394, 0.2675, 0.855],
+        [0.7161, 0.02, 0.85, 0.14],
+        [0.6975, 0.7394, 0.845, 0.855]
       ]
     },
     {
@@ -959,6 +1051,7 @@
       "zone": "figure",
       "seat": "next",
       "label": "Take your place on the central tile",
+      "actions": ["move:random.mine.sides:mine.power:1"],
       "ends_when": "count@mine.figure == 0",
       "next": [
         { "when": "count:taoist@anyone.figure == 0", "then": "turn_end" },
@@ -971,16 +1064,21 @@
       "label": "Yin — the ghosts",
       "actions": [
         "stat_set:moved@mine.player:0",
-        "stat_set:acted@mine.player:0",
+        "stat_set:asked@mine.player:0",
+        "stat_set:tried@mine.player:0",
+        "stat_set:acts@mine.player:0",
+        "stat_set:pocketed@mine.player:0",
+        "stat_set:chanted@mine.player:0",
         "stat_set:skip@mine.player:0",
         "stat_set:incoming@mine.player:0",
         "stat_set:rolling@mine.player:0",
         "stat_set:in_yang@mine.player:0",
-        "stat_set:rolled@table.ghost:0",
+        "stat_set:rolled@each.table.ghost:0",
         "activate_zone:table:by_column:stamp_south",
         "activate_zone:table:by_column:stamp_west",
         "activate_zone:table:by_column:stamp_north",
-        "activate_zone:table:by_column:stamp_east"
+        "activate_zone:table:by_column:stamp_east",
+        "each_seat:settle_powers"
       ],
       "next": [{ "then": "yin_ghosts" }]
     },
@@ -1076,7 +1174,8 @@
         "activate_zone:table:by_column:stamp_north",
         "activate_zone:table:by_column:stamp_east",
         "activate_zone:table:by_column:arrive",
-        "stat_set:fresh@table.ghost:0",
+        "stat_set:fresh@each.table.ghost:0",
+        "each_seat:settle_powers",
         "activate_zone:table:by_column:haunt_v1",
         "activate_zone:table:by_column:haunt_v2",
         "activate_zone:table:by_column:haunt_v3",
@@ -1101,7 +1200,7 @@
       "key": "yang_move",
       "type": "player_input",
       "label": "Yang — move, or stay",
-      "zone": ["choices", "table"],
+      "zone": ["choices", "power", "box", "table"],
       "actions": ["stat_set:in_yang@mine.player:1"],
       "next": [{ "then": "yang_act" }]
     },
@@ -1143,6 +1242,7 @@
         "activate_zone:table:by_column:reward",
         "activate_zone:table:by_column:death_go",
         "stat_set:exorcising@mine.player:0",
+        "each_seat:settle_powers",
         "activate_zone:table:by_column:haunt_v1",
         "activate_zone:table:by_column:haunt_v2",
         "activate_zone:table:by_column:haunt_v3",
@@ -1157,6 +1257,7 @@
         { "when": "owed_c@mine.player >= 1", "then": "prayer" },
         { "when": "boons@mine.player >= 1", "then": "boon" },
         { "when": "incoming@mine.player >= 1", "then": "yin_again" },
+        { "when": "acts@mine.player < most@mine.player", "then": "yang_act" },
         { "then": "yang_buddha" }
       ]
     },
@@ -1300,6 +1401,23 @@
           },
           "target": { "type": "card", "count": 1, "tags": ["village"] },
           "action": ["attach_to_target", "stat_set:moved@mine.player:1", "end_phase"]
+        },
+        {
+          "key": "fly",
+          "phases": ["yang_move"],
+          "needs": {
+            "req": [
+              "moved@mine.player == 0",
+              "count:spires@mine.power >= 1",
+              "powered@mine.player >= 1"
+            ],
+            "where": [
+              "count:taoist@mine.attached_to.adjacent == 0",
+              "count:taoist@mine.attached_to.target == 0"
+            ]
+          },
+          "target": { "type": "card", "count": 1, "tags": ["village"] },
+          "action": ["attach_to_target", "stat_set:moved@mine.player:1", "end_phase"]
         }
       ]
     },
@@ -1322,10 +1440,16 @@
             "req": [
               "count:taoist@mine.attached_to.watchman >= 1",
               "haunted@watchman == 0",
-              "acted@mine.player == 0"
+              "asked@mine.player < asks@mine.player",
+              "tried@mine.player < mix@mine.player"
             ]
           },
-          "action": ["stat_set:haunt@row3:0", "spend_action"]
+          "action": ["stat_set:haunt@each.row3:0", "spend_action:asked"]
+        },
+        {
+          "key": "mute",
+          "needs": { "req": ["count@mine.self >= 1", "count:power_off@row3 >= 1"] },
+          "action": ["stat_set:powered@mine.player:0"]
         }
       ]
     },
@@ -1348,10 +1472,16 @@
             "req": [
               "count:taoist@mine.attached_to.watchman >= 1",
               "haunted@watchman == 0",
-              "acted@mine.player == 0"
+              "asked@mine.player < asks@mine.player",
+              "tried@mine.player < mix@mine.player"
             ]
           },
-          "action": ["stat_set:haunt@col3:0", "spend_action"]
+          "action": ["stat_set:haunt@each.col3:0", "spend_action:asked"]
+        },
+        {
+          "key": "mute",
+          "needs": { "req": ["count@mine.self >= 1", "count:power_off@col3 >= 1"] },
+          "action": ["stat_set:powered@mine.player:0"]
         }
       ]
     },
@@ -1374,10 +1504,16 @@
             "req": [
               "count:taoist@mine.attached_to.watchman >= 1",
               "haunted@watchman == 0",
-              "acted@mine.player == 0"
+              "asked@mine.player < asks@mine.player",
+              "tried@mine.player < mix@mine.player"
             ]
           },
-          "action": ["stat_set:haunt@row3:0", "spend_action"]
+          "action": ["stat_set:haunt@each.row3:0", "spend_action:asked"]
+        },
+        {
+          "key": "mute",
+          "needs": { "req": ["count@mine.self >= 1", "count:power_off@row3 >= 1"] },
+          "action": ["stat_set:powered@mine.player:0"]
         }
       ]
     },
@@ -1400,10 +1536,16 @@
             "req": [
               "count:taoist@mine.attached_to.watchman >= 1",
               "haunted@watchman == 0",
-              "acted@mine.player == 0"
+              "asked@mine.player < asks@mine.player",
+              "tried@mine.player < mix@mine.player"
             ]
           },
-          "action": ["stat_set:haunt@col3:0", "spend_action"]
+          "action": ["stat_set:haunt@each.col3:0", "spend_action:asked"]
+        },
+        {
+          "key": "mute",
+          "needs": { "req": ["count@mine.self >= 1", "count:power_off@col3 >= 1"] },
+          "action": ["stat_set:powered@mine.player:0"]
         }
       ]
     },
@@ -1422,17 +1564,19 @@
             "req": [
               "count:taoist@mine.attached_to.self >= 1",
               "haunted@self == 0",
-              "acted@mine.player == 0"
+              "asked@mine.player < asks@mine.player",
+              "tried@mine.player < mix@mine.player"
             ],
-            "where": ["qi@target == 0"]
+            "where": ["qi@target == 0"],
+            "cursed": "mountain@mine.player == 0"
           },
           "action": [
             "stat_set:qi@target:2",
-            "move:curse:curse_bag",
-            "shuffle:curse_bag",
-            "draw_from:curse_bag:curse:1",
-            "stat_set:rolls@self:1",
-            "spend_action"
+            "cursed? move:curse:curse_bag",
+            "cursed? shuffle:curse_bag",
+            "cursed? draw_from:curse_bag:curse:1",
+            "cursed? stat_set:rolls@self:1",
+            "spend_action:asked"
           ],
           "target": { "type": "card", "count": 1, "tags": ["player"] }
         },
@@ -1478,11 +1622,16 @@
             "req": [
               "count:taoist@mine.attached_to.self >= 1",
               "haunted@self == 0",
-              "acted@mine.player == 0"
+              "asked@mine.player < asks@mine.player",
+              "tried@mine.player < mix@mine.player"
             ],
             "where": ["haunted@target >= 1"]
           },
-          "action": ["stat_set:haunted@target:0", "stat_gain:incoming@mine.player:1", "spend_action"],
+          "action": [
+            "stat_set:haunted@target:0",
+            "stat_gain:incoming@mine.player:1",
+            "spend_action:asked"
+          ],
           "target": { "type": "card", "count": 1, "tags": ["village"] }
         }
       ]
@@ -1502,25 +1651,33 @@
             "req": [
               "count:taoist@mine.attached_to.self >= 1",
               "haunted@self == 0",
-              "acted@mine.player == 0"
+              "asked@mine.player < asks@mine.player",
+              "tried@mine.player < mix@mine.player"
             ]
           },
           "action": [
             "move:dice.d1:bag1",
             "move:aside.d1:bag1",
             "move:used.d1:bag1",
+            "stat_set:again@each.bag1:0",
             "move:dice.d2:bag2",
             "move:aside.d2:bag2",
             "move:used.d2:bag2",
+            "stat_set:again@each.bag2:0",
             "move:dice.d3:bag3",
             "move:aside.d3:bag3",
             "move:used.d3:bag3",
+            "stat_set:again@each.bag3:0",
+            "move:dice.d4:bag4",
+            "move:aside.d4:bag4",
+            "move:used.d4:bag4",
+            "stat_set:again@each.bag4:0",
             "shuffle:bag1",
             "draw_from:bag1:dice:1",
             "shuffle:bag2",
             "draw_from:bag2:dice:1",
             "stat_set:rolls@self:1",
-            "spend_action"
+            "spend_action:asked"
           ]
         },
         {
@@ -1575,10 +1732,11 @@
             "req": [
               "count:taoist@mine.attached_to.self >= 1",
               "haunted@self == 0",
-              "acted@mine.player == 0"
+              "asked@mine.player < asks@mine.player",
+              "tried@mine.player < mix@mine.player"
             ]
           },
-          "action": ["purge:target", "stat_damage:qi@mine.player:1", "spend_action"],
+          "action": ["purge:target", "stat_damage:qi@mine.player:1", "spend_action:asked"],
           "target": { "type": "card", "count": 1, "tags": ["ghost"], "zones": ["table"] }
         }
       ]
@@ -1598,11 +1756,12 @@
             "req": [
               "count:taoist@mine.attached_to.self >= 1",
               "haunted@self == 0",
-              "acted@mine.player == 0",
+              "asked@mine.player < asks@mine.player",
+              "tried@mine.player < mix@mine.player",
               "count@shrine >= 1"
             ]
           },
-          "action": ["move:shrine:mine.held:1", "spend_action"]
+          "action": ["move:shrine:mine.held:1", "spend_action:asked"]
         }
       ]
     },
@@ -1629,10 +1788,11 @@
             "req": [
               "count:taoist@mine.attached_to.self >= 1",
               "haunted@self == 0",
-              "acted@mine.player == 0"
+              "asked@mine.player < asks@mine.player",
+              "tried@mine.player < mix@mine.player"
             ]
           },
-          "action": ["purge:circle", "stat_gain:owed_c@mine.player:1", "spend_action"]
+          "action": ["purge:circle", "stat_gain:owed_c@mine.player:1", "spend_action:asked"]
         }
       ]
     },
@@ -1651,11 +1811,12 @@
             "req": [
               "count:taoist@mine.attached_to.self >= 1",
               "haunted@self == 0",
-              "acted@mine.player == 0",
+              "asked@mine.player < asks@mine.player",
+              "tried@mine.player < mix@mine.player",
               "count:ghost@table >= 1"
             ]
           },
-          "action": ["stat_set:blowing@mine.player:1", "spend_action"]
+          "action": ["stat_set:blowing@mine.player:1", "spend_action:asked"]
         }
       ]
     },
@@ -1674,14 +1835,15 @@
             "req": [
               "count:taoist@mine.attached_to.self >= 1",
               "haunted@self == 0",
-              "acted@mine.player == 0"
+              "asked@mine.player < asks@mine.player",
+              "tried@mine.player < mix@mine.player"
             ]
           },
           "action": [
             "stat_gain:owed@mine.player:1",
             "stat_gain:qi@mine.player:1",
             "stat_gain:incoming@mine.player:1",
-            "spend_action"
+            "spend_action:asked"
           ]
         }
       ]
@@ -3595,7 +3757,7 @@
     {
       "key": "i_forgotten",
       "text": "Forgotten Ones",
-      "tags": ["ghost", "black_ghost", "incarnation"],
+      "tags": ["ghost", "black_ghost", "incarnation", "power_all"],
       "asset": "i_forgotten",
       "card_stats": { "col": 0, "row": 0 },
       "story": "Black, resistance 3. While it lives, no Taoist may use their power.",
@@ -3623,7 +3785,8 @@
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
           "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"]
-        }
+        },
+        { "key": "mute", "action": ["stat_set:powered@mine.player:0"] }
       ]
     },
     {
@@ -3815,79 +3978,529 @@
       "key": "f1_yellow",
       "text": "Yellow",
       "tags": ["yellow", "d1", "face"],
-      "asset": "circle:gold"
+      "asset": "circle:gold",
+      "abilities": [
+        {
+          "key": "reroll",
+          "text": "Roll this die again",
+          "phases": ["yang_exorcise"],
+          "needs": {
+            "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
+          },
+          "action": [
+            "move:self:bag1",
+            "shuffle:bag1",
+            "draw_from:bag1:dice:1",
+            "stat_set:again@dice.d1:1"
+          ]
+        }
+      ]
     },
     {
       "key": "f1_green",
       "text": "Green",
       "tags": ["green", "d1", "face"],
-      "asset": "circle:green"
+      "asset": "circle:green",
+      "abilities": [
+        {
+          "key": "reroll",
+          "text": "Roll this die again",
+          "phases": ["yang_exorcise"],
+          "needs": {
+            "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
+          },
+          "action": [
+            "move:self:bag1",
+            "shuffle:bag1",
+            "draw_from:bag1:dice:1",
+            "stat_set:again@dice.d1:1"
+          ]
+        }
+      ]
     },
-    { "key": "f1_red", "text": "Red", "tags": ["red", "d1", "face"], "asset": "circle:crimson" },
-    { "key": "f1_blue", "text": "Blue", "tags": ["blue", "d1", "face"], "asset": "circle:blue" },
+    {
+      "key": "f1_red",
+      "text": "Red",
+      "tags": ["red", "d1", "face"],
+      "asset": "circle:crimson",
+      "abilities": [
+        {
+          "key": "reroll",
+          "text": "Roll this die again",
+          "phases": ["yang_exorcise"],
+          "needs": {
+            "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
+          },
+          "action": [
+            "move:self:bag1",
+            "shuffle:bag1",
+            "draw_from:bag1:dice:1",
+            "stat_set:again@dice.d1:1"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "f1_blue",
+      "text": "Blue",
+      "tags": ["blue", "d1", "face"],
+      "asset": "circle:blue",
+      "abilities": [
+        {
+          "key": "reroll",
+          "text": "Roll this die again",
+          "phases": ["yang_exorcise"],
+          "needs": {
+            "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
+          },
+          "action": [
+            "move:self:bag1",
+            "shuffle:bag1",
+            "draw_from:bag1:dice:1",
+            "stat_set:again@dice.d1:1"
+          ]
+        }
+      ]
+    },
     {
       "key": "f1_black",
       "text": "Black",
       "tags": ["black", "d1", "face"],
-      "asset": "circle:slate"
+      "asset": "circle:slate",
+      "abilities": [
+        {
+          "key": "reroll",
+          "text": "Roll this die again",
+          "phases": ["yang_exorcise"],
+          "needs": {
+            "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
+          },
+          "action": [
+            "move:self:bag1",
+            "shuffle:bag1",
+            "draw_from:bag1:dice:1",
+            "stat_set:again@dice.d1:1"
+          ]
+        }
+      ]
     },
     {
       "key": "f1_white",
       "text": "White",
       "tags": ["white", "d1", "face"],
-      "asset": "circle:white"
+      "asset": "circle:white",
+      "abilities": [
+        {
+          "key": "reroll",
+          "text": "Roll this die again",
+          "phases": ["yang_exorcise"],
+          "needs": {
+            "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
+          },
+          "action": [
+            "move:self:bag1",
+            "shuffle:bag1",
+            "draw_from:bag1:dice:1",
+            "stat_set:again@dice.d1:1"
+          ]
+        }
+      ]
     },
     {
       "key": "f2_yellow",
       "text": "Yellow",
       "tags": ["yellow", "d2", "face"],
-      "asset": "circle:gold"
+      "asset": "circle:gold",
+      "abilities": [
+        {
+          "key": "reroll",
+          "text": "Roll this die again",
+          "phases": ["yang_exorcise"],
+          "needs": {
+            "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
+          },
+          "action": [
+            "move:self:bag2",
+            "shuffle:bag2",
+            "draw_from:bag2:dice:1",
+            "stat_set:again@dice.d2:1"
+          ]
+        }
+      ]
     },
     {
       "key": "f2_green",
       "text": "Green",
       "tags": ["green", "d2", "face"],
-      "asset": "circle:green"
+      "asset": "circle:green",
+      "abilities": [
+        {
+          "key": "reroll",
+          "text": "Roll this die again",
+          "phases": ["yang_exorcise"],
+          "needs": {
+            "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
+          },
+          "action": [
+            "move:self:bag2",
+            "shuffle:bag2",
+            "draw_from:bag2:dice:1",
+            "stat_set:again@dice.d2:1"
+          ]
+        }
+      ]
     },
-    { "key": "f2_red", "text": "Red", "tags": ["red", "d2", "face"], "asset": "circle:crimson" },
-    { "key": "f2_blue", "text": "Blue", "tags": ["blue", "d2", "face"], "asset": "circle:blue" },
+    {
+      "key": "f2_red",
+      "text": "Red",
+      "tags": ["red", "d2", "face"],
+      "asset": "circle:crimson",
+      "abilities": [
+        {
+          "key": "reroll",
+          "text": "Roll this die again",
+          "phases": ["yang_exorcise"],
+          "needs": {
+            "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
+          },
+          "action": [
+            "move:self:bag2",
+            "shuffle:bag2",
+            "draw_from:bag2:dice:1",
+            "stat_set:again@dice.d2:1"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "f2_blue",
+      "text": "Blue",
+      "tags": ["blue", "d2", "face"],
+      "asset": "circle:blue",
+      "abilities": [
+        {
+          "key": "reroll",
+          "text": "Roll this die again",
+          "phases": ["yang_exorcise"],
+          "needs": {
+            "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
+          },
+          "action": [
+            "move:self:bag2",
+            "shuffle:bag2",
+            "draw_from:bag2:dice:1",
+            "stat_set:again@dice.d2:1"
+          ]
+        }
+      ]
+    },
     {
       "key": "f2_black",
       "text": "Black",
       "tags": ["black", "d2", "face"],
-      "asset": "circle:slate"
+      "asset": "circle:slate",
+      "abilities": [
+        {
+          "key": "reroll",
+          "text": "Roll this die again",
+          "phases": ["yang_exorcise"],
+          "needs": {
+            "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
+          },
+          "action": [
+            "move:self:bag2",
+            "shuffle:bag2",
+            "draw_from:bag2:dice:1",
+            "stat_set:again@dice.d2:1"
+          ]
+        }
+      ]
     },
     {
       "key": "f2_white",
       "text": "White",
       "tags": ["white", "d2", "face"],
-      "asset": "circle:white"
+      "asset": "circle:white",
+      "abilities": [
+        {
+          "key": "reroll",
+          "text": "Roll this die again",
+          "phases": ["yang_exorcise"],
+          "needs": {
+            "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
+          },
+          "action": [
+            "move:self:bag2",
+            "shuffle:bag2",
+            "draw_from:bag2:dice:1",
+            "stat_set:again@dice.d2:1"
+          ]
+        }
+      ]
     },
     {
       "key": "f3_yellow",
       "text": "Yellow",
       "tags": ["yellow", "d3", "face"],
-      "asset": "circle:gold"
+      "asset": "circle:gold",
+      "abilities": [
+        {
+          "key": "reroll",
+          "text": "Roll this die again",
+          "phases": ["yang_exorcise"],
+          "needs": {
+            "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
+          },
+          "action": [
+            "move:self:bag3",
+            "shuffle:bag3",
+            "draw_from:bag3:dice:1",
+            "stat_set:again@dice.d3:1"
+          ]
+        }
+      ]
     },
     {
       "key": "f3_green",
       "text": "Green",
       "tags": ["green", "d3", "face"],
-      "asset": "circle:green"
+      "asset": "circle:green",
+      "abilities": [
+        {
+          "key": "reroll",
+          "text": "Roll this die again",
+          "phases": ["yang_exorcise"],
+          "needs": {
+            "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
+          },
+          "action": [
+            "move:self:bag3",
+            "shuffle:bag3",
+            "draw_from:bag3:dice:1",
+            "stat_set:again@dice.d3:1"
+          ]
+        }
+      ]
     },
-    { "key": "f3_red", "text": "Red", "tags": ["red", "d3", "face"], "asset": "circle:crimson" },
-    { "key": "f3_blue", "text": "Blue", "tags": ["blue", "d3", "face"], "asset": "circle:blue" },
+    {
+      "key": "f3_red",
+      "text": "Red",
+      "tags": ["red", "d3", "face"],
+      "asset": "circle:crimson",
+      "abilities": [
+        {
+          "key": "reroll",
+          "text": "Roll this die again",
+          "phases": ["yang_exorcise"],
+          "needs": {
+            "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
+          },
+          "action": [
+            "move:self:bag3",
+            "shuffle:bag3",
+            "draw_from:bag3:dice:1",
+            "stat_set:again@dice.d3:1"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "f3_blue",
+      "text": "Blue",
+      "tags": ["blue", "d3", "face"],
+      "asset": "circle:blue",
+      "abilities": [
+        {
+          "key": "reroll",
+          "text": "Roll this die again",
+          "phases": ["yang_exorcise"],
+          "needs": {
+            "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
+          },
+          "action": [
+            "move:self:bag3",
+            "shuffle:bag3",
+            "draw_from:bag3:dice:1",
+            "stat_set:again@dice.d3:1"
+          ]
+        }
+      ]
+    },
     {
       "key": "f3_black",
       "text": "Black",
       "tags": ["black", "d3", "face"],
-      "asset": "circle:slate"
+      "asset": "circle:slate",
+      "abilities": [
+        {
+          "key": "reroll",
+          "text": "Roll this die again",
+          "phases": ["yang_exorcise"],
+          "needs": {
+            "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
+          },
+          "action": [
+            "move:self:bag3",
+            "shuffle:bag3",
+            "draw_from:bag3:dice:1",
+            "stat_set:again@dice.d3:1"
+          ]
+        }
+      ]
     },
     {
       "key": "f3_white",
       "text": "White",
       "tags": ["white", "d3", "face"],
-      "asset": "circle:white"
+      "asset": "circle:white",
+      "abilities": [
+        {
+          "key": "reroll",
+          "text": "Roll this die again",
+          "phases": ["yang_exorcise"],
+          "needs": {
+            "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
+          },
+          "action": [
+            "move:self:bag3",
+            "shuffle:bag3",
+            "draw_from:bag3:dice:1",
+            "stat_set:again@dice.d3:1"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "f4_yellow",
+      "text": "Yellow",
+      "tags": ["yellow", "d4", "face"],
+      "asset": "circle:gold",
+      "abilities": [
+        {
+          "key": "reroll",
+          "text": "Roll this die again",
+          "phases": ["yang_exorcise"],
+          "needs": {
+            "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
+          },
+          "action": [
+            "move:self:bag4",
+            "shuffle:bag4",
+            "draw_from:bag4:dice:1",
+            "stat_set:again@dice.d4:1"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "f4_green",
+      "text": "Green",
+      "tags": ["green", "d4", "face"],
+      "asset": "circle:green",
+      "abilities": [
+        {
+          "key": "reroll",
+          "text": "Roll this die again",
+          "phases": ["yang_exorcise"],
+          "needs": {
+            "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
+          },
+          "action": [
+            "move:self:bag4",
+            "shuffle:bag4",
+            "draw_from:bag4:dice:1",
+            "stat_set:again@dice.d4:1"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "f4_red",
+      "text": "Red",
+      "tags": ["red", "d4", "face"],
+      "asset": "circle:crimson",
+      "abilities": [
+        {
+          "key": "reroll",
+          "text": "Roll this die again",
+          "phases": ["yang_exorcise"],
+          "needs": {
+            "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
+          },
+          "action": [
+            "move:self:bag4",
+            "shuffle:bag4",
+            "draw_from:bag4:dice:1",
+            "stat_set:again@dice.d4:1"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "f4_blue",
+      "text": "Blue",
+      "tags": ["blue", "d4", "face"],
+      "asset": "circle:blue",
+      "abilities": [
+        {
+          "key": "reroll",
+          "text": "Roll this die again",
+          "phases": ["yang_exorcise"],
+          "needs": {
+            "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
+          },
+          "action": [
+            "move:self:bag4",
+            "shuffle:bag4",
+            "draw_from:bag4:dice:1",
+            "stat_set:again@dice.d4:1"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "f4_black",
+      "text": "Black",
+      "tags": ["black", "d4", "face"],
+      "asset": "circle:slate",
+      "abilities": [
+        {
+          "key": "reroll",
+          "text": "Roll this die again",
+          "phases": ["yang_exorcise"],
+          "needs": {
+            "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
+          },
+          "action": [
+            "move:self:bag4",
+            "shuffle:bag4",
+            "draw_from:bag4:dice:1",
+            "stat_set:again@dice.d4:1"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "f4_white",
+      "text": "White",
+      "tags": ["white", "d4", "face"],
+      "asset": "circle:white",
+      "abilities": [
+        {
+          "key": "reroll",
+          "text": "Roll this die again",
+          "phases": ["yang_exorcise"],
+          "needs": {
+            "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
+          },
+          "action": [
+            "move:self:bag4",
+            "shuffle:bag4",
+            "draw_from:bag4:dice:1",
+            "stat_set:again@dice.d4:1"
+          ]
+        }
+      ]
     },
     {
       "key": "c_blank",
@@ -3947,6 +4560,18 @@
           "phases": ["prayer"],
           "needs": { "req": ["owed_c@mine.player >= 1"] },
           "action": ["take:self:circle:1", "stat_damage:owed_c@mine.player:1"]
+        },
+        {
+          "key": "pocket",
+          "phases": ["yang_move"],
+          "needs": {
+            "req": [
+              "count:pockets@mine.power >= 1",
+              "powered@mine.player >= 1",
+              "pocketed@mine.player == 0"
+            ]
+          },
+          "action": ["take:self:mine.tao:1", "stat_set:pocketed@mine.player:1"]
         }
       ]
     },
@@ -3973,6 +4598,18 @@
           "phases": ["prayer"],
           "needs": { "req": ["owed_c@mine.player >= 1"] },
           "action": ["take:self:circle:1", "stat_damage:owed_c@mine.player:1"]
+        },
+        {
+          "key": "pocket",
+          "phases": ["yang_move"],
+          "needs": {
+            "req": [
+              "count:pockets@mine.power >= 1",
+              "powered@mine.player >= 1",
+              "pocketed@mine.player == 0"
+            ]
+          },
+          "action": ["take:self:mine.tao:1", "stat_set:pocketed@mine.player:1"]
         }
       ]
     },
@@ -3999,6 +4636,18 @@
           "phases": ["prayer"],
           "needs": { "req": ["owed_c@mine.player >= 1"] },
           "action": ["take:self:circle:1", "stat_damage:owed_c@mine.player:1"]
+        },
+        {
+          "key": "pocket",
+          "phases": ["yang_move"],
+          "needs": {
+            "req": [
+              "count:pockets@mine.power >= 1",
+              "powered@mine.player >= 1",
+              "pocketed@mine.player == 0"
+            ]
+          },
+          "action": ["take:self:mine.tao:1", "stat_set:pocketed@mine.player:1"]
         }
       ]
     },
@@ -4025,6 +4674,18 @@
           "phases": ["prayer"],
           "needs": { "req": ["owed_c@mine.player >= 1"] },
           "action": ["take:self:circle:1", "stat_damage:owed_c@mine.player:1"]
+        },
+        {
+          "key": "pocket",
+          "phases": ["yang_move"],
+          "needs": {
+            "req": [
+              "count:pockets@mine.power >= 1",
+              "powered@mine.player >= 1",
+              "pocketed@mine.player == 0"
+            ]
+          },
+          "action": ["take:self:mine.tao:1", "stat_set:pocketed@mine.player:1"]
         }
       ]
     },
@@ -4051,6 +4712,18 @@
           "phases": ["prayer"],
           "needs": { "req": ["owed_c@mine.player >= 1"] },
           "action": ["take:self:circle:1", "stat_damage:owed_c@mine.player:1"]
+        },
+        {
+          "key": "pocket",
+          "phases": ["yang_move"],
+          "needs": {
+            "req": [
+              "count:pockets@mine.power >= 1",
+              "powered@mine.player >= 1",
+              "pocketed@mine.player == 0"
+            ]
+          },
+          "action": ["take:self:mine.tao:1", "stat_set:pocketed@mine.player:1"]
         }
       ]
     },
@@ -4071,6 +4744,114 @@
       ]
     },
     {
+      "key": "p_pockets",
+      "text": "Bottomless Pockets",
+      "tags": ["power_card", "pockets"],
+      "asset": "square:gold",
+      "story": "Before your move, take a Tao token of any colour from the supply.",
+      "tooltip": "Before your move, take a Tao token of any colour from the supply."
+    },
+    {
+      "key": "p_enfeeble",
+      "text": "Enfeeblement Mantra",
+      "tags": ["power_card", "enfeeble"],
+      "asset": "square:gold",
+      "story": "Before your move, put the Mantra on any ghost: its resistance is 1 lower, for everybody. Lose your power and the Mantra is gone for good.",
+      "tooltip": "Before your move, put the Mantra on any ghost: its resistance is 1 lower, for everybody. Lose your power and the Mantra is gone for good.",
+      "abilities": [
+        {
+          "key": "chant",
+          "text": "Put the Mantra on a ghost",
+          "phases": ["yang_move"],
+          "needs": { "req": ["powered@mine.player >= 1", "chanted@mine.player == 0"] },
+          "target": { "type": "card", "count": 1, "tags": ["ghost"], "zones": ["table"] },
+          "action": [
+            "stat_set:mantra@each.table.ghost:0",
+            "stat_set:mantra@target:1",
+            "stat_set:chanted@mine.player:1"
+          ]
+        },
+        {
+          "key": "settle",
+          "needs": { "req": ["powered@mine.player == 0"] },
+          "action": ["stat_set:mantra@each.table.ghost:0", "purge:self"]
+        }
+      ]
+    },
+    {
+      "key": "p_spires",
+      "text": "Dance of the Spires",
+      "tags": ["power_card", "spires"],
+      "asset": "square:crimson",
+      "story": "You may move to any village tile, not only one beside yours.",
+      "tooltip": "You may move to any village tile, not only one beside yours."
+    },
+    {
+      "key": "p_twin_winds",
+      "text": "Dance of the Twin Winds",
+      "tags": ["power_card", "twin_winds"],
+      "asset": "square:crimson",
+      "story": "After your move, move one other Taoist one tile. Not in this file yet: it does nothing.",
+      "tooltip": "After your move, move one other Taoist one tile. Not in this file yet: it does nothing."
+    },
+    {
+      "key": "p_favour",
+      "text": "The Gods' Favourite",
+      "tags": ["power_card", "favour"],
+      "asset": "square:green",
+      "story": "Roll any Tao die of an exorcism a second time. The second result stands.",
+      "tooltip": "Roll any Tao die of an exorcism a second time. The second result stands."
+    },
+    {
+      "key": "p_strength",
+      "text": "Strength of a Mountain",
+      "tags": ["power_card", "strength"],
+      "asset": "square:green",
+      "story": "A fourth Tao die when you exorcise, and you never roll the Curse die.",
+      "tooltip": "A fourth Tao die when you exorcise, and you never roll the Curse die.",
+      "abilities": [
+        {
+          "key": "settle",
+          "needs": { "req": ["powered@mine.player >= 1"] },
+          "action": ["stat_set:mountain@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "p_gust",
+      "text": "Heavenly Gust",
+      "tags": ["power_card", "gust"],
+      "asset": "square:blue",
+      "story": "Ask a villager and attempt an exorcism, in either order.",
+      "tooltip": "Ask a villager and attempt an exorcism, in either order.",
+      "abilities": [
+        {
+          "key": "settle",
+          "needs": { "req": ["powered@mine.player >= 1"] },
+          "action": ["stat_set:mix@mine.player:2", "stat_set:most@mine.player:2"]
+        }
+      ]
+    },
+    {
+      "key": "p_second_wind",
+      "text": "Second Wind",
+      "tags": ["power_card", "second_wind"],
+      "asset": "square:blue",
+      "story": "Ask a villager twice, or attempt two exorcisms, each with a roll of its own.",
+      "tooltip": "Ask a villager twice, or attempt two exorcisms, each with a roll of its own.",
+      "abilities": [
+        {
+          "key": "settle",
+          "needs": { "req": ["powered@mine.player >= 1"] },
+          "action": [
+            "stat_set:asks@mine.player:2",
+            "stat_set:tries@mine.player:2",
+            "stat_set:most@mine.player:2"
+          ]
+        }
+      ]
+    },
+    {
       "key": "no_move",
       "text": "Stay where you are",
       "tags": ["button"],
@@ -4079,10 +4860,10 @@
     },
     {
       "key": "no_act",
-      "text": "Do nothing this turn",
+      "text": "Do nothing more",
       "tags": ["button"],
       "asset": "square:slate",
-      "play": { "phases": ["yang_act"], "action": ["end_phase"] }
+      "play": { "phases": ["yang_act"], "action": ["stat_set:acts@mine.player:9", "end_phase"] }
     },
     {
       "key": "no_buddha",
@@ -4099,27 +4880,39 @@
       "tooltip": "Roll the three Tao dice, then commit tokens and name a ghost you face. From a corner tile, keep dice back for the second ghost.",
       "play": {
         "phases": ["yang_act"],
-        "needs": { "req": ["acted@mine.player == 0"] },
+        "needs": {
+          "req": ["tried@mine.player < tries@mine.player", "asked@mine.player < mix@mine.player"],
+          "strong": "mountain@mine.player >= 1"
+        },
         "action": [
           "move:dice.d1:bag1",
           "move:aside.d1:bag1",
           "move:used.d1:bag1",
+          "stat_set:again@each.bag1:0",
           "move:dice.d2:bag2",
           "move:aside.d2:bag2",
           "move:used.d2:bag2",
+          "stat_set:again@each.bag2:0",
           "move:dice.d3:bag3",
           "move:aside.d3:bag3",
           "move:used.d3:bag3",
+          "stat_set:again@each.bag3:0",
+          "move:dice.d4:bag4",
+          "move:aside.d4:bag4",
+          "move:used.d4:bag4",
+          "stat_set:again@each.bag4:0",
           "shuffle:bag1",
           "draw_from:bag1:dice:1",
           "shuffle:bag2",
           "draw_from:bag2:dice:1",
           "shuffle:bag3",
           "draw_from:bag3:dice:1",
+          "strong? shuffle:bag4",
+          "strong? draw_from:bag4:dice:1",
           "stat_set:facing@mine.player:0",
           "activate_zone:table:by_column:faced",
           "stat_set:exorcising@mine.player:1",
-          "spend_action"
+          "spend_action:tried"
         ]
       }
     },
@@ -4196,7 +4989,7 @@
       "key": "rules_card",
       "text": "Not in this file yet",
       "tags": ["page"],
-      "story": "Left out of this telling: Tao tokens lent between Taoists standing on the same tile; the eight Taoist powers, and with them the ghosts that switch a power off; neutral boards for fewer than four players; the second half of the Pavilion of the Heavenly Wind, which moves another Taoist; the Yin-Yang spent to ask a distant villager; and the Tao die a ghost holds captive. Two incarnations bend rather than break: the Uncatchable is exorcised like any other, since a Buddha here eats whatever is laid on it, and the Nameless does not stop the white dice counting as wild. A resistance printed in several colours spends the same white face on each of them. The village tiles are laid out in a fixed order rather than shuffled."
+      "story": "Left out of this telling: Tao tokens lent between Taoists standing on the same tile; the Dance of the Twin Winds; the Gods' Favourite's second roll of the Curse die and of the Herbalist's dice; neutral boards for fewer than four players; the second half of the Pavilion of the Heavenly Wind, which moves another Taoist; the Yin-Yang spent to ask a distant villager; and the Tao die a ghost holds captive. Two incarnations bend rather than break: the Uncatchable is exorcised like any other, since a Buddha here eats whatever is laid on it, and the Nameless does not stop the white dice counting as wild. A resistance printed in several colours spends the same white face on each of them. The village tiles are laid out in a fixed order rather than shuffled."
     }
   ],
   "setup": {
@@ -4229,7 +5022,15 @@
       { "card": "no_buddha", "zone": "choices" },
       { "card": "buddha", "zone": "shrine" },
       { "card": "buddha", "zone": "shrine" },
-      { "card": "rules_card", "zone": "rules" }
+      { "card": "rules_card", "zone": "rules" },
+      { "card": "p_pockets", "owner": "south", "zone": "sides" },
+      { "card": "p_enfeeble", "owner": "south", "zone": "sides" },
+      { "card": "p_spires", "owner": "east", "zone": "sides" },
+      { "card": "p_twin_winds", "owner": "east", "zone": "sides" },
+      { "card": "p_favour", "owner": "north", "zone": "sides" },
+      { "card": "p_strength", "owner": "north", "zone": "sides" },
+      { "card": "p_gust", "owner": "west", "zone": "sides" },
+      { "card": "p_second_wind", "owner": "west", "zone": "sides" }
     ]
   }
 }
