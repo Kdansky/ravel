@@ -215,7 +215,7 @@ POWERS = [
     ("red", "twin_winds", "Dance of the Twin Winds",
      "After your move, move one other Taoist one tile."),
     ("green", "favour", "The Gods' Favourite",
-     "Roll any Tao die of an exorcism a second time. The second result stands."),
+     "Roll any Tao die, or the Curse die, a second time. The second result stands."),
     ("green", "strength", "Strength of a Mountain",
      "A fourth Tao die when you exorcise, and you never roll the Curse die."),
     ("blue", "gust", "Heavenly Gust",
@@ -291,7 +291,7 @@ def stats():
     ]
     # `asked`, `tried` and `acts` count this turn's villagers, exorcisms and both; `asks`, `tries`, `mix` and `most` are
     # what the seat's power allows of each — see `settle_powers`.
-    seat_work = ["side", "incoming", "skip", "rolling", "moved",
+    seat_work = ["side", "incoming", "skip", "rolling", "herbs", "moved",
                  "exorcising", "owed_c", "blowing", "in_yang", "facing",
                  "asked", "tried", "acts", "asks", "tries", "mix", "most",
                  "powered", "mountain", "pocketed", "chanted", "winded", "gusting"]
@@ -386,7 +386,7 @@ def zones():
          "applies": ["kept"], "pos": [0.95, 0.36, 0.995, 0.48],
          "tooltip": "Dice kept back for the second ghost a corner tile faces."},
         {"key": "used", "layout": "row", "display": "offscreen", "use": "none"},
-        {"key": "curse", "label": "Curse die", "layout": "row", "status": "board", "use": "none",
+        {"key": "curse", "label": "Curse die", "layout": "row", "status": "board", "use": "abilities",
          "pos": [0.85, 0.50, 0.92, 0.64]},
         {"key": "circle", "label": "Circle of Prayer", "layout": "row", "status": "board",
          "use": "none", "pos": [0.925, 0.50, 0.995, 0.64],
@@ -530,7 +530,7 @@ def tags():
             # aftermath phase does the rest, so a curse still has the ghost
             # standing there to be about.
             {"key": "death_go", "needs": {"req": ["dying@self >= 1"]}, "action": ["destroy:self"]},
-        ],
+        ] + curse_effects(),
     }
 
     t["haunter"] = {"abilities": [
@@ -540,26 +540,20 @@ def tags():
          "action": ["stat_set:haunt@self:0", "stat_gain:to_haunt@self:1"]},
     ]}
 
-    # A tormentor rolls the Curse die in its own Yin phase, one ghost at a time:
-    # `rolling` on the seat is the baton, so three tormentors on one board are
-    # three rolls rather than one shared between them.
+    # One Curse die at a time, `rolling` on the seat the baton, so three tormentors on one board are three rolls and
+    # the Gods' Favourite gets a look at each before it is read.
     t["tormentor"] = {"abilities": [
         {"key": "curse_roll",
          "needs": {"req": ["board@self == side@mine.player", "rolled@self == 0",
                    "rolling@mine.player == 0", "mountain@mine.player == 0"]},
          "action": roll_curse() + ["stat_set:rolled@self:1", "stat_set:rolls@self:1",
                                    "stat_set:rolling@mine.player:1"]},
-    ] + curse_effects("rolls")}
+    ]}
 
-    # Rolled and read in one ability, so two ghosts dying at once from a corner
-    # tile each read their own roll rather than both reading the last one.
-    faces = {"qi": "count:c_qi@curse >= 1", "tao": "count:c_tao@curse >= 1",
-             "more": "count:c_ghost@curse >= 1", "dark": "count:c_haunt@curse >= 1"}
+    # `dying` 2 is a dying ghost that has rolled: `rolled` may already be set by the same ghost tormenting this Yin phase.
     t["dying_curse"] = {"abilities": [
-        {"key": "death_roll", "needs": dict({"req": ["dying@self >= 1", "mountain@mine.player == 0"]}, **faces),
-         "action": roll_curse() + ["qi? stat_damage:qi@mine.player:1", "tao? purge:mine.tao",
-                                   "more? stat_gain:incoming@mine.player:1",
-                                   "dark? stat_gain:to_haunt@self:1"]},
+        {"key": "death_roll", "needs": {"req": ["dying@self == 1", "rolling@mine.player == 0", "mountain@mine.player == 0"]},
+         "action": roll_curse() + ["stat_set:dying@self:2", "stat_set:rolls@self:1", "stat_set:rolling@mine.player:1"]},
     ]}
 
     # Only offered while the Taoist faces two ghosts, which is a corner tile.
@@ -575,19 +569,19 @@ def tags():
     return t
 
 
-def curse_effects(flag):
+def curse_effects():
     """What the face lying in `curse` does, read by the ghost that rolled it."""
     return [
-        {"key": "curse_qi", "needs": {"req": ["%s@self >= 1" % flag, "count:c_qi@curse >= 1"]},
+        {"key": "curse_qi", "needs": {"req": ["rolls@self >= 1", "count:c_qi@curse >= 1"]},
          "action": ["stat_damage:qi@mine.player:1"]},
-        {"key": "curse_tao", "needs": {"req": ["%s@self >= 1" % flag, "count:c_tao@curse >= 1"]},
+        {"key": "curse_tao", "needs": {"req": ["rolls@self >= 1", "count:c_tao@curse >= 1"]},
          "action": ["purge:mine.tao"]},
-        {"key": "curse_ghost", "needs": {"req": ["%s@self >= 1" % flag, "count:c_ghost@curse >= 1"]},
+        {"key": "curse_ghost", "needs": {"req": ["rolls@self >= 1", "count:c_ghost@curse >= 1"]},
          "action": ["stat_gain:incoming@mine.player:1"]},
-        {"key": "curse_haunt", "needs": {"req": ["%s@self >= 1" % flag, "count:c_haunt@curse >= 1"]},
+        {"key": "curse_haunt", "needs": {"req": ["rolls@self >= 1", "count:c_haunt@curse >= 1"]},
          "action": ["stat_gain:to_haunt@self:1"]},
-        {"key": "curse_done", "needs": {"req": ["%s@self >= 1" % flag]},
-         "action": ["stat_set:%s@self:0" % flag, "stat_set:rolling@mine.player:0"]},
+        {"key": "curse_done", "needs": {"req": ["rolls@self >= 1"]},
+         "action": ["stat_set:rolls@self:0", "stat_set:rolling@mine.player:0"]},
     ]
 
 
@@ -704,7 +698,8 @@ def village():
     powers = {
         "cemetery": _villager(
             "cemetery", [],
-            ["stat_set:qi@target:2"] + ["cursed? " + a for a in roll_curse() + ["stat_set:rolls@self:1"]],
+            ["stat_set:qi@target:2"] + ["cursed? " + a for a in roll_curse() + ["stat_set:rolls@self:1",
+                                                                                "stat_set:rolling@mine.player:1"]],
             {"type": "card", "count": 1, "tags": ["player"]}, ["qi@target == 0"]),
         "altar": _villager(
             "altar", [],
@@ -712,7 +707,7 @@ def village():
             {"type": "card", "count": 1, "tags": ["village"]}, ["haunted@target >= 1"]),
         "herbalist": _villager(
             "herbalist", [],
-            roll_tao((1, 2)) + ["stat_set:rolls@self:1"]),
+            roll_tao((1, 2)) + ["stat_set:rolls@self:1", "stat_set:herbs@mine.player:1"]),
         "sorcerer": _villager(
             "sorcerer", [],
             ["purge:target", "stat_damage:qi@mine.player:1"],
@@ -753,7 +748,7 @@ def village():
                 {"key": "curse_haunt", "needs": {"req": ["rolls@self >= 1", "count:c_haunt@curse >= 1"]},
                  "action": ["stat_gain:haunted@self:1"]},
                 {"key": "curse_done", "needs": {"req": ["rolls@self >= 1"]},
-                 "action": ["stat_set:rolls@self:0"]},
+                 "action": ["stat_set:rolls@self:0", "stat_set:rolling@mine.player:0"]},
             ]
         if key == "pavilion":
             # The wind's second gust, the Twin Winds' two clicks from the tile: a Taoist not the asker's, then any tile.
@@ -777,7 +772,7 @@ def village():
                           "needs": {"req": ["rolls@self >= 1", "count:white@dice >= 1"]},
                           "action": ["stat_gain:owed@mine.player:count:white@dice"]})
             rules.append({"key": "herb_done", "needs": {"req": ["rolls@self >= 1"]},
-                          "action": ["stat_set:rolls@self:0"]})
+                          "action": ["stat_set:rolls@self:0", "stat_set:herbs@mine.player:0"]})
         if rules:
             card["abilities"] = rules
         out.append(card)
@@ -1002,10 +997,18 @@ def pieces():
                                                "again@self == 0"]},
                              "action": ["move:self:bag%d" % n, "shuffle:bag%d" % n, "draw_from:bag%d:dice:1" % n,
                                         "stat_set:again@dice.d%d:1" % n]},
+                            # The Herbalist's pair only: an exorcism's leftover dice lie in `dice` through a Curse pause too.
+                            {"key": "reroll_herb", "text": "Roll this die again", "phases": ["second_roll"],
+                             "needs": {"req": ["herbs@mine.player >= 1", "again@self == 0"]},
+                             "action": ["move:self:bag%d" % n, "shuffle:bag%d" % n, "draw_from:bag%d:dice:1" % n,
+                                        "stat_set:again@dice.d%d:1" % n]},
                         ]})
     for key, text, _n in CURSE:
         out.append({"key": "c_" + key, "text": text, "tags": ["c_" + key, "curse_face"],
-                    "asset": "square:slate", "tooltip": text})
+                    "asset": "square:slate", "tooltip": text,
+                    "abilities": [{"key": "recurse", "text": "Roll the Curse die again", "phases": ["second_roll"],
+                                   "needs": {"req": ["rolling@mine.player >= 1"]},
+                                   "action": roll_curse() + ["end_phase"]}]})
     for key, label, colour in TAO:
         out.append({
             "key": "tao_" + key, "text": label, "tags": [key, "token"],
@@ -1098,6 +1101,8 @@ def buttons():
             {"phases": ["yang_move"], "action": ["end_phase"]}),
         btn("no_act", "Do nothing more",
             {"phases": ["yang_act"], "action": ["stat_set:acts@mine.player:9", "end_phase"]}),
+        btn("keep_roll", "Keep what fell",
+            {"phases": ["second_roll"], "action": ["end_phase"]}),
         btn("no_buddha", "End your turn",
             {"phases": ["yang_buddha"], "action": ["end_phase"]}),
         btn("roll_dice", "Attempt an exorcism",
@@ -1143,8 +1148,7 @@ def endings():
                   "will never see daylight again."},
         {"key": "rules_card", "text": "Not in this file yet", "tags": ["page"],
          "story": "Left out of this telling: "
-                  "Tao tokens lent between Taoists standing on the same tile; the Gods' Favourite's second roll of the Curse die "
-                  "and of the Herbalist's dice; neutral boards for fewer than four players; the "
+                  "Tao tokens lent between Taoists standing on the same tile; neutral boards for fewer than four players; the "
                   "Yin-Yang spent to ask a distant villager; and the Tao die a ghost "
                   "holds captive. Two incarnations bend rather than break: the "
                   "Uncatchable is exorcised like any other, since a Buddha here eats "
@@ -1162,11 +1166,9 @@ def phases():
     stamps = ["activate_zone:table:by_column:stamp_" + s[0] for s in SIDES]
     hauntings = ["activate_zone:table:by_column:haunt_%s%d" % (a, d)
                  for a in ("v", "h") for d in (1, 2, 3)]
-    curses = []
-    for _ in range(3):
-        curses += ["activate_zone:table:by_column:" + k for k in
-                   ("curse_roll", "curse_qi", "curse_tao", "curse_ghost",
-                    "curse_haunt", "curse_done")]
+    read_curse = ["activate_zone:table:by_column:" + k
+                  for k in ("curse_qi", "curse_tao", "curse_ghost", "curse_haunt", "curse_done")]
+    favour = ["count:favour@mine.power >= 1", "powered@mine.player >= 1"]
     fell = {"when": "max:to_haunt@ghost >= 1", "then": "lost_village"}
     # Wherever a ghost may have come or gone, every seat asks again whether its power works.
     settle = ["each_seat:settle_powers"]
@@ -1192,7 +1194,17 @@ def phases():
         {"key": "yin_ghosts", "type": "automatic", "label": "The ghosts stir",
          "actions": ["activate_zone:table:by_column:haunt_step",
                      "activate_zone:table:by_column:haunt_strike",
-                     "activate_zone:table:by_column:yin_tithe"] + curses + hauntings,
+                     "activate_zone:table:by_column:yin_tithe"],
+         "next": [{"then": "yin_curse"}]},
+        # One tormentor's roll per pass, so the Gods' Favourite may answer each.
+        {"key": "yin_curse", "type": "automatic",
+         "actions": ["activate_zone:table:by_column:curse_roll"],
+         "next": [{"when": favour + ["rolling@mine.player >= 1"], "then": "second_roll"},
+                  {"when": "rolling@mine.player >= 1", "then": "yin_cursed"},
+                  {"then": "yin_haunt"}]},
+        {"key": "yin_cursed", "type": "automatic", "actions": read_curse,
+         "next": [{"then": "yin_curse"}]},
+        {"key": "yin_haunt", "type": "automatic", "actions": hauntings,
          "next": [fell, {"then": "yin_overrun"}]},
 
         {"key": "yin_overrun", "type": "automatic",
@@ -1251,17 +1263,25 @@ def phases():
          "zone": ["choices", "tao", "dice", "aside", "table"],
          "next": [{"then": "aftermath"}]},
 
+        {"key": "second_roll", "type": "player_input", "zone": ["curse", "dice", "choices"],
+         "label": "Keep what fell, or roll it again",
+         "next": [{"when": "in_yang@mine.player == 0", "then": "yin_cursed"},
+                  {"then": "aftermath_read"}]},
+
+        # A roll the Cemetery or the Herbalist made comes in already rolled; a dying ghost rolls here, one per pass.
         {"key": "aftermath", "type": "automatic", "label": "What the ghost leaves behind",
-         "actions": ["activate_zone:table:by_column:death_roll",
-                     "activate_zone:table:by_column:curse_qi",
-                     "activate_zone:table:by_column:curse_tao",
-                     "activate_zone:table:by_column:curse_ghost",
-                     "activate_zone:table:by_column:curse_haunt",
-                     "activate_zone:table:by_column:curse_done"]
-                    + ["activate_zone:table:by_column:herb_" + c for c in TAO_KEYS]
-                    + ["activate_zone:table:by_column:herb_white",
-                       "activate_zone:table:by_column:herb_done",
-                       "activate_zone:table:by_column:reward",
+         "actions": ["activate_zone:table:by_column:death_roll"],
+         "next": [{"when": favour + ["rolling@mine.player >= 1"], "then": "second_roll"},
+                  {"when": favour + ["herbs@mine.player >= 1"], "then": "second_roll"},
+                  {"when": "rolling@mine.player >= 1", "then": "aftermath_read"},
+                  {"when": "herbs@mine.player >= 1", "then": "aftermath_read"},
+                  {"then": "aftermath_rest"}]},
+        {"key": "aftermath_read", "type": "automatic",
+         "actions": read_curse + ["activate_zone:table:by_column:herb_" + c for c in TAO_KEYS]
+                    + ["activate_zone:table:by_column:herb_white", "activate_zone:table:by_column:herb_done"],
+         "next": [{"then": "aftermath"}]},
+        {"key": "aftermath_rest", "type": "automatic",
+         "actions": ["activate_zone:table:by_column:reward",
                        "activate_zone:table:by_column:death_go",
                        "stat_set:exorcising@mine.player:0"] + settle + hauntings,
          "next": [fell,
@@ -1320,7 +1340,7 @@ def setup():
         place.append({"card": "t_" + key, "zone": "table", "at": square})
     for name, _c, _s, square, _pat in SIDES:
         place.append({"card": "plaque_" + name, "owner": name, "zone": "table", "at": square})
-    for key in ("no_move", "no_act", "roll_dice", "use_yy", "give_up",
+    for key in ("no_move", "no_act", "roll_dice", "use_yy", "give_up", "keep_roll",
                 "take_qi", "take_yy", "no_buddha"):
         place.append({"card": key, "zone": "choices"})
     place.append({"card": "buddha", "zone": "shrine"})

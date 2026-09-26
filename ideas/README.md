@@ -80,7 +80,6 @@ is left rather than what was done.
 
 | # | Item | Difficulty | Why here |
 |---|---|---|---|
-| 93 | [44](44-ghost-stories.md) — **the Gods' Favourite's second Curse roll** | medium | the Tao dice of an exorcism re-roll; the Curse die and the Herbalist's dice cannot, since each is rolled and read inside one automatic phase. Wants a pause after the roll for the seat holding the power |
 | 82 | [44](44-ghost-stories.md) — **Tao tokens lent across a tile** | small, and a word to agree first | *"during an exorcism a Taoist may use the tokens of any Taoist standing on the same tile"* is one term in five computes, and the scope it needs — every seat whose Taoist shares my host — has no owner word today |
 | 71 | [39](39-spellstorm-at-the-table.md) — **what the seat card still leaves out** | small | badges on the seat and the Ultimate cost shipped, sized to the card. Left: power and shards read nothing at 0, and whether Initiative wants more than an arrow — both want a look at a real game first |
 | 72 | [39](39-spellstorm-at-the-table.md) — **the weather, announced** | small | damage now throws a bolt from the verb (`hit`'s `effect`). Left: the weather flip wants a beat shown large — the `reveal` overlay or a `layout: "page"` zone it passes through — and whether `heal` and `power_up` want a look of their own |

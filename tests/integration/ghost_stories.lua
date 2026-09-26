@@ -186,6 +186,8 @@ local function nudge()
 		local other = monk_of(zones.active_seat() == "south" and "west" or "south")
 		return flow.activate(tile.id, { other.id }, ability(tile, "gust"))
 			or flow.activate(tile.id, { tile.id }, ability(tile, "gust_to"))
+	elseif k == "second_roll" then
+		return press("keep_roll")
 	elseif k == "yang_buddha" then
 		return press("no_buddha")
 	elseif k == "boon" then
@@ -917,6 +919,99 @@ function M.test_ghost_stories_the_gods_favourite_rolls_a_die_once_more(check)
 	end
 	check("it is back in the tray", again ~= nil and #zones.find("dice").cards == 3)
 	check("and may not be rolled a third time", again and ability(again, "reroll") == nil)
+end
+
+local function to_second_roll()
+	for _ = 1, 200 do
+		if phase.current().key == "second_roll" then return true end
+		if not nudge() then return false end
+	end
+	return false
+end
+
+function M.test_ghost_stories_the_gods_favourite_may_keep_a_tormentors_curse(check)
+	start()
+	stack_deck(QUIET)
+	take_places()
+	give_power("south", "favour")
+	rig_bag("curse_bag", "c_qi")
+	put("g_lich", 2, 1)
+	check("the Yin phase stops on the roll", to_second_roll() and zones.active_seat() == "south")
+	check("before the face is read", seat("south").stats.qi == 4, tostring(seat("south").stats.qi))
+	check("kept", press("keep_roll"))
+	check("and read once", seat("south").stats.qi == 3, tostring(seat("south").stats.qi))
+	check("and the ghosts go on stirring", phase.current().key ~= "second_roll", phase.current().key)
+end
+
+function M.test_ghost_stories_the_gods_favourite_rolls_the_curse_die_again(check)
+	start()
+	stack_deck(QUIET)
+	take_places()
+	give_power("south", "favour")
+	rig_bag("curse_bag", "c_qi")
+	put("g_lich", 2, 1)
+	to_second_roll()
+	-- Only a blank waits in the bag, so the second roll is the first face or the blank, and whichever lies there is read.
+	zones.move_card(card_in(zones.find("hell"), "c_blank").id, zones.find("curse_bag").id)
+	local first = entity.get(zones.find("curse").cards[1])
+	check("the face offers a second roll", flow.activate(first.id, {}, ability(first, "recurse")))
+	check("which is the only one", phase.current().key ~= "second_roll", phase.current().key)
+	check("one face lies there", #zones.find("curse").cards == 1)
+	local now = entity.get(zones.find("curse").cards[1]).def_key
+	local qi = now == "c_qi" and 3 or 4
+	check("and the second is the one read", seat("south").stats.qi == qi, now .. " " .. seat("south").stats.qi)
+end
+
+function M.test_ghost_stories_without_the_favour_a_curse_is_read_straight_away(check)
+	start()
+	stack_deck(QUIET)
+	take_places()
+	give_power("south", "strength")
+	give_power("south", "pockets")
+	rig_bag("curse_bag", "c_qi")
+	put("g_lich", 2, 1)
+	check("South comes round", next_turn_of("south"))
+	check("with no pause and the Qi gone", seat("south").stats.qi == 3, tostring(seat("south").stats.qi))
+end
+
+function M.test_ghost_stories_the_gods_favourite_answers_each_dying_curse(check)
+	start()
+	stack_deck(QUIET)
+	take_places()
+	rig_bag("curse_bag", "c_qi")
+	local zombie = put("g_zombie_a", 2, 1)
+	local drinker = put("g_blood_a", 1, 2)
+	corner_roll("yellow", "yellow", "red")
+	give_power("south", "favour")
+	local red = face("dice", "red")
+	flow.activate(red.id, {}, ability(red, "keep_back"))
+	flow.activate(zombie.id, {}, ability(zombie, "exorcise"))
+	flow.play_card(cards.create("tao_red", box("tao", "south").id).id, {})
+	flow.activate(drinker.id, {}, ability(drinker, "exorcise"))
+	check("the first curse waits", phase.current().key == "second_roll", phase.current().key)
+	press("keep_roll")
+	check("then the second", phase.current().key == "second_roll", phase.current().key)
+	press("keep_roll")
+	check("two curses, two Qi", seat("south").stats.qi == 2, tostring(seat("south").stats.qi))
+	check("and both ghosts are gone", on_table("g_zombie_a") == nil and on_table("g_blood_a") == nil)
+end
+
+function M.test_ghost_stories_the_gods_favourite_rolls_the_herbalists_dice_again(check)
+	start()
+	stack_deck(QUIET)
+	take_places()
+	to_yang_move()
+	give_power("south", "favour")
+	rig_bag("bag1", "f1_yellow")
+	rig_bag("bag2", "f2_blue")
+	check("the shop answers", ask_at("t_herbalist"))
+	check("and waits on the dice", phase.current().key == "second_roll", phase.current().key)
+	local die = face("dice", "yellow")
+	check("a die may be rolled again", flow.activate(die.id, {}, ability(die, "reroll_herb")))
+	check("but only once", ability(face("dice", "yellow"), "reroll_herb") == nil)
+	check("and the pause holds for the other", phase.current().key == "second_roll")
+	press("keep_roll")
+	check("then the colours are handed over", #box("tao", "south").cards == 2, tostring(#box("tao", "south").cards))
 end
 
 function M.test_ghost_stories_second_wind_acts_twice_of_one_kind(check)

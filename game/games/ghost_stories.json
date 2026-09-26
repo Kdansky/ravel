@@ -246,6 +246,7 @@
       "on": ["player"],
       "start": 0
     },
+    { "key": "herbs", "min": 0, "max": 9, "display": "offscreen", "on": ["player"], "start": 0 },
     { "key": "moved", "min": 0, "max": 9, "display": "offscreen", "on": ["player"], "start": 0 },
     {
       "key": "exorcising",
@@ -501,6 +502,31 @@
           "action": ["destroy:self"]
         },
         {
+          "key": "curse_qi",
+          "needs": { "req": ["rolls@self >= 1", "count:c_qi@curse >= 1"] },
+          "action": ["stat_damage:qi@mine.player:1"]
+        },
+        {
+          "key": "curse_tao",
+          "needs": { "req": ["rolls@self >= 1", "count:c_tao@curse >= 1"] },
+          "action": ["purge:mine.tao"]
+        },
+        {
+          "key": "curse_ghost",
+          "needs": { "req": ["rolls@self >= 1", "count:c_ghost@curse >= 1"] },
+          "action": ["stat_gain:incoming@mine.player:1"]
+        },
+        {
+          "key": "curse_haunt",
+          "needs": { "req": ["rolls@self >= 1", "count:c_haunt@curse >= 1"] },
+          "action": ["stat_gain:to_haunt@self:1"]
+        },
+        {
+          "key": "curse_done",
+          "needs": { "req": ["rolls@self >= 1"] },
+          "action": ["stat_set:rolls@self:0", "stat_set:rolling@mine.player:0"]
+        },
+        {
           "key": "place_free_south",
           "phases": ["yin_place"],
           "needs": {
@@ -589,31 +615,6 @@
             "stat_set:rolls@self:1",
             "stat_set:rolling@mine.player:1"
           ]
-        },
-        {
-          "key": "curse_qi",
-          "needs": { "req": ["rolls@self >= 1", "count:c_qi@curse >= 1"] },
-          "action": ["stat_damage:qi@mine.player:1"]
-        },
-        {
-          "key": "curse_tao",
-          "needs": { "req": ["rolls@self >= 1", "count:c_tao@curse >= 1"] },
-          "action": ["purge:mine.tao"]
-        },
-        {
-          "key": "curse_ghost",
-          "needs": { "req": ["rolls@self >= 1", "count:c_ghost@curse >= 1"] },
-          "action": ["stat_gain:incoming@mine.player:1"]
-        },
-        {
-          "key": "curse_haunt",
-          "needs": { "req": ["rolls@self >= 1", "count:c_haunt@curse >= 1"] },
-          "action": ["stat_gain:to_haunt@self:1"]
-        },
-        {
-          "key": "curse_done",
-          "needs": { "req": ["rolls@self >= 1"] },
-          "action": ["stat_set:rolls@self:0", "stat_set:rolling@mine.player:0"]
         }
       ]
     },
@@ -622,20 +623,15 @@
         {
           "key": "death_roll",
           "needs": {
-            "req": ["dying@self >= 1", "mountain@mine.player == 0"],
-            "qi": "count:c_qi@curse >= 1",
-            "tao": "count:c_tao@curse >= 1",
-            "more": "count:c_ghost@curse >= 1",
-            "dark": "count:c_haunt@curse >= 1"
+            "req": ["dying@self == 1", "rolling@mine.player == 0", "mountain@mine.player == 0"]
           },
           "action": [
             "move:curse:curse_bag",
             "shuffle:curse_bag",
             "draw_from:curse_bag:curse:1",
-            "qi? stat_damage:qi@mine.player:1",
-            "tao? purge:mine.tao",
-            "more? stat_gain:incoming@mine.player:1",
-            "dark? stat_gain:to_haunt@self:1"
+            "stat_set:dying@self:2",
+            "stat_set:rolls@self:1",
+            "stat_set:rolling@mine.player:1"
           ]
         }
       ]
@@ -909,7 +905,7 @@
       "label": "Curse die",
       "layout": "row",
       "status": "board",
-      "use": "none",
+      "use": "abilities",
       "pos": [0.85, 0.5, 0.92, 0.64]
     },
     {
@@ -1120,25 +1116,43 @@
       "actions": [
         "activate_zone:table:by_column:haunt_step",
         "activate_zone:table:by_column:haunt_strike",
-        "activate_zone:table:by_column:yin_tithe",
-        "activate_zone:table:by_column:curse_roll",
+        "activate_zone:table:by_column:yin_tithe"
+      ],
+      "next": [{ "then": "yin_curse" }]
+    },
+    {
+      "key": "yin_curse",
+      "type": "automatic",
+      "actions": ["activate_zone:table:by_column:curse_roll"],
+      "next": [
+        {
+          "when": [
+            "count:favour@mine.power >= 1",
+            "powered@mine.player >= 1",
+            "rolling@mine.player >= 1"
+          ],
+          "then": "second_roll"
+        },
+        { "when": "rolling@mine.player >= 1", "then": "yin_cursed" },
+        { "then": "yin_haunt" }
+      ]
+    },
+    {
+      "key": "yin_cursed",
+      "type": "automatic",
+      "actions": [
         "activate_zone:table:by_column:curse_qi",
         "activate_zone:table:by_column:curse_tao",
         "activate_zone:table:by_column:curse_ghost",
         "activate_zone:table:by_column:curse_haunt",
-        "activate_zone:table:by_column:curse_done",
-        "activate_zone:table:by_column:curse_roll",
-        "activate_zone:table:by_column:curse_qi",
-        "activate_zone:table:by_column:curse_tao",
-        "activate_zone:table:by_column:curse_ghost",
-        "activate_zone:table:by_column:curse_haunt",
-        "activate_zone:table:by_column:curse_done",
-        "activate_zone:table:by_column:curse_roll",
-        "activate_zone:table:by_column:curse_qi",
-        "activate_zone:table:by_column:curse_tao",
-        "activate_zone:table:by_column:curse_ghost",
-        "activate_zone:table:by_column:curse_haunt",
-        "activate_zone:table:by_column:curse_done",
+        "activate_zone:table:by_column:curse_done"
+      ],
+      "next": [{ "then": "yin_curse" }]
+    },
+    {
+      "key": "yin_haunt",
+      "type": "automatic",
+      "actions": [
         "activate_zone:table:by_column:haunt_v1",
         "activate_zone:table:by_column:haunt_v2",
         "activate_zone:table:by_column:haunt_v3",
@@ -1261,11 +1275,42 @@
       "next": [{ "then": "aftermath" }]
     },
     {
+      "key": "second_roll",
+      "type": "player_input",
+      "zone": ["curse", "dice", "choices"],
+      "label": "Keep what fell, or roll it again",
+      "next": [
+        { "when": "in_yang@mine.player == 0", "then": "yin_cursed" },
+        { "then": "aftermath_read" }
+      ]
+    },
+    {
       "key": "aftermath",
       "type": "automatic",
       "label": "What the ghost leaves behind",
+      "actions": ["activate_zone:table:by_column:death_roll"],
+      "next": [
+        {
+          "when": [
+            "count:favour@mine.power >= 1",
+            "powered@mine.player >= 1",
+            "rolling@mine.player >= 1"
+          ],
+          "then": "second_roll"
+        },
+        {
+          "when": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "herbs@mine.player >= 1"],
+          "then": "second_roll"
+        },
+        { "when": "rolling@mine.player >= 1", "then": "aftermath_read" },
+        { "when": "herbs@mine.player >= 1", "then": "aftermath_read" },
+        { "then": "aftermath_rest" }
+      ]
+    },
+    {
+      "key": "aftermath_read",
+      "type": "automatic",
       "actions": [
-        "activate_zone:table:by_column:death_roll",
         "activate_zone:table:by_column:curse_qi",
         "activate_zone:table:by_column:curse_tao",
         "activate_zone:table:by_column:curse_ghost",
@@ -1277,7 +1322,14 @@
         "activate_zone:table:by_column:herb_blue",
         "activate_zone:table:by_column:herb_black",
         "activate_zone:table:by_column:herb_white",
-        "activate_zone:table:by_column:herb_done",
+        "activate_zone:table:by_column:herb_done"
+      ],
+      "next": [{ "then": "aftermath" }]
+    },
+    {
+      "key": "aftermath_rest",
+      "type": "automatic",
+      "actions": [
         "activate_zone:table:by_column:reward",
         "activate_zone:table:by_column:death_go",
         "stat_set:exorcising@mine.player:0",
@@ -1624,6 +1676,7 @@
             "cursed? shuffle:curse_bag",
             "cursed? draw_from:curse_bag:curse:1",
             "cursed? stat_set:rolls@self:1",
+            "cursed? stat_set:rolling@mine.player:1",
             "spend_action:asked"
           ],
           "target": { "type": "card", "count": 1, "tags": ["player"] }
@@ -1651,7 +1704,7 @@
         {
           "key": "curse_done",
           "needs": { "req": ["rolls@self >= 1"] },
-          "action": ["stat_set:rolls@self:0"]
+          "action": ["stat_set:rolls@self:0", "stat_set:rolling@mine.player:0"]
         }
       ]
     },
@@ -1725,6 +1778,7 @@
             "shuffle:bag2",
             "draw_from:bag2:dice:1",
             "stat_set:rolls@self:1",
+            "stat_set:herbs@mine.player:1",
             "spend_action:asked"
           ]
         },
@@ -1761,7 +1815,7 @@
         {
           "key": "herb_done",
           "needs": { "req": ["rolls@self >= 1"] },
-          "action": ["stat_set:rolls@self:0"]
+          "action": ["stat_set:rolls@self:0", "stat_set:herbs@mine.player:0"]
         }
       ]
     },
@@ -4060,6 +4114,18 @@
             "draw_from:bag1:dice:1",
             "stat_set:again@dice.d1:1"
           ]
+        },
+        {
+          "key": "reroll_herb",
+          "text": "Roll this die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["herbs@mine.player >= 1", "again@self == 0"] },
+          "action": [
+            "move:self:bag1",
+            "shuffle:bag1",
+            "draw_from:bag1:dice:1",
+            "stat_set:again@dice.d1:1"
+          ]
         }
       ]
     },
@@ -4076,6 +4142,18 @@
           "needs": {
             "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
           },
+          "action": [
+            "move:self:bag1",
+            "shuffle:bag1",
+            "draw_from:bag1:dice:1",
+            "stat_set:again@dice.d1:1"
+          ]
+        },
+        {
+          "key": "reroll_herb",
+          "text": "Roll this die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["herbs@mine.player >= 1", "again@self == 0"] },
           "action": [
             "move:self:bag1",
             "shuffle:bag1",
@@ -4104,6 +4182,18 @@
             "draw_from:bag1:dice:1",
             "stat_set:again@dice.d1:1"
           ]
+        },
+        {
+          "key": "reroll_herb",
+          "text": "Roll this die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["herbs@mine.player >= 1", "again@self == 0"] },
+          "action": [
+            "move:self:bag1",
+            "shuffle:bag1",
+            "draw_from:bag1:dice:1",
+            "stat_set:again@dice.d1:1"
+          ]
         }
       ]
     },
@@ -4120,6 +4210,18 @@
           "needs": {
             "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
           },
+          "action": [
+            "move:self:bag1",
+            "shuffle:bag1",
+            "draw_from:bag1:dice:1",
+            "stat_set:again@dice.d1:1"
+          ]
+        },
+        {
+          "key": "reroll_herb",
+          "text": "Roll this die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["herbs@mine.player >= 1", "again@self == 0"] },
           "action": [
             "move:self:bag1",
             "shuffle:bag1",
@@ -4148,6 +4250,18 @@
             "draw_from:bag1:dice:1",
             "stat_set:again@dice.d1:1"
           ]
+        },
+        {
+          "key": "reroll_herb",
+          "text": "Roll this die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["herbs@mine.player >= 1", "again@self == 0"] },
+          "action": [
+            "move:self:bag1",
+            "shuffle:bag1",
+            "draw_from:bag1:dice:1",
+            "stat_set:again@dice.d1:1"
+          ]
         }
       ]
     },
@@ -4164,6 +4278,18 @@
           "needs": {
             "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
           },
+          "action": [
+            "move:self:bag1",
+            "shuffle:bag1",
+            "draw_from:bag1:dice:1",
+            "stat_set:again@dice.d1:1"
+          ]
+        },
+        {
+          "key": "reroll_herb",
+          "text": "Roll this die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["herbs@mine.player >= 1", "again@self == 0"] },
           "action": [
             "move:self:bag1",
             "shuffle:bag1",
@@ -4192,6 +4318,18 @@
             "draw_from:bag2:dice:1",
             "stat_set:again@dice.d2:1"
           ]
+        },
+        {
+          "key": "reroll_herb",
+          "text": "Roll this die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["herbs@mine.player >= 1", "again@self == 0"] },
+          "action": [
+            "move:self:bag2",
+            "shuffle:bag2",
+            "draw_from:bag2:dice:1",
+            "stat_set:again@dice.d2:1"
+          ]
         }
       ]
     },
@@ -4208,6 +4346,18 @@
           "needs": {
             "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
           },
+          "action": [
+            "move:self:bag2",
+            "shuffle:bag2",
+            "draw_from:bag2:dice:1",
+            "stat_set:again@dice.d2:1"
+          ]
+        },
+        {
+          "key": "reroll_herb",
+          "text": "Roll this die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["herbs@mine.player >= 1", "again@self == 0"] },
           "action": [
             "move:self:bag2",
             "shuffle:bag2",
@@ -4236,6 +4386,18 @@
             "draw_from:bag2:dice:1",
             "stat_set:again@dice.d2:1"
           ]
+        },
+        {
+          "key": "reroll_herb",
+          "text": "Roll this die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["herbs@mine.player >= 1", "again@self == 0"] },
+          "action": [
+            "move:self:bag2",
+            "shuffle:bag2",
+            "draw_from:bag2:dice:1",
+            "stat_set:again@dice.d2:1"
+          ]
         }
       ]
     },
@@ -4252,6 +4414,18 @@
           "needs": {
             "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
           },
+          "action": [
+            "move:self:bag2",
+            "shuffle:bag2",
+            "draw_from:bag2:dice:1",
+            "stat_set:again@dice.d2:1"
+          ]
+        },
+        {
+          "key": "reroll_herb",
+          "text": "Roll this die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["herbs@mine.player >= 1", "again@self == 0"] },
           "action": [
             "move:self:bag2",
             "shuffle:bag2",
@@ -4280,6 +4454,18 @@
             "draw_from:bag2:dice:1",
             "stat_set:again@dice.d2:1"
           ]
+        },
+        {
+          "key": "reroll_herb",
+          "text": "Roll this die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["herbs@mine.player >= 1", "again@self == 0"] },
+          "action": [
+            "move:self:bag2",
+            "shuffle:bag2",
+            "draw_from:bag2:dice:1",
+            "stat_set:again@dice.d2:1"
+          ]
         }
       ]
     },
@@ -4296,6 +4482,18 @@
           "needs": {
             "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
           },
+          "action": [
+            "move:self:bag2",
+            "shuffle:bag2",
+            "draw_from:bag2:dice:1",
+            "stat_set:again@dice.d2:1"
+          ]
+        },
+        {
+          "key": "reroll_herb",
+          "text": "Roll this die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["herbs@mine.player >= 1", "again@self == 0"] },
           "action": [
             "move:self:bag2",
             "shuffle:bag2",
@@ -4324,6 +4522,18 @@
             "draw_from:bag3:dice:1",
             "stat_set:again@dice.d3:1"
           ]
+        },
+        {
+          "key": "reroll_herb",
+          "text": "Roll this die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["herbs@mine.player >= 1", "again@self == 0"] },
+          "action": [
+            "move:self:bag3",
+            "shuffle:bag3",
+            "draw_from:bag3:dice:1",
+            "stat_set:again@dice.d3:1"
+          ]
         }
       ]
     },
@@ -4340,6 +4550,18 @@
           "needs": {
             "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
           },
+          "action": [
+            "move:self:bag3",
+            "shuffle:bag3",
+            "draw_from:bag3:dice:1",
+            "stat_set:again@dice.d3:1"
+          ]
+        },
+        {
+          "key": "reroll_herb",
+          "text": "Roll this die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["herbs@mine.player >= 1", "again@self == 0"] },
           "action": [
             "move:self:bag3",
             "shuffle:bag3",
@@ -4368,6 +4590,18 @@
             "draw_from:bag3:dice:1",
             "stat_set:again@dice.d3:1"
           ]
+        },
+        {
+          "key": "reroll_herb",
+          "text": "Roll this die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["herbs@mine.player >= 1", "again@self == 0"] },
+          "action": [
+            "move:self:bag3",
+            "shuffle:bag3",
+            "draw_from:bag3:dice:1",
+            "stat_set:again@dice.d3:1"
+          ]
         }
       ]
     },
@@ -4384,6 +4618,18 @@
           "needs": {
             "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
           },
+          "action": [
+            "move:self:bag3",
+            "shuffle:bag3",
+            "draw_from:bag3:dice:1",
+            "stat_set:again@dice.d3:1"
+          ]
+        },
+        {
+          "key": "reroll_herb",
+          "text": "Roll this die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["herbs@mine.player >= 1", "again@self == 0"] },
           "action": [
             "move:self:bag3",
             "shuffle:bag3",
@@ -4412,6 +4658,18 @@
             "draw_from:bag3:dice:1",
             "stat_set:again@dice.d3:1"
           ]
+        },
+        {
+          "key": "reroll_herb",
+          "text": "Roll this die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["herbs@mine.player >= 1", "again@self == 0"] },
+          "action": [
+            "move:self:bag3",
+            "shuffle:bag3",
+            "draw_from:bag3:dice:1",
+            "stat_set:again@dice.d3:1"
+          ]
         }
       ]
     },
@@ -4428,6 +4686,18 @@
           "needs": {
             "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
           },
+          "action": [
+            "move:self:bag3",
+            "shuffle:bag3",
+            "draw_from:bag3:dice:1",
+            "stat_set:again@dice.d3:1"
+          ]
+        },
+        {
+          "key": "reroll_herb",
+          "text": "Roll this die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["herbs@mine.player >= 1", "again@self == 0"] },
           "action": [
             "move:self:bag3",
             "shuffle:bag3",
@@ -4456,6 +4726,18 @@
             "draw_from:bag4:dice:1",
             "stat_set:again@dice.d4:1"
           ]
+        },
+        {
+          "key": "reroll_herb",
+          "text": "Roll this die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["herbs@mine.player >= 1", "again@self == 0"] },
+          "action": [
+            "move:self:bag4",
+            "shuffle:bag4",
+            "draw_from:bag4:dice:1",
+            "stat_set:again@dice.d4:1"
+          ]
         }
       ]
     },
@@ -4472,6 +4754,18 @@
           "needs": {
             "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
           },
+          "action": [
+            "move:self:bag4",
+            "shuffle:bag4",
+            "draw_from:bag4:dice:1",
+            "stat_set:again@dice.d4:1"
+          ]
+        },
+        {
+          "key": "reroll_herb",
+          "text": "Roll this die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["herbs@mine.player >= 1", "again@self == 0"] },
           "action": [
             "move:self:bag4",
             "shuffle:bag4",
@@ -4500,6 +4794,18 @@
             "draw_from:bag4:dice:1",
             "stat_set:again@dice.d4:1"
           ]
+        },
+        {
+          "key": "reroll_herb",
+          "text": "Roll this die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["herbs@mine.player >= 1", "again@self == 0"] },
+          "action": [
+            "move:self:bag4",
+            "shuffle:bag4",
+            "draw_from:bag4:dice:1",
+            "stat_set:again@dice.d4:1"
+          ]
         }
       ]
     },
@@ -4516,6 +4822,18 @@
           "needs": {
             "req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1", "again@self == 0"]
           },
+          "action": [
+            "move:self:bag4",
+            "shuffle:bag4",
+            "draw_from:bag4:dice:1",
+            "stat_set:again@dice.d4:1"
+          ]
+        },
+        {
+          "key": "reroll_herb",
+          "text": "Roll this die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["herbs@mine.player >= 1", "again@self == 0"] },
           "action": [
             "move:self:bag4",
             "shuffle:bag4",
@@ -4544,6 +4862,18 @@
             "draw_from:bag4:dice:1",
             "stat_set:again@dice.d4:1"
           ]
+        },
+        {
+          "key": "reroll_herb",
+          "text": "Roll this die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["herbs@mine.player >= 1", "again@self == 0"] },
+          "action": [
+            "move:self:bag4",
+            "shuffle:bag4",
+            "draw_from:bag4:dice:1",
+            "stat_set:again@dice.d4:1"
+          ]
         }
       ]
     },
@@ -4566,6 +4896,18 @@
             "draw_from:bag4:dice:1",
             "stat_set:again@dice.d4:1"
           ]
+        },
+        {
+          "key": "reroll_herb",
+          "text": "Roll this die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["herbs@mine.player >= 1", "again@self == 0"] },
+          "action": [
+            "move:self:bag4",
+            "shuffle:bag4",
+            "draw_from:bag4:dice:1",
+            "stat_set:again@dice.d4:1"
+          ]
         }
       ]
     },
@@ -4574,35 +4916,105 @@
       "text": "No effect",
       "tags": ["c_blank", "curse_face"],
       "asset": "square:slate",
-      "tooltip": "No effect"
+      "tooltip": "No effect",
+      "abilities": [
+        {
+          "key": "recurse",
+          "text": "Roll the Curse die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["rolling@mine.player >= 1"] },
+          "action": [
+            "move:curse:curse_bag",
+            "shuffle:curse_bag",
+            "draw_from:curse_bag:curse:1",
+            "end_phase"
+          ]
+        }
+      ]
     },
     {
       "key": "c_haunt",
       "text": "The first active tile in front of the ghost is haunted",
       "tags": ["c_haunt", "curse_face"],
       "asset": "square:slate",
-      "tooltip": "The first active tile in front of the ghost is haunted"
+      "tooltip": "The first active tile in front of the ghost is haunted",
+      "abilities": [
+        {
+          "key": "recurse",
+          "text": "Roll the Curse die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["rolling@mine.player >= 1"] },
+          "action": [
+            "move:curse:curse_bag",
+            "shuffle:curse_bag",
+            "draw_from:curse_bag:curse:1",
+            "end_phase"
+          ]
+        }
+      ]
     },
     {
       "key": "c_ghost",
       "text": "Bring a ghost into play",
       "tags": ["c_ghost", "curse_face"],
       "asset": "square:slate",
-      "tooltip": "Bring a ghost into play"
+      "tooltip": "Bring a ghost into play",
+      "abilities": [
+        {
+          "key": "recurse",
+          "text": "Roll the Curse die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["rolling@mine.player >= 1"] },
+          "action": [
+            "move:curse:curse_bag",
+            "shuffle:curse_bag",
+            "draw_from:curse_bag:curse:1",
+            "end_phase"
+          ]
+        }
+      ]
     },
     {
       "key": "c_tao",
       "text": "Discard all your Tao tokens",
       "tags": ["c_tao", "curse_face"],
       "asset": "square:slate",
-      "tooltip": "Discard all your Tao tokens"
+      "tooltip": "Discard all your Tao tokens",
+      "abilities": [
+        {
+          "key": "recurse",
+          "text": "Roll the Curse die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["rolling@mine.player >= 1"] },
+          "action": [
+            "move:curse:curse_bag",
+            "shuffle:curse_bag",
+            "draw_from:curse_bag:curse:1",
+            "end_phase"
+          ]
+        }
+      ]
     },
     {
       "key": "c_qi",
       "text": "Lose 1 Qi",
       "tags": ["c_qi", "curse_face"],
       "asset": "square:slate",
-      "tooltip": "Lose 1 Qi"
+      "tooltip": "Lose 1 Qi",
+      "abilities": [
+        {
+          "key": "recurse",
+          "text": "Roll the Curse die again",
+          "phases": ["second_roll"],
+          "needs": { "req": ["rolling@mine.player >= 1"] },
+          "action": [
+            "move:curse:curse_bag",
+            "shuffle:curse_bag",
+            "draw_from:curse_bag:curse:1",
+            "end_phase"
+          ]
+        }
+      ]
     },
     {
       "key": "tao_yellow",
@@ -4886,8 +5298,8 @@
       "text": "The Gods' Favourite",
       "tags": ["power_card", "favour"],
       "asset": "square:green",
-      "story": "Roll any Tao die of an exorcism a second time. The second result stands.",
-      "tooltip": "Roll any Tao die of an exorcism a second time. The second result stands."
+      "story": "Roll any Tao die, or the Curse die, a second time. The second result stands.",
+      "tooltip": "Roll any Tao die, or the Curse die, a second time. The second result stands."
     },
     {
       "key": "p_strength",
@@ -4951,6 +5363,13 @@
       "tags": ["button"],
       "asset": "square:slate",
       "play": { "phases": ["yang_act"], "action": ["stat_set:acts@mine.player:9", "end_phase"] }
+    },
+    {
+      "key": "keep_roll",
+      "text": "Keep what fell",
+      "tags": ["button"],
+      "asset": "square:slate",
+      "play": { "phases": ["second_roll"], "action": ["end_phase"] }
     },
     {
       "key": "no_buddha",
@@ -5076,7 +5495,7 @@
       "key": "rules_card",
       "text": "Not in this file yet",
       "tags": ["page"],
-      "story": "Left out of this telling: Tao tokens lent between Taoists standing on the same tile; the Gods' Favourite's second roll of the Curse die and of the Herbalist's dice; neutral boards for fewer than four players; the Yin-Yang spent to ask a distant villager; and the Tao die a ghost holds captive. Two incarnations bend rather than break: the Uncatchable is exorcised like any other, since a Buddha here eats whatever is laid on it, and the Nameless does not stop the white dice counting as wild. A resistance printed in several colours spends the same white face on each of them. The village tiles are laid out in a fixed order rather than shuffled."
+      "story": "Left out of this telling: Tao tokens lent between Taoists standing on the same tile; neutral boards for fewer than four players; the Yin-Yang spent to ask a distant villager; and the Tao die a ghost holds captive. Two incarnations bend rather than break: the Uncatchable is exorcised like any other, since a Buddha here eats whatever is laid on it, and the Nameless does not stop the white dice counting as wild. A resistance printed in several colours spends the same white face on each of them. The village tiles are laid out in a fixed order rather than shuffled."
     }
   ],
   "setup": {
@@ -5104,6 +5523,7 @@
       { "card": "roll_dice", "zone": "choices" },
       { "card": "use_yy", "zone": "choices" },
       { "card": "give_up", "zone": "choices" },
+      { "card": "keep_roll", "zone": "choices" },
       { "card": "take_qi", "zone": "choices" },
       { "card": "take_yy", "zone": "choices" },
       { "card": "no_buddha", "zone": "choices" },

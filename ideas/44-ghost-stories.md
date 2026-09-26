@@ -68,6 +68,13 @@ fourth bag's face like any other. The Twin Winds are two clicks on the power
 card, because the validator takes `target` as a card destination and not `self`;
 the Pavilion's second gust is the same two clicks on its tile, with no `adjacent`.
 
+**A roll the Gods' Favourite may answer is rolled one per pass.** Three tormentors used to roll and read in one
+automatic phase, and a dying ghost rolled and read in one ability; now `yin_curse` and `aftermath` each roll one die,
+`rolling` on the seat the baton, and route through `second_roll` before `yin_cursed` or `aftermath_read` read it.
+Every ghost carries the reading, so a Death Army tormenting and dying reads through one set of rules; `dying` 2 marks
+a ghost that has rolled on its way out. The Herbalist's pair sets `herbs` instead, since an exorcism's leftover dice
+still lie in `dice` through a Curse pause and must not be offered.
+
 **A stat set on a zone reaches its first card only** without `each.` —
 `designated` takes one bearer. `fresh`, `rolled` and the Night Watchman's reset
 had been clearing one ghost apiece, so a second ghost kept `fresh` and fired its
@@ -107,12 +114,7 @@ arrival again on the next one's. Tested now.
    hauntings run, and moving them ahead of it means a ghost with nowhere left
    to haunt dies holding `to_haunt`, which the lost-village check then never
    sees.
-9. **The Gods' Favourite's other two rolls.** The Tao dice of an exorcism may
-    be rolled again (`reroll` on a face, once per die); the Curse die and the
-    Herbalist's two dice may not, because both are rolled and read inside one
-    automatic phase and there is no moment between to ask. Routing: a pause
-    after the roll, for a seat holding the power, before the faces are read.
-10. **The Mantra on a ghost printed in several colours** takes 1 off every
+9. **The Mantra on a ghost printed in several colours** takes 1 off every
     colour, because `mantra@self` is a term in each of the five computes; the
     rulebook has the player pick one colour after the roll. Hope Killer and the
     Nameless only, and the same fix as item 5.
