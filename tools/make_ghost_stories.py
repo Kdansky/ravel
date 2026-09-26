@@ -381,31 +381,35 @@ def zones():
         # A corner tile faces two ghosts and one roll serves both, split as the player likes: a face moved to `aside` is kept
         # for the second, and the first exorcism spends whatever is left in `dice`.
         {"key": "dice", "label": "Tao dice", "layout": "row", "status": "board", "use": "abilities",
-         "applies": ["rolled"], "pos": [0.85, 0.36, 0.945, 0.48]},
+         "applies": ["rolled"], "pos": [0.85, 0.48, 0.945, 0.58]},
         {"key": "aside", "label": "Kept back", "layout": "row", "status": "board", "use": "abilities",
-         "applies": ["kept"], "pos": [0.95, 0.36, 0.995, 0.48],
+         "applies": ["kept"], "pos": [0.95, 0.48, 0.995, 0.58],
          "tooltip": "Dice kept back for the second ghost a corner tile faces."},
         {"key": "used", "layout": "row", "display": "offscreen", "use": "none"},
         {"key": "curse", "label": "Curse die", "layout": "row", "status": "board", "use": "abilities",
-         "pos": [0.85, 0.50, 0.92, 0.64]},
-        {"key": "circle", "label": "Circle of Prayer", "layout": "row", "status": "board",
-         "use": "none", "pos": [0.925, 0.50, 0.995, 0.64],
+         "pos": [0.9, 0.72, 0.945, 0.82]},
+        {"key": "circle", "label": "Circle", "layout": "row", "status": "board",
+         "use": "none", "pos": [0.95, 0.72, 0.995, 0.82],
          "tooltip": "The token standing on the Circle of Prayer makes every ghost of its "
                     "colour one easier to exorcise, for every Taoist."},
 
         {"key": "box", "label": "Tao tokens", "layout": "row", "status": "supply",
          "use": "abilities",
-         "pos": [0.85, 0.66, 0.995, 0.82],
+         "pos": [0.85, 0.36, 0.995, 0.46],
          "contents": ["tao_%s:4" % c for c in TAO_KEYS]},
         {"key": "arriving", "label": "Arriving", "layout": "row", "use": "abilities", "pos": [0.005, 0.80, 0.115, 0.98],
          "tooltip": "The ghost just drawn, waiting to be placed."},
     ]
+    # On the table, face down, so a roll is seen: the bag whirls and the face flies out of it turning over.
     for n in (1, 2, 3, 4):
-        z.append({"key": "bag%d" % n, "layout": "stack", "display": "offscreen",
-                  "tags": ["shuffle"], "use": "none",
+        x = 0.85 + (n - 1) * 0.03875
+        z.append({"key": "bag%d" % n, "layout": "stack", "visibility": "secret",
+                  "tags": ["shuffle"], "use": "none", "pos": [x, 0.60, x + 0.0335, 0.70],
+                  "tooltip": "The Tao die a roll takes its %s face from." % ("first", "second", "third", "fourth")[n - 1],
                   "contents": ["f%d_%s" % (n, f) for f in DIE_FACES]})
-    z.append({"key": "curse_bag", "layout": "stack", "display": "offscreen",
-              "tags": ["shuffle"], "use": "none",
+    z.append({"key": "curse_bag", "layout": "stack", "visibility": "secret",
+              "tags": ["shuffle"], "use": "none", "pos": [0.85, 0.72, 0.895, 0.82],
+              "tooltip": "The Curse die, before it is rolled.",
               "contents": ["c_%s:%d" % (k, n) for k, _, n in CURSE]})
     z.append({"key": "rules", "layout": "stack", "display": "offscreen"})
     # Both sides of every board, each owned by the seat behind it, until the side it plays is dealt out.

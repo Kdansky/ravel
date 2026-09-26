@@ -887,7 +887,7 @@
       "status": "board",
       "use": "abilities",
       "applies": ["rolled"],
-      "pos": [0.85, 0.36, 0.945, 0.48]
+      "pos": [0.85, 0.48, 0.945, 0.58]
     },
     {
       "key": "aside",
@@ -896,7 +896,7 @@
       "status": "board",
       "use": "abilities",
       "applies": ["kept"],
-      "pos": [0.95, 0.36, 0.995, 0.48],
+      "pos": [0.95, 0.48, 0.995, 0.58],
       "tooltip": "Dice kept back for the second ghost a corner tile faces."
     },
     { "key": "used", "layout": "row", "display": "offscreen", "use": "none" },
@@ -906,15 +906,15 @@
       "layout": "row",
       "status": "board",
       "use": "abilities",
-      "pos": [0.85, 0.5, 0.92, 0.64]
+      "pos": [0.9, 0.72, 0.945, 0.82]
     },
     {
       "key": "circle",
-      "label": "Circle of Prayer",
+      "label": "Circle",
       "layout": "row",
       "status": "board",
       "use": "none",
-      "pos": [0.925, 0.5, 0.995, 0.64],
+      "pos": [0.95, 0.72, 0.995, 0.82],
       "tooltip": "The token standing on the Circle of Prayer makes every ghost of its colour one easier to exorcise, for every Taoist."
     },
     {
@@ -923,7 +923,7 @@
       "layout": "row",
       "status": "supply",
       "use": "abilities",
-      "pos": [0.85, 0.66, 0.995, 0.82],
+      "pos": [0.85, 0.36, 0.995, 0.46],
       "contents": ["tao_yellow:4", "tao_green:4", "tao_red:4", "tao_blue:4", "tao_black:4"]
     },
     {
@@ -937,41 +937,51 @@
     {
       "key": "bag1",
       "layout": "stack",
-      "display": "offscreen",
+      "visibility": "secret",
       "tags": ["shuffle"],
       "use": "none",
+      "pos": [0.85, 0.6, 0.8835, 0.7],
+      "tooltip": "The Tao die a roll takes its first face from.",
       "contents": ["f1_yellow", "f1_green", "f1_red", "f1_blue", "f1_black", "f1_white"]
     },
     {
       "key": "bag2",
       "layout": "stack",
-      "display": "offscreen",
+      "visibility": "secret",
       "tags": ["shuffle"],
       "use": "none",
+      "pos": [0.8887499999999999, 0.6, 0.9222499999999999, 0.7],
+      "tooltip": "The Tao die a roll takes its second face from.",
       "contents": ["f2_yellow", "f2_green", "f2_red", "f2_blue", "f2_black", "f2_white"]
     },
     {
       "key": "bag3",
       "layout": "stack",
-      "display": "offscreen",
+      "visibility": "secret",
       "tags": ["shuffle"],
       "use": "none",
+      "pos": [0.9275, 0.6, 0.961, 0.7],
+      "tooltip": "The Tao die a roll takes its third face from.",
       "contents": ["f3_yellow", "f3_green", "f3_red", "f3_blue", "f3_black", "f3_white"]
     },
     {
       "key": "bag4",
       "layout": "stack",
-      "display": "offscreen",
+      "visibility": "secret",
       "tags": ["shuffle"],
       "use": "none",
+      "pos": [0.9662499999999999, 0.6, 0.9997499999999999, 0.7],
+      "tooltip": "The Tao die a roll takes its fourth face from.",
       "contents": ["f4_yellow", "f4_green", "f4_red", "f4_blue", "f4_black", "f4_white"]
     },
     {
       "key": "curse_bag",
       "layout": "stack",
-      "display": "offscreen",
+      "visibility": "secret",
       "tags": ["shuffle"],
       "use": "none",
+      "pos": [0.85, 0.72, 0.895, 0.82],
+      "tooltip": "The Curse die, before it is rolled.",
       "contents": ["c_blank:2", "c_haunt:1", "c_ghost:1", "c_tao:1", "c_qi:1"]
     },
     { "key": "rules", "layout": "stack", "display": "offscreen" },
