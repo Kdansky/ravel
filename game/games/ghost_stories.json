@@ -5398,6 +5398,9 @@
         "phases": ["yang_act"],
         "needs": {
           "req": ["tried@mine.player < tries@mine.player", "asked@mine.player < mix@mine.player"],
+          "d1": "count:die_captive@table <= 2",
+          "d2": "count:die_captive@table <= 1",
+          "d3": "count:die_captive@table == 0",
           "strong": "mountain@mine.player >= 1"
         },
         "action": [
@@ -5417,12 +5420,12 @@
           "move:aside.d4:bag4",
           "move:used.d4:bag4",
           "stat_set:again@each.bag4:0",
-          "shuffle:bag1",
-          "draw_from:bag1:dice:1",
-          "shuffle:bag2",
-          "draw_from:bag2:dice:1",
-          "shuffle:bag3",
-          "draw_from:bag3:dice:1",
+          "d1? shuffle:bag1",
+          "d1? draw_from:bag1:dice:1",
+          "d2? shuffle:bag2",
+          "d2? draw_from:bag2:dice:1",
+          "d3? shuffle:bag3",
+          "d3? draw_from:bag3:dice:1",
           "strong? shuffle:bag4",
           "strong? draw_from:bag4:dice:1",
           "stat_set:facing@mine.player:0",
@@ -5521,7 +5524,7 @@
       "key": "rules_card",
       "text": "Not in this file yet",
       "tags": ["page"],
-      "story": "Left out of this telling: neutral boards for fewer than four players; the Yin-Yang spent to ask a distant villager; and the Tao die a ghost holds captive. Two incarnations bend rather than break: the Uncatchable is exorcised like any other, since a Buddha here eats whatever is laid on it, and the Nameless does not stop the white dice counting as wild. A resistance printed in several colours spends the same white face on each of them. The village tiles are laid out in a fixed order rather than shuffled."
+      "story": "Left out of this telling: neutral boards for fewer than four players, and the Yin-Yang spent to ask a distant villager. Two incarnations bend rather than break: the Uncatchable is exorcised like any other, since a Buddha here eats whatever is laid on it, and the Nameless does not stop the white dice counting as wild. A resistance printed in several colours spends the same white face on each of them. The village tiles are laid out in a fixed order rather than shuffled."
     }
   ],
   "setup": {

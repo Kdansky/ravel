@@ -1110,8 +1110,13 @@ def buttons():
         btn("no_buddha", "End your turn",
             {"phases": ["yang_buddha"], "action": ["end_phase"]}),
         btn("roll_dice", "Attempt an exorcism",
-            {"phases": ["yang_act"], "needs": {"req": MAY_TRY, "strong": "mountain@mine.player >= 1"},
-             "action": roll_tao() + ["strong? shuffle:bag4", "strong? draw_from:bag4:dice:1",
+            # A captive ghost holds a die out of the roll, so each die is there only while fewer than its number are held.
+            {"phases": ["yang_act"], "needs": {"req": MAY_TRY, "d1": "count:die_captive@table <= 2",
+                                               "d2": "count:die_captive@table <= 1", "d3": "count:die_captive@table == 0",
+                                               "strong": "mountain@mine.player >= 1"},
+             "action": roll_tao(()) + ["d%d? %s" % (n, a) for n in (1, 2, 3)
+                                       for a in ("shuffle:bag%d" % n, "draw_from:bag%d:dice:1" % n)]
+                       + ["strong? shuffle:bag4", "strong? draw_from:bag4:dice:1",
                                      "stat_set:facing@mine.player:0", "activate_zone:table:by_column:faced",
                                      "stat_set:exorcising@mine.player:1", "spend_action:tried"]},
             "Roll the three Tao dice, then commit tokens and name a ghost you face. From a corner "
@@ -1161,9 +1166,8 @@ def endings():
                   "will never see daylight again."},
         {"key": "rules_card", "text": "Not in this file yet", "tags": ["page"],
          "story": "Left out of this telling: "
-                  "neutral boards for fewer than four players; the "
-                  "Yin-Yang spent to ask a distant villager; and the Tao die a ghost "
-                  "holds captive. Two incarnations bend rather than break: the "
+                  "neutral boards for fewer than four players, and the "
+                  "Yin-Yang spent to ask a distant villager. Two incarnations bend rather than break: the "
                   "Uncatchable is exorcised like any other, since a Buddha here eats "
                   "whatever is laid on it, and the Nameless does not stop the white dice "
                   "counting as wild. A resistance printed in several colours spends the "

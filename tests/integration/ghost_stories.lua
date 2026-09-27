@@ -939,6 +939,29 @@ function M.test_ghost_stories_strength_of_a_mountain_rolls_four_and_never_curses
 	check("and no Curse die was rolled", #zones.find("curse").cards == 0)
 end
 
+-- Each captive holds one die, so two hold two, and a Mountain still adds its own.
+function M.test_ghost_stories_a_captive_ghost_holds_a_die_back(check)
+	start()
+	stack_deck(QUIET)
+	take_places()
+	to_yang_move()
+	put("g_severed_a", 2, 1)
+	press("no_move")
+	press("roll_dice")
+	check("one captive, two dice", #zones.find("dice").cards == 2, tostring(#zones.find("dice").cards))
+
+	start()
+	stack_deck(QUIET)
+	take_places()
+	to_yang_move()
+	put("g_severed_a", 2, 1)
+	put("g_severed_b", 3, 1)
+	give_power("south", "strength")
+	press("no_move")
+	press("roll_dice")
+	check("two captives and a Mountain, two dice", #zones.find("dice").cards == 2, tostring(#zones.find("dice").cards))
+end
+
 function M.test_ghost_stories_the_gods_favourite_rolls_a_die_once_more(check)
 	start()
 	stack_deck(QUIET)

@@ -80,37 +80,38 @@ still lie in `dice` through a Curse pause and must not be offered.
 had been clearing one ghost apiece, so a second ghost kept `fresh` and fired its
 arrival again on the next one's. Tested now.
 
+**A captive die is a gate, not an aura.** Each die is its own bag, so "one die fewer" has to become *which bags*
+either way; three gates on `count:die_captive@table` say it at the roll. An `adjusts` on the ghost was built and
+dropped: it needed a verb nothing else performs, a counter stat, and left the Mountain half stat and half aura.
+
 ## Left, in the order they are worth doing
 
-1. **The captive Tao die.** "Exorcisms roll one die fewer" is one die not
-   dealt, and the roll is a fixed list of actions with no if in it — which a
-   gate in its `needs` now says ([46](46-one-list-of-conditions.md)), not a new word.
-2. **The Uncatchable.** It may only be exorcised standing on a Buddha, and a
+1. **The Uncatchable.** It may only be exorcised standing on a Buddha, and a
    Buddha here occupies the square and eats whatever is laid on it. Faithfully
    it wants a Buddha that is a *rider* on a space, which is the same want as
    [15](15-many-on-one-square.md)'s "a number on a square". Shipped exorcisable
    like any other incarnation rather than unwinnable, and the card says so.
-3. **The Nameless's white faces.** "The white sides no longer count as wild" is
+2. **The Nameless's white faces.** "The white sides no longer count as wild" is
    a term dropped from five computes while one card is in play, and a compute
    is bound before it is read. Every other global state in this file is a
    condition on a tag, and this is the one that is arithmetic.
-4. **A resistance printed in several colours** spends the same white face on
+3. **A resistance printed in several colours** spends the same white face on
    each of them, because the four conditions are read independently. Wrong for
    Hope Killer and the Nameless and nobody else.
-5. **Neutral boards**, for one to three players. The rulebook's own appendix:
+4. **Neutral boards**, for one to three players. The rulebook's own appendix:
    a board with nobody behind it plays the first two steps of its Yin phase and
    no Yang phase, and the players carry Power tokens to borrow its power. It is
    [09](09-composition.md)'s seat-count module in its natural habitat, and the
    reason this file ships at four seats.
-6. **The village laid out at random.** Nine tiles into nine squares in a
+5. **The village laid out at random.** Nine tiles into nine squares in a
   shuffled order; `setup.place` says which card goes where and has no way to
   say "these nine, in any order". Cheap, and it changes how a game opens.
-7. **A dying ghost's haunting curse.** A haunting face rolled as a ghost is
+6. **A dying ghost's haunting curse.** A haunting face rolled as a ghost is
    exorcised does nothing: `death_go` destroys it before the aftermath's
    hauntings run, and moving them ahead of it means a ghost with nowhere left
    to haunt dies holding `to_haunt`, which the lost-village check then never
    sees.
-8. **The Mantra on a ghost printed in several colours** takes 1 off every
+7. **The Mantra on a ghost printed in several colours** takes 1 off every
     colour, because `mantra@self` is a term in each of the five computes; the
     rulebook has the player pick one colour after the roll. Hope Killer and the
     Nameless only, and the same fix as item 4.
