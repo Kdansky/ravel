@@ -424,6 +424,44 @@ function M.test_ghost_stories_an_exorcism_counts_the_dice_the_whites_and_the_tok
 	check("and the committed token is spent", #box("spent", "south").cards == 0)
 end
 
+-- "During an exorcism a Taoist may use the tokens of any Taoist on the same tile." A lent token sits in the
+-- exorcist's `spent` and stays its lender's, so walking away sends it home and a success spends it.
+function M.test_ghost_stories_a_taoist_on_the_same_tile_lends_a_token(check)
+	start()
+	stack_deck(QUIET)
+	take_places()
+	local ghost = put("g_hopping_a", 2, 1)
+	while phase.current().key ~= "yang_move" do
+		if not nudge() then break end
+	end
+	local m = monk_of("south")
+	flow.activate(m.id, { on_table("t_cemetery").id }, ability(m, "step"))
+	press("roll_dice")
+	set_dice("yellow", "white", "blue")
+
+	local token = cards.create("tao_yellow", box("tao", "west").id)
+	local borrow = button("borrow")
+	check("a Taoist on another tile lends nothing", not flow.play_card(borrow.id, { token.id }))
+
+	actions.execute("attach_to_target", { card_id = monk_of("west").id, targets = { on_table("t_cemetery").id } })
+	check("one on my tile does", flow.play_card(borrow.id, { token.id }))
+	check("the token is committed to my exorcism", card_in(box("spent", "south"), "tao_yellow") == token)
+	check("and is still West's", tags.owner_of(token) == "west", tostring(tags.owner_of(token)))
+	check("and it counts", ability(ghost, "exorcise") ~= nil)
+
+	press("give_up")
+	check("walking away gives it back to West", card_in(box("tao", "west"), "tao_yellow") == token)
+
+	check("South comes round", next_turn_of("south"))
+	press("no_move")
+	press("roll_dice")
+	set_dice("yellow", "white", "blue")
+	check("borrowed again", flow.play_card(button("borrow").id, { token.id }))
+	flow.activate(ghost.id, {}, ability(ghost, "exorcise"))
+	check("the ghost is sent to hell", card_in(zones.find("hell"), "g_hopping_a") ~= nil)
+	check("and West's token is spent", entity.get(token.id) == nil or card_in(box("tao", "west"), "tao_yellow") == nil)
+end
+
 function M.test_ghost_stories_a_ghost_the_dice_cannot_touch_still_answers_to_tokens(check)
 	start()
 	stack_deck(QUIET)

@@ -2074,11 +2074,14 @@ The player *is* a card, so everything that works on a card works on a seat.
 ### Spend the tokens of any Taoist on your tile.
 
 ```json
-{ "key": "power_red", "value": "count:red@spent.owned_by.attached_to.host_of.mine.taoist" }
+"target": { "type": "card", "count": 1, "tags": ["token"], "zones": ["tao"], "owner": "enemy" },
+"needs": { "where": ["count:taoist@attached_to.host_of.mine.taoist.owned_by.target >= 1"] },
+"action": ["move:target:mine.spent"]
 ```
 
-`owned_by` keeps the cards on its left whose owner owns something on its right — here, every seat
-with a Taoist on my tile, me included.
+`owned_by` keeps the cards on its left whose owner owns something on its right — here, the Taoists on
+my tile that belong to whoever owns the token. The token stays its lender's in my `spent`, so
+`move:spent:origin` sends it home and `count:red@spent` still counts it.
 
 ### The seat names itself.
 

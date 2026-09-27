@@ -328,14 +328,14 @@ def computes():
 
     One number per colour, because a condition compares two subjects and cannot
     add: the dice showing that colour, the whites (which are wild), the tokens
-    this player has committed, the Circle of Prayer's standing token, and the
+    this player has committed or borrowed, the Circle of Prayer's standing token, and the
     Enfeeblement Mantra if it is on this ghost. `token_*` is the same sum with
     the dice left out, which is what a ghost the dice cannot touch is worth.
     """
     out = []
     for c in TAO_KEYS:
         dice = "count:%s@dice + count:white@dice" % c
-        rest = "count:%s@mine.spent + count:%s@circle + mantra@self" % (c, c)
+        rest = "count:%s@spent + count:%s@circle + mantra@self" % (c, c)
         out.append({"key": "power_" + c, "value": dice + " + " + rest,
                     "tooltip": "What this exorcism is worth in %s: the dice, the whites, "
                                "the tokens committed, the Circle of Prayer, and the Mantra." % c})
@@ -1118,9 +1118,18 @@ def buttons():
             "tile, keep dice back for the second ghost."),
         btn("give_up", "Leave it be",
             {"phases": ["yang_exorcise"],
-             "action": ["move:mine.spent:mine.tao", "stat_set:exorcising@mine.player:0",
+             "action": ["move:spent:origin", "stat_set:exorcising@mine.player:0",
                         "end_phase"]},
-            "Take back every token you committed and let the ghost stand."),
+            "Give back every token committed, yours and any borrowed, and let the ghost stand."),
+        # A borrowed token keeps its owner in my `spent`, so walking away sends it home by origin and a
+        # success spends it from its owner's supply.
+        btn("borrow", "Borrow a token",
+            {"phases": ["yang_exorcise"],
+             "needs": {"req": ["count:tao_off@table == 0"],
+                       "where": ["count:taoist@attached_to.host_of.mine.taoist.owned_by.target >= 1"]},
+             "target": {"type": "card", "count": 1, "tags": ["token"], "zones": ["tao"], "owner": "enemy"},
+             "action": ["move:target:mine.spent"]},
+            "Commit a Tao token belonging to another Taoist standing on your tile."),
         btn("use_yy", "Spend your Yin-Yang",
             {"phases": ["yang_move", "yang_act"],
              "needs": {"req": ["yy@mine.player >= 1"], "where": ["haunted@target >= 1"]},
@@ -1152,7 +1161,7 @@ def endings():
                   "will never see daylight again."},
         {"key": "rules_card", "text": "Not in this file yet", "tags": ["page"],
          "story": "Left out of this telling: "
-                  "Tao tokens lent between Taoists standing on the same tile; neutral boards for fewer than four players; the "
+                  "neutral boards for fewer than four players; the "
                   "Yin-Yang spent to ask a distant villager; and the Tao die a ghost "
                   "holds captive. Two incarnations bend rather than break: the "
                   "Uncatchable is exorcised like any other, since a Buddha here eats "
@@ -1344,7 +1353,7 @@ def setup():
         place.append({"card": "t_" + key, "zone": "table", "at": square})
     for name, _c, _s, square, _pat in SIDES:
         place.append({"card": "plaque_" + name, "owner": name, "zone": "table", "at": square})
-    for key in ("no_move", "no_act", "roll_dice", "use_yy", "give_up", "keep_roll",
+    for key in ("no_move", "no_act", "roll_dice", "use_yy", "give_up", "borrow", "keep_roll",
                 "take_qi", "take_yy", "no_buddha"):
         place.append({"card": key, "zone": "choices"})
     place.append({"card": "buddha", "zone": "shrine"})
@@ -1362,7 +1371,7 @@ VERBS = [
     # and what was kept back is the purse for the second ghost, if the Taoist faces one.
     {"key": "drive_out", "tooltip": "This ghost is exorcised.",
      "needs": {"more": "facing@mine.player >= 1"},
-     "action": ["stat_set:dying@self:1", "stat_damage:facing@mine.player:1", "purge:mine.spent",
+     "action": ["stat_set:dying@self:1", "stat_damage:facing@mine.player:1", "purge:spent",
                 "move:dice:used", "move:aside:dice", "!more? end_phase"]},
     {"key": "place_ghost", "tooltip": "The ghost takes the chosen space, and has only just arrived.",
      "action": ["move_to:target", "stat_set:fresh@self:1", "end_phase"]},

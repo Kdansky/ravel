@@ -9,7 +9,7 @@
       "action": [
         "stat_set:dying@self:1",
         "stat_damage:facing@mine.player:1",
-        "purge:mine.spent",
+        "purge:spent",
         "move:dice:used",
         "move:aside:dice",
         "!more? end_phase"
@@ -135,52 +135,52 @@
   "computes": [
     {
       "key": "power_yellow",
-      "value": "count:yellow@dice + count:white@dice + count:yellow@mine.spent + count:yellow@circle + mantra@self",
+      "value": "count:yellow@dice + count:white@dice + count:yellow@spent + count:yellow@circle + mantra@self",
       "tooltip": "What this exorcism is worth in yellow: the dice, the whites, the tokens committed, the Circle of Prayer, and the Mantra."
     },
     {
       "key": "token_yellow",
-      "value": "count:yellow@mine.spent + count:yellow@circle + mantra@self",
+      "value": "count:yellow@spent + count:yellow@circle + mantra@self",
       "tooltip": "The same sum without the dice, for a ghost the Tao dice cannot touch."
     },
     {
       "key": "power_green",
-      "value": "count:green@dice + count:white@dice + count:green@mine.spent + count:green@circle + mantra@self",
+      "value": "count:green@dice + count:white@dice + count:green@spent + count:green@circle + mantra@self",
       "tooltip": "What this exorcism is worth in green: the dice, the whites, the tokens committed, the Circle of Prayer, and the Mantra."
     },
     {
       "key": "token_green",
-      "value": "count:green@mine.spent + count:green@circle + mantra@self",
+      "value": "count:green@spent + count:green@circle + mantra@self",
       "tooltip": "The same sum without the dice, for a ghost the Tao dice cannot touch."
     },
     {
       "key": "power_red",
-      "value": "count:red@dice + count:white@dice + count:red@mine.spent + count:red@circle + mantra@self",
+      "value": "count:red@dice + count:white@dice + count:red@spent + count:red@circle + mantra@self",
       "tooltip": "What this exorcism is worth in red: the dice, the whites, the tokens committed, the Circle of Prayer, and the Mantra."
     },
     {
       "key": "token_red",
-      "value": "count:red@mine.spent + count:red@circle + mantra@self",
+      "value": "count:red@spent + count:red@circle + mantra@self",
       "tooltip": "The same sum without the dice, for a ghost the Tao dice cannot touch."
     },
     {
       "key": "power_blue",
-      "value": "count:blue@dice + count:white@dice + count:blue@mine.spent + count:blue@circle + mantra@self",
+      "value": "count:blue@dice + count:white@dice + count:blue@spent + count:blue@circle + mantra@self",
       "tooltip": "What this exorcism is worth in blue: the dice, the whites, the tokens committed, the Circle of Prayer, and the Mantra."
     },
     {
       "key": "token_blue",
-      "value": "count:blue@mine.spent + count:blue@circle + mantra@self",
+      "value": "count:blue@spent + count:blue@circle + mantra@self",
       "tooltip": "The same sum without the dice, for a ghost the Tao dice cannot touch."
     },
     {
       "key": "power_black",
-      "value": "count:black@dice + count:white@dice + count:black@mine.spent + count:black@circle + mantra@self",
+      "value": "count:black@dice + count:white@dice + count:black@spent + count:black@circle + mantra@self",
       "tooltip": "What this exorcism is worth in black: the dice, the whites, the tokens committed, the Circle of Prayer, and the Mantra."
     },
     {
       "key": "token_black",
-      "value": "count:black@mine.spent + count:black@circle + mantra@self",
+      "value": "count:black@spent + count:black@circle + mantra@self",
       "tooltip": "The same sum without the dice, for a ghost the Tao dice cannot touch."
     }
   ],
@@ -5437,10 +5437,26 @@
       "text": "Leave it be",
       "tags": ["button"],
       "asset": "square:slate",
-      "tooltip": "Take back every token you committed and let the ghost stand.",
+      "tooltip": "Give back every token committed, yours and any borrowed, and let the ghost stand.",
       "play": {
         "phases": ["yang_exorcise"],
-        "action": ["move:mine.spent:mine.tao", "stat_set:exorcising@mine.player:0", "end_phase"]
+        "action": ["move:spent:origin", "stat_set:exorcising@mine.player:0", "end_phase"]
+      }
+    },
+    {
+      "key": "borrow",
+      "text": "Borrow a token",
+      "tags": ["button"],
+      "asset": "square:slate",
+      "tooltip": "Commit a Tao token belonging to another Taoist standing on your tile.",
+      "play": {
+        "phases": ["yang_exorcise"],
+        "needs": {
+          "req": ["count:tao_off@table == 0"],
+          "where": ["count:taoist@attached_to.host_of.mine.taoist.owned_by.target >= 1"]
+        },
+        "target": { "type": "card", "count": 1, "tags": ["token"], "zones": ["tao"], "owner": "enemy" },
+        "action": ["move:target:mine.spent"]
       }
     },
     {
@@ -5505,7 +5521,7 @@
       "key": "rules_card",
       "text": "Not in this file yet",
       "tags": ["page"],
-      "story": "Left out of this telling: Tao tokens lent between Taoists standing on the same tile; neutral boards for fewer than four players; the Yin-Yang spent to ask a distant villager; and the Tao die a ghost holds captive. Two incarnations bend rather than break: the Uncatchable is exorcised like any other, since a Buddha here eats whatever is laid on it, and the Nameless does not stop the white dice counting as wild. A resistance printed in several colours spends the same white face on each of them. The village tiles are laid out in a fixed order rather than shuffled."
+      "story": "Left out of this telling: neutral boards for fewer than four players; the Yin-Yang spent to ask a distant villager; and the Tao die a ghost holds captive. Two incarnations bend rather than break: the Uncatchable is exorcised like any other, since a Buddha here eats whatever is laid on it, and the Nameless does not stop the white dice counting as wild. A resistance printed in several colours spends the same white face on each of them. The village tiles are laid out in a fixed order rather than shuffled."
     }
   ],
   "setup": {
@@ -5533,6 +5549,7 @@
       { "card": "roll_dice", "zone": "choices" },
       { "card": "use_yy", "zone": "choices" },
       { "card": "give_up", "zone": "choices" },
+      { "card": "borrow", "zone": "choices" },
       { "card": "keep_roll", "zone": "choices" },
       { "card": "take_qi", "zone": "choices" },
       { "card": "take_yy", "zone": "choices" },
