@@ -2071,6 +2071,15 @@ The player *is* a card, so everything that works on a card works on a seat.
 "needs": { "req": ["count:player@enemy.owner_of.target >= 1"] }
 ```
 
+### Spend the tokens of any Taoist on your tile.
+
+```json
+{ "key": "power_red", "value": "count:red@spent.owned_by.attached_to.host_of.mine.taoist" }
+```
+
+`owned_by` keeps the cards on its left whose owner owns something on its right — here, every seat
+with a Taoist on my tile, me included.
+
 ### The seat names itself.
 
 ```json

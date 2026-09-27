@@ -158,4 +158,31 @@ function M.test_owner_scope_an_unowned_card_names_nobody(check)
 	end)
 end
 
+-- "<cards>.owned_by.<scope>" — the way back from owner_of: the cards whose
+-- owner also owns something the right side names. The right side may be seats
+-- or cards, since a seat card is its own owner.
+function M.test_owned_by_keeps_the_cards_of_whoever_owns_the_other(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local function n(scope, ctx) return predicate.total("count:piece@" .. scope, ctx or {}) end
+		check("the pieces of whoever owns the target", n("board.owned_by.target", { targets = { at("c1").id } }) == 1,
+			tostring(n("board.owned_by.target", { targets = { at("c1").id } })))
+		check("follows the card, not the chair", n("board.owned_by.target", { targets = { at("a1").id } }) == 2)
+		check("a seat named as a seat", n("board.owned_by.seat_two") == 1, tostring(n("board.owned_by.seat_two")))
+		check("the same seat named through owner_of", n("board.owned_by.owner_of.enemy.piece") == 1)
+		check("an owner word on the right picks the owners", n("board.owned_by.enemy.piece") == 1)
+		check("and one on the left still narrows the cards", n("enemy.board.owned_by.anyone.piece") == 1)
+		check("nobody on the right keeps nothing", n("board.owned_by.commons") == 0)
+	end)
+end
+
+-- A card nobody owns shares an owner with nobody, including another loose card.
+function M.test_owned_by_an_unowned_card_matches_nothing(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local loose = zones.add(zones.find("commons"), "piece")
+		check("unowned is not a seat", predicate.total("count:piece@commons.owned_by.target", { targets = { loose.id } }) == 0)
+	end)
+end
+
 return M

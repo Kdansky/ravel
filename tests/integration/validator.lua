@@ -925,6 +925,11 @@ local CASES = {
 		function(g) g.card_defs.pearl.tags = { "Shiny" } end },
 	{ "a reference differing from its key only in case", "names are lowercase: 'hp'",
 		function(g) g.card_defs.c_flee.on_play = { "stat_damage:HP@self:1" } end },
+	-- owned_by has a scope on each side, and a typo in either is one
+	{ "an owned_by whose owners are misspelled", "did you mean 'keepsake'",
+		function(g) g.card_defs.c_flee.on_play = { "purge:board.owned_by.keepsak" } end },
+	{ "an owned_by whose cards are misspelled", "did you mean 'keepsake'",
+		function(g) g.card_defs.c_flee.on_play = { "purge:keepsak.owned_by.keepsake" } end },
 }
 
 -- The verb check runs last for a reason: what a game emits is only known once

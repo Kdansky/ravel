@@ -61,7 +61,7 @@ and a line here names a section that exists:
 
 - **What a file holds** — Top-level fields · One game out of several files · `comment` — the one field the engine will not read · `ravel_` — the fields that are the engine's · Stats · Zones · A shelf — several zones on one rect · The system column · Players · Setup · Card templates · Two marks in card text · A caption that reads the board · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · A turn each · Two or more players · The player is a card · A stat says whose number it is
-- **Asking the board a question** — Conditions (one vocabulary everywhere) · `lowest:` and `highest:` — a pool in order · `aims:` — what an ability could point at · `spread` — an aim that spends points rather than cards · `needs` — what failing it does · `@everywhere` — every card, hands and decks included · `select` — a cost the player settles · `@owner_of` — the seat a card belongs to · `@attached_to` and `@host_of` — a card standing on another · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A place may be a word several zones wear · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
+- **Asking the board a question** — Conditions (one vocabulary everywhere) · `lowest:` and `highest:` — a pool in order · `aims:` — what an ability could point at · `spread` — an aim that spends points rather than cards · `needs` — what failing it does · `@everywhere` — every card, hands and decks included · `select` — a cost the player settles · `@owner_of` — the seat a card belongs to · `@attached_to` and `@host_of` — a card standing on another · `owned_by` — the cards of seats picked by what is true of them · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A place may be a word several zones wear · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
 - **What a card does** — Actions · A card that can do several things · Readiness — spent, given back, and asked about · `merge` — what an ability says to the others on its card · Gates — an if inside an ability · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag, or a counter, that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · A verb with a body — the game's own action · `does: "target"` — naming the aim, so the target can answer it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
 - **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · A second asker is a second answer · `chosen`'s `where` — which of the revealed cards may be taken · An answer may have a price · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · A list waits for the question it asked
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `answered` — the announcement itself · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · An automatic phase can ask, if the ask is the last thing it does · A mandatory reaction is how you ask somebody else a question · What it will not do yet
@@ -1760,7 +1760,8 @@ run their `then` actions — usually `push_phase:` to an ending overlay.
 **Scopes: which cards a subject is about.** The part after `@` is a *scope
 expression*: `[<quant>.][<owner>.]<zone-or-tag>`, where the name is a zone key,
 a tag, a movement pattern, or one of `self` / `target` / `event` / `all` /
-`reach` / `owner_of.<scope>` / `attached_to.<scope>` / `host_of.<scope>`.
+`reach` / `owner_of.<scope>` / `attached_to.<scope>` / `host_of.<scope>`. Any of them may end in
+`.owned_by.<scope>`, which keeps the cards whose owner also owns something there.
 Without any scope, a subject means **your own cards** — see *The player is a
 card* below.
 
@@ -1780,6 +1781,8 @@ count:king@enemy.reach  a king standing where an opponent could move — check
 score@owner_of.target   the score of whoever owns the card the player chose
 count:meeple@attached_to.self  the figures standing on this card
 guard@host_of.self      the card this one is standing on
+count:red@spent.owned_by.attached_to.host_of.mine.taoist
+                        the red tokens of every seat with a Taoist on my tile
 ```
 
 ### `aims:` — what an ability could point at
@@ -2422,6 +2425,32 @@ arrived.
 A rider's arrival is not the zone's business: `receive` does not fire for it, and
 neither does a zone's `accepts`. A shelf that deals a guardian onto every site
 that lands must not deal one onto the guardian.
+
+### `owned_by` — the cards of seats picked by what is true of them
+
+`mine` and `enemy` choose a seat relative to whoever is up, and that is fixed before
+anything happens. Ghost Stories lets a Taoist spend the tokens of *any Taoist on the
+same tile*, which picks seats by where their figures stand. `owned_by` says it:
+
+```
+count:red@spent.owned_by.attached_to.host_of.mine.taoist
+```
+
+*The red cards in `spent`, owned by whoever owns a Taoist on my tile.* It is the way
+back from `owner_of`: that goes from cards to seats, this from seats to their cards.
+
+- **It is a suffix, and it filters everything to its left.** `owner_of`,
+  `attached_to` and `host_of` swallow the rest of the line, so written first it would
+  swallow the place it narrows. The first `.owned_by.` splits the expression.
+- **The right side may name seats or cards.** A seat card owns itself, so
+  `owned_by.seat_two` and `owned_by.owner_of.target` need no special reading —
+  and the second is only ever a longer `owned_by.target`.
+- **Owner words keep their side.** `enemy.board.owned_by.anyone.piece` narrows the
+  cards to an opponent's, and `board.owned_by.enemy.piece` picks owners who have an
+  enemy piece.
+- A zone key with no owner word reaches every seat's copy, so `spent` needs none:
+  the right side already said whose.
+- A card nobody owns shares an owner with nobody.
 
 ### The player is a card
 

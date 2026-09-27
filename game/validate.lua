@@ -88,7 +88,7 @@ M.ENGINE_TAGS = {
 -- are the five the engine claims. "player" is deliberately NOT reserved — it is
 -- an ordinary tag that content puts on one card, which is what makes finding
 -- that card trivial.
-local RESERVED_SCOPES = { "self", "all", "reach", "owner_of", "everywhere", "opponent", "attached_to", "host_of" }
+local RESERVED_SCOPES = { "self", "all", "reach", "owner_of", "everywhere", "opponent", "attached_to", "host_of", "owned_by" }
 
 -- The scopes written as a prefix over another scope, rather than as a name of
 -- their own. Each says a relation — who owns these, what stands on them, what
@@ -766,6 +766,17 @@ function M.check(G)
 	-- a typo in an ordinary scope.
 	local function scope_named(name)
 		if type(name) ~= "string" then return name end
+		-- "<left>.owned_by.<right>" has two scopes that must both exist, and the
+		-- caller has room to report one: the right one when it is wrong, else the left.
+		local left, right = name:match("^(.-)%.owned_by%.(.+)$")
+		if left then
+			local sc = predicate.parse_scope(right)
+			local named = sc and scope_named(sc.name)
+			local place, kind = tostring(named):match("^([%w_]+)%.([%w_]+)$")
+			local pair = place and (G.zone_defs[place] or zone_words[place] or place == "everywhere") and known_tags[kind]
+			if not (named and (scope_names[named] or pair)) then return named or right end
+			return scope_named(left)
+		end
 		for _, rel in ipairs(RELATION_SCOPES) do
 			local inner = name:match("^" .. rel .. "%.(.+)$")
 			if inner then

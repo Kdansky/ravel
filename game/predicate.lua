@@ -28,6 +28,8 @@ local M = {}
 --   count:gem@everywhere    every card, hands and decks included (opt-in)
 --   min:value@mine.hand     the smallest one, over the cards that carry it
 --   score@owner_of.target   the seats owning the cards chosen — see below
+--   count:red@spent.owned_by.attached_to.host_of.mine.taoist
+--                           those cards whose owner also owns one of these
 --
 -- The words are separated by "." because ":" cannot be: action strings are
 -- split on colons (actions.lua), so "hp@each:follower" would arrive as two
@@ -281,7 +283,32 @@ local reaching = false
 
 function M.entities_in_scope(scope, ctx, owner, quant)
 	local out = {}
-	if scope == nil then
+	local left, right
+	if type(scope) == "string" then left, right = scope:match("^(.-)%.owned_by%.(.+)$") end
+	if left then
+		-- The cards on the left whose owner also owns something on the right:
+		-- "spent.red.owned_by.attached_to.host_of.mine.taoist" is the red tokens
+		-- committed by whoever has a Taoist on my tile. `mine` and `enemy` pick
+		-- a seat relative to whoever is up; this picks seats by what is true of
+		-- them, which a word fixed in advance cannot.
+		--
+		-- A suffix, and the first one splits, because every relation prefix
+		-- swallows the rest of the line: written first, it would swallow the
+		-- place it is meant to narrow. So it filters everything to its left.
+		-- The right side may name seats or cards alike, since a seat card
+		-- answers seat_of with itself — "owned_by.owner_of.x" is never needed.
+		local sc = M.parse_scope(right)
+		if not sc then return out end
+		local seats = {}
+		for _, e in ipairs(M.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
+			local seat = M.seat_of(e)
+			if seat then seats[seat] = true end
+		end
+		for _, e in ipairs(M.entities_in_scope(left, ctx)) do
+			local seat = M.seat_of(e)
+			if seat and seats[seat] then out[#out + 1] = e end
+		end
+	elseif scope == nil then
 		-- No scope means "mine": the card this player's stats live on, plus the
 		-- engine's own card behind it. A bare subject has always meant the
 		-- player's total; it names the cards that hold it, so a read and a write

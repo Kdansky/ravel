@@ -82,10 +82,13 @@ arrival again on the next one's. Tested now.
 
 ## Left, in the order they are worth doing
 
-1. **Tao tokens lent by Taoists on the same tile.** `count:<colour>@mine.spent`
-   is the only term that would change: it would have to reach every seat whose
-   Taoist shares a tile with the one acting, which is `attached_to.host_of.
-   mine.taoist` and an owner word the scope grammar does not have.
+1. **Tao tokens lent by Taoists on the same tile.** The scope exists now:
+   `count:<colour>@spent.owned_by.attached_to.host_of.mine.taoist` counts every
+   committed token of a seat with a Taoist on my tile. Left: how a token gets
+   committed by the player who is up — the `play` on `tao_*` moves the token to
+   `mine.spent`, and a lender's token lives in the lender's `tao`, which the player
+   who is up cannot play from. Then *give up* has to send each token back to its own
+   seat's `tao`, not to `mine.tao`.
 2. **The captive Tao die.** "Exorcisms roll one die fewer" is one die not
    dealt, and the roll is a fixed list of actions with no if in it — which a
    gate in its `needs` now says ([46](46-one-list-of-conditions.md)), not a new word.
