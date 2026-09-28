@@ -532,8 +532,9 @@ def tags():
         "abilities": stamp + haunt_steps() + [
             # The exorcism is two beats: the click marks the ghost, and the
             # aftermath phase does the rest, so a curse still has the ghost
-            # standing there to be about.
-            {"key": "death_go", "needs": {"req": ["dying@self >= 1"]}, "action": ["destroy:self"]},
+            # standing there to be about. One with a haunting it could not
+            # place stays standing, so the lost-village check still sees it.
+            {"key": "death_go", "needs": {"req": ["dying@self >= 1", "to_haunt@self == 0"]}, "action": ["destroy:self"]},
         ] + curse_effects(),
     }
 
@@ -1298,7 +1299,7 @@ def phases():
                     + ["activate_zone:table:by_column:herb_white", "activate_zone:table:by_column:herb_done"],
          "next": [{"then": "aftermath"}]},
         {"key": "aftermath_rest", "type": "automatic",
-         "actions": ["activate_zone:table:by_column:reward",
+         "actions": ["activate_zone:table:by_column:reward"] + hauntings + [
                        "activate_zone:table:by_column:death_go",
                        "stat_set:exorcising@mine.player:0"] + settle + hauntings,
          "next": [fell,

@@ -498,7 +498,7 @@
         },
         {
           "key": "death_go",
-          "needs": { "req": ["dying@self >= 1"] },
+          "needs": { "req": ["dying@self >= 1", "to_haunt@self == 0"] },
           "action": ["destroy:self"]
         },
         {
@@ -1341,6 +1341,12 @@
       "type": "automatic",
       "actions": [
         "activate_zone:table:by_column:reward",
+        "activate_zone:table:by_column:haunt_v1",
+        "activate_zone:table:by_column:haunt_v2",
+        "activate_zone:table:by_column:haunt_v3",
+        "activate_zone:table:by_column:haunt_h1",
+        "activate_zone:table:by_column:haunt_h2",
+        "activate_zone:table:by_column:haunt_h3",
         "activate_zone:table:by_column:death_go",
         "stat_set:exorcising@mine.player:0",
         "each_seat:settle_powers",

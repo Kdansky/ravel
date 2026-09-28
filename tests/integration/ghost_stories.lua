@@ -799,6 +799,36 @@ function M.test_ghost_stories_two_ghosts_dying_at_once_each_roll_their_own_curse
 	check("two curses, two Qi", seat("south").stats.qi == 2, tostring(seat("south").stats.qi))
 end
 
+-- A haunting face rolled on the way out is the ghost's last act, so it has to
+-- land while the ghost still stands where "in front of it" means something.
+function M.test_ghost_stories_a_dying_ghost_haunts_before_it_goes(check)
+	start()
+	stack_deck(QUIET)
+	take_places()
+	rig_bag("curse_bag", "c_haunt")
+	local zombie = put("g_zombie_a", 2, 1)
+	corner_roll("yellow", "yellow", "red")
+	flow.activate(zombie.id, {}, ability(zombie, "exorcise"))
+	check("the Zombie is gone", on_table("g_zombie_a") == nil)
+	check("and the tile in front of it went dark", on_table("t_cemetery").stats.haunted == 1)
+end
+
+function M.test_ghost_stories_a_dying_ghost_with_nowhere_to_haunt_loses_the_village(check)
+	start()
+	stack_deck(QUIET)
+	take_places()
+	rig_bag("curse_bag", "c_haunt")
+	for _, k in ipairs({ "t_sorcerer", "t_circle_tile" }) do
+		on_table(k).stats.haunted = 1
+	end
+	local zombie = put("g_zombie_a", 2, 1)
+	corner_roll("yellow", "yellow", "red")
+	on_table("t_cemetery").stats.haunted = 1
+	flow.activate(zombie.id, {}, ability(zombie, "exorcise"))
+	check("the whole column is dark, so the village falls",
+		phase.current().key == "reveal" or phase.current().key == "over", phase.current().key)
+end
+
 
 -- Each seat is dealt one side of its board at random, so a test about a power
 -- hands the seat the one it is about and has every seat ask again.

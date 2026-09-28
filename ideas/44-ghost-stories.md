@@ -106,12 +106,7 @@ dropped: it needed a verb nothing else performs, a counter stat, and left the Mo
 5. **The village laid out at random.** Nine tiles into nine squares in a
   shuffled order; `setup.place` says which card goes where and has no way to
   say "these nine, in any order". Cheap, and it changes how a game opens.
-6. **A dying ghost's haunting curse.** A haunting face rolled as a ghost is
-   exorcised does nothing: `death_go` destroys it before the aftermath's
-   hauntings run, and moving them ahead of it means a ghost with nowhere left
-   to haunt dies holding `to_haunt`, which the lost-village check then never
-   sees.
-7. **The Mantra on a ghost printed in several colours** takes 1 off every
+6. **The Mantra on a ghost printed in several colours** takes 1 off every
     colour, because `mantra@self` is a term in each of the five computes; the
     rulebook has the player pick one colour after the roll. Hope Killer and the
     Nameless only, and the same fix as item 4.
