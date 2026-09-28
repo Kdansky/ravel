@@ -69,19 +69,7 @@ the edit, with the message, when it does not fit. *[Assumption: exposing a
 `shape.check(value, spec, where)` for a single value, rather than `clean` on a
 whole file, is the natural shape of that call.]*
 
-## 3. `test_codex_shape` fails when run on its own
-
-`luajit tests/run.lua codex_shape` fails; the full suite passes. The test reads
-`local G = declaration.G` **before** `flow.init("codex.json", 7)`, and
-`flow.init` replaces `declaration.G` with a fresh table — so `G` is whatever the
-previous test loaded, and alone it is the empty table. A one-line move of the
-`local` below the `init`. ARCHITECTURE says each test must survive being run
-alone; this one is the exception found, and there may be others. *[Assumption:
-worth one pass running every integration test in isolation —
-`for t in tests; luajit tests/run.lua $t` — since that is how this one was
-found, by accident.]*
-
-## 4. What else could leave flow
+## 3. What else could leave flow
 
 `flow.lua` is 1,600 lines after `costs.lua` and `stack.lua`. Two more blocks read
 as self-contained, and both were left because the gain is smaller and the seams

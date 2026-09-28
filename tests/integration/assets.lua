@@ -177,7 +177,8 @@ function M.test_assets_a_missing_local_file_is_fetched_beside_the_page(check)
 	declaration.G = G
 	cards.reset()
 	local asked = {}
-	love.js = { eval = function(program) asked[#asked + 1] = tostring(program); return "" end }
+	-- "ok" is the page's answer to the helpers; anything less and no later frame speaks to it.
+	love.js = { eval = function(program) asked[#asked + 1] = tostring(program); return "ok" end }
 	local seen = love.filesystem.getInfo
 	love.filesystem.getInfo = function() return nil end   -- as if the bundle held no art
 

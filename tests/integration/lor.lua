@@ -362,8 +362,8 @@ end
 -- two stats that are 0 or 1 to say "only an attacker, and only past a corpse";
 -- it now says both out loud, and the value it deals has a name.
 function M.test_lor_a_when_is_the_rule_and_not_a_permission(check)
-	local G = declaration.G
 	flow.init("lor.json", 5)
+	local G = declaration.G
 	local ab
 	for _, a in ipairs(G.tag_defs.overwhelm.abilities) do
 		if a.key == "spill" then ab = a end
@@ -906,6 +906,7 @@ end
 
 -- Sixteen spells, and every one of them carries exactly one speed.
 function M.test_lor_every_spell_carries_one_speed(check)
+	flow.init("lor.json", 5)
 	local G = declaration.G
 	local n, speeds = 0, { burst = 0, fast = 0, slow = 0 }
 	for _, key in ipairs(G.card_list) do

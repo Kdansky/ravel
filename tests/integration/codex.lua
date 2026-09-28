@@ -606,8 +606,8 @@ end
 -- Nothing about this game is in the engine, so the file has to say it. These
 -- check the words it says rather than what they do.
 function M.test_codex_shape(check)
-	local G = declaration.G
 	flow.init("codex.json", 7)
+	local G = declaration.G
 
 	check("two seats", #G.seat_list == 2, tostring(#G.seat_list))
 	check("a hero is a fighter, so it fights like a unit",
