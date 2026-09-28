@@ -7,7 +7,10 @@ package.path = "game/?.lua;" .. package.path
 -- land in .saves/ beside the process — visible, disposable, and never the
 -- player's real one, which a test run would otherwise write over. Read looks
 -- there first and in the game folder second, which is the order physfs uses.
-local SAVE = os.getenv("RAVEL_SAVE_DIR") or ".saves"
+-- `save_dir` is a field so the test harness can give each test its own.
+local function saved(path)
+	return love.filesystem.save_dir .. "/" .. path
+end
 
 local function slurp(path)
 	local f = io.open(path, "rb")
@@ -19,11 +22,12 @@ end
 
 love = {
 	filesystem = {
+		save_dir = os.getenv("RAVEL_SAVE_DIR") or ".saves",
 		read = function(path)
-			return slurp(SAVE .. "/" .. path) or slurp("game/" .. path)
+			return slurp(saved(path)) or slurp("game/" .. path)
 		end,
 		write = function(path, data)
-			local f = io.open(SAVE .. "/" .. path, "wb")
+			local f = io.open(saved(path), "wb")
 			if not f then return false, "cannot write " .. path end
 			f:write(data)
 			f:close()
@@ -33,17 +37,17 @@ love = {
 		-- than trusted: everything else in this file is confined to io.open.
 		createDirectory = function(path)
 			if not tostring(path):match("^[%w_%-/]+$") then return false end
-			os.execute("mkdir -p " .. SAVE .. "/" .. path)
+			os.execute("mkdir -p " .. saved(path))
 			return true
 		end,
 		getInfo = function(path)
-			local f = io.open(SAVE .. "/" .. path, "rb") or io.open("game/" .. path, "rb")
+			local f = io.open(saved(path), "rb") or io.open("game/" .. path, "rb")
 			if not f then return nil end
 			f:close()
 			return { type = "file" }
 		end,
 		remove = function(path)
-			return os.remove(SAVE .. "/" .. path) and true or false
+			return os.remove(saved(path)) and true or false
 		end,
 	},
 	graphics = {

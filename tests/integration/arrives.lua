@@ -16,6 +16,7 @@ local entity = require("entity")
 local flow = require("flow")
 local actions = require("actions")
 local zones = require("zones")
+local harness = require("harness")
 
 local M = {}
 
@@ -63,11 +64,11 @@ local GAME = [==[{
 }]==]
 
 local function with_game(fn)
-	local path = "game/games/tmp_arrives.json"
+	local path = "game/games/" .. harness.tmp("arrives")
 	local f = assert(io.open(path, "w"))
 	f:write(GAME)
 	f:close()
-	local ok, err = pcall(fn, "tmp_arrives.json")
+	local ok, err = pcall(fn, harness.tmp("arrives"))
 	os.remove(path)
 	if not ok then error(err, 0) end
 end
@@ -177,7 +178,7 @@ end
 -- A zone that is not play cannot be arrived at, so saying "arrives" there is a
 -- rule that can never fire. Said at authoring time rather than left silent.
 function M.test_arrives_a_zone_out_of_play_cannot_be_arrived_at(check)
-	local path = "game/games/tmp_arrives_bad.json"
+	local path = "game/games/" .. harness.tmp("arrives_bad")
 	local f = assert(io.open(path, "w"))
 	f:write((GAME:gsub('{ "key": "discard", "layout": "stack", "status": "grave", "copies": "per_seat",',
 		'{ "key": "discard", "layout": "stack", "status": "grave", "copies": "per_seat",'
@@ -185,7 +186,7 @@ function M.test_arrives_a_zone_out_of_play_cannot_be_arrived_at(check)
 	f:close()
 	local declaration = require("declaration")
 	local validate = require("validate")
-	local ok, G = pcall(declaration.parse, "tmp_arrives_bad.json")
+	local ok, G = pcall(declaration.parse, harness.tmp("arrives_bad"))
 	os.remove(path)
 	if not ok then error(G, 2) end
 	local said = table.concat(validate.check(G), "; ")

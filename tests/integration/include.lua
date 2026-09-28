@@ -12,6 +12,7 @@
 
 local declaration = require("declaration")
 local json = require("json")
+local harness = require("harness")
 
 local M = {}
 
@@ -32,12 +33,18 @@ local BASE = [==[{
 
 -- Files are written, parsed and removed together, so a failing case leaves
 -- nothing behind for the next one to include by accident.
+-- The names are written short, `tmp_inc_mod.json`, and each becomes the running
+-- test's own file wherever it appears — a key, an include list, an expected message.
+local function own(s)
+	return (s:gsub("tmp_inc_(%w+)%.json", harness.tmp))
+end
+
 local function with(files, fn)
 	local written = {}
 	for name, text in pairs(files) do
-		local path = "game/games/" .. name
+		local path = "game/games/" .. own(name)
 		local f = assert(io.open(path, "w"))
-		f:write(text)
+		f:write(own(text))
 		f:close()
 		written[#written + 1] = path
 	end
@@ -57,7 +64,7 @@ function M.test_include_brings_the_other_file_along(check)
 		"include": ["tmp_inc_base.json"],
 		"cards": [{ "key": "gamma", "text": "Gamma" }]
 	}]==] }, function()
-		local G = declaration.parse("tmp_inc_mod.json")
+		local G = declaration.parse(own("tmp_inc_mod.json"))
 		check("nothing went wrong", said(G) == "", said(G))
 		check("the included cards are here", G.card_defs.alpha ~= nil and G.card_defs.beta ~= nil)
 		check("and this file's own", G.card_defs.gamma ~= nil)
@@ -78,7 +85,7 @@ function M.test_include_does_not_carry_the_title(check)
 		"title": "Module",
 		"include": ["tmp_inc_base.json"]
 	}]==] }, function()
-		check("the title is this file's", declaration.parse("tmp_inc_mod.json").title == "Module")
+		check("the title is this file's", declaration.parse(own("tmp_inc_mod.json")).title == "Module")
 	end)
 end
 
@@ -89,8 +96,8 @@ function M.test_include_refuses_a_collision_nobody_announced(check)
 		"include": ["tmp_inc_base.json"],
 		"cards": [{ "key": "alpha", "text": "Not the same Alpha" }]
 	}]==] }, function()
-		local s = said(declaration.parse("tmp_inc_mod.json"))
-		check("it says both files", s:find("tmp_inc_base.json", 1, true) and s:find("tmp_inc_mod.json", 1, true), s)
+		local s = said(declaration.parse(own("tmp_inc_mod.json")))
+		check("it says both files", s:find(own("tmp_inc_base.json"), 1, true) and s:find(own("tmp_inc_mod.json"), 1, true), s)
 		check("and what to write instead", s:find('replaces: ["cards.alpha"]', 1, true), s)
 	end)
 end
@@ -103,7 +110,7 @@ function M.test_include_takes_over_a_named_entry(check)
 		"replaces": ["cards.alpha"],
 		"cards": [{ "key": "alpha", "text": "Mine" }, { "key": "gamma", "text": "Gamma" }]
 	}]==] }, function()
-		local G = declaration.parse("tmp_inc_mod.json")
+		local G = declaration.parse(own("tmp_inc_mod.json"))
 		check("nothing went wrong", said(G) == "", said(G))
 		check("this file's version won", G.card_defs.alpha.text == "Mine")
 		check("and it kept the position the one it replaced had",
@@ -121,7 +128,7 @@ function M.test_include_takes_over_a_whole_section(check)
 		"replaces": ["zones"],
 		"zones": [{ "key": "hand", "layout": "row", "pos": [0.1, 0.1, 0.2, 0.2] }]
 	}]==] }, function()
-		local G = declaration.parse("tmp_inc_mod.json")
+		local G = declaration.parse(own("tmp_inc_mod.json"))
 		check("nothing went wrong", said(G) == "", said(G))
 		check("the section is this file's alone", G.zone_defs.bag == nil and G.zone_defs.hand ~= nil)
 	end)
@@ -135,7 +142,7 @@ function M.test_include_refuses_two_writers_of_an_unkeyed_section(check)
 		"include": ["tmp_inc_base.json"],
 		"players": [{ "stats": { "hp": 9 } }]
 	}]==] }, function()
-		local s = said(declaration.parse("tmp_inc_mod.json"))
+		local s = said(declaration.parse(own("tmp_inc_mod.json")))
 		check("it says the section has no keys to merge by", s:find("no keys to merge by", 1, true), s)
 	end)
 end
@@ -147,7 +154,7 @@ function M.test_include_takes_over_an_unkeyed_section_when_told(check)
 		"replaces": ["players"],
 		"players": [{ "stats": { "hp": 9 } }]
 	}]==] }, function()
-		local G = declaration.parse("tmp_inc_mod.json")
+		local G = declaration.parse(own("tmp_inc_mod.json"))
 		check("nothing went wrong", said(G) == "", said(G))
 		check("there is still one seat and it is this file's", #G.players == 1 and G.players[1].stats.hp == 9)
 	end)
@@ -161,7 +168,7 @@ function M.test_include_reads_a_shared_file_once(check)
 		["tmp_inc_right.json"] = [==[{ "title": "R", "include": ["tmp_inc_base.json"], "cards": [{ "key": "r", "text": "R" }] }]==],
 		["tmp_inc_mod.json"]   = [==[{ "title": "M", "include": ["tmp_inc_left.json", "tmp_inc_right.json"] }]==] },
 	function()
-		local G = declaration.parse("tmp_inc_mod.json")
+		local G = declaration.parse(own("tmp_inc_mod.json"))
 		check("the diamond is not a collision", said(G) == "", said(G))
 		check("and every branch arrived", G.card_defs.alpha and G.card_defs.l and G.card_defs.r)
 		check("with the shared file's cards appearing once",
@@ -175,16 +182,16 @@ function M.test_include_cuts_a_cycle_and_says_so(check)
 	with({ ["tmp_inc_a.json"] = [==[{ "title": "A", "include": ["tmp_inc_b.json"] }]==],
 		["tmp_inc_b.json"] = [==[{ "title": "B", "include": ["tmp_inc_a.json"] }]==] },
 	function()
-		local s = said(declaration.parse("tmp_inc_a.json"))
+		local s = said(declaration.parse(own("tmp_inc_a.json")))
 		check("it says which file goes round", s:find("includes itself", 1, true), s)
-		check("and names the way round", s:find("tmp_inc_a.json -> tmp_inc_b.json", 1, true), s)
+		check("and names the way round", s:find(own("tmp_inc_a.json -> tmp_inc_b.json"), 1, true), s)
 	end)
 end
 
 function M.test_include_says_which_file_it_could_not_read(check)
 	with({ ["tmp_inc_mod.json"] = [==[{ "title": "M", "include": ["tmp_inc_nothing.json"] }]==] }, function()
-		local s = said(declaration.parse("tmp_inc_mod.json"))
-		check("it names the file", s:find("tmp_inc_nothing.json", 1, true), s)
+		local s = said(declaration.parse(own("tmp_inc_mod.json")))
+		check("it names the file", s:find(own("tmp_inc_nothing.json"), 1, true), s)
 	end)
 end
 
@@ -198,7 +205,7 @@ function M.test_include_sends_the_merged_game_not_the_file(check)
 		"cards": [{ "key": "gamma", "text": "Gamma" }]
 	}]==] }, function()
 		local net = require("net")
-		local text = net.game_text("tmp_inc_mod.json")
+		local text = net.game_text(own("tmp_inc_mod.json"))
 		check("there is no include left in it", not text:find('"include"', 1, true), text:sub(1, 120))
 		local flat = json.decode(text)
 		check("it carries every card, the system column's included",
@@ -218,12 +225,12 @@ function M.test_include_a_warning_names_the_file_the_entry_came_from(check)
 		"include": ["tmp_inc_base.json"],
 		"cards": [{ "key": "gamma", "text": "Gamma", "play": { "do": ["x"] } }]
 	}]==] }, function()
-		local G = declaration.parse("tmp_inc_mod.json")
+		local G = declaration.parse(own("tmp_inc_mod.json"))
 		check("the merge remembers whose card it is",
-			G.came_from["cards.alpha"] == "tmp_inc_base.json", G.came_from["cards.alpha"])
+			G.came_from["cards.alpha"] == own("tmp_inc_base.json"), G.came_from["cards.alpha"])
 		local said = table.concat(require("validate").check(G), "; ")
 		check("and the warning about it says which file",
-			said:find("card 'alpha' (from tmp_inc_base.json)", 1, true), said)
+			said:find(own("card 'alpha' (from tmp_inc_base.json)"), 1, true), said)
 		-- The author knows what is in the file they asked for, so saying its
 		-- name back to them is noise on every line of a game with no include.
 		check("while the file you asked for is not named back at you",

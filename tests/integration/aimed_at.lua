@@ -24,6 +24,7 @@ local flow   = require("flow")
 local zones  = require("zones")
 local cards  = require("cards")
 local actions = require("actions")
+local harness = require("harness")
 
 local M = {}
 
@@ -86,11 +87,11 @@ local GAME = [==[{
 }]==]
 
 local function with_game(fn)
-	local path = "game/games/tmp_aimed_at.json"
+	local path = "game/games/" .. harness.tmp("aimed_at")
 	local f = assert(io.open(path, "w"))
 	f:write(GAME)
 	f:close()
-	local ok, err = pcall(fn, "tmp_aimed_at.json")
+	local ok, err = pcall(fn, harness.tmp("aimed_at"))
 	os.remove(path)
 	if not ok then error(err, 0) end
 end
@@ -257,11 +258,11 @@ local SEATED = [==[{
 }]==]
 
 local function with_seated(fn)
-	local path = "game/games/tmp_aimed_seated.json"
+	local path = "game/games/" .. harness.tmp("aimed_seated")
 	local f = assert(io.open(path, "w"))
 	f:write(SEATED)
 	f:close()
-	local ok, err = pcall(fn, "tmp_aimed_seated.json")
+	local ok, err = pcall(fn, harness.tmp("aimed_seated"))
 	os.remove(path)
 	if not ok then error(err, 0) end
 end

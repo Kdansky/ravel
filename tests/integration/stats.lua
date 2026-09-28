@@ -14,6 +14,7 @@ local flow = require("flow")
 local actions = require("actions")
 local validate = require("validate")
 local declaration = require("declaration")
+local harness = require("harness")
 
 local M = {}
 
@@ -46,11 +47,11 @@ local GAME = [==[{
 }]==]
 
 local function with_game(fn)
-	local path = "game/games/tmp_stats.json"
+	local path = "game/games/" .. harness.tmp("stats")
 	local f = assert(io.open(path, "w"))
 	f:write(GAME)
 	f:close()
-	local ok, err = pcall(fn, "tmp_stats.json")
+	local ok, err = pcall(fn, harness.tmp("stats"))
 	os.remove(path)
 	if not ok then error(err, 0) end
 end
@@ -229,11 +230,11 @@ local GRANTED = [==[{
 }]==]
 
 local function with_granted(text, fn)
-	local path = "game/games/tmp_granted.json"
+	local path = "game/games/" .. harness.tmp("granted")
 	local f = assert(io.open(path, "w"))
 	f:write(text)
 	f:close()
-	local ok, err = pcall(fn, "tmp_granted.json")
+	local ok, err = pcall(fn, harness.tmp("granted"))
 	os.remove(path)
 	if not ok then error(err, 0) end
 end

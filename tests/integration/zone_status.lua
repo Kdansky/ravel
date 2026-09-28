@@ -18,6 +18,7 @@ local entity = require("entity")
 local zones = require("zones")
 local flow = require("flow")
 local predicate = require("predicate")
+local harness = require("harness")
 
 local M = {}
 
@@ -65,11 +66,11 @@ local GAME = [==[{
 }]==]
 
 local function with_game(fn)
-	local path = "game/games/tmp_zone_status.json"
+	local path = "game/games/" .. harness.tmp("zone_status")
 	local f = assert(io.open(path, "w"))
 	f:write(GAME)
 	f:close()
-	local ok, err = pcall(fn, "tmp_zone_status.json")
+	local ok, err = pcall(fn, harness.tmp("zone_status"))
 	os.remove(path)
 	if not ok then error(err, 0) end
 end
@@ -197,7 +198,7 @@ end
 -- parse, the last place the authored word exists.
 function M.test_status_an_unknown_standing_is_refused(check)
 	local declaration = require("declaration")
-	local path = "game/games/tmp_bad_status.json"
+	local path = "game/games/" .. harness.tmp("bad_status")
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
 		"title": "Bad Standing",
@@ -208,7 +209,7 @@ function M.test_status_an_unknown_standing_is_refused(check)
 		"cards": [{ "key": "thing", "text": "Thing" }]
 	}]==])
 	f:close()
-	local ok, G = pcall(declaration.parse, "tmp_bad_status.json")
+	local ok, G = pcall(declaration.parse, harness.tmp("bad_status"))
 	os.remove(path)
 	if not ok then error(G, 2) end
 	local found = false

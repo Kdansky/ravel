@@ -11,6 +11,7 @@ local declaration = require("declaration")
 local validate = require("validate")
 local cards = require("cards")
 local geometry = require("geometry")
+local harness = require("harness")
 
 local M = {}
 
@@ -45,11 +46,11 @@ local GAME = [==[{
 }]==]
 
 local function with_game(fn)
-	local path = "game/games/tmp_reactions.json"
+	local path = "game/games/" .. harness.tmp("reactions")
 	local f = assert(io.open(path, "w"))
 	f:write(GAME)
 	f:close()
-	local ok, err = pcall(fn, "tmp_reactions.json")
+	local ok, err = pcall(fn, harness.tmp("reactions"))
 	os.remove(path)
 	if not ok then error(err, 0) end
 end
@@ -94,7 +95,7 @@ end
 -- The structural mistakes are caught at parse, the last moment the authored
 -- entry exists — the same as a typo inside an ability.
 function M.test_reactions_structural_mistakes_are_caught(check)
-	local path = "game/games/tmp_bad_reactions.json"
+	local path = "game/games/" .. harness.tmp("bad_reactions")
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
 		"title": "Bad Reactions",
@@ -108,7 +109,7 @@ function M.test_reactions_structural_mistakes_are_caught(check)
 		] }]
 	}]==])
 	f:close()
-	local ok, G = pcall(declaration.parse, "tmp_bad_reactions.json")
+	local ok, G = pcall(declaration.parse, harness.tmp("bad_reactions"))
 	os.remove(path)
 	if not ok then error(G, 2) end
 	local said = validate.check(G)

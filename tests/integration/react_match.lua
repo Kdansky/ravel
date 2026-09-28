@@ -12,6 +12,7 @@ local flow = require("flow")
 local actions = require("actions")
 local geometry = require("geometry")
 local reactions = require("reactions")
+local harness = require("harness")
 
 local M = {}
 
@@ -56,11 +57,11 @@ local GAME = [==[{
 }]==]
 
 local function with_game(fn)
-	local path = "game/games/tmp_react_match.json"
+	local path = "game/games/" .. harness.tmp("react_match")
 	local f = assert(io.open(path, "w"))
 	f:write(GAME)
 	f:close()
-	local ok, err = pcall(fn, "tmp_react_match.json")
+	local ok, err = pcall(fn, harness.tmp("react_match"))
 	os.remove(path)
 	if not ok then error(err, 0) end
 end
@@ -167,7 +168,7 @@ end
 -- told which one rather than the generic "the engine doesn't read this".
 function M.test_react_match_the_old_spelling_is_refused_by_name(check)
 	local declaration = require("declaration")
-	local path = "game/games/tmp_react_from.json"
+	local path = "game/games/" .. harness.tmp("react_from")
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
   "title": "From",
@@ -177,7 +178,7 @@ function M.test_react_match_the_old_spelling_is_refused_by_name(check)
     "reactions": [{ "to": "play", "from": "board", "action": ["purge:self"] }] }]
 }]==])
 	f:close()
-	local ok, G = pcall(declaration.parse, "tmp_react_from.json")
+	local ok, G = pcall(declaration.parse, harness.tmp("react_from"))
 	os.remove(path)
 	check("it parses", ok, tostring(G))
 	if not ok then return end

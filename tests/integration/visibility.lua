@@ -13,6 +13,7 @@ local entity = require("entity")
 local zones = require("zones")
 local flow = require("flow")
 local declaration = require("declaration")
+local harness = require("harness")
 
 local M = {}
 
@@ -243,12 +244,12 @@ local OPEN = [==[{
 }]==]
 
 function M.test_visibility_a_hand_may_be_laid_face_up(check)
-	local path = "game/games/tmp_open_hand.json"
+	local path = "game/games/" .. harness.tmp()
 	local f = assert(io.open(path, "w"))
 	f:write(OPEN)
 	f:close()
 	local ok, err = pcall(function()
-		flow.init("tmp_open_hand.json", 3)
+		flow.init(harness.tmp(), 3)
 		local function only(key, seat)
 			for _, z in ipairs(zones.all_with_key(key)) do
 				if z.seat == seat then return entity.get(z.cards[1]) end

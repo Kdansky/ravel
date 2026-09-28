@@ -12,6 +12,7 @@ local actions = require("actions")
 local log     = require("log")
 local net     = require("net")
 local geometry = require("geometry")
+local harness = require("harness")
 
 local M = {}
 
@@ -40,14 +41,13 @@ local GAME = [==[{
   }
 }]==]
 
-local PATH, FILE = "game/games/tmp_active_seat.json", "tmp_active_seat.json"
 
 local function with_game(fn)
-	local f = assert(io.open(PATH, "w"))
+	local f = assert(io.open("game/games/" .. harness.tmp(), "w"))
 	f:write(GAME)
 	f:close()
-	local ok, err = pcall(fn, FILE)
-	os.remove(PATH)
+	local ok, err = pcall(fn, harness.tmp())
+	os.remove("game/games/" .. harness.tmp())
 	if not ok then error(err, 0) end
 end
 

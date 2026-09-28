@@ -7,11 +7,12 @@
 local cards = require("cards")
 local declaration = require("declaration")
 local validate = require("validate")
+local harness = require("harness")
 
 local M = {}
 
 local function fixture(assets, asset_field)
-	local path = "game/games/tmp_assets_test.json"
+	local path = "game/games/" .. harness.tmp("assets_test")
 	local f = assert(io.open(path, "w"))
 	f:write(([[{
 		"title": "Assets",
@@ -26,7 +27,7 @@ local function fixture(assets, asset_field)
 		"phases": [{ "key": "play", "type": "player_input" }]
 	}]]):format(assets, asset_field))
 	f:close()
-	local ok, G = pcall(declaration.parse, "tmp_assets_test.json")
+	local ok, G = pcall(declaration.parse, harness.tmp("assets_test"))
 	os.remove(path)
 	if not ok then error(G, 2) end
 	return G, validate.check(G)
@@ -58,7 +59,7 @@ end
 -- The point of naming one: the cache key stops being the card. Two cards drawn
 -- from one picture used to mean two downloads and two textures.
 function M.test_assets_two_cards_naming_one_picture_share_it(check)
-	local path = "game/games/tmp_assets_share.json"
+	local path = "game/games/" .. harness.tmp("assets_share")
 	local f = assert(io.open(path, "w"))
 	f:write([[{
 		"title": "Shared",
@@ -77,7 +78,7 @@ function M.test_assets_two_cards_naming_one_picture_share_it(check)
 	}]])
 	f:close()
 	local flow = require("flow")
-	local ok, err = pcall(flow.init, "tmp_assets_share.json", 1)
+	local ok, err = pcall(flow.init, harness.tmp("assets_share"), 1)
 	os.remove(path)
 	if not ok then error(err, 2) end
 	-- Headless has no love.graphics, so the image itself never loads; what is

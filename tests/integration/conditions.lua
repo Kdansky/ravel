@@ -12,6 +12,7 @@ local zones = require("zones")
 local flow = require("flow")
 local phase = require("phase")
 local predicate = require("predicate")
+local harness = require("harness")
 
 local M = {}
 
@@ -50,11 +51,11 @@ local GAME = [==[{
 }]==]
 
 local function with_game(fn)
-	local path = "game/games/tmp_conditions.json"
+	local path = "game/games/" .. harness.tmp("conditions")
 	local f = assert(io.open(path, "w"))
 	f:write(GAME)
 	f:close()
-	local ok, err = pcall(fn, "tmp_conditions.json")
+	local ok, err = pcall(fn, harness.tmp("conditions"))
 	os.remove(path)
 	if not ok then error(err, 0) end
 end
@@ -447,10 +448,10 @@ local EVERYWHERE = [==[{
 }]==]
 
 function M.test_conditions_everywhere_reaches_a_hand_and_a_deck(check)
-	local path = "game/games/tmp_everywhere.json"
+	local path = "game/games/" .. harness.tmp("everywhere")
 	local f = assert(io.open(path, "w")); f:write(EVERYWHERE); f:close()
 	local ok, err = pcall(function()
-		flow.init("tmp_everywhere.json", 3)
+		flow.init(harness.tmp("everywhere"), 3)
 		-- One gem on the board (owned by seat one, from setup), one into the
 		-- active seat's hand, one into the shared deck.
 		require("actions").run({ "create:mine.hand:gem:1", "create:vault:gem:1" }, {})

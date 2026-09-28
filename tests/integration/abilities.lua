@@ -12,6 +12,7 @@ local entity = require("entity")
 local zones = require("zones")
 local cards = require("cards")
 local flow = require("flow")
+local harness = require("harness")
 
 local M = {}
 
@@ -43,11 +44,11 @@ local GAME = [==[{
 }]==]
 
 local function with_game(fn)
-	local path = "game/games/tmp_two_sources.json"
+	local path = "game/games/" .. harness.tmp("two_sources")
 	local f = assert(io.open(path, "w"))
 	f:write(GAME)
 	f:close()
-	local ok, err = pcall(fn, "tmp_two_sources.json")
+	local ok, err = pcall(fn, harness.tmp("two_sources"))
 	os.remove(path)
 	if not ok then error(err, 0) end
 end
@@ -98,7 +99,7 @@ end
 -- one-ability form. Chess's pawn and king are written entirely as lists, so the
 -- game driving the whole feature was the one nothing was reading.
 function M.test_abilities_a_list_entry_is_validated_like_a_block(check)
-	local path = "game/games/tmp_bad_abilities.json"
+	local path = "game/games/" .. harness.tmp("bad_abilities")
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
   "title": "Bad Abilities",
@@ -112,7 +113,7 @@ function M.test_abilities_a_list_entry_is_validated_like_a_block(check)
       "target": { "type": "wherever", "count": 1 } }] }]
 }]==])
 	f:close()
-	local ok, G = pcall(declaration.parse, "tmp_bad_abilities.json")
+	local ok, G = pcall(declaration.parse, harness.tmp("bad_abilities"))
 	os.remove(path)
 	check("it parses", ok, tostring(G))
 	if not ok then return end
@@ -162,7 +163,7 @@ end
 -- cannot tell them apart: both mint the same menu card, so the second silently
 -- eats the first. Caught where the authored entry still exists.
 function M.test_abilities_two_with_the_same_key_are_refused(check)
-	local path = "game/games/tmp_same_key.json"
+	local path = "game/games/" .. harness.tmp("same_key")
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
   "title": "Same Key",
@@ -173,7 +174,7 @@ function M.test_abilities_two_with_the_same_key_are_refused(check)
     { "key": "go", "text": "Two", "action": ["end_phase"] }] }]
 }]==])
 	f:close()
-	local ok, G = pcall(declaration.parse, "tmp_same_key.json")
+	local ok, G = pcall(declaration.parse, harness.tmp("same_key"))
 	os.remove(path)
 	check("it parses", ok, tostring(G))
 	if not ok then return end
@@ -192,7 +193,7 @@ end
 -- once the engine has written its own ravel_ fields onto the loaded game, the
 -- two cannot be told apart.
 function M.test_abilities_the_engine_prefix_is_not_a_games_to_write(check)
-	local path = "game/games/tmp_reserved.json"
+	local path = "game/games/" .. harness.tmp("reserved")
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
   "title": "Reserved",
@@ -202,7 +203,7 @@ function M.test_abilities_the_engine_prefix_is_not_a_games_to_write(check)
   "cards": [{ "key": "thing", "text": "Thing", "ravel_menu_for": { "card": "thing" } }]
 }]==])
 	f:close()
-	local ok, G = pcall(declaration.parse, "tmp_reserved.json")
+	local ok, G = pcall(declaration.parse, harness.tmp("reserved"))
 	os.remove(path)
 	check("it parses", ok, tostring(G))
 	if not ok then return end
@@ -284,11 +285,11 @@ local SHOP = [==[{
 }]==]
 
 local function with_shop(fn)
-	local path = "game/games/tmp_merge.json"
+	local path = "game/games/" .. harness.tmp("merge")
 	local f = assert(io.open(path, "w"))
 	f:write(SHOP)
 	f:close()
-	local ok, err = pcall(fn, "tmp_merge.json")
+	local ok, err = pcall(fn, harness.tmp("merge"))
 	os.remove(path)
 	if not ok then error(err, 0) end
 end
@@ -409,11 +410,11 @@ local PLACE = [==[{
 }]==]
 
 local function with_place(fn)
-	local path = "game/games/tmp_two_doors.json"
+	local path = "game/games/" .. harness.tmp("two_doors")
 	local f = assert(io.open(path, "w"))
 	f:write(PLACE)
 	f:close()
-	local ok, err = pcall(fn, "tmp_two_doors.json")
+	local ok, err = pcall(fn, harness.tmp("two_doors"))
 	os.remove(path)
 	if not ok then error(err, 0) end
 end
@@ -459,7 +460,7 @@ end
 -- ability entry had one and the play block did not, so "deal damage equal to"
 -- could be said by a card used on the board and not by one played from a hand.
 function M.test_abilities_a_play_may_compute(check)
-	local path = "game/games/tmp_play_compute.json"
+	local path = "game/games/" .. harness.tmp("play_compute")
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
   "title": "Named Number",
@@ -479,7 +480,7 @@ function M.test_abilities_a_play_may_compute(check)
 }]==])
 	f:close()
 	local ok, err = pcall(function()
-		flow.init("tmp_play_compute.json", 3)
+		flow.init(harness.tmp("play_compute"), 3)
 		local surge, purse
 		for e in entity.each("card") do
 			if e.def_key == "surge" then surge = e end

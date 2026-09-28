@@ -17,6 +17,7 @@ local flow      = require("flow")
 local zones     = require("zones")
 local cards     = require("cards")
 local targeting = require("targeting")
+local harness = require("harness")
 
 local M = {}
 
@@ -67,11 +68,11 @@ local GAME = [==[{
 }]==]
 
 local function with_game(fn)
-	local path = "game/games/tmp_payment.json"
+	local path = "game/games/" .. harness.tmp()
 	local f = assert(io.open(path, "w"))
 	f:write(GAME)
 	f:close()
-	local ok, err = pcall(fn, "tmp_payment.json")
+	local ok, err = pcall(fn, harness.tmp())
 	os.remove(path)
 	if not ok then error(err, 0) end
 end

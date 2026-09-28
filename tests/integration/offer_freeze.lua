@@ -21,6 +21,7 @@ local phase   = require("phase")
 local flow    = require("flow")
 local declaration = require("declaration")
 local validate    = require("validate")
+local harness = require("harness")
 
 local M = {}
 
@@ -81,11 +82,11 @@ local NESTED = [==[{
 }]==]
 
 local function with_game(fn, text)
-	local path = "game/games/tmp_offer_freeze.json"
+	local path = "game/games/" .. harness.tmp()
 	local f = assert(io.open(path, "w"))
 	f:write(text or GAME)
 	f:close()
-	local ok, err = pcall(fn, "tmp_offer_freeze.json")
+	local ok, err = pcall(fn, harness.tmp())
 	os.remove(path)
 	if not ok then error(err, 0) end
 end

@@ -29,6 +29,14 @@ function M.check(name, cond, detail)
 	end
 end
 
+-- The name of a file the running test writes, under game/games. It carries the
+-- test's own name, so no two tests ever reach for one file, even run side by
+-- side; `part` tells apart the files of a test that writes several.
+function M.tmp(part)
+	local test = assert(M.current, "harness.tmp is for a running test"):gsub("^test_", "")
+	return "tmp_" .. test .. (part and "_" .. part or "") .. ".json"
+end
+
 -- Every test in `dir`, sorted by name so a run is the same run twice. Sorting
 -- by name rather than by file is deliberate: which file a test lives in is a
 -- filing decision, and should not quietly become an ordering one.
@@ -61,7 +69,18 @@ function M.run(dir, filter)
 	for _, t in ipairs(tests) do
 		if not filter or t.name:find(filter) then
 			ran = ran + 1
+			-- Its own save directory too, for the slots a game file names and a test cannot rename.
+			local fs = love and love.filesystem
+			local base = fs and fs.save_dir
+			M.current = t.name
+			if fs then fs.save_dir = base .. "/" .. t.name end
 			local ok, err = xpcall(function() return t.fn(M.check) end, debug.traceback)
+			if fs then
+				local f = io.open(fs.save_dir)
+				if f then f:close(); os.execute("rm -rf '" .. fs.save_dir .. "'") end
+				fs.save_dir = base
+			end
+			M.current = nil
 			if not ok then
 				M.failed = M.failed + 1
 				print("FAIL: " .. t.name .. " raised\n" .. tostring(err))

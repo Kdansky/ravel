@@ -18,6 +18,7 @@ local flow = require("flow")
 local log = require("log")
 local phase = require("phase")
 local zones = require("zones")
+local harness = require("harness")
 
 local M = {}
 
@@ -61,11 +62,11 @@ local function game(order, extra_dawn, stop)
 end
 
 local function with_game(text, fn)
-	local path = "game/games/tmp_turn.json"
+	local path = "game/games/" .. harness.tmp()
 	local f = assert(io.open(path, "w"))
 	f:write(text)
 	f:close()
-	local ok, err = pcall(fn, "tmp_turn.json")
+	local ok, err = pcall(fn, harness.tmp())
 	os.remove(path)
 	if not ok then error(err, 0) end
 end

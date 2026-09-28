@@ -8,6 +8,7 @@
 local declaration = require("declaration")
 local validate    = require("validate")
 local actions     = require("actions")
+local harness = require("harness")
 
 local M = {}
 
@@ -963,7 +964,7 @@ end
 -- problem, and the CASES harness above — which mutates an already-parsed game —
 -- structurally cannot reach it.
 function M.test_validator_catches_a_typo_inside_an_ability(check)
-	local path = "game/games/tmp_ability_typo.json"
+	local path = "game/games/" .. harness.tmp("ability_typo")
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
 		"title": "Typo",
@@ -973,7 +974,7 @@ function M.test_validator_catches_a_typo_inside_an_ability(check)
 			"abilities": [{ "key": "go", "assset": "circle:red", "action": ["end_phase"] }] }]
 	}]==])
 	f:close()
-	local ok, G = pcall(declaration.parse, "tmp_ability_typo.json")
+	local ok, G = pcall(declaration.parse, harness.tmp("ability_typo"))
 	os.remove(path)
 	if not ok then error(G, 2) end
 	check("a misspelled field inside an ability is caught",
@@ -990,7 +991,7 @@ end
 -- measured against a placeholder 26x99 instead of that grid, so nothing on a
 -- sole 8x8 board was ever off it.
 function M.test_validator_an_absolute_square_is_on_the_board_at_both_ends(check)
-	local path = "game/games/tmp_off_board.json"
+	local path = "game/games/" .. harness.tmp("off_board")
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
   "title": "Off Board",
@@ -1004,7 +1005,7 @@ function M.test_validator_an_absolute_square_is_on_the_board_at_both_ends(check)
   "cards": [{ "key": "thing", "text": "Thing" }]
 }]==])
 	f:close()
-	local ok, G = pcall(declaration.parse, "tmp_off_board.json")
+	local ok, G = pcall(declaration.parse, harness.tmp("off_board"))
 	os.remove(path)
 	check("it parses", ok, tostring(G))
 	if not ok then return end
@@ -1034,7 +1035,7 @@ end
 -- reading an unknown one as the default would hide the typo behind behaviour
 -- that looks deliberate.
 function M.test_validator_refuses_a_merge_it_does_not_know(check)
-	local path = "game/games/tmp_merge_typo.json"
+	local path = "game/games/" .. harness.tmp("merge_typo")
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
 		"title": "Merge typo",
@@ -1044,7 +1045,7 @@ function M.test_validator_refuses_a_merge_it_does_not_know(check)
 			"abilities": [{ "key": "go", "merge": "mine", "action": ["end_phase"] }] }]
 	}]==])
 	f:close()
-	local ok, G = pcall(declaration.parse, "tmp_merge_typo.json")
+	local ok, G = pcall(declaration.parse, harness.tmp("merge_typo"))
 	os.remove(path)
 	if not ok then error(G, 2) end
 	check("it says which three words there are",
@@ -1056,7 +1057,7 @@ end
 -- the absence of one. Reported rather than resolved, exactly as two tags
 -- granting one field are: inventing a winner hides the mistake.
 function M.test_validator_catches_two_abilities_claiming_merge_this(check)
-	local path = "game/games/tmp_merge_clash.json"
+	local path = "game/games/" .. harness.tmp("merge_clash")
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
 		"title": "Merge clash",
@@ -1068,7 +1069,7 @@ function M.test_validator_catches_two_abilities_claiming_merge_this(check)
 			"abilities": [{ "key": "go", "merge": "this", "action": ["end_phase"] }] }]
 	}]==])
 	f:close()
-	local ok, G = pcall(declaration.parse, "tmp_merge_clash.json")
+	local ok, G = pcall(declaration.parse, harness.tmp("merge_clash"))
 	os.remove(path)
 	if not ok then error(G, 2) end
 	check("the card's own and its keyword's are named as the pair",
@@ -1079,7 +1080,7 @@ end
 -- A zone hands out everything it names at once, so the same contradiction can
 -- be written across two tags that never meet on a card.
 function M.test_validator_catches_a_zone_granting_two_merge_this(check)
-	local path = "game/games/tmp_merge_zone.json"
+	local path = "game/games/" .. harness.tmp("merge_zone")
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
 		"title": "Merge zone",
@@ -1092,7 +1093,7 @@ function M.test_validator_catches_a_zone_granting_two_merge_this(check)
 		"cards": [{ "key": "thing", "text": "Thing", "action": ["end_phase"] }]
 	}]==])
 	f:close()
-	local ok, G = pcall(declaration.parse, "tmp_merge_zone.json")
+	local ok, G = pcall(declaration.parse, harness.tmp("merge_zone"))
 	os.remove(path)
 	if not ok then error(G, 2) end
 	check("the zone is told it would hand a card two whole answers",
@@ -1105,7 +1106,7 @@ end
 -- zone-granted tag not being in the card's own `tags`, so a message naming the
 -- tag twice sends the author looking for a second one that does not exist.
 function M.test_validator_names_both_abilities_of_one_applied_tag(check)
-	local path = "game/games/tmp_merge_one_tag.json"
+	local path = "game/games/" .. harness.tmp("merge_one_tag")
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
 		"title": "Merge one tag",
@@ -1119,7 +1120,7 @@ function M.test_validator_names_both_abilities_of_one_applied_tag(check)
 		"cards": [{ "key": "thing", "text": "Thing", "action": ["end_phase"] }]
 	}]==])
 	f:close()
-	local ok, G = pcall(declaration.parse, "tmp_merge_one_tag.json")
+	local ok, G = pcall(declaration.parse, harness.tmp("merge_one_tag"))
 	os.remove(path)
 	if not ok then error(G, 2) end
 	local problems = validate.check(G)
@@ -1133,7 +1134,7 @@ end
 -- lying there, so all that can be read at authoring time is whether the scope
 -- names anything.
 function M.test_validator_reads_fills_scope_form(check)
-	local path = "game/games/tmp_fill_scope.json"
+	local path = "game/games/" .. harness.tmp("fill_scope")
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
 		"title": "Fill scope",
@@ -1146,7 +1147,7 @@ function M.test_validator_reads_fills_scope_form(check)
 			{ "key": "typo", "action": ["create:hand:thign:1"] }] }]
 	}]==])
 	f:close()
-	local ok, G = pcall(declaration.parse, "tmp_fill_scope.json")
+	local ok, G = pcall(declaration.parse, harness.tmp("fill_scope"))
 	os.remove(path)
 	if not ok then error(G, 2) end
 	local said = validate.check(G)
@@ -1162,7 +1163,7 @@ end
 -- corpus keeps two spellings for one question -- and the counts above nought
 -- cannot hold at all, so nothing tells them from a typo.
 function M.test_validator_counting_one_card_is_asking_about_it(check)
-	local path = "game/games/tmp_count_self.json"
+	local path = "game/games/" .. harness.tmp("count_self")
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
 		"title": "Count self",
@@ -1175,7 +1176,7 @@ function M.test_validator_counting_one_card_is_asking_about_it(check)
 			{ "key": "d", "needs": { "req": ["count:gem@self >= 2"] }, "action": ["end_phase"] }] }]
 	}]==])
 	f:close()
-	local ok, G = pcall(declaration.parse, "tmp_count_self.json")
+	local ok, G = pcall(declaration.parse, harness.tmp("count_self"))
 	os.remove(path)
 	if not ok then error(G, 2) end
 	local said = table.concat(validate.check(G), "; ")
@@ -1192,7 +1193,7 @@ end
 -- half is wrong, because "no zone called that" is a sentence somebody can act on
 -- and "that is not a scope" is not.
 function M.test_validator_names_the_wrong_half_of_a_zone_tag_scope(check)
-	local path = "game/games/tmp_zone_tag_bad.json"
+	local path = "game/games/" .. harness.tmp("zone_tag_bad")
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
 		"title": "Zone tag",
@@ -1206,7 +1207,7 @@ function M.test_validator_names_the_wrong_half_of_a_zone_tag_scope(check)
 			{ "key": "d", "action": ["purge:vault.gem"] }] }]
 	}]==])
 	f:close()
-	local ok, G = pcall(declaration.parse, "tmp_zone_tag_bad.json")
+	local ok, G = pcall(declaration.parse, harness.tmp("zone_tag_bad"))
 	os.remove(path)
 	if not ok then error(G, 2) end
 	local said = table.concat(validate.check(G), "; ")
@@ -1223,7 +1224,7 @@ end
 -- game to it: anything that reads an order, or moves the one card standing for
 -- the stock, is asking the question the zone said nobody would ask.
 function M.test_validator_holds_a_supply_to_its_promise(check)
-	local path = "game/games/tmp_supply_bad.json"
+	local path = "game/games/" .. harness.tmp("supply_bad")
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
 		"title": "Supply promise",
@@ -1239,7 +1240,7 @@ function M.test_validator_holds_a_supply_to_its_promise(check)
 			{ "key": "c", "action": ["move:shop:hand"] }] }]
 	}]==])
 	f:close()
-	local ok, G = pcall(declaration.parse, "tmp_supply_bad.json")
+	local ok, G = pcall(declaration.parse, harness.tmp("supply_bad"))
 	os.remove(path)
 	if not ok then error(G, 2) end
 	local said = table.concat(validate.check(G), "; ")
@@ -1264,7 +1265,7 @@ end
 -- games and does not know what any one ability bound — so this is where the two
 -- are told apart, and it has to get both answers right in the same file.
 function M.test_validator_reads_a_compute_on_either_side(check)
-	local path = "game/games/tmp_compute_operand.json"
+	local path = "game/games/" .. harness.tmp("compute_operand")
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
 		"title": "Compute operands",
@@ -1282,7 +1283,7 @@ function M.test_validator_reads_a_compute_on_either_side(check)
 			{ "key": "typo", "needs": { "req": ["gold >= resreve"] }, "action": ["stat_gain:gold:1"] }] }]
 	}]==])
 	f:close()
-	local ok, G = pcall(declaration.parse, "tmp_compute_operand.json")
+	local ok, G = pcall(declaration.parse, harness.tmp("compute_operand"))
 	os.remove(path)
 	if not ok then error(G, 2) end
 	local said = table.concat(validate.check(G), "; ")
@@ -1301,7 +1302,7 @@ end
 -- a duel and once at a table of three.
 function M.test_validator_refuses_opponent_where_there_is_more_than_one(check)
 	local function said(seats, subject)
-		local path = "game/games/tmp_opponent_seats.json"
+		local path = "game/games/" .. harness.tmp("opponent_seats")
 		local f = assert(io.open(path, "w"))
 		f:write([==[{
 			"title": "Seats",
@@ -1315,7 +1316,7 @@ function M.test_validator_refuses_opponent_where_there_is_more_than_one(check)
 				{ "action": ["stat_damage:]==] .. (subject or "health@opponent") .. [==[:2"] }] }]
 		}]==])
 		f:close()
-		local ok, G = pcall(declaration.parse, "tmp_opponent_seats.json")
+		local ok, G = pcall(declaration.parse, harness.tmp("opponent_seats"))
 		os.remove(path)
 		if not ok then error(G, 2) end
 		return table.concat(validate.check(G), "; ")

@@ -14,6 +14,7 @@ local entity  = require("entity")
 local zones   = require("zones")
 local flow    = require("flow")
 local actions = require("actions")
+local harness = require("harness")
 
 local M = {}
 
@@ -46,14 +47,13 @@ local GAME = [==[{
   "setup": { "place": [{ "card": "bolt", "zone": "hand" }, { "card": "cantrip", "zone": "hand" }] }
 }]==]
 
-local PATH, FILE = "game/games/tmp_substitution.json", "tmp_substitution.json"
 
 local function with_game(fn)
-	local f = assert(io.open(PATH, "w"))
+	local f = assert(io.open("game/games/" .. harness.tmp(), "w"))
 	f:write(GAME)
 	f:close()
-	local ok, err = pcall(fn, FILE)
-	os.remove(PATH)
+	local ok, err = pcall(fn, harness.tmp())
+	os.remove("game/games/" .. harness.tmp())
 	if not ok then error(err, 0) end
 end
 

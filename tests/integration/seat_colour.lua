@@ -8,6 +8,7 @@ local declaration = require("declaration")
 local zones       = require("zones")
 local flow        = require("flow")
 local render      = require("render")
+local harness = require("harness")
 
 local M = {}
 
@@ -31,7 +32,7 @@ local CHOSEN = [==[{
 }]==]
 
 local function with(text, f)
-	local path = "game/games/tmp_colour.json"
+	local path = "game/games/" .. harness.tmp()
 	local fh = assert(io.open(path, "w")) fh:write(text) fh:close()
 	local ok, err = pcall(f)
 	os.remove(path)
@@ -79,7 +80,7 @@ end
 
 function M.test_seat_colour_a_seat_that_names_its_own_is_believed(check)
 	with(CHOSEN, function()
-		flow.init("tmp_colour.json", 1)
+		flow.init(harness.tmp(), 1)
 		-- A seat is a card, so a game that has already chosen its players'
 		-- colours has said so on the card, and the board agrees with it rather
 		-- than picking a second colour for the same player.

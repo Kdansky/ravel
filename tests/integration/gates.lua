@@ -11,6 +11,7 @@ local zones = require("zones")
 local flow = require("flow")
 local declaration = require("declaration")
 local validate = require("validate")
+local harness = require("harness")
 
 local M = {}
 
@@ -56,7 +57,6 @@ local GAME = [==[{
   ]
 }]==]
 
-local PATH, FILE = "game/games/tmp_gates.json", "tmp_gates.json"
 
 local function write(path, text)
 	local f = assert(io.open(path, "w"))
@@ -65,9 +65,9 @@ local function write(path, text)
 end
 
 local function with_game(fn)
-	write(PATH, GAME)
-	local ok, err = pcall(fn, FILE)
-	os.remove(PATH)
+	write("game/games/" .. harness.tmp("gates"), GAME)
+	local ok, err = pcall(fn, harness.tmp("gates"))
+	os.remove("game/games/" .. harness.tmp("gates"))
 	if not ok then error(err, 0) end
 end
 
@@ -180,7 +180,7 @@ function M.test_gates_game_is_clean(check)
 end
 
 local function said(play)
-	local path = "game/games/tmp_gates_bad.json"
+	local path = "game/games/" .. harness.tmp("gates_bad")
 	write(path, [==[{
 		"title": "Bad Needs",
 		"stats": [{ "key": "gold", "min": 0, "on": ["player"] }],
@@ -191,7 +191,7 @@ local function said(play)
 		  { "key": "rule", "text": "Rule", "abilities": [{ "key": "tick", "phases": [],
 		    "needs": { "fizzle": "gold@mine.player >= 1" }, "action": ["stat_gain:gold@mine.player:1"] }] }]
 	}]==])
-	local ok, G = pcall(declaration.parse, "tmp_gates_bad.json")
+	local ok, G = pcall(declaration.parse, harness.tmp("gates_bad"))
 	os.remove(path)
 	if not ok then error(G, 2) end
 	return table.concat(validate.check(G), "; ")

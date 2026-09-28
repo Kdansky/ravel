@@ -13,6 +13,7 @@ local zones    = require("zones")
 local flow     = require("flow")
 local net      = require("net")
 local opponent = require("opponent")
+local harness = require("harness")
 
 local M = {}
 
@@ -50,21 +51,19 @@ local GAME = [==[{
   }
 }]==]
 
-local PATH, FILE = "game/games/tmp_engine_seat.json", "tmp_engine_seat.json"
 -- The same game under a second name, seats and all: what a claim outliving its
 -- game looks like when the next game has a seat of the same name.
-local PATH2, FILE2 = "game/games/tmp_engine_seat_two.json", "tmp_engine_seat_two.json"
 
 local function with_game(fn)
-	local f = assert(io.open(PATH, "w"))
+	local f = assert(io.open("game/games/" .. harness.tmp("engine_seat"), "w"))
 	f:write(GAME)
 	f:close()
-	local g = assert(io.open(PATH2, "w"))
+	local g = assert(io.open("game/games/" .. harness.tmp("engine_seat_two"), "w"))
 	g:write(GAME)
 	g:close()
-	local ok, err = pcall(fn, FILE, FILE2)
-	os.remove(PATH)
-	os.remove(PATH2)
+	local ok, err = pcall(fn, harness.tmp("engine_seat"), harness.tmp("engine_seat_two"))
+	os.remove("game/games/" .. harness.tmp("engine_seat"))
+	os.remove("game/games/" .. harness.tmp("engine_seat_two"))
 	net.claim_seat(nil)
 	opponent.leave()
 	if not ok then error(err, 0) end

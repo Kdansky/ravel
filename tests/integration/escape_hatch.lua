@@ -9,6 +9,7 @@
 local entity   = require("entity")
 local flow     = require("flow")
 local opponent = require("opponent")
+local harness = require("harness")
 
 local M = {}
 
@@ -33,12 +34,12 @@ local GAME = [==[{
 }]==]
 
 local function with_game(other, fn)
-	local path = "game/games/tmp_hatch.json"
+	local path = "game/games/" .. harness.tmp()
 	local f = assert(io.open(path, "w"))
 	f:write(GAME:format(other))
 	f:close()
 	local ok, err = pcall(function()
-		flow.init("tmp_hatch.json", 1)
+		flow.init(harness.tmp(), 1)
 		fn()
 	end)
 	os.remove(path)

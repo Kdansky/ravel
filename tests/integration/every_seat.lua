@@ -20,6 +20,7 @@ local actions = require("actions")
 local log     = require("log")
 local declaration = require("declaration")
 local validate = require("validate")
+local harness = require("harness")
 
 local M = {}
 
@@ -48,14 +49,13 @@ local GAME = [==[{
   ]
 }]==]
 
-local PATH, FILE = "game/games/tmp_every_seat.json", "tmp_every_seat.json"
 
 local function with_game(text, fn)
-	local f = assert(io.open(PATH, "w"))
+	local f = assert(io.open("game/games/" .. harness.tmp(), "w"))
 	f:write(text or GAME)
 	f:close()
-	local ok, err = pcall(fn, FILE)
-	os.remove(PATH)
+	local ok, err = pcall(fn, harness.tmp())
+	os.remove("game/games/" .. harness.tmp())
 	if not ok then error(err, 0) end
 end
 

@@ -8,6 +8,7 @@ local flow    = require("flow")
 local actions = require("actions")
 local declaration = require("declaration")
 local validate = require("validate")
+local harness = require("harness")
 
 local M = {}
 
@@ -53,11 +54,11 @@ local GAME = [==[{
 }]==]
 
 local function with_game(fn)
-	local path = "game/games/tmp_verb_body.json"
+	local path = "game/games/" .. harness.tmp("verb_body")
 	local f = assert(io.open(path, "w"))
 	f:write(GAME)
 	f:close()
-	local ok, err = pcall(function() flow.init("tmp_verb_body.json", 3); fn() end)
+	local ok, err = pcall(function() flow.init(harness.tmp("verb_body"), 3); fn() end)
 	os.remove(path)
 	if not ok then error(err, 0) end
 end
@@ -144,7 +145,7 @@ end
 function M.test_verb_body_a_gated_body_passes_the_validator(check)
 	with_game(function()
 		local problems = {}
-		for _, s in ipairs(validate.check(declaration.parse("tmp_verb_body.json"))) do
+		for _, s in ipairs(validate.check(declaration.parse(harness.tmp("verb_body")))) do
 			if s:find("finish", 1, true) and not s:find("no action performs it", 1, true) then problems[#problems + 1] = s end
 		end
 		check("nothing said of finish's gate", #problems == 0, table.concat(problems, "; "))
@@ -153,7 +154,7 @@ end
 
 -- A req would be asked once the caller's list is already under way, so a verb is refused one and told why.
 function M.test_verb_body_a_req_is_refused(check)
-	local path = "game/games/tmp_verb_req.json"
+	local path = "game/games/" .. harness.tmp("verb_req")
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
 		"title": "Verb Req",
@@ -164,7 +165,7 @@ function M.test_verb_body_a_req_is_refused(check)
 		"cards": [{ "key": "claw", "text": "Claw", "play": { "action": ["maul:self"] } }]
 	}]==])
 	f:close()
-	local ok, G = pcall(declaration.parse, "tmp_verb_req.json")
+	local ok, G = pcall(declaration.parse, harness.tmp("verb_req"))
 	os.remove(path)
 	if not ok then error(G, 2) end
 	local said = table.concat(validate.check(G), "; ")

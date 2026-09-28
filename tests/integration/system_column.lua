@@ -10,6 +10,7 @@ local entity      = require("entity")
 local flow        = require("flow")
 local log         = require("log")
 local tags        = require("tags")
+local harness = require("harness")
 
 local M = {}
 
@@ -66,7 +67,7 @@ end
 -- drawn underneath the column, which is a layout bug that looks like a
 -- rendering one.
 function M.test_system_a_game_may_not_reach_into_the_column(check)
-	local path = "game/games/tmp_system_reach.json"
+	local path = "game/games/" .. harness.tmp()
 	local f = assert(io.open(path, "w"))
 	f:write([[{
 	  "title": "Reach",
@@ -77,7 +78,7 @@ function M.test_system_a_game_may_not_reach_into_the_column(check)
 	  "setup": { "place": [{ "card": "p1", "zone": "hand" }] }
 	}]])
 	f:close()
-	local problems = validate.check(declaration.parse("tmp_system_reach.json"))
+	local problems = validate.check(declaration.parse(harness.tmp()))
 	os.remove(path)
 	local found = false
 	for _, p in ipairs(problems) do

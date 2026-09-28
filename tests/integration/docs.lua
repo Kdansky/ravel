@@ -15,6 +15,7 @@ local validate = require("validate")
 local json = require("json")
 local actions = require("actions")
 local predicate = require("predicate")
+local harness = require("harness")
 
 local M = {}
 
@@ -36,11 +37,11 @@ function M.test_docs_every_whole_game_example_validates(check)
 	local found = examples()
 	check("AUTHORING carries complete game examples", #found >= 2, tostring(#found) .. " found")
 	for _, ex in ipairs(found) do
-		local path = "game/games/tmp_docs_test.json"
+		local path = "game/games/" .. harness.tmp()
 		local f = assert(io.open(path, "w"))
 		f:write(ex.text)
 		f:close()
-		local ok, G = pcall(declaration.parse, "tmp_docs_test.json")
+		local ok, G = pcall(declaration.parse, harness.tmp())
 		os.remove(path)
 		if not ok then
 			check("'" .. ex.title .. "' parses", false, tostring(G))

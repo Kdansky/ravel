@@ -16,6 +16,7 @@ local flow     = require("flow")
 local cards    = require("cards")
 local declaration = require("declaration")
 local validate = require("validate")
+local harness = require("harness")
 
 local M = {}
 
@@ -57,11 +58,11 @@ local GAME = [==[{
 }]==]
 
 local function with_game(text, fn)
-	local path = "game/games/tmp_tag_play.json"
+	local path = "game/games/" .. harness.tmp()
 	local f = assert(io.open(path, "w"))
 	f:write(text)
 	f:close()
-	local ok, err = pcall(fn, "tmp_tag_play.json")
+	local ok, err = pcall(fn, harness.tmp())
 	os.remove(path)
 	if not ok then error(err, 0) end
 end

@@ -19,6 +19,7 @@
 local entity = require("entity")
 local zones = require("zones")
 local flow = require("flow")
+local harness = require("harness")
 
 local M = {}
 
@@ -66,11 +67,11 @@ local GAME = [==[{
 }]==]
 
 local function with_game(fn)
-	local path = "game/games/tmp_phase_emits.json"
+	local path = "game/games/" .. harness.tmp("phase_emits")
 	local f = assert(io.open(path, "w"))
 	f:write(GAME)
 	f:close()
-	local ok, err = pcall(fn, "tmp_phase_emits.json")
+	local ok, err = pcall(fn, harness.tmp("phase_emits"))
 	os.remove(path)
 	if not ok then error(err, 0) end
 end
@@ -171,7 +172,7 @@ end
 function M.test_phase_emits_an_unknown_moment_is_refused(check)
 	local declaration = require("declaration")
 	local validate = require("validate")
-	local path = "game/games/tmp_bad_phase_emits.json"
+	local path = "game/games/" .. harness.tmp("bad_phase_emits")
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
 		"title": "Bad Phase Emits",
@@ -180,7 +181,7 @@ function M.test_phase_emits_an_unknown_moment_is_refused(check)
 		"cards": [{ "key": "thing", "text": "Thing" }]
 	}]==])
 	f:close()
-	local ok, G = pcall(declaration.parse, "tmp_bad_phase_emits.json")
+	local ok, G = pcall(declaration.parse, harness.tmp("bad_phase_emits"))
 	os.remove(path)
 	if not ok then error(G, 2) end
 	local said = validate.check(G)

@@ -10,6 +10,7 @@
 local entity = require("entity")
 local zones = require("zones")
 local flow = require("flow")
+local harness = require("harness")
 
 local M = {}
 
@@ -52,14 +53,13 @@ local GAME = [==[{
     { "card": "gated_2", "zone": "rules" }] }
 }]==]
 
-local PATH, FILE = "game/games/tmp_copy_per_point.json", "tmp_copy_per_point.json"
 
 local function with_game(fn)
-	local f = assert(io.open(PATH, "w"))
+	local f = assert(io.open("game/games/" .. harness.tmp(), "w"))
 	f:write(GAME)
 	f:close()
-	local ok, err = pcall(fn, FILE)
-	os.remove(PATH)
+	local ok, err = pcall(fn, harness.tmp())
+	os.remove("game/games/" .. harness.tmp())
 	if not ok then error(err, 0) end
 end
 

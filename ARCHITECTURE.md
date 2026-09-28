@@ -546,9 +546,9 @@ file as output.
   `flow.init` and must leave no state behind — the price of being able to run
   it alone. Read `declaration.G` *after* that `init`, since it replaces the
   table, and answer a stubbed `love.js` the way the page would. To check, run
-  each alone: `luajit tests/run.lua '^test_name$'`, one at a time — many
-  tests write a fixed `game/games/tmp_*.json`, so parallel runs clobber each
-  other. The body of `run.lua` is the older half: one script whose sections
+  each alone: `luajit tests/run.lua '^test_name$'`. A file a test writes is
+  named by `harness.tmp()`, after the test, and each test gets its own save
+  directory, so these runs may go side by side. The body of `run.lua` is the older half: one script whose sections
   inherit each other's state, cheaper to write and much harder to read a
   failure out of. Move a section over when you touch it.
 - `luajit tests/render_smoke.lua` — stubs `love.graphics` and drives every

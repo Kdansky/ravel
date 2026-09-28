@@ -17,6 +17,7 @@ local entity = require("entity")
 local zones = require("zones")
 local flow = require("flow")
 local predicate = require("predicate")
+local harness = require("harness")
 
 local M = {}
 
@@ -50,11 +51,11 @@ local GAME = [==[{
 }]==]
 
 local function with_game(text, fn)
-	local path = "game/games/tmp_zone_fields.json"
+	local path = "game/games/" .. harness.tmp("zone_fields")
 	local f = assert(io.open(path, "w"))
 	f:write(text)
 	f:close()
-	local ok, err = pcall(fn, "tmp_zone_fields.json")
+	local ok, err = pcall(fn, harness.tmp("zone_fields"))
 	os.remove(path)
 	if not ok then error(err, 0) end
 end
@@ -174,7 +175,7 @@ end
 function M.test_zone_fields_a_parameter_needs_its_value(check)
 	local declaration = require("declaration")
 	local validate = require("validate")
-	local path = "game/games/tmp_bad_parts.json"
+	local path = "game/games/" .. harness.tmp("bad_parts")
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
 		"title": "Two Shapes",
@@ -186,7 +187,7 @@ function M.test_zone_fields_a_parameter_needs_its_value(check)
 		"cards": [{ "key": "thing", "text": "Thing" }]
 	}]==])
 	f:close()
-	local ok, G = pcall(declaration.parse, "tmp_bad_parts.json")
+	local ok, G = pcall(declaration.parse, harness.tmp("bad_parts"))
 	os.remove(path)
 	if not ok then error(G, 2) end
 	local said = table.concat(validate.check(G), " | ")

@@ -10,6 +10,7 @@ local validate = require("validate")
 local flow     = require("flow")
 local opponent = require("opponent")
 local json     = require("json")
+local harness = require("harness")
 
 local unpack = table.unpack or unpack
 
@@ -98,11 +99,11 @@ function M.test_shape_what_comes_out_is_always_the_right_type(check)
 end
 
 local function with_game(text, fn)
-	local path = "game/games/tmp_shape.json"
+	local path = "game/games/" .. harness.tmp()
 	local f = assert(io.open(path, "w"))
 	f:write(text)
 	f:close()
-	local ok, err = pcall(fn, "tmp_shape.json")
+	local ok, err = pcall(fn, harness.tmp())
 	os.remove(path)
 	if not ok then error(err, 0) end
 end

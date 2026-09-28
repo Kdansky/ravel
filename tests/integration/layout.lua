@@ -10,6 +10,7 @@ local zones = require("zones")
 local flow = require("flow")
 local validate = require("validate")
 local geometry = require("geometry")
+local harness = require("harness")
 
 local M = {}
 
@@ -91,7 +92,7 @@ function M.test_layout_without_a_ratio_nothing_changes(check)
 end
 
 local function fixture(zone, style)
-	local path = "game/games/tmp_layout_test.json"
+	local path = "game/games/" .. harness.tmp("layout_test")
 	local f = assert(io.open(path, "w"))
 	f:write(([[{
 		"title": "Layout",
@@ -103,7 +104,7 @@ local function fixture(zone, style)
 		"phases": [{ "key": "play", "type": "player_input" }]
 	}]]):format(style or "{}", zone))
 	f:close()
-	local ok, G = pcall(declaration.parse, "tmp_layout_test.json")
+	local ok, G = pcall(declaration.parse, harness.tmp("layout_test"))
 	os.remove(path)
 	if not ok then error(G, 2) end
 	return validate.check(G)
@@ -238,10 +239,10 @@ local SHELF = [==[{
 }]==]
 
 function M.test_layout_a_shelf_is_one_rect_and_one_tenant(check)
-	local path = "game/games/tmp_shelf.json"
+	local path = "game/games/" .. harness.tmp("shelf")
 	local f = assert(io.open(path, "w")) f:write(SHELF) f:close()
 	local ok, err = pcall(function()
-		flow.init("tmp_shelf.json", 1)
+		flow.init(harness.tmp("shelf"), 1)
 		zones.resize()
 		local here, there = zones.find("here"), zones.find("there")
 		check("the shelf takes the rect it names",

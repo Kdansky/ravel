@@ -11,6 +11,7 @@ local zones  = require("zones")
 local flow   = require("flow")
 local stage  = require("stage")
 local anim   = require("anim")
+local harness = require("harness")
 
 local M = {}
 
@@ -35,14 +36,14 @@ local GAME = [==[{
 }]==]
 
 local function with_game(fn)
-	local path = "game/games/tmp_stage.json"
+	local path = "game/games/" .. harness.tmp("stage")
 	local f = assert(io.open(path, "w"))
 	f:write(GAME)
 	f:close()
 	stage.clear()
 	anim.clear()
 	zones.on_change = function(what, id) stage.record(what, id) end
-	local ok, err = pcall(fn, "tmp_stage.json")
+	local ok, err = pcall(fn, harness.tmp("stage"))
 	zones.on_change = nil
 	stage.clear()
 	anim.clear()
@@ -265,7 +266,7 @@ end
 -- A run that deals both hands hands the table back and forth, and each step is a state that says whose turn it was.
 -- Read from there, the hidden hand swapped with every step; the seat that clicked watches the whole run instead.
 function M.test_a_run_is_shown_to_the_seat_that_clicked(check)
-	local path = "game/games/tmp_stage_seats.json"
+	local path = "game/games/" .. harness.tmp("stage_seats")
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
 	  "title": "Stage seats",
@@ -279,7 +280,7 @@ function M.test_a_run_is_shown_to_the_seat_that_clicked(check)
 	}]==])
 	f:close()
 	local ok, err = pcall(function()
-		flow.init("tmp_stage_seats.json", 1)
+		flow.init(harness.tmp("stage_seats"), 1)
 		local sys = zones.system_card()
 		sys.stats.turn = 1
 		local hand

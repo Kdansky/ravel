@@ -20,6 +20,7 @@ local flow    = require("flow")
 local actions = require("actions")
 local net     = require("net")
 local json    = require("json")
+local harness = require("harness")
 
 local M = {}
 
@@ -68,14 +69,13 @@ local GAME = [==[{
   "setup": { "place": [{ "card": "sweeper", "zone": "rules" }, { "card": "looker", "zone": "rules2" }] }
 }]==]
 
-local PATH, FILE = "game/games/tmp_offer_queue.json", "tmp_offer_queue.json"
 
 local function with_game(text, fn)
-	local f = assert(io.open(PATH, "w"))
+	local f = assert(io.open("game/games/" .. harness.tmp(), "w"))
 	f:write(text or GAME)
 	f:close()
-	local ok, err = pcall(fn, FILE)
-	os.remove(PATH)
+	local ok, err = pcall(fn, harness.tmp())
+	os.remove("game/games/" .. harness.tmp())
 	if not ok then error(err, 0) end
 end
 

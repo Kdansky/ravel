@@ -16,6 +16,7 @@ local flow        = require("flow")
 local phase       = require("phase")
 local label       = require("label")
 local validate    = require("validate")
+local harness = require("harness")
 
 local M = {}
 
@@ -44,11 +45,11 @@ local GAME = [==[{
 }]==]
 
 local function with_game(fn)
-	local path = "game/games/tmp_label.json"
+	local path = "game/games/" .. harness.tmp("label")
 	local f = assert(io.open(path, "w"))
 	f:write(GAME)
 	f:close()
-	local ok, err = pcall(fn, "tmp_label.json")
+	local ok, err = pcall(fn, harness.tmp("label"))
 	os.remove(path)
 	if not ok then error(err, 0) end
 end
@@ -183,9 +184,9 @@ end
 function M.test_label_the_validator_names_a_name_nothing_answers(check)
 	local said = {}
 	local bad = GAME:gsub('"label": "{key} %({phase}%)"', '"label": "{kye} ({phase})"')
-	local path = "game/games/tmp_label_bad.json"
+	local path = "game/games/" .. harness.tmp("label_bad")
 	local f = assert(io.open(path, "w")); f:write(bad); f:close()
-	local G = declaration.parse("tmp_label_bad.json")
+	local G = declaration.parse(harness.tmp("label_bad"))
 	for _, p in ipairs(validate.check(G)) do said[#said + 1] = p end
 	os.remove(path)
 	local s = table.concat(said, "; ")
