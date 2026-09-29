@@ -593,4 +593,57 @@ function M.test_net_leaves_nothing_behind(check)
 	check("networking leaves nothing behind", not net.linked() and net.seat == nil)
 end
 
+-- The entity shapes in shape.lua are written by hand, and a field the engine writes
+-- that they do not know would be a state every honest peer sends and this one
+-- refuses. So every shipped game, played a while, has to come back through them.
+function M.test_net_every_game_mid_play_is_believed(check)
+	local opponent = require("opponent")
+	local json = require("json")
+	math.randomseed(11)
+	for path in io.popen("ls game/games/*.json"):lines() do
+		local name = path:match("([^/]+)$")
+		if not name:match("^tmp") then
+			flow.init(name, 5)
+			for turn = 1, 4 do
+				for _ = 1, 15 do
+					local moves = opponent.legal()
+					if #moves == 0 then break end
+					moves[math.random(#moves)]()
+				end
+				local want = net.fingerprint()
+				local ok, err = net.apply_full(json.decode(json.encode(net.snapshot())))
+				check(name .. " is believed after " .. turn * 15 .. " moves", ok, err)
+				check(name .. " lands where it was", net.fingerprint() == want)
+			end
+		end
+	end
+end
+
+function M.test_net_a_malformed_state_is_refused_whole(check)
+	local json = require("json")
+	flow.init("lost_cities.json", 7)
+	local good = json.encode(net.snapshot())
+	local want = net.fingerprint()
+	local card, zone
+	for _, e in ipairs(json.decode(good).ents) do
+		if e.kind == "card" and e.zone_id and not card then card = e.id end
+		if e.kind == "zone" and not zone then zone = e.id end
+	end
+	local function refused(what, mangle)
+		local snap = json.decode(good)
+		mangle(snap.ents)
+		local ok, err = net.apply_full(snap)
+		check(what .. " is refused", not ok, err)
+		check(what .. " leaves the game as it was", net.fingerprint() == want)
+	end
+	refused("a stat that is a word", function(e) e[card].stats.hp = "lots" end)
+	refused("a zone's cards that are a number", function(e) e[zone].cards = 3 end)
+	refused("a card in a zone that is a card", function(e) e[card].zone_id = card end)
+	refused("a card past the end of the list", function(e) e[zone].cards = { #e + 1 } end)
+	refused("a card with no template", function(e) e[card].def_key = "Nothing Like It" end)
+	refused("an entity out of its place", function(e) e[card].id = card + 1 end)
+	refused("a zone this game has not got", function(e) e[zone].key = "elsewhere" end)
+	refused("no kind at all", function(e) e[card].kind = "ghost" end)
+end
+
 return M

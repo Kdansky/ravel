@@ -459,6 +459,12 @@ that carries over is real: `flow` already re-derives legality for local input
 (ARCHITECTURE invariant 2) — a referee would run that same check on somebody
 else's move.
 
+A **crash** is handled, which is a different thing: a malformed state is refused
+whole before anything reads it (`believe` in `net.lua`, ARCHITECTURE invariant
+5). Trap: a peer's message is past the parser, so a field *missing* is as
+dangerous as one of the wrong type — `shape.lua`'s `must` exists for that, and a
+game file never needs it.
+
 ### Debugging a packet
 
 `luajit packet.lua '<blob>'` prints the header, sizes, compression ratio, the

@@ -305,6 +305,7 @@ local function refuse(v, spec, where, pp)
 	pp[#pp + 1] = ("%s should be %s, not %s — left out"):format(where, describe(spec), shown(v))
 end
 
+
 -- Held to `spec`. Returns the clean copy, or nil when the value cannot be one.
 clean = function(v, spec, where, pp)
 	if spec.t == "any" then return v end
@@ -338,6 +339,12 @@ clean = function(v, spec, where, pp)
 		-- A fixed length is part of the type: a rectangle missing a corner is not one.
 		if lo and #out < lo then return nil end
 		return out
+	end
+	for _, k in ipairs(spec.must or {}) do
+		if v[k] == nil then
+			pp[#pp + 1] = ("%s has no %s — left out"):format(where, k)
+			return nil
+		end
 	end
 	local out = {}
 	for k, x in pairs(v) do
@@ -438,5 +445,54 @@ M.SPECS = {
 for moment in pairs(M.MOMENTS) do M.SPECS[moment] = CARD.fields[moment] end
 M.FILE = FILE
 M.ENGINE_WRITES = ENGINE_WRITES
+
+-- **An entity from another machine**, held to the same kind of shape. net.lua is
+-- the reader, and refuses a message whole on the first thing out of place, where a
+-- game file only loses the one value.
+--
+-- A zone or a slot is built from the file both players hold, so all that travels
+-- of one is what play changes — the rest is this machine's own, and never read off
+-- the wire. A card is all state, so all of it is here.
+--
+-- `must` names the fields a reader takes for granted. A game file never needs one,
+-- since the parser fills in what an author leaves out; a peer's state is past it.
+local IDS = list(NUM)
+-- A line behind gates, as needs.lua writes it, and a list of lines that may hold one.
+local GATE = rec({ name = STR, holds = BOOL, when = STRS })
+GATE.must = { "name", "when" }
+local GATED = rec({ line = STR, gates = list(GATE) })
+GATED.must = { "gates" }
+local LINES = list(either(STR, GATED))
+-- A list's tail parked behind a question, and the question queued behind another.
+local AFTER = rec({ action = LINES, seat = STR, card = NUM, targets = IDS, event = IDS,
+	let = map(NUM), within = STR, gated = map(BOOL) })
+local ASK = rec({ seat = STR, card = NUM, action = STR, after = list(AFTER) })
+
+M.ENTITY = {
+	card = rec({
+		id = NUM, kind = STR, def_key = STR, name = STR,
+		zone_id = NUM, slot_id = NUM, parent_id = NUM, attached = IDS,
+		borrowed_from = NUM, origin_zone_id = NUM, origin_slot_id = NUM,
+		stats = map(NUM), stat_max = map(NUM), stat_min = map(NUM),
+		exhausted = BOOL, minted = BOOL, imaginary = BOOL, imaginary_depth = NUM,
+		-- A record on the stack: stack.push_event writes these.
+		re_action = LINES, re_verb = STR, re_subject = IDS, re_event = IDS, re_targets = IDS,
+		re_let = map(NUM), re_aimed = STRS, re_source = NUM, re_spent = STR, re_ability = STR,
+		re_actor = STR, re_passed = map(BOOL), re_answered = IDS, re_answering = NUM,
+	}),
+	zone = rec({ cards = IDS, asked_by = NUM, asked_seat = STR, dismissable = BOOL,
+		after = list(AFTER), pending = list(ASK) }),
+	slot = rec({ occupant = NUM }),
+}
+M.ENTITY.card.must = { "id", "kind", "def_key", "stats", "stat_max", "stat_min", "attached" }
+M.ENTITY.zone.must = { "cards" }
+
+-- One value held to `spec`: nil when it fits, else what is wrong with the first
+-- thing that does not.
+function M.check(v, spec, where)
+	local pp = {}
+	clean(v, spec, where, pp)
+	return pp[1] and pp[1]:gsub(" — left out$", "")
+end
 
 return M

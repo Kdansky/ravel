@@ -1,10 +1,14 @@
 -- Mutation fuzzer: every game file is untrusted content (ARCHITECTURE invariant 5),
 -- so no value of the wrong type may crash the engine.
 --
---   luajit tests/fuzz.lua [seed] [iterations]
+--   luajit tests/fuzz.lua [seed] [iterations] [net]
 --
 -- Each iteration takes a shipped game, replaces one to three values anywhere in it
--- with something of the wrong type, loads it and plays random legal moves. A
+-- with something of the wrong type, loads it and plays random legal moves. With
+-- `net` it is a state from the other machine that is mangled instead: a game played
+-- a while, sent through JSON as the wire sends it, and applied as a peer's message.
+-- The message may be refused; it may not crash anything, then or in the moves after.
+-- A
 -- crash is reported once per source line, with the mutation that caused it and
 -- the first frames inside the engine, and an iteration taking over ten seconds is
 -- reported as slow. Silent on success; exits 1 on any crash.
@@ -14,9 +18,11 @@ require("headless")
 local json     = require("json")
 local flow     = require("flow")
 local opponent = require("opponent")
+local net      = require("net")
 
 local seed  = tonumber(arg[1]) or 1
 local iters = tonumber(arg[2]) or 200
+local mode  = arg[3]
 local tmp   = "tmp_fuzz_" .. seed .. ".json"
 
 local say = print
@@ -59,29 +65,52 @@ end
 
 math.randomseed(seed)
 local seen, crashes = {}, 0
-for it = 1, iters do
-	local name = games[math.random(#games)]
-	local doc = json.decode(texts[name])
-	local all = {}
+local function mangle(doc, wrong)
+	local all, said = {}, {}
 	leaves(doc, all, "")
-	local said = {}
 	for _ = 1, math.random(1, 3) do
 		local l = all[math.random(#all)]
-		local v = WRONG[math.random(#WRONG)]()
+		local v = wrong[math.random(#wrong)]()
 		l.t[l.k] = v
 		said[#said + 1] = l.path .. "=" .. json.encode(v)
 	end
-	local f = io.open("game/games/" .. tmp, "w")
-	f:write(json.encode(doc))
-	f:close()
+	return said
+end
+
+local function play(n)
+	for _ = 1, n do
+		local moves = opponent.legal()
+		if #moves == 0 then break end
+		moves[math.random(#moves)]()
+	end
+end
+
+for it = 1, iters do
+	local name = games[math.random(#games)]
+	local said = {}
 	local started = os.clock()
 	local ok, err = xpcall(function()
-		flow.init(tmp, it)
-		for _ = 1, 60 do
-			local moves = opponent.legal()
-			if #moves == 0 then break end
-			moves[math.random(#moves)]()
+		if mode == "net" then
+			flow.init(name, it)
+			play(math.random(0, 40))
+			local snap = json.decode(json.encode(net.snapshot()))
+			-- A peer can also send the right type naming the wrong thing: an id that is
+			-- an index, only of some other entity.
+			local wrong, n = { unpack(WRONG) }, #snap.ents
+			for _ = 1, 4 do wrong[#wrong + 1] = function() return math.random(n) end end
+			-- Or leave a field out altogether.
+			wrong[#wrong + 1] = function() return nil end
+			said = mangle(snap, wrong)
+			net.apply_full(snap)
+		else
+			local doc = json.decode(texts[name])
+			said = mangle(doc, WRONG)
+			local f = io.open("game/games/" .. tmp, "w")
+			f:write(json.encode(doc))
+			f:close()
+			flow.init(tmp, it)
 		end
+		play(60)
 	end, function(e) return debug.traceback(e, 2) end)
 	-- A hang is a crash that takes longer to notice: loops on content are meant to be budgeted.
 	if os.clock() - started > 10 then

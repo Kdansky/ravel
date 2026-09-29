@@ -47,6 +47,7 @@ local targeting   = require("targeting")
 local netpack     = require("netpack")
 local actions     = require("actions")
 local table_ext   = require("table_ext")
+local shape       = require("shape")
 
 local M = {}
 
@@ -262,7 +263,7 @@ end
 
 -- The other half of diff_ents, in place. Undo shortens the array; nothing else does.
 local function patch_ents(ents, diff, count)
-	for k, d in pairs(diff or {}) do
+	for k, d in pairs(type(diff) == "table" and diff or {}) do
 		local i = tonumber(k)
 		if i and i >= 1 and type(d) == "table" then
 			local e = ents[i] or {}
@@ -465,14 +466,114 @@ end
 
 ---------------------------------------------------------------- applying
 
+-- What an id on an entity must name. "any" is anything in the array: a target
+-- may be a card, a square or a place.
+local NAMES = {
+	zone_id = "zone", slot_id = "slot", parent_id = "card", attached = "card", borrowed_from = "zone",
+	origin_zone_id = "zone", origin_slot_id = "slot", re_subject = "any", re_event = "any", re_targets = "any",
+	re_source = "any", re_answered = "card", re_answering = "card", cards = "card", asked_by = "any",
+	occupant = "card", card = "any", targets = "any", event = "any",
+}
+
+-- Every id `t` holds, against the array it came in. An id is an index, so one that
+-- is not an index is not the name of anything.
+local function names(t, ents, where)
+	for field, want in pairs(NAMES) do
+		local v = t[field]
+		for _, id in ipairs(type(v) == "table" and v or { v }) do
+			local e = ents[id]
+			if type(e) ~= "table" or (want ~= "any" and e.kind ~= want) then
+				return ("%s %s names %s, which is not a %s here"):format(where, field, tostring(id),
+					want == "any" and "thing" or want)
+			end
+		end
+	end
+end
+
+local function seated(k)
+	return k == nil or (declaration.G.seat_index or {})[k] ~= nil
+end
+
+-- **A state is believed once all of it has been checked**: its types by shape.lua,
+-- then every id against the array it came in. A zone or a slot is built from the
+-- file both sides hold, so the one arriving must be the one this machine has at
+-- that index, and only what play changes of it is taken off the wire — the rest
+-- is this machine's own. Returns what is wrong, or nil; `ents` is changed only
+-- when nothing is.
+local function believe(ents)
+	local mine = entity.registry()
+	local n = 0
+	for _ in pairs(ents) do n = n + 1 end
+	for i = 1, n do
+		if ents[i] == nil then return "the entity list has a gap at " .. i end
+	end
+	for i, e in ipairs(ents) do
+		local where = "entity " .. i
+		local spec = type(e) == "table" and shape.ENTITY[e.kind]
+		if not spec then return where .. " is no kind of entity" end
+		if e.id ~= i then return where .. " says it is " .. tostring(e.id) end
+		-- Of a zone, only what travels: the rest is replaced below, whatever it says.
+		local held = e
+		if e.kind ~= "card" then
+			held = {}
+			for k in pairs(spec.fields) do held[k] = e[k] end
+		end
+		local bad = shape.check(held, spec, where)
+		if bad then return bad end
+		if e.kind == "card" and not declaration.G.card_defs[e.def_key] then
+			return where .. " is a card this game has no template for: " .. tostring(e.def_key)
+		end
+	end
+	for i, o in ipairs(mine) do
+		local e = ents[i]
+		if o.kind ~= "card" and not (e and e.kind == o.kind and e.key == o.key and e.seat == o.seat
+			and e.zone_id == o.zone_id and e.slot_idx == o.slot_idx) then
+			return ("entity %d should be this game's %s %s"):format(i, o.kind, o.key or o.slot_idx)
+		end
+	end
+	for i, e in ipairs(ents) do
+		local bad = names(e, ents, "entity " .. i)
+		if bad then return bad end
+		for _, ask in ipairs(e.pending or {}) do
+			bad = names(ask, ents, "a question queued on entity " .. i)
+			if bad then return bad end
+			for _, a in ipairs(ask.after or {}) do
+				bad = names(a, ents, "a question queued on entity " .. i)
+				if bad then return bad end
+			end
+		end
+		for _, a in ipairs(e.after or {}) do
+			bad = names(a, ents, "what waits on entity " .. i)
+			if bad then return bad end
+		end
+	end
+	for i, e in ipairs(ents) do
+		if e.kind ~= "card" then
+			local travels = shape.ENTITY[e.kind].fields
+			for k in pairs(e) do
+				if not travels[k] then e[k] = nil end
+			end
+			for k, v in pairs(mine[i]) do
+				if not travels[k] then e[k] = v end
+			end
+		end
+	end
+end
+
 -- Content that arrived over a wire is untrusted in exactly the way invariant 5
 -- means it: every field is checked before it is believed, and a bad message
 -- leaves the game untouched rather than half-updated.
 local function restore(snap, ents)
+	if type(snap.phases) ~= "table" then return false, "no phase stack" end
+	if type(ents) ~= "table" then return false, "malformed entity list" end
 	local stack = {}
 	for i, f in ipairs(snap.phases) do
 		local def = type(f) == "table" and declaration.G.phase_by_key[f.key]
 		if not def then return false, "unknown phase: " .. tostring(type(f) == "table" and f.key) end
+		-- `seat` is the phase's own word for whose it is ("next" among them); a turn's seat is a seat.
+		if not (f.seat == nil or type(f.seat) == "string") or not seated(f.turn_seat) then
+			return false, "phase " .. f.key .. " names no seat"
+		end
 		stack[i] = { def = def, fresh = f.fresh and true or false,
 			arrived = f.arrived and true or false, seat = f.seat, turn_seat = f.turn_seat }
 		local t = type(f.turn) == "table" and f.turn
@@ -483,8 +584,12 @@ local function restore(snap, ents)
 			end
 			local seats
 			if type(t.seats) == "table" then
+				if not tonumber(t.seat_at) then return false, "turn " .. t.key .. " has seats and no place among them" end
 				seats = {}
-				for j, k in ipairs(t.seats) do seats[j] = k end
+				for j, k in ipairs(t.seats) do
+					if not seated(k) then return false, "turn " .. t.key .. " names no seat" end
+					seats[j] = k
+				end
 			end
 			stack[i].turn = { def = tdef, at = tonumber(t.at) or 1,
 				seat_at = tonumber(t.seat_at), seats = seats }
@@ -496,9 +601,10 @@ local function restore(snap, ents)
 	-- caller's snapshot would become the live state and drift as the game is
 	-- played. Applying a state must never consume the thing it was given.
 	ents = table_ext.deep_copy(ents)
+	local bad = believe(ents)
+	if bad then return false, bad end
 	local old = entity.registry()
 	for i, e in ipairs(ents) do
-		if type(e) ~= "table" then return false, "malformed entity list" end
 		-- Rects are this screen's, and it already has them. Blanked, every card
 		-- on the table took off from its last zone at once whenever a state
 		-- arrived; kept, the ones that stayed put stay put and the ones that
@@ -519,7 +625,7 @@ local function restore(snap, ents)
 	phase.restore({ wrapped = snap.wrapped and true or false, stack = stack })
 	rng.set_state(snap.rng or rng.state())
 	for i, cond in ipairs(declaration.G.end_conditions or {}) do
-		cond.ravel_fired = (snap.fired and snap.fired[i]) or nil
+		cond.ravel_fired = (type(snap.fired) == "table" and snap.fired[i]) or nil
 	end
 	targeting.clear()
 	-- The local undo stack describes states the sender never had; undoing into
@@ -596,7 +702,7 @@ function M.apply_full(snap)
 	if not ok then return false, err end
 
 	log.clear()
-	for _, line in ipairs(snap.log or {}) do
+	for _, line in ipairs(type(snap.log) == "table" and snap.log or {}) do
 		if type(line) == "string" then log.add(line) end
 	end
 	check_landing(snap)
@@ -619,12 +725,8 @@ local function rebuild(before, beats)
 		if i > MAX_BEATS or type(b) ~= "table" or type(b.ents) ~= "table" or type(b.what) ~= "string" then break end
 		cur = table_ext.deep_copy(cur)
 		patch_ents(cur, b.ents, b.count)
-		local ok = true
-		for _, e in ipairs(cur) do
-			if type(e) ~= "table" then ok = false; break end
-			e.place = e.place or { x = 0, y = 0, w = 0, h = 0 }
-		end
-		if not ok then break end
+		if believe(cur) then break end
+		for _, e in ipairs(cur) do e.place = e.place or { x = 0, y = 0, w = 0, h = 0 } end
 		out[i] = { what = b.what, id = tonumber(b.id), data = type(b.data) == "table" and b.data or nil, ents = cur }
 	end
 	-- The move's first state is the one it follows, rebuilt the same way, so the
@@ -661,7 +763,7 @@ function M.apply_delta(patch)
 
 	local lg = type(patch.log) == "table" and patch.log or { keep = log.count(), add = {} }
 	log.truncate(math.max(0, math.min(tonumber(lg.keep) or 0, log.count())))
-	for _, line in ipairs(lg.add or {}) do
+	for _, line in ipairs(type(lg.add) == "table" and lg.add or {}) do
 		if type(line) == "string" then log.add(line) end
 	end
 	check_landing(patch)

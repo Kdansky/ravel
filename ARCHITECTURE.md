@@ -215,7 +215,16 @@ Treat it as disposable.
    with a fallback to `menu.json`, so a file that's missing, isn't valid
    JSON, or blows the parser's recursion depth recovers instead of crashing
    the process. A typo — or a deliberately hostile file — must never kill a
-   running game.
+   running game. **A peer's message is content too**: `net.lua`'s `believe`
+   holds every entity to `shape.ENTITY` and every id to the array it came in
+   before `entity.restore`, and refuses the message whole on the first thing
+   out of place — a half-believed state is worse than none. A zone or a slot
+   must be the one this machine has at that index, and only what play changes
+   of it (`cards`, a queued question) is read off the wire; the rest is this
+   machine's own, since both built it from the same file. `tests/fuzz.lua …
+   net` mangles states rather than files, and
+   `test_net_every_game_mid_play_is_believed` fails when the engine writes an
+   entity field `shape.ENTITY` does not know.
 6. **One condition vocabulary.** Anything conditional goes through
    `predicate.lua`. A subject is `[<fn>:]<arg>[@<scope expression>]`, where a
    scope expression is `[<quant>.][<owner>.]<zone-or-tag>` —
@@ -586,10 +595,12 @@ file as output.
   move rule had no field set at all until then, so a misspelt `fil` was ignored
   rather than reported. **`abilities` and `reactions` entries still have none**,
   which is the remaining hole of this kind.
-- `luajit tests/fuzz.lua [seed] [n]` — replaces values in shipped games with
+- `luajit tests/fuzz.lua [seed] [n] [net]` — replaces values in shipped games with
   ones of the wrong type, loads them and plays random moves; reports each crash
   site once. Invariant 5 says it should find none. Seeds are independent, so run
-  several side by side.
+  several side by side. With `net` it mangles a mid-game state instead — wrong
+  types, ids naming the wrong entity, fields left out — and applies it as a
+  peer's message.
 - `luajit tests/soak.lua [trials]` — random play through every game, asserting
   that undo restores the exact state and that a state sent through JSON plays on
   identically. Too slow for the suite; run it after touching snapshots.
