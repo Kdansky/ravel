@@ -938,7 +938,7 @@ end
 
 -- Bounce is the same word pointed somewhere else, and a card that names the
 -- discard says nothing at all about being returned to a hand. The bomber is
--- theirs, because its own owner's turn is the half it stays quiet for.
+-- theirs, because on its owner's turn it asks a question instead.
 function M.test_codex_leaves_only_where_it_says(check)
 	start("pick_red", "pick_green")
 	local bomber = summon("crash_bomber", "enemy.army")
@@ -2370,6 +2370,38 @@ function M.test_codex_heroes_hall_seats_one_more_hero(check)
 	check("one hero is the limit without tech II", not offers(drakk, "summon"))
 	require("cards").create("heroes_hall", zones.find_id("addon", "mine"))
 	check("the hall lets a second one in", offers(drakk, "summon"))
+end
+
+
+-- The other half: dying on its owner's turn, the bomber asks which of their
+-- patrollers and buildings takes the point. The base is one of them, and it
+-- is lent to the question — it goes home when picked, and the game ends on it.
+function M.test_codex_a_bomber_dying_on_its_turn_picks_what_it_hits(check)
+	start("pick_red", "pick_green")
+	local hero = in_zone("command", "jaina")
+	use(hero, "summon")
+	flow.settle()
+	seat("south").stats.gold = 9
+	local bomber = summon("crash_bomber", "mine.army")
+	local guard  = post("tiger_cub", "enemy", 1)
+	local mybase = in_zone("base")
+	local base   = entity.get(entity.get(zones.find_id("base", "enemy")).cards[1])
+	base.stats.integrity = 1
+	local dart = require("cards").create("fire_dart", zones.find_id("hand", "mine"))
+
+	flow.play_card(dart.id, { bomber.id })
+	flow.settle()
+	check("the question is open", phase.current().key == "options", phase.current().key)
+	check("offering their patroller and their base", count_in("options") == 2, tostring(count_in("options")))
+	check("and our own base took nothing", mybase.stats.integrity == 20, tostring(mybase.stats.integrity))
+	check("an engine seat may answer it", #require("opponent").legal() > 1)
+
+	flow.play_card(base.id, {})
+	flow.settle()
+	check("the base went home", base.zone_id == zones.find_id("base", "enemy"))
+	check("the patroller went home untouched", guard.zone_id == zones.find_id("patrol", "enemy")
+		and guard.stats.hp == 2, tostring(guard.stats.hp))
+	check("and the point ended the war", phase.current().key == "game_over", phase.current().key)
 end
 
 return M

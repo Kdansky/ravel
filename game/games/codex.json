@@ -3023,7 +3023,7 @@
       ],
       "status": "board",
       "arrives": { "action": ["emit:arrived"] },
-      "tags": ["in_play", "fielded", "fighters"],
+      "tags": ["in_play", "fielded", "fighters", "bombable"],
       "use": "abilities",
       "copies": "per_seat",
       "applies": [
@@ -3050,7 +3050,7 @@
       "label": "Buildings",
       "layout": "row",
       "status": "board",
-      "tags": ["in_play", "built"],
+      "tags": ["in_play", "built", "bombable"],
       "use": "abilities",
       "copies": "per_seat",
       "pos": [
@@ -3077,7 +3077,7 @@
         1
       ],
       "status": "board",
-      "tags": ["in_play", "built"],
+      "tags": ["in_play", "built", "bombable"],
       "use": "abilities",
       "copies": "per_seat",
       "pos": [
@@ -3105,7 +3105,7 @@
         1
       ],
       "status": "board",
-      "tags": ["in_play", "built"],
+      "tags": ["in_play", "built", "bombable"],
       "use": "abilities",
       "copies": "per_seat",
       "pos": [
@@ -3190,7 +3190,7 @@
         1
       ],
       "status": "board",
-      "tags": ["in_play", "built"],
+      "tags": ["in_play", "built", "bombable"],
       "use": "abilities",
       "copies": "per_seat",
       "pos": [
@@ -19944,7 +19944,7 @@
         "generate_art"
       ],
       "asset": "crash_bomber",
-      "tooltip": "Dies on another player's turn: deal 1 damage to that player's base. NOT MODELLED: \"Dies on your turn: deal 1 damage to a patroller or building\" — the choice can be opened from the departure, but an offer borrows the cards it shows, and the base leaving its own zone is a base no end condition can find.",
+      "tooltip": "Dies on your turn: deal 1 damage to a patroller or building. Dies on another player's turn: deal 1 damage to that player's base.",
       "card_stats": {
         "price": 1,
         "atk": 2,
@@ -19956,13 +19956,20 @@
       "leaves": {
         "into": "discard",
         "needs": {
-          "req": [
-            "count:player@enemy.owner_of >= 1"
-          ]
+          "theirs": "count:player@enemy.owner_of >= 1"
         },
         "action": [
-          "stat_damage:integrity@mine.base:1",
+          "theirs? stat_damage:integrity@mine.base:1",
+          "!theirs? show:enemy.bombable:optional",
           "emit:died"
+        ]
+      },
+      "chosen": {
+        "action": [
+          "harm:hp@target:1",
+          "harm:life@target:1",
+          "harm:integrity@target:1",
+          "activate_zone:rules_death"
         ]
       }
     },

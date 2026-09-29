@@ -36,9 +36,11 @@ local BLOCKS = {
 	chosen = { where = "self" },
 	plain = { req = true },
 	verb = { gates = true, refuses = "a verb takes gates only: it runs inside the caller's list, which has already started" },
+	-- One departure is often two rules told apart by who is up, and a card has one `leaves`.
+	leaves = { req = true, gates = true },
 }
 
-local MOMENT_BLOCK = { play = "play", chosen = "chosen" }
+local MOMENT_BLOCK = { play = "play", chosen = "chosen", leaves = "leaves" }
 
 local function listed(v)
 	return type(v) == "string" and { v } or v

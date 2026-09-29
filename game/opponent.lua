@@ -81,7 +81,9 @@ function M.legal()
 	-- `window_locked` already tells can_play and usable_abilities, and why
 	-- asking them here would find nothing. Passing is always available, and it
 	-- is what closes a window nobody wants to answer.
-	if flow.pending_event() then
+	-- The lock's own test, not "a record is stacked": an offer opened on top of
+	-- one is answered first, and a seat offered only "pass" there passed forever.
+	if flow.window_locked() then
 		for _, u in ipairs(flow.usable_reactions()) do
 			local id, idx = u.card, u.index
 			local targets = targets_for(id, u.rule.target)

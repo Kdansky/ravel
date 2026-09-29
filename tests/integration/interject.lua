@@ -139,4 +139,25 @@ function M.test_interject_the_reaction_is_still_spent(check)
 	end)
 end
 
+
+-- The engine seat reads the lock the same way. A record still stacked under the
+-- interjection is not an open window, and a move list that offered only "pass"
+-- there passed forever — Crash Bomber's offer hung two bot games in twenty.
+function M.test_interject_the_engine_seat_plays_in_it(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local opponent = require("opponent")
+		local horn = zones.add(zone_of("hand", "one"), "horn")
+		local envy = zones.add(zone_of("hand", "two"), "envy")
+		zones.add(zone_of("hand", "two"), "trinket")
+
+		flow.play_card(horn.id, {})
+		flow.react(envy.id, 1, {})
+		local moves = opponent.legal()
+		check("the reactor has the trinket to play, not only a pass", #moves == 1, #moves)
+		moves[1]()
+		check("and playing it pays them", seat("two").stats.loot == 5, seat("two").stats.loot)
+	end)
+end
+
 return M

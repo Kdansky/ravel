@@ -1459,6 +1459,19 @@ The zone answers for itself, exactly as a card does.
 `needs` is for what `from` and `into` cannot say — they are both places. Asked after the move,
 so it reads the world the action will run in.
 
+### Dies on your turn: 1 damage to a patroller or building. On another player's turn: 1 to their base.
+
+```json
+"leaves": { "into": "discard", "needs": { "theirs": "count:player@enemy.owner_of >= 1" },
+            "action": ["theirs? stat_damage:integrity@mine.base:1", "!theirs? show:enemy.bombable:optional"] },
+"chosen": { "action": ["harm:hp@target:1", "harm:integrity@target:1", "activate_zone:rules_death"] }
+```
+
+A card has one `leaves`, so two rules on one departure are a gate and its other branch. `bombable`
+is a zone tag on the patrol and every building zone, which is how one scope names both. The
+question is asked of whoever is up, and on the owner's own turn that is the owner. What it shows
+is lent: the base sits in the offer while it is open and goes home the moment it is picked.
+
 ### Every unit's death is announceable.
 
 ```json

@@ -340,6 +340,7 @@ end
 local function window_locked()
 	return M.pending_event() ~= nil and phase.depth() <= 1
 end
+M.window_locked = window_locked
 
 local function fired_flags()
 	local f = {}

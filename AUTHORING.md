@@ -1970,7 +1970,8 @@ the anchor for any pattern inside it.
 | a reaction | the same, and `event` | `event` is about what it answers, read from the event's side |
 | a move rule | `req`, `where` | |
 | `chosen` | `where` | asked of each revealed card |
-| `challenge`, `receive`, `arrives`, `leaves`, an `adjusts`, a computed tag | `req` | `receive`'s is asked of each candidate destination, as `@self` — it is written on the destination |
+| `leaves` | `req`, gates | one departure is often two rules told apart by who is up |
+| `challenge`, `receive`, `arrives`, an `adjusts`, a computed tag | `req` | `receive`'s is asked of each candidate destination, as `@self` — it is written on the destination |
 
 **The escape hatch on `needs`.** A `needs`-gated card becomes playable anyway
 when nothing else the phase would let you play is playable, so a mandatory play
@@ -4201,6 +4202,16 @@ and one departure is often two rules told apart by something that is not a place
 *Dies on somebody else's turn: a point off that player's base* — and nothing at
 all on its owner's. Asked of the departing card as `@self`, and asked after the
 move, so it reads the world the action will run in.
+
+A card has one `leaves`, so when both turns do something the condition becomes a
+gate (see *Gates*) and the other half is its other branch — Crash Bomber, whose
+own-turn half asks which patroller or building takes the point:
+
+```json
+"leaves": { "into": "discard", "needs": { "theirs": "count:player@enemy.owner_of >= 1" },
+            "action": ["theirs? stat_damage:integrity@mine.base:1",
+                       "!theirs? show:enemy.bombable:optional", "emit:died"] }
+```
 
 **Write it on a tag and a whole class announces itself.** The other half of a
 trigger is usually a card *watching*, and that is an ordinary reaction — so one
