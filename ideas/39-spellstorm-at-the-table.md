@@ -31,12 +31,6 @@ table it is there to be read, and nothing is clicked there. In its slot it stays
 dimmed, because it cannot be played and a play zone saying so is true — no
 `use: "none"`, no exception for weather.
 
-## Gap 3 — damage, seen — built 2026-09-17
-
-A verb carries its look: `hit` says `"effect": "blast"`, a bolt from the acting
-card to each card the blow lands on (AUTHORING, *Effects*). Left: whether the
-other verbs — `heal`, `power_up` — want one too, after a look at a real game.
-
 ## Gap 4 — the other screen sees nothing move
 
 Appended to [02](02-between-two-states.md), whose mechanism it is. Weather, damage

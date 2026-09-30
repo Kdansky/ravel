@@ -413,7 +413,8 @@ function love.load()
 			if not x then
 				x, y = love.graphics.getWidth() * 0.5, love.graphics.getHeight() * 0.5
 			end
-			fx.play(def, x, y, center(tonumber(data.from) and entity.get(tonumber(data.from))))
+			local fx_, fy = center(tonumber(data.from) and entity.get(tonumber(data.from)))
+			fx.play(def, x, y, fx_, fy, e and e.kind == "card" and e.place)
 		end
 	end
 

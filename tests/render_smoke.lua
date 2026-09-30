@@ -23,6 +23,8 @@ love.graphics = setmetatable({
 	getWidth      = function() return 960 end,
 	getHeight     = function() return 540 end,
 	getFont       = function() return font end,
+	-- No transform is ever pushed here, so a point is where it was.
+	transformPoint = function(x, y) return x, y end,
 	newFont       = function() return font end,
 	-- Enough of a canvas/image to let art.lua actually draw: every shape then
 	-- runs its real geometry through the stubbed primitives, which is where a
@@ -349,7 +351,12 @@ end
 -- a bolt flies from where it was dealt, and bursts on arrival
 fx.play({ base = "bolt" }, 480, 270, 100, 100)
 fx.play({ base = "bolt" }, 480, 270)
-for _ = 1, 25 do frame(0.033) end
+-- a heal flies and swells the same way, and a power-up glows round the card it lands on
+fx.play({ base = "heal" }, 480, 270, 100, 100)
+fx.play({ base = "power_up" }, 480, 270, nil, nil, { x = 440, y = 210, w = 80, h = 120 })
+assert(fx.flight({ base = "heal" }) and not fx.flight({ base = "power_up" }), "a heal is on its way; a glow is not")
+for _ = 1, 120 do if fx.busy() then frame(0.033) end end
+assert(not fx.busy(), "every effect has finished")
 
 -- ending banner: defeat page fires the flourish, confetti animates
 eval("stat_damage:hp:99")

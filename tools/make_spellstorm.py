@@ -2326,14 +2326,14 @@ def build():
         # ask a question. `%` binds as `*` does, so this is (health % 2) * 2.
         "computes": [{"key": "yardstick_mana", "value": "health@mine.player % 2 * 2",
                       "tooltip": "Two mana at an odd number of health, none at an even one."}],
-        "verbs": VERBS + [{"key": "heal", "does": "stat_gain",
+        "verbs": VERBS + [{"key": "heal", "does": "stat_gain", "effect": "mend",
                    "tooltip": "Healing. Named as a moment of its own so that a rule can answer it - the engine's own stat_gain is unwatchable on purpose."},
                   # The look is on the verb, so every card that deals a blow throws one.
                   {"key": "hit", "does": "stat_damage", "effect": "blast",
                    "tooltip": "A blow from across the table. Declared, so it announces itself and a Trap can answer it."},
                   {"key": "hurt", "does": "stat_damage",
                    "tooltip": "Damage you do to yourself. A cost rather than an attack, so nothing answers it."},
-                  {"key": "power_up", "does": "stat_gain",
+                  {"key": "power_up", "does": "stat_gain", "effect": "surge",
                    "tooltip": "Gaining Power Tokens. Declared so the Power Track can raise your Tier the moment the sixth lands."},
                   {"key": "wound", "does": "stat_damage",
                    "tooltip": "Damage as it arrives, once anything standing in front of it has taken its bite."}],
@@ -2446,7 +2446,7 @@ def build():
         "zones": zones(),
         "phases": phases(),
         "cards": cards,
-        "effects": {"spark": {"base": "sparkle"}, "blast": {"base": "bolt"}, "forecast": {"base": "announce"}},
+        "effects": {"spark": {"base": "sparkle"}, "blast": {"base": "bolt"}, "mend": {"base": "heal"}, "surge": {"base": "power_up"}, "forecast": {"base": "announce"}},
         # A window is asked of the table, and the table's middle column has a gap
         # between the VOID and the Ash pile that nothing else wants. The top-left
         # corner, where it went otherwise, is the far wizard's.

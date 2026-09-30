@@ -8,6 +8,7 @@ local rings    = {}
 local floats   = {}
 local confetti = {}
 local motes    = {}   -- shaped particles for the named card effects
+local glows    = {}
 local trauma   = 0
 local SCALE    = 1
 
@@ -17,7 +18,7 @@ function M.set_scale(s)
 end
 
 function M.clear()
-	parts, rings, floats, confetti, motes, trauma = {}, {}, {}, {}, {}, 0
+	parts, rings, floats, confetti, motes, glows, trauma = {}, {}, {}, {}, {}, {}, 0
 end
 
 -- The classic card-game effects, parameterized. Games name their own
@@ -50,16 +51,22 @@ BASES.bleed = function(x, y, o)
 	end
 end
 
+-- On a card it glows round the card's edge; with no card to hold it, motes rise from the point.
 BASES.power_up = function(x, y, o)
+	local color = o.color or { 1.0, 0.8, 0.3 }
+	if o.rect then
+		glows[#glows + 1] = { rect = o.rect, t = 0, life = 0.9 / o.speed, size = o.size, color = color }
+		return
+	end
 	for _ = 1, math.floor(12 * o.count) do
 		mote({ shape = "dot", x = x + (math.random() - 0.5) * 40 * o.size * SCALE,
 			y = y + 20 * SCALE + math.random() * 20 * SCALE,
 			vx = (math.random() - 0.5) * 20 * SCALE, vy = -(60 + math.random() * 80) * o.speed * SCALE,
 			size = (2.5 + math.random() * 2.5) * o.size * SCALE,
-			t = 0, life = (0.6 + math.random() * 0.5) / o.speed, color = o.color or { 1.0, 0.8, 0.3 } })
+			t = 0, life = (0.6 + math.random() * 0.5) / o.speed, color = color })
 	end
 	rings[#rings + 1] = { x = x, y = y, t = 0, life = 0.4 / o.speed,
-		max_r = 44 * o.size * SCALE, width = 2.5 * SCALE, color = o.color or { 1.0, 0.8, 0.3 } }
+		max_r = 44 * o.size * SCALE, width = 2.5 * SCALE, color = color }
 end
 
 BASES.sparkle = function(x, y, o)
@@ -84,15 +91,31 @@ BASES.stars = function(x, y, o)
 	end
 end
 
-BASES.heal = function(x, y, o)
+local function mend(x, y, o, color)
 	for _ = 1, math.floor(9 * o.count) do
 		mote({ shape = "cross", x = x + (math.random() - 0.5) * 44 * o.size * SCALE,
 			y = y + (math.random() - 0.5) * 20 * SCALE,
 			vx = 0, vy = -(35 + math.random() * 35) * o.speed * SCALE,
 			size = (3.5 + math.random() * 2.5) * o.size * SCALE,
-			t = -math.random() * 0.3, life = (0.8 + math.random() * 0.4) / o.speed,
-			color = o.color or { 0.4, 0.95, 0.5 } })
+			t = -math.random() * 0.3, life = (0.8 + math.random() * 0.4) / o.speed, color = color })
 	end
+end
+
+-- From a card, a plus flies to where it lands and swells into it; from nowhere, crosses only rise there.
+local FLIGHT, SWELL = 0.32, 0.22
+
+BASES.heal = function(x, y, o)
+	local color = o.color or { 0.4, 0.95, 0.5 }
+	if not o.fx then return mend(x, y, o, color) end
+	local s = 9 * o.size * SCALE
+	local swell = function()
+		mote({ shape = "cross", x = x, y = y, vx = 0, vy = 0, size = s, grow = s * 2.5 / (SWELL / o.speed),
+			t = 0, life = SWELL / o.speed, color = color, land = function() mend(x, y, o, color) end })
+		rings[#rings + 1] = { x = x, y = y, t = 0, life = 0.35 / o.speed, max_r = 40 * o.size * SCALE, width = 2.5 * SCALE,
+			color = color }
+	end
+	mote({ shape = "cross", x = o.fx, y = o.fy, path = { o.fx, o.fy, x, y }, land = swell, size = s, trail = o.count * 0.5,
+		t = 0, life = FLIGHT / o.speed, color = color })
 end
 
 BASES.smoke = function(x, y, o)
@@ -119,8 +142,6 @@ BASES.explosion = function(x, y, o)
 end
 
 -- A bolt flies from whoever acted to where it lands, and bursts there. With nowhere to fly from it only bursts.
-local FLIGHT = 0.32
-
 BASES.bolt = function(x, y, o)
 	local color = o.color or { 1.0, 0.55, 0.2 }
 	local land = function() M.hit(x, y, color) end
@@ -132,7 +153,7 @@ end
 -- Play a named-effect definition ({ base, size, speed, count, color }) at a
 -- point, travelling from (fx, fy) when the base is one that travels. Unknown bases are ignored — the validator warns
 -- about them.
-function M.play(def, x, y, fx, fy)
+function M.play(def, x, y, fx, fy, rect)
 	local base = BASES[def.base or ""]
 	if not base then return end
 	base(x, y, {
@@ -140,19 +161,21 @@ function M.play(def, x, y, fx, fy)
 		speed = math.max(0.25, tonumber(def.speed) or 1),
 		count = tonumber(def.count) or 1,
 		color = def.color,
-		fx = fx, fy = fy,
+		fx = fx, fy = fy, rect = rect,
 	})
 end
 
 -- How long an effect is on its way before it lands, for the beat after it to wait on.
 function M.flight(def)
-	if def.base == "bolt" then return FLIGHT / math.max(0.25, tonumber(def.speed) or 1) end
+	local speed = math.max(0.25, tonumber(def.speed) or 1)
+	if def.base == "bolt" then return FLIGHT / speed end
+	if def.base == "heal" then return (FLIGHT + SWELL) / speed end
 end
 
 -- Whether an effect or a number is still being told. Not the rings and sparks of a card landing, which go on under an
 -- open question as its cards arrive, nor confetti, which rains over the ending it celebrates.
 function M.busy()
-	return #motes > 0 or #floats > 0
+	return #motes > 0 or #floats > 0 or #glows > 0
 end
 
 -- The base-effect vocabulary, for the validator. `shuffle`, `flip` and `announce` move the card itself, so anim.lua
@@ -247,6 +270,11 @@ function M.update(dt)
 		f.t = f.t + dt
 		if f.t >= f.life then table.remove(floats, i) end
 	end
+	for i = #glows, 1, -1 do
+		local g = glows[i]
+		g.t = g.t + dt
+		if g.t >= g.life then table.remove(glows, i) end
+	end
 	for i = #confetti, 1, -1 do
 		local c = confetti[i]
 		c.t = c.t + dt
@@ -310,6 +338,20 @@ function M.draw()
 		love.graphics.setLineWidth(r.width * (1 - k) + 1)
 		love.graphics.circle("line", r.x, r.y, r.max_r * ease_out(k))
 	end
+	-- Swells in fast and ebbs slowly, a halo of widening edges drawn additively so it brightens what is under it.
+	love.graphics.setBlendMode("add")
+	for _, g in ipairs(glows) do
+		local k = g.t / g.life
+		local a = math.min(1, k * 5) * (1 - k) ^ 1.5
+		local r, c = g.rect, g.color
+		for i = 1, 6 do
+			local d = (i * 2.5 + 6 * ease_out(k)) * g.size * SCALE
+			love.graphics.setColor(c[1], c[2], c[3], a * (0.55 - i * 0.08))
+			love.graphics.setLineWidth(3 * SCALE)
+			love.graphics.rectangle("line", r.x - d, r.y - d, r.w + d * 2, r.h + d * 2, 6 * SCALE + d)
+		end
+	end
+	love.graphics.setBlendMode("alpha")
 	for _, m in ipairs(motes) do
 		if m.t >= 0 then
 			-- A bolt is at its brightest as it lands.

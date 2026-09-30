@@ -505,6 +505,7 @@
     {
       "key": "heal",
       "does": "stat_gain",
+      "effect": "mend",
       "tooltip": "Healing. Named as a moment of its own so that a rule can answer it - the engine's own stat_gain is unwatchable on purpose."
     },
     {
@@ -521,6 +522,7 @@
     {
       "key": "power_up",
       "does": "stat_gain",
+      "effect": "surge",
       "tooltip": "Gaining Power Tokens. Declared so the Power Track can raise your Tier the moment the sixth lands."
     },
     {
@@ -4023,6 +4025,8 @@
   "effects": {
     "spark": { "base": "sparkle" },
     "blast": { "base": "bolt" },
+    "mend": { "base": "heal" },
+    "surge": { "base": "power_up" },
     "forecast": { "base": "announce" }
   },
   "prompt": { "pos": [0.745, 0.405, 0.86, 0.595] },

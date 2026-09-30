@@ -5225,11 +5225,13 @@ and triggers them from any action list with `effect:<name>`:
 }
 ```
 
-Bases: `damage` (slash burst), `bleed` (falling drops), `power_up` (rising
-motes and a ring), `sparkle` (twinkling points), `stars` (orbiting stars),
-`heal` (rising crosses), `smoke` (drifting puffs), `explosion` (debris and a
-shockwave), `bolt` (flies from the acting card to where it lands, and
-bursts). Parameters `size`, `speed` and `count` are multipliers that
+Bases: `damage` (slash burst), `bleed` (falling drops), `power_up` (a glow
+round the card it lands on; rising motes and a ring where there is no card),
+`sparkle` (twinkling points), `stars` (orbiting stars), `heal` (a green plus
+flies from the acting card, swells on the one it lands on, and crosses rise;
+only the crosses when it lands on the acting card), `smoke` (drifting puffs),
+`explosion` (debris and a shockwave), `bolt` (flies from the acting card to
+where it lands, and bursts). Parameters `size`, `speed` and `count` are multipliers that
 default to 1; `color` is `[r, g, b]` and defaults per base. The effect plays
 on the acting card (mid-screen when there is none), is skipped headless, and
 a card losing hp gets a small damage burst automatically.
@@ -5266,7 +5268,8 @@ carry it:
 ```
 
 Every `hit:` then plays `blast` on each card it lands on, a bolt flying there
-from the acting card, and the next beat waits for it to arrive. It plays before
+from the acting card, and the next beat waits for it to arrive — a `heal` too,
+so the number goes up as the plus swells. It plays before
 an aura answers — a blow a shield soaks still arrived. A verb that `does:
 "target"` changes nothing and takes no effect.
 
