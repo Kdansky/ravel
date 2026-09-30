@@ -733,11 +733,21 @@ end
 -- is never more than a fifth, so one badge is not a poster. Never smaller than
 -- the small font, and capped, so a card blown up to fill the screen does not shout.
 local function badge_font(pl, look, n)
+	local floor = math.max(8, 8 * S)
+	if look.badge_run ~= "down" then
+		-- A font is ~1.2 of its size.
+		return font_at(math.min(math.max((pl.h / 8 - 3 * S) / 1.2, floor), 20 * S))
+	end
+	-- The room is what the title band leaves, measured as draw_card_face lays that band out — the biggest title
+	-- font and its padding — since a column that reaches the band pushes the name aside and cuts it short.
 	local titled = not (look.hide or EMPTY_HIDE).title
-	local room   = pl.h - (titled and M.main_font():getHeight() or 0)
-	local share  = look.badge_run == "down" and room / math.max(n, 5) or pl.h / 8
-	-- A line is the font's height and the gap under it; a font is ~1.2 of its size.
-	return font_at(math.min(math.max((share - 3 * S) / 1.2, 8, 8 * S), 20 * S))
+	local room = pl.h - (titled and font_at(12 * S):getHeight() + 6 * S or 0)
+	local share = room / math.max(n, 5)
+	-- A line is the font's height and the gap under it, measured rather than estimated: an estimate high by a pixel
+	-- a line is six pixels over at six badges.
+	local px = math.floor(20 * S)
+	while px > floor and font_at(px):getHeight() + 3 * S > share do px = px - 1 end
+	return font_at(px)
 end
 
 -- The badges a card actually shows: the style's list, less any zero it asked to

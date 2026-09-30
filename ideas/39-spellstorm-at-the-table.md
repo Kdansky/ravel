@@ -14,15 +14,13 @@ what is missing is a player being able to follow them without hovering.
   so Spellstorm's damage already animates — on the screen that made the move.
 - **Weather is a card flipped into `weather_now`**, a stack at the far left.
 
-## Gap 1 — the numbers a player plays by — built 2026-09-17
+## Gap 1 — the numbers a player plays by — closed 2026-09-30
 
-The seat card badges health, mana, tier, power, shards and Initiative in a
-column, zeros hidden, so the Initiative arrow is only its holder's. The character
-card badges its Ultimate cost. Badges are sized to the card now (AUTHORING,
-*What a card wears*), and the wizard boxes took height from the weather column
-to give them room; the weather discard sits behind the Weather on its rect.
-Left: power and shards at 0 are hidden with the rest, and "very clearly" for
-Initiative may still want more than an arrow.
+Looked at in a real game: Initiative is a bare arrow (`number: false`), and power and
+shards stay hidden at 0 — asked and kept. The look found a column of six badges
+cutting the seat's name to "Derby …": `badge_font` guessed a line's height and the
+title band's, and the sixth badge landed in the band. Arnak's five-badge Camera was
+the same bug.
 
 ## Gap 2 — the weather, announced
 
@@ -34,6 +32,7 @@ network, which is gap 3 and not Spellstorm's; and also that the flip is too quie
 even locally.] The in-format answer to the second is showing the new card large
 for a beat — the built-in `reveal` overlay, or a `layout: "page"` zone the flip
 passes through. [Assumption: which of the two, unexamined.]
+Seen 2026-09-30: the zone's "Weather" label is drawn over the flipped card's title.
 
 ## Gap 3 — damage, seen — built 2026-09-17
 

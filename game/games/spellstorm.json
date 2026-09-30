@@ -58,6 +58,7 @@
       "key": "initiative",
       "label": "Initiative",
       "icon": "arrow",
+      "number": false,
       "color": "yellow",
       "min": 0,
       "max": 1,

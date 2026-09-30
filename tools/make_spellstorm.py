@@ -2221,7 +2221,7 @@ def build():
              "min": 0, "max": 12, "on": ["player"], "start": 0, "display": "nonzero"},
             {"key": "tier", "label": "Tier", "icon": "banner", "color": "amber",
              "min": 1, "max": 4, "on": ["player"], "start": 1},
-            {"key": "initiative", "label": "Initiative", "icon": "arrow",
+            {"key": "initiative", "label": "Initiative", "icon": "arrow", "number": False,
              "color": "yellow", "min": 0, "max": 1, "on": ["player"], "start": 0, "display": "nonzero"},
             {"key": "doom", "label": "Doom", "icon": "fist", "color": "indigo",
              "min": 0, "max": 4, "on": ["player"], "start": 0, "display": "nonzero"},
