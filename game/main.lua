@@ -399,9 +399,14 @@ function love.load()
 			local def = declaration.G.effect_defs[tostring(data.effect)]
 			if not def then return end
 			-- The card itself moves, so there has to be one.
-			if def.base == "shuffle" or def.base == "flip" then
+			if def.base == "shuffle" or def.base == "flip" or def.base == "announce" then
 				if not (e and e.kind == "card") then return end
-				if def.base == "shuffle" then anim.whirl(e.id, def) else anim.flip(e.id, def) end
+				if def.base == "shuffle" then anim.whirl(e.id, def)
+				elseif def.base == "flip" then anim.flip(e.id, def)
+				else
+					local W, H = love.graphics.getDimensions()
+					anim.announce(e.id, W * 0.5, H * 0.5, H * 0.45, def)
+				end
 				return
 			end
 			local x, y = center(e)
@@ -431,7 +436,8 @@ function love.load()
 		local by = ctx and ctx.card_id and entity.get(ctx.card_id)
 		local to = at or by
 		local from = by and to and by.id ~= to.id and by.id or nil
-		stage.record("effect", to and to.id, nil, { effect = name, from = from, wait = from and fx.flight(def) })
+		local wait = def.base == "announce" and anim.announce_time(def) or from and fx.flight(def)
+		stage.record("effect", to and to.id, nil, { effect = name, from = from, wait = wait })
 	end
 
 	-- A move from the other side comes with the run that made it, and is watched

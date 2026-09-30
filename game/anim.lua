@@ -11,6 +11,7 @@ local tweens = {}
 local bumps  = {}   -- a card leaning into what it is acting on, and settling back
 local whirls = {}   -- a pile fanning out, spinning, and settling: a shuffle
 local flips  = {}   -- a card turning over where it lies
+local shows  = {}   -- a card lifted to the middle of the screen for a beat, and put back
 
 -- kind → duration; slam = onto the board, drop = onto a pile/deck, glide = hand
 local DURATION = { glide = 0.22, drop = 0.26, slam = 0.32 }
@@ -100,6 +101,19 @@ function M.flip(id, o)
 	flips[id] = { elapsed = 0, duration = FLIP / math.max(0.25, tonumber((o or {}).speed) or 1) }
 end
 
+-- The card rises to (x, y) and grows until it is `h` tall, holds there to be read, and goes back. It is drawn at its own
+-- size and scaled, so the words grow with it rather than a large card being laid out in small print.
+local RISE, HOLD = 0.3, 1.1
+
+-- How long an announcement holds the board, so the next beat waits for the card to be back.
+function M.announce_time(o)
+	return 2 * RISE + HOLD / math.max(0.25, tonumber((o or {}).speed) or 1)
+end
+
+function M.announce(id, x, y, h, o)
+	shows[id] = { elapsed = 0, duration = M.announce_time(o), x = x, y = y, h = h * (tonumber((o or {}).size) or 1) }
+end
+
 -- How long a shuffle holds the board, so what is drawn off the pile leaves once it has settled.
 function M.whirl_time()
 	return WHIRL
@@ -151,7 +165,7 @@ function M.bump(id, dx, dy)
 end
 
 function M.update(dt)
-	for _, list in ipairs({ whirls, flips }) do
+	for _, list in ipairs({ whirls, flips, shows }) do
 		for id, a in pairs(list) do
 			a.elapsed = a.elapsed + dt
 			if a.elapsed >= a.duration then list[id] = nil end
@@ -178,13 +192,21 @@ end
 -- `rest` is where the rules have the card; it is only needed for a bump, which
 -- is an offset from a card that is otherwise standing still.
 function M.visual_place(id, rest)
-	local t, b, w, f = tweens[id], bumps[id], whirls[id], flips[id]
+	local t, b, w, f, a = tweens[id], bumps[id], whirls[id], flips[id], shows[id]
 	local out
 	if t then
 		out = interp(t)
 		if t.flip then out.flip = math.min(1, t.elapsed / t.duration) end
-	elseif (b or w or f) and rest then
+	elseif (b or w or f or a) and rest then
 		out = { x = rest.x, y = rest.y, w = rest.w, h = rest.h, rot = 0 }
+	end
+	if out and a then
+		local k = ease_out(math.min(1, a.elapsed / RISE, (a.duration - a.elapsed) / RISE))
+		local cx, cy = out.x + out.w * 0.5, out.y + out.h * 0.5
+		cx, cy = cx + (a.x - cx) * k, cy + (a.y - cy) * k
+		out.zoom = 1 + (a.h / out.h - 1) * k
+		out.x, out.y = cx - out.w * 0.5, cy - out.h * 0.5
+		out.shown = k
 	end
 	-- `flip` is how far over the card has turned: before half way it still shows the side it had.
 	if out and f then out.flip = f.elapsed / f.duration end
@@ -209,6 +231,7 @@ function M.clear()
 	bumps  = {}
 	whirls = {}
 	flips  = {}
+	shows  = {}
 end
 
 return M

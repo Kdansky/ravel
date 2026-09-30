@@ -537,6 +537,7 @@
     "wizard_card": { "color": [0.24, 0.16, 0.34], "hide": ["title"], "badges": ["ult_cost"] },
     "chooser": { "color": [0.24, 0.16, 0.34], "hide": ["title"] },
     "potion": { "color": [0.32, 0.42, 0.18], "hide": ["title"] },
+    "sky": { "fit": "fill" },
     "chair": {
       "color": [0.13, 0.15, 0.22],
       "badge_run": "down",
@@ -788,6 +789,7 @@
       "key": "weather_now",
       "label": "Weather",
       "layout": "stack",
+      "tags": ["sky"],
       "tooltip": "This round's weather. Only the current card is active.",
       "pos": [0.005, 0.325, 0.195, 0.52]
     },
@@ -832,7 +834,13 @@
         "wildcolorwinds"
       ]
     },
-    { "key": "weather_discard", "layout": "stack", "use": "none", "pos": "weather_now" },
+    {
+      "key": "weather_discard",
+      "layout": "stack",
+      "use": "none",
+      "tags": ["sky"],
+      "pos": "weather_now"
+    },
     {
       "key": "ice_pile",
       "use": "abilities",
@@ -1032,6 +1040,7 @@
       "actions": [
         "move:weather_now:weather_discard",
         "draw_from:weather_calm:weather_now:1",
+        "effect:forecast:weather_now",
         "stat_gain:battle_round@plan:1",
         "set_active_seat:has_init",
         "each_seat:activate_zone:weather_now:by_column:wx"
@@ -4011,7 +4020,11 @@
       "play": { "action": ["load_game:menu.json"] }
     }
   ],
-  "effects": { "spark": { "base": "sparkle" }, "blast": { "base": "bolt" } },
+  "effects": {
+    "spark": { "base": "sparkle" },
+    "blast": { "base": "bolt" },
+    "forecast": { "base": "announce" }
+  },
   "prompt": { "pos": [0.745, 0.405, 0.86, 0.595] },
   "end_conditions": [
     { "when": "max:shards@anyone.player >= 8", "then": ["reveal:end_shards"] },

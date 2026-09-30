@@ -781,6 +781,14 @@ end
 -- the words go at the bottom of it rather than at the bottom of the card, so a
 -- card showing only a strip still shows its name. It is the whole card
 -- everywhere else, which is every zone that is not fanned.
+-- A scissor is in screen pixels whatever the transform says, so a card drawn scaled — one being announced — would be
+-- cut to the rect it has at its own size.
+local function clip(x, y, w, h)
+	local x1, y1 = love.graphics.transformPoint(x, y)
+	local x2, y2 = love.graphics.transformPoint(x + w, y + h)
+	love.graphics.setScissor(x1, y1, math.max(0, x2 - x1), math.max(0, y2 - y1))
+end
+
 local function draw_card_face(pl, card_e, show_text, vis)
 	vis = vis or pl
 	local def   = cards.def(card_e)
@@ -858,7 +866,7 @@ local function draw_card_face(pl, card_e, show_text, vis)
 
 	if img then
 		local iw, ih = img:getDimensions()
-		love.graphics.setScissor(pl.x, pl.y, pl.w, img_h)
+		clip(pl.x, pl.y, pl.w, img_h)
 		-- A plateless card has nothing to lay a dimming rectangle over — one
 		-- would just be a dark square on the board — so it dims by tinting the
 		-- art instead, which is how a greyed-out piece has always looked.
@@ -957,7 +965,7 @@ local function draw_card_face(pl, card_e, show_text, vis)
 		-- against each other, where every one of them is a paragraph over its own
 		-- bright picture — so reading is a key you hold, not a mode the game is
 		-- left in.
-		love.graphics.setScissor(vis.x, vis.y, vis.w, vis.h)
+		clip(vis.x, vis.y, vis.w, vis.h)
 		if M.plates then
 			love.graphics.setColor(0, 0, 0, 0.96)
 			love.graphics.rectangle("fill", vis.x, top, vis.w, band)
@@ -1160,7 +1168,7 @@ local function draw_page(pl, card_e)
 	y = y + 12 * S
 
 	local hint_h = sf:getHeight() + 12 * S
-	love.graphics.setScissor(pl.x, y, pl.w, math.max(0, pl.y + pl.h - hint_h - y))
+	clip(pl.x, y, pl.w, math.max(0, pl.y + pl.h - hint_h - y))
 	prose(label.fill(def and (def.story or def.tooltip) or "", card_e),
 		pl.x + m, y, pl.w - m * 2, "left", { 0.80, 0.88, 1.00 })
 	love.graphics.setScissor()
@@ -1760,6 +1768,12 @@ local function draw_flying_card(vpl, card_e)
 	end
 	love.graphics.push()
 	turned(vpl, sx)
+	if vpl.zoom then
+		local cx, cy = vpl.x + vpl.w * 0.5, vpl.y + vpl.h * 0.5
+		love.graphics.translate(cx, cy)
+		love.graphics.scale(vpl.zoom)
+		love.graphics.translate(-cx, -cy)
+	end
 	if face then draw_card_face(vpl, card_e, false) else draw_card_back(vpl, hue) end
 	love.graphics.pop()
 end
@@ -1767,14 +1781,28 @@ end
 -- Every card in the air, over the zones they are crossing. A stack is walked in
 -- full rather than topmost-first: what is still flying into a pile is not in the
 -- pile yet, and is the one thing about a stack that is worth drawing twice.
+--
+-- A card being announced goes last, over a dim: it is the one thing on the table worth reading just then.
 local function draw_animated_cards()
+	local shown = {}
 	for z in entity.each("zone") do
 		if zones.shown(z) then
 			for _, cid in ipairs(z.cards or {}) do
 				local vpl = cid and anim.visual_place(cid, (entity.get(cid) or {}).place)
-				if vpl then draw_flying_card(vpl, entity.get(cid)) end
+				if vpl and vpl.shown then
+					shown[#shown + 1] = { vpl, entity.get(cid) }
+				elseif vpl then
+					draw_flying_card(vpl, entity.get(cid))
+				end
 			end
 		end
+	end
+	for _, s in ipairs(shown) do
+		love.graphics.push("all")
+		love.graphics.setColor(0, 0, 0, 0.45 * s[1].shown)
+		love.graphics.rectangle("fill", 0, 0, love.graphics.getDimensions())
+		love.graphics.pop()
+		draw_flying_card(s[1], s[2])
 	end
 end
 

@@ -22,17 +22,14 @@ cutting the seat's name to "Derby …": `badge_font` guessed a line's height and
 title band's, and the sixth badge landed in the band. Arnak's five-badge Camera was
 the same bug.
 
-## Gap 2 — the weather, announced
+## Gap 2 — the weather, announced — built 2026-09-30
 
-> Spellstorm: Animations for weather to show it to everybody.
-
-The flip is a card moving onto a small stack in a corner, and it changes what
-everyone's turn does. [Assumption: "to everybody" means both players over the
-network, which is gap 3 and not Spellstorm's; and also that the flip is too quiet
-even locally.] The in-format answer to the second is showing the new card large
-for a beat — the built-in `reveal` overlay, or a `layout: "page"` zone the flip
-passes through. [Assumption: which of the two, unexamined.]
-Seen 2026-09-30: the zone's "Weather" label is drawn over the flipped card's title.
+`announce`, an effect base, and a scope on `effect:` (AUTHORING, *Effects*). The weather
+zones are `fit: fill` now, since the cards are printed landscape; that also took the
+"Weather" label off the title. Left: the weather card is drawn dimmed, in its slot and
+announced, because `weather_now` defaults to `use: "play"` and a weather card cannot
+be played. [Assumption: `use: "none"` is the honest word, but a labelled `none` stack
+is drawn as a deck of backs by `render.lua`, so it wants a look first.]
 
 ## Gap 3 — damage, seen — built 2026-09-17
 

@@ -155,9 +155,10 @@ function M.busy()
 	return #motes > 0 or #floats > 0
 end
 
--- The base-effect vocabulary, for the validator. `shuffle` and `flip` move the card itself, so anim.lua plays them.
+-- The base-effect vocabulary, for the validator. `shuffle`, `flip` and `announce` move the card itself, so anim.lua
+-- plays them.
 function M.bases()
-	local t = { shuffle = true, flip = true }
+	local t = { shuffle = true, flip = true, announce = true }
 	for k in pairs(BASES) do t[k] = true end
 	return t
 end

@@ -2201,6 +2201,17 @@ On the acting card. A card moving between a face-down zone and a face-up one alr
 on the way, and a shuffle of a pile on screen already whirls it — this is for the moment that is
 neither. `shuffle` on one card is the same whirl, round that card.
 
+### Show everyone the card that just came up.
+
+```json
+"effects": { "forecast": { "base": "announce" } },
+"action": ["draw_from:weather_deck:weather:1", "effect:forecast:weather"]
+```
+
+It rises to the middle of the screen, large, holds there to be read, and goes back; the next beat
+waits for it. The scope is what points it at the card nobody played; without one it plays on the
+acting card.
+
 ---
 
 ### Every blow throws a bolt at whoever it hits.

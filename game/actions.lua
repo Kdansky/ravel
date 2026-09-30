@@ -1129,11 +1129,17 @@ HANDLERS["reveal_top"] = function(p)
 	end
 end
 
--- effect:name  — play a named visual effect (defined under "effects" in the
--- game file) on the acting card. Pure presentation: headless runs skip it.
+-- effect:name[:scope]  — play a named visual effect (defined under "effects" in the
+-- game file) on each card in scope, or on the acting card. Pure presentation:
+-- headless runs skip it. The scope is for a step nobody acts in — a weather card
+-- turned over by an automatic phase has no acting card to play on.
 HANDLERS["effect"] = function(p, ctx)
-	if M.on_effect and declaration.G.effect_defs[p[2] or ""] then
-		M.on_effect(p[2], ctx)
+	if not (M.on_effect and declaration.G.effect_defs[p[2] or ""]) then return end
+	if not p[3] then return M.on_effect(p[2], ctx) end
+	local sc = predicate.parse_scope(p[3])
+	if not sc then return end
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
+		if e.kind == "card" then M.on_effect(p[2], ctx, e) end
 	end
 end
 
@@ -1726,7 +1732,7 @@ local SPEC = {
 	show              = "scope optional?",
 	reveal            = "card",
 	reveal_top        = "zone",
-	effect            = "effect",
+	effect = "effect scope?",
 	set_active_seat   = "scope",
 	set_priority      = "scope",
 	clear_priority    = "",

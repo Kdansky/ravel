@@ -112,7 +112,7 @@ M.ICONS = {
 M.EFFECT_BASES = {
 	damage = true, bleed = true, power_up = true, sparkle = true,
 	stars = true, heal = true, smoke = true, explosion = true,
-	bolt = true, shuffle = true, flip = true,
+	bolt = true, shuffle = true, flip = true, announce = true,
 }
 
 -- Fields the engine reads on each kind of entry (including the derived ones

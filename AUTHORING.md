@@ -5243,6 +5243,21 @@ from face down to face up, or back, turns over on the way**. They are for a
 moment that is not a shuffle or a move — a die rolled in place, a card
 revealed where it stands.
 
+A third, `announce`, is for a card everyone should read before play goes on: it
+rises to the middle of the screen, grows to nearly half its height over a dimmed
+board, holds there, and goes back. The next beat waits for it. `speed` shortens
+the hold and `size` scales how large it grows.
+
+`effect:` plays on the acting card, and an automatic phase has none. Name a
+scope and it plays on each card there instead — Spellstorm's weather phase
+turns the new weather over and then says so, with `forecast` declared as
+`{ "base": "announce" }`:
+
+```json
+{ "key": "weather", "type": "automatic",
+  "actions": ["draw_from:weather_calm:weather_now:1", "effect:forecast:weather_now"] }
+```
+
 **A look that belongs to a moment goes on its verb**, so no action list has to
 carry it:
 
@@ -5327,7 +5342,7 @@ what a player reads.
 | `set_name:<scope>:<field>@<source-scope>` | Every card in scope takes the named field off one card in the source scope as its own "name". Written for a seat card whose `text` is `"{name}"`: once a wizard is chosen from an offer dealt with `options`, it is played and `set_name:mine.player:text@self` on its own `on_play` writes its text onto the seat picking it, and every `{owner}` or `{active}` label reads the new name from then on. The field is read the same way a label reads one — the live entity first, its card def second — so anything a caption could already say is something a name can be built from |
 | `copy:<scope>[:play\|activate[:<n>]]` | Every card the scope names **does what it does**, n times over, and the real card is neither played nor moved. `play` (the default) hands the copier an **imaginary card** per copy, standing in their `todo` zone to be played and aimed like any other: free, spent nowhere, never returned to the box, and gone once it has gone off. Nothing moves while one is unplayed, so the rest of the list waits. `activate` instead runs every ability whose `when` holds, in order, where the card stands — an ability is not aimed and there is nothing to create. `@self` is the card acting; `mine` still means whoever is *up*, so copying somebody else's card benefits the copier. A game using `play` must declare a `status: "todo"` zone. See *Doing what another card does* |
 | `resolve_challenge` | Ask the card's `challenge`: run its `pass` or its `fail`. The condition is asked with the acting card and its targets in hand, so it may say `@self` and `@target` |
-| `effect:name` | Play a named visual effect on the acting card (headless: skipped) |
+| `effect:name[:scope]` | Play a named visual effect on each card the scope names, or on the acting card without one (headless: skipped) |
 | `reveal:card` | Conjure the card into the page overlay; playing it there continues the story |
 | `reveal_top:zone` | Turn over a zone's top card into the page overlay (shuffle secrets) |
 | `end_phase[:phase]` / `push_phase:key` / `pop_phase` | Phase control. Naming the phase on `end_phase` says *which* one is over, and does nothing if that is not the one running — which is what a card printing "then end your action phase" means, and what stops three copies of it ending three phases |

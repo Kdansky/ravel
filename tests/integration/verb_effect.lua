@@ -35,10 +35,12 @@ local GAME = [==[{
     { "key": "one", "text": "One" },
     { "key": "grunt", "text": "Grunt", "tags": ["unit"] },
     { "key": "knight", "text": "Knight", "tags": ["unit", "shielded"] },
-    { "key": "dart", "text": "Dart", "play": { "action": ["damage:hp@each.unit:1", "poison:hp@each.unit:1"] } }
+    { "key": "dart", "text": "Dart", "play": { "action": ["damage:hp@each.unit:1", "poison:hp@each.unit:1"] } },
+    { "key": "flare", "text": "Flare", "play": { "action": ["effect:dart:field", "effect:dart"] } }
   ],
   "setup": { "place": [
-    { "card": "grunt", "zone": "field" }, { "card": "knight", "zone": "field" }, { "card": "dart", "zone": "hand" }
+    { "card": "grunt", "zone": "field" }, { "card": "knight", "zone": "field" }, { "card": "dart", "zone": "hand" },
+    { "card": "flare", "zone": "hand" }
   ] }
 }]==]
 
@@ -76,6 +78,20 @@ function M.test_verb_effect_lands_on_each_victim_from_the_card_that_dealt_it(che
 		check("and on the knight, whose shield soaked it: the blow still arrived", at.knight)
 		check("the shield did soak it", find("knight").stats.tally == 1 and find("knight").stats.hp == 9,
 			tostring(find("knight").stats.hp))
+	end)
+end
+
+-- An automatic step has no acting card, so a weather card turned over by one had nowhere for its look to play.
+function M.test_effect_plays_on_each_card_a_scope_names(check)
+	with_game(GAME, function(name)
+		flow.init(name, 3)
+		local at = {}
+		actions.on_effect = function(effect, ctx, e) at[#at + 1] = e and e.def_key or "actor" end
+		flow.play_card(find("flare").id, {})
+		actions.on_effect = nil
+		table.sort(at)
+		check("once on each card in the field, and once on the acting card", table.concat(at, " ") == "actor grunt knight",
+			table.concat(at, " "))
 	end)
 end
 

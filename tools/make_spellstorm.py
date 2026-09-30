@@ -1849,7 +1849,7 @@ def zones():
         {"key": "announce", "label": "{phase}", "layout": "row", "use": "none",
          "tags": ["bare"], "pos": P(0.450, 0.435, 0.610, 0.565)},
 
-        {"key": "weather_now", "label": "Weather", "layout": "stack",
+        {"key": "weather_now", "label": "Weather", "layout": "stack", "tags": ["sky"],
          "tooltip": "This round's weather. Only the current card is active.",
          "pos": P(0.005, 0.325, 0.195, 0.520)},
         {"key": "weather_calm", "label": "Calm", "layout": "stack",
@@ -1863,7 +1863,7 @@ def zones():
          "contents": deck_of(False)},
         # On the Weather's own rect, behind it: last round's card shows only while
         # no weather is up, which gave the wizards the column's height.
-        {"key": "weather_discard", "layout": "stack", "use": "none", "pos": "weather_now"},
+        {"key": "weather_discard", "layout": "stack", "use": "none", "tags": ["sky"], "pos": "weather_now"},
 
         {"key": "ice_pile", "use": "abilities", "label": "Ice", "layout": "stack",
          "applies": ["takeable"], "tags": ["junk_pile"], "contents": ["ice:6"],
@@ -2011,6 +2011,7 @@ def phases():
         {"key": "weather", "type": "automatic",
          "actions": ["move:weather_now:weather_discard",
                      "draw_from:weather_calm:weather_now:1",
+                     "effect:forecast:weather_now",
                      "stat_gain:battle_round@plan:1",
                      "set_active_seat:has_init",
                      "each_seat:activate_zone:weather_now:by_column:wx"],
@@ -2344,6 +2345,8 @@ def build():
             "wizard_card": {"color": [0.24, 0.16, 0.34], "hide": ["title"], "badges": ["ult_cost"]},
             "chooser": {"color": [0.24, 0.16, 0.34], "hide": ["title"]},
             "potion": {"color": [0.32, 0.42, 0.18], "hide": ["title"]},
+            # The weather is printed landscape, so its place is too.
+            "sky": {"fit": "fill"},
             # The numbers a player plays by, on the blank face of their own
             # seat. Zeros stay off so Initiative is an arrow only its holder wears.
             "chair": {"color": [0.13, 0.15, 0.22], "badge_run": "down", "hide": ["zero_badges"],
@@ -2443,7 +2446,7 @@ def build():
         "zones": zones(),
         "phases": phases(),
         "cards": cards,
-        "effects": {"spark": {"base": "sparkle"}, "blast": {"base": "bolt"}},
+        "effects": {"spark": {"base": "sparkle"}, "blast": {"base": "bolt"}, "forecast": {"base": "announce"}},
         # A window is asked of the table, and the table's middle column has a gap
         # between the VOID and the Ash pile that nothing else wants. The top-left
         # corner, where it went otherwise, is the far wizard's.
