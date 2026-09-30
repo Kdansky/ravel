@@ -823,7 +823,10 @@ local function draw_card_face(pl, card_e, show_text, vis)
 	-- you may take from has to say so, or the only discoverable thing about it
 	-- is that clicking sometimes does nothing.
 	local dim, dim_label
-	if react_offer[card_e.id] then
+	if pl.shown then
+		-- Announced: lifted off the table to be read, where nothing is clicked, so whether it could be played is beside the point.
+		dim = false
+	elseif react_offer[card_e.id] then
 		-- Being asked for beats everything below: inside a window a reaction is
 		-- neither playable nor activatable, and it may well be spent as well, so
 		-- every other rule here would draw the one live card as dead.

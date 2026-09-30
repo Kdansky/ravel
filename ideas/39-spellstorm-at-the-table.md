@@ -26,10 +26,10 @@ the same bug.
 
 `announce`, an effect base, and a scope on `effect:` (AUTHORING, *Effects*). The weather
 zones are `fit: fill` now, since the cards are printed landscape; that also took the
-"Weather" label off the title. Left: the weather card is drawn dimmed, in its slot and
-announced, because `weather_now` defaults to `use: "play"` and a weather card cannot
-be played. [Assumption: `use: "none"` is the honest word, but a labelled `none` stack
-is drawn as a deck of backs by `render.lua`, so it wants a look first.]
+"Weather" label off the title. The announced card is drawn undimmed: lifted off the
+table it is there to be read, and nothing is clicked there. In its slot it stays
+dimmed, because it cannot be played and a play zone saying so is true — no
+`use: "none"`, no exception for weather.
 
 ## Gap 3 — damage, seen — built 2026-09-17
 
