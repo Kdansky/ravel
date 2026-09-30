@@ -169,7 +169,9 @@ Treat it as disposable.
    calls itself), the phase's declared zone, and the acting seat. `targeting`
    holds what a player was *offered*; flow decides what the rules allow, so a
    script or the debug API is bound by exactly the same checks the GUI is.
-3. **`settle` is the only driver.** It loops: pending `load_game` → the response
+3. **`settle` is the only driver.** It loops: pending `load_game` → `becomes`
+   (every card that started wearing a watched tag, own blocks first; anything
+   fired → loop, so no window opens over a corpse) → the response
    window (`stack.react_step`: a seat must answer → stop; a record resolved →
    loop) → end
    conditions (deferred while an overlay is open) → round boundaries

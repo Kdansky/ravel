@@ -508,6 +508,56 @@ local function run_on_round()
 	end
 end
 
+-- **A card starting to wear a tag is a moment, and `becomes` answers it.** Death asked for it: in most
+-- games it is not a move but a state, a number at nought the rules then resolve, and the corpse still
+-- standing knows which slot it fell in and whose it was. So it is noticed here, where the game comes
+-- to rest, and not at the stat write — a buff running out kills as surely as a blow and writes nothing
+-- to the card.
+--
+-- Each block runs only while the card still wears the tag and stands where it stood. A block that
+-- heals it or carries it off has answered the death, and the keyword's own death after it does not
+-- happen: that is the whole of a death replacement.
+--
+-- Everything that changed at once is heard at once, own blocks first: a death rattle asking who fell
+-- beside it has to find them still standing, and the keyword's death is what carries them off.
+--
+-- True when anything fired, so settle looks again before anything else moves.
+local function becomes_step()
+	local watched = declaration.G.becomes_list
+	if not watched or #watched == 0 then return false end
+	local due = {}
+	for e in entity.each("card") do
+		local z = e.zone_id and entity.get(e.zone_id)
+		-- A shelf's card is stock rather than one anybody holds, and a purged one is nowhere.
+		if z and z.status ~= "supply" then
+			for _, tag in ipairs(watched) do
+				local own, granted = cards.becomes(e, tag)
+				local now = (own or #granted > 0) and tags.entity_has(e, tag)
+				if now and not (e.wore and e.wore[tag]) then
+					e.wore = e.wore or {}
+					e.wore[tag] = true
+					due[#due + 1] = { e = e, tag = tag, own = own, granted = granted, zone = e.zone_id }
+				elseif not now and e.wore and e.wore[tag] then
+					e.wore[tag] = nil
+					if next(e.wore) == nil then e.wore = nil end
+				end
+			end
+		end
+	end
+	local function hear(d, b)
+		if d.e.zone_id ~= d.zone or not tags.entity_has(d.e, d.tag) then return end
+		local ctx = { card_id = d.e.id, targets = {} }
+		if predicate.meets_all(b.needs, ctx) then actions.run(b.action, ctx) end
+	end
+	for _, d in ipairs(due) do
+		if d.own then hear(d, d.own) end
+	end
+	for _, d in ipairs(due) do
+		for _, b in ipairs(d.granted) do hear(d, b) end
+	end
+	return #due > 0
+end
+
 -- Drive the game to a stable point: consume a queued load, fire end conditions,
 -- run automatic phases, run on_round triggers after a full round, deal freshly
 -- entered phases. Loops because each step can trigger the next. The budget
@@ -562,7 +612,9 @@ function M.settle()
 		-- stops and waits for input exactly as a fresh player_input phase does;
 		-- "resolved" means a stack item ran, so loop again; "idle" is every game
 		-- without a stack and every moment its stack is empty — unchanged.
-		local rstate = M.react_step()
+		-- Before the window, so nobody answers anything while a corpse is still on the board. What fired
+		-- counts as a resolution: look again before an outcome or a phase moves.
+		local rstate = becomes_step() and "resolved" or M.react_step()
 		if rstate == "waiting" then return end
 		-- A question waiting to be asked holds up phases exactly as an unanswered
 		-- window does, and is settled in the same place for the same reason.

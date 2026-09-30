@@ -254,6 +254,16 @@
           "action strings run when this card leaves, with @self as the departing card. Which departure is \"from\": leaving play by default, out of a zone whose status is \"board\" into one that is not, where moving between two board zones is not leaving anything. Written on a tag it covers a whole class at once, which is how \"every unit announces its death\" is one line; a tag hands it over whole and a card writing its own takes none of the tag's, the same rule play keeps. destroy: does NOT fire it — a destroyed card lands in no zone, so there is no \"into\" to name, and its stats are cleared, so a rule running afterwards has nothing left to read. A removal you want answered is a move into a zone."
         ]
       },
+      "becomes": {
+        "<tag>": {
+          "needs": [
+            "conditions, all of which must hold, asked of this card as @self when it starts wearing the tag — req, or a gate that splits the action list, as on leaves."
+          ],
+          "action": [
+            "action strings run when this card starts wearing the tag, with @self as the card. Keyed by the tag, so \"dead\": { ... } is \"when this dies\" in a game whose computed tag dead says what dying is — a number at nought rather than a move, noticed while the corpse is still standing, so the rule can read the slot it fell in and whose it was. Asked when the game comes to rest, after the action list that caused it and before anyone may respond; fires once per change, and again only after the card has stopped wearing the tag. Gathered as receive is — the card's own block, its zone's, its printed tags', then computed tags it wears — and they add up rather than one replacing another. Each runs only while the card still wears the tag and stands where it stood, so a block that heals it or carries it off is a death replacement and the keyword's death after it does not happen."
+          ]
+        }
+      },
       "chosen": {
         "where": [
           "conditions deciding which of the revealed cards may be picked, asked of each with the candidate as @target and this card as @self — the same word and the same vocabulary a target's \"where\" uses. The whole scope still comes up, because revealing a hand is usually half the rule; only the cards that qualify can be clicked. \"Largest\" is a comparison with the offer itself: \"sum:value@target >= max:value@options\". An offer where nothing qualifies does not open at all, since a mandatory question with no answer never closes. Only cards show: *borrowed* are asked — an entry options: dealt came off this card's own list, and narrowing a list you wrote is writing a shorter list."
@@ -419,6 +429,7 @@
         }
       ],
       "leaves": "the same block a card may write for itself, handed to every card carrying this tag — \"every unit of ours announces its death\" is one line here and one per card everywhere else. Whole block or none, as with play.",
+      "becomes": "the same block a card may write for itself, run for every card carrying this tag. It adds to the card's own rather than standing in for it: \"unit\": { \"becomes\": { \"dead\": { \"action\": [\"emit:died\", \"destroy:self\"] } } } is every unit's death, and a card writing its own death rattle still dies. The card's own runs first, so one that heals itself or leaves has replaced the death, and this one does not run.",
       "emits": {
         "play": "the verb every card carrying this tag announces when it is played — the same field a card may write for itself, and the place it belongs. \"spell\": { \"emits\": { \"play\": \"cast\" } } says once that spells go up to be answered, and every spell in the game inherits it; a Burst spell that cannot be responded to simply does not carry the tag. A zone handing the tag out through \"applies\" says instead that playing a card from *there* announces itself, which is how a bank makes buying answerable without the chips knowing. Written beside the moment blocks and not inside \"play\", on purpose: a \"play\" block is granted whole or not at all, so a tag that wanted only to add an announcement would take the card's own play action away from it.",
         "activate": "the verb every card carrying this tag announces when its ability is used. The same tag may say both, and a card may take one word from one tag and the other from another — a \"creature\" that summons on play and a \"tap\" keyword that announces its use are two sentences about the same card, and neither has to know about the other."

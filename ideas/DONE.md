@@ -1526,6 +1526,28 @@ the Power Track is `fill_track`, the two Ruby cards are one `ruby_pick`.
 - **Migration:** random play over 80 seeds × 200 moves reads the same board card
   by card before and after (Puzzle Strike and Arnak: 40 seeds, every move's board).
 
+# A card starting to wear a tag — `becomes` · shipped
+
+`"becomes": { "<tag>": { needs, action } }` on a card or a tag runs when a card
+starts wearing that tag. `flow.settle` checks every tag some block listens for
+(`G.becomes_list`, sorted) before the response window, remembers what each card
+wore in `e.wore` (string keys, so it survives saves and the wire), and loops if
+anything fired. `cards.becomes` gathers the blocks from the same four places
+`receive` does. Built for death: `dead` = `hp@self < 1`, so "when this dies" is
+`"becomes": { "dead": … }` on any card.
+
+- **Why at rest and not at the stat write:** a buff running out or a zone's
+  `applies` going away kills without writing to the card.
+- **Why a state and not a move:** Codex has death replacement, and its payout
+  rules read the corpse's slot and insurance — any hook that moved it first threw
+  that away. Four such hooks were tried and failed (see [38](38-repeated-shapes.md)).
+- **Replacement is a guard, not a precedence rule:** each block runs only while
+  the card still wears the tag and stands where it stood. Card and tag blocks add
+  up — unlike `play` and `leaves`, where the card's own replaces the tag's.
+- **Trap:** fired card by card, the first corpse's `destroy:self` removed it
+  before the next card's rattle could count it. Every card's own block now runs
+  before any granted one.
+
 # Bugs found on the way, and what they bought
 
 Recorded because each was invisible to a green test suite, and the fix in each

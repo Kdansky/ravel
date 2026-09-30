@@ -26,93 +26,42 @@ should have said so. The second kind is a word that is missing.
 
 ### 4. The death half
 
-An arrival is a moment the engine fires, and 49 `activate_zone:rules_arrive`
-lines went when it learned to. `rules_death` is the other half, appears 54 times
-in Codex, and is **not done**, deliberately. Four hooks were worked through and
-every one of them failed, all for the same reason, and the reason is the useful
-part.
+**The word shipped: `becomes`** (2026-10-01) — a card or tag block keyed by a tag,
+run when a card starts wearing it, heard in `flow.settle` before the response
+window. `dead` is already Codex's computed tag, so "when this dies" is
+`"becomes": { "dead": ... }`. Reference: AUTHORING *`becomes` — a card starting to
+wear a tag*; COOKBOOK *Triggers*; tests `tests/integration/becomes.lua`.
 
-**The 54 calls, measured.** 46 are the last line of a list that damaged or
-destroyed something — `["harm:hp@target:2", "harm:life@target:2",
-"harm:integrity@target:2", "activate_zone:rules_death"]`, forty-six times with a
-different first line each. The duplicated text is one string. 8 are
-load-bearing: `shadow_blade` and `nature_reclaims` call it *mid*-list because
-the next step needs the deaths settled first, three attack abilities call it
-because the killing happened eleven nested passes deep in the duel column, the
-`draw` phase calls it before the endturn walks, and `deteriorate` and `sickness`
-call it because they hand out a −1/−1 rune rather than damage. Whatever replaced
-the 46 has to be idempotent, because those 8 would fire it again — and the column
-is, since a board with no corpses does nothing.
+What cost the time, kept because it is why the word has the shape it has: four
+hooks failed on one fact — **death here is a state the rules resolve, not a
+moment** — and any hook that moved the corpse first threw away the slot it died
+in, whose it was, and whether it is insured or comes back. Hence noticed at rest,
+blocks run only while the card still wears the tag and stands where it stood
+(that is death replacement), and every card's own block before any tag's (a
+rattle must find the others that fell with it still standing).
 
-**There are two roads to a death, and they do not overlap.** Measured on a live
-board:
+**Left — Codex does not use it yet.** Codex still writes its death as the
+`rules_death` column plus 54 `activate_zone:rules_death` calls:
 
-```
-destroy: a unit    →  emits "died"    hp still 2, card already in the discard
-harm to zero       →  emits nothing   hp now 0,  card still standing in the army
-```
-
-`destroy:` moves the card, so `leaves` fires and Codex's
-`tags.unit.leaves` already turns that into `emit:died` — **14 of the 54 need no
-engine change at all and never did.** The other 40 are a number crossing a floor:
-30 damage lines, 4 nested walks, 3 stats written straight to nought, 3 runes.
-`destroy` catches none of those, and a threshold catches none of the 14.
-
-**What was tried, and why each failed.**
-
-- *A global `moments` block.* Wrong shape and rightly rejected: an arrival
-  belongs to the place it happens in, not to a table of hooks. Its replacement
-  for arrival, a word on the zone, is what shipped.
-- *A zone-level `leaves`, symmetric to `arrives`.* Cannot drive these. Every
-  payout rule reads the corpse **while it is still standing** —
-  `count:dead@mine.patrol.at_scav >= 1` is asking which patrol slot it died in —
-  and `r_units` at the bottom of the column is what finally moves it. The
-  departure is the last step of resolving the death, not its trigger.
-- *A computed tag that announces itself when a card starts wearing it.* The
-  best-shaped of the four, and the only one still worth proposing. `dead` is
-  already `hp@self < 1`, so the game has written down what death means; the
-  engine sees every stat change and could announce the transition. Two costs: a
-  computed tag carries nothing today except `buffs`, whose carve-out sentence
-  says "and nothing else", so this becomes the second exception; and "started
-  wearing it" needs the previous answer remembered. That second one is cheaper
-  than it first looked — keyed by *tag name* it is a string key already, unlike
-  the card-id set that forced `re_answered` to be a list.
-- *Arriving in a grave zone as the death event.* Circular for the damage road,
-  and the tags say why:
-
-```json
-"returning": { "needs": ["homing@self >= 1",       "hp@self < 1"] }
-"reviving":  { "needs": ["tagged:juggernaut@self", "hp@self < 1", "lives@self == 0"] }
-"claimed":   { "needs": ["insured@self >= 1",      "hp@self < 1"] }
-```
-
-  **Codex has death replacement.** A card at nought is not on its way to the
-  graveyard: Brave Knight goes to *hand*, Justice Juggernaut is healed back up
-  and never dies at all, and the Insurance Agent pays out before it leaves.
-  Arriving in the graveyard is the *answer* the rules produce, not the question
-  that starts them.
-
-**So the one fact all four hit.** Arrival is a moment, which is why a word for it
-worked. **Death here is not a moment — it is a state the rules then resolve**,
-and the corpse standing at nought carries what nothing else does: which slot it
-died in, whose it was, whether it is insured, whether it has a second life. Any
-hook that moves it first throws that away.
-
-Which leaves one shape that fits: *check the board for pending deaths, now.* The
-46 calls are the author saying exactly that, 46 times. A word for it is one
-**engine zone tag** on the column that gets walked — the weight of `shuffle` and
-`refill_when_empty`, not a section of its own. Built once as a top-level `sweep`
-section and reverted: a section is a claim that the game declares a new kind of
-thing, and this is a property of one zone.
-
-**One thing left here that needs no engine change at all** — the mirror pairs
-went first, and are written up in §1; they were the bigger duplication.
-
-- **The `destroy` road may have a live bug.** `r_scav` reads
-  `count:dead@mine.patrol.at_scav` — a *destroyed* patroller has already left the
-  patrol, so the Scavenger pays nothing, where in Codex it pays however the unit
-  dies. Worth checking before any word is added, since it changes what the word
-  would have to cover.
+- Move the column's abilities onto `tags.unit.becomes.dead` (and hero,
+  building) and onto the cards that replace their death (Brave Knight, Justice
+  Juggernaut, Insurance Agent's payout), then delete the 46 trailing calls, the
+  attack abilities' three, `draw`'s one, and `deteriorate`/`sickness`'s two.
+  [Assumption: every column ability splits cleanly into "what every unit does"
+  and "what one card does instead"; the payout rules that read `at_scav` and
+  `insured` are the ones to check first.]
+- **`shadow_blade` and `nature_reclaims` need deaths settled mid-list**, which
+  `becomes` alone does not do — it is heard when the list ends. They keep their
+  `activate_zone` call until an action meaning "hear it now" exists; that is a
+  new word and wants agreeing first.
+- **`destroy:` still moves before anyone asks.** `r_scav` reads
+  `count:dead@mine.patrol.at_scav`, and a destroyed patroller has already left
+  the patrol, so the Scavenger pays nothing where Codex pays on any death.
+  [Assumption: Codex's fix is a game verb `destroy` that sets hp to nought, so
+  both roads end in `becomes.dead`; content only.]
+- `hp` must come back when a card leaves play, or a Brave Knight bounced at
+  nought is still wearing `dead` in hand. [Assumption: unchecked — `unhook`
+  clears stats only on `purge`.]
 
 ### 6. A printed stat that steps
 

@@ -1443,6 +1443,32 @@ The zone answers for itself, exactly as a card does.
 `into` names where it landed, and that is what tells one kind of leaving from another. Leave
 `from` out and it means leaving **play**; a card walking between two board zones fires nothing.
 
+### When this dies — damaged to nothing, or its last buff gone.
+
+```json
+"computed_tags": { "dead": { "needs": { "req": ["hp@self < 1"] } } },
+"tags": { "unit": { "becomes": { "dead": { "action": ["emit:died", "destroy:self"] } } } }
+```
+
+```json
+"becomes": { "dead": { "action": ["stat_damage:integrity@enemy.base:1"] } }
+```
+
+Damage moves nothing, so `leaves` never hears it. `becomes` fires when a card starts wearing a tag,
+noticed when the game comes to rest, while the corpse still stands. The tag's block and the card's
+own add up, the card's first — and every dying card's own before any tag's, so all the corpses are
+still there to be counted.
+
+### When this would die, return it to your hand instead.
+
+```json
+"becomes": { "dead": { "action": ["move_to:mine.hand"] } }
+```
+
+Each block runs only while the card still wears the tag and stands where it stood. This one moves
+it, so the keyword's `destroy:self` after it does not run. Healing it back up replaces the death the
+same way, and it can die again later.
+
 ### When you discard this from your hand, gain 1 power.
 
 ```json

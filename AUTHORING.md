@@ -62,7 +62,7 @@ and a line here names a section that exists:
 - **What a file holds** — Top-level fields · One game out of several files · `comment` — the one field the engine will not read · `ravel_` — the fields that are the engine's · Stats · Zones · A shelf — several zones on one rect · The system column · Players · Setup · Card templates · Two marks in card text · A caption that reads the board · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · A turn each · Two or more players · The player is a card · A stat says whose number it is
 - **Asking the board a question** — Conditions (one vocabulary everywhere) · `lowest:` and `highest:` — a pool in order · `aims:` — what an ability could point at · `spread` — an aim that spends points rather than cards · `needs` — what failing it does · `@everywhere` — every card, hands and decks included · `select` — a cost the player settles · `@owner_of` — the seat a card belongs to · `@attached_to` and `@host_of` — a card standing on another · `owned_by` — the cards of seats picked by what is true of them · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A place may be a word several zones wear · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
-- **What a card does** — Actions · A card that can do several things · Readiness — spent, given back, and asked about · `merge` — what an ability says to the others on its card · Gates — an if inside an ability · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag, or a counter, that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · A verb with a body — the game's own action · `does: "target"` — naming the aim, so the target can answer it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
+- **What a card does** — Actions · A card that can do several things · Readiness — spent, given back, and asked about · `merge` — what an ability says to the others on its card · Gates — an if inside an ability · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag, or a counter, that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · A verb with a body — the game's own action · `does: "target"` — naming the aim, so the target can answer it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out · `becomes` — a card starting to wear a tag
 - **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · A second asker is a second answer · `chosen`'s `where` — which of the revealed cards may be taken · An answer may have a price · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · A list waits for the question it asked
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `answered` — the announcement itself · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · An automatic phase can ask, if the ask is the last thing it does · A mandatory reaction is how you ask somebody else a question · What it will not do yet
 - **Boards and pieces** — Pieces that move · Asking about the square you are considering · Moves with fixed destinations (castling) · Legality between two cards · Which end of a deck a card lands on · A cell, where the destination is a grid · Filling a row up · `origin` — back where it came from · `fan` — a stack you can read
@@ -303,7 +303,7 @@ game that looks right and plays wrong:
   (see *Actions*); "never below one" is genuinely missing.
 
 Triggers and auras used to be on this list and are not: "when a creature dies"
-is `leaves`, "when this arrives" is the zone's `arrives`, anything announced is
+is `becomes` where death is a number at nought and `leaves` where it is a move, "when this arrives" is the zone's `arrives`, anything announced is
 `verbs` plus `reactions`, and "all your beasts have +1" is an `adjusts` entry.
 All four are in §5.
 
@@ -1489,6 +1489,7 @@ disk cache with no network at all.
 | `receive` | `needs`: whether **this** card may be aimed at, or be the destination of the card being played, with itself as `@self` and the aiming card as `@target` (see *Legality between two cards*). `action`: what this card does about the aim that was made, read the same way round — run once per chosen target, after the cost and **before** the aiming card acts, which is what lets *"dies when a spell aims at it"* leave the spell nothing to land on. `when`: which aims the action answers, since `needs` cannot serve — it refuses the aim outright, where an Illusion is targetable by everything and dies only to some of it. Fires only where a player **pointed**, never where a scope named. A zone takes the same block, where the halves are about a card *arriving* rather than an aim. **`when` and `action` read `mine` as the card's own owner**, not as whoever is up — being pointed at is not something the receiver chose to do, so *"your Illusions no longer die when a spell aims at them"* has to be asked from the Illusion's side. `needs` is the exception and keeps the ordinary reading, because it gates whether the aim may be made and is honestly about the aimer: Codex's stealth asks whether **you** have a detector |
 | `round` | `action`: run at each round boundary while the card is on a grid and not ruined |
 | `leaves` | `action`: run when this card **leaves**, with `@self` as the departing card. `from` says which departure — leaving play by default, out of a `status: board` zone into one that is not; name a zone and it is leaving that zone, which is how "when you discard this" is said. `into` names the zone it landed in, and is what tells death from exile from bounce (see *`leaves` — a card on its way out*) |
+| `becomes` | Keyed by a tag: `{ "dead": { needs, action } }` runs when this card **starts wearing** that tag, with `@self` as the card — which is "when this dies" in a game whose computed tag says what dying is. Heard when the game comes to rest, while the corpse still stands. Adds to a tag's block rather than replacing it (see *`becomes` — a card starting to wear a tag*) |
 | `chosen` | `action`: run when somebody picks a card out of the offer **this** card opened with `show:`, with the pick as `@target` and this card as `@self`. The reverse of an `options:` offer, where the entry carries the rule and the asker is what it is about — here the entry is somebody else's property and carries nothing of ours |
 | `play.target` / an ability's `target` | Click-to-target with the arrow. Fields: `type` (`"card"`, `"slot"` or `"zone"` — a zone target names places in `zones` and ignores `tags`), `min`/`max` (or `count` for both), `tags` (all must match; computed tags count), `zones` (search only these — a per-seat key means *yours*), `owner` (`mine`/`enemy`/`anyone`), `fill` (slots only — see below) |
 | `fill` | What may already be standing on a targeted square: `empty` (default), `enemy`, `open` (empty or enemy — "not blocked by my own"), `any`. Anything but `empty` is how a square you are about to capture becomes clickable |
@@ -1971,6 +1972,7 @@ the anchor for any pattern inside it.
 | a move rule | `req`, `where` | |
 | `chosen` | `where` | asked of each revealed card |
 | `leaves` | `req`, gates | one departure is often two rules told apart by who is up |
+| a `becomes` block | `req`, gates | the same, for the same reason |
 | `challenge`, `receive`, `arrives`, an `adjusts`, a computed tag | `req` | `receive`'s is asked of each candidate destination, as `@self` — it is written on the destination |
 
 **The escape hatch on `needs`.** A `needs`-gated card becomes playable anyway
@@ -4239,6 +4241,64 @@ is the shelf's number going up, and a number was never anywhere to have a
 zone** — which is what naming one has always been for. `purge:` stays the way
 to take something off the table that nobody may ask about, which is what a token
 vanishing and a swept husk both want.
+
+### `becomes` — a card starting to wear a tag
+
+**In most card games a death is not a move.** Damage writes a number and moves
+nothing, so `leaves` never hears it; the rules then look at the board, find a
+unit at nought, and resolve it — and until they do, the corpse still standing
+knows which slot it fell in, whose it was and whether anything saves it. The
+engine does not learn what dying is. The game says it once, as a computed tag:
+
+```json
+"computed_tags": { "dead": { "needs": { "req": ["hp@self < 1"] } } }
+```
+
+and a card says what happens when it starts wearing it:
+
+```json
+"becomes": { "dead": { "action": ["stat_damage:integrity@enemy.base:1"] } }
+```
+
+**Written on a tag it is the whole game's rule**, and unlike `play` and `leaves`
+a tag's block *adds to* a card's own rather than standing in for it — a card's
+death rattle is said on top of dying, not instead of it:
+
+```json
+"tags": { "unit": { "becomes": { "dead": { "action": ["emit:died", "destroy:self"] } } } }
+```
+
+`emit:died` is how everyone else hears it: a card watching for deaths is an
+ordinary reaction, exactly as under `leaves`.
+
+**When it is heard.** When the game comes to rest — after the action list that
+caused it, before anyone may respond to anything. So a blow, a stat set to
+nought, a buff running out and a zone's `applies` going away all kill alike,
+though only the first writes to the card. It fires once per change: a card
+that stops wearing the tag and starts again is heard again.
+
+**Order.** The card's own block, then what its zone's `applies`, its printed
+tags and the computed tags it wears grant it — the same four places `receive`
+gathers from. Everything that changed at once is heard at once, and **every
+card's own block before any tag's**, so a rattle asking who fell beside it finds
+them still standing.
+
+**A death replacement is a block that answers first.** Each block runs only
+while the card still wears the tag and stands where it stood, so one that heals
+the card, or carries it somewhere, has answered the death — and the keyword's
+`destroy:self` after it does not happen:
+
+```json
+"becomes": { "dead": { "action": ["move_to:mine.hand"] } }
+```
+
+*Brave Knight goes to your hand instead.* A card that heals itself back up is
+the same sentence with `stat_gain:hp@self:2` in it.
+
+**`needs`** takes `req` and gates, as on `leaves`, asked of the card as `@self`.
+
+**Not a way to watch another card.** A `becomes` is what happens *to this card*;
+what the rest of the table does about it is a reaction to what it emits.
 
 ### `pays_for` — one thing spent as another
 

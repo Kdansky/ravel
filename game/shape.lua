@@ -178,10 +178,14 @@ local function with_moments(fields)
 	return fields
 end
 
+-- A card starting to wear a tag, keyed by the tag. Not a moment: a moment is one block
+-- of fixed words, and this is one block per tag the card cares about.
+local BECOMES = map(rec({ needs = NEEDS, action = ACTIONS }), '{ "dead": { "action": ["emit:died"] } }')
+
 local CARD = rec(with_moments({
 	key = STR, text = STR, name = STR, tooltip = STR, story = STR, asset = STR,
 	tags = STRS, card_stats = map(STAT_VALUE, '{ "hp": 3 }'), outcome = STR, grave = STR,
-	reactions = list(REACTION),
+	reactions = list(REACTION), becomes = BECOMES,
 }))
 
 local ADJUST = rec({ key = STR, verb = STR, stat = STR, covers = STR, needs = NEEDS,
@@ -189,7 +193,7 @@ local ADJUST = rec({ key = STR, verb = STR, stat = STR, covers = STR, needs = NE
 
 local TAG = rec(with_moments({
 	zone = STR, grave = STR, tooltip = STR,
-	buffs = map(NUM, '{ "atk": 1 }'), adjusts = list(ADJUST),
+	buffs = map(NUM, '{ "atk": 1 }'), adjusts = list(ADJUST), becomes = BECOMES,
 }))
 
 local ZONE = rec(with_moments({
@@ -475,6 +479,8 @@ M.ENTITY = {
 		borrowed_from = NUM, origin_zone_id = NUM, origin_slot_id = NUM,
 		stats = map(NUM), stat_max = map(NUM), stat_min = map(NUM),
 		exhausted = BOOL, minted = BOOL, imaginary = BOOL, imaginary_depth = NUM,
+		-- The watched tags it was wearing when last asked, so `becomes` fires on the change.
+		wore = map(BOOL),
 		-- A record on the stack: stack.push_event writes these.
 		re_action = LINES, re_verb = STR, re_subject = IDS, re_event = IDS, re_targets = IDS,
 		re_let = map(NUM), re_aimed = STRS, re_source = NUM, re_spent = STR, re_ability = STR,

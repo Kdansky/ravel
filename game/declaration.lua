@@ -754,6 +754,7 @@ function M.parse(filename)
 		-- The computed tags, in the order the file wrote them. "cards.abilities"
 		-- walks this, and an ability's index has to be the same on both machines.
 		computed_list  = {},
+		becomes_list = {},
 		-- A style is a named bundle of presentation properties, claimed by
 		-- tagging it. "This card is crimson" becomes a word instead of three
 		-- numbers repeated on fourteen cards, and the word can be a computed
@@ -1030,6 +1031,18 @@ function M.parse(filename)
 			end
 		end
 	end
+
+	-- Every tag some card or tag listens for with `becomes`. Sorted, because settle walks them in this
+	-- order and both machines must fire in the same one.
+	local watched = {}
+	for _, d in ipairs({ G.card_defs, G.tag_defs }) do
+		for _, def in pairs(d) do
+			for tag in pairs(type(def) == "table" and type(def.becomes) == "table" and def.becomes or {}) do
+				if not watched[tag] then watched[tag] = true; G.becomes_list[#G.becomes_list + 1] = tag end
+			end
+		end
+	end
+	table.sort(G.becomes_list)
 
 	-- Zones may omit pos: every type has a sensible default spot, so a first
 	-- game needs no layout numbers at all (tune later). Hidden zones default

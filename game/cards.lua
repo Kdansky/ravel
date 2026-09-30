@@ -459,6 +459,36 @@ function M.on_receive(card_entity)
 	return out
 end
 
+-- **What a card does on starting to wear `tag`**: its own block, and then what the three other places
+-- on_receive gathers from grant it — its zone's `applies`, its printed tags, the computed tags it wears,
+-- sorted. Two answers because they are heard apart: unlike a granted `play` these add up, the card's
+-- own death rattle and its keyword's death both being the one death, and every card's own is heard
+-- before any keyword carries a corpse off.
+function M.becomes(card_entity, tag)
+	local out = {}
+	local function take(d)
+		local b = d and type(d.becomes) == "table" and d.becomes[tag]
+		if b then out[#out + 1] = b end
+	end
+	local def = M.def(card_entity)
+	local own = type(def) == "table" and type(def.becomes) == "table" and def.becomes[tag] or nil
+	local z = card_entity and card_entity.zone_id and entity.get(card_entity.zone_id)
+	for _, t in ipairs(z and z.applies or EMPTY) do take(declaration.G.tag_defs[t]) end
+	for _, t in ipairs(type(def) == "table" and type(def.tags) == "table" and def.tags or EMPTY) do
+		take(declaration.G.tag_defs[t])
+	end
+	local worn = {}
+	for t in pairs(declaration.G.computed_tags or EMPTY) do
+		local td = declaration.G.tag_defs[t]
+		if td and type(td.becomes) == "table" and td.becomes[tag] and require("tags").entity_has(card_entity, t) then
+			worn[#worn + 1] = t
+		end
+	end
+	table.sort(worn)
+	for _, t in ipairs(worn) do take(declaration.G.tag_defs[t]) end
+	return own, out
+end
+
 -- Every reaction a card carries, in the order it is asked. Its own, written on
 -- the card, come first; tag-granted and zone-applied reactions are a later
 -- refinement (a keyword that reacts, a zone that makes what lies in it react).
