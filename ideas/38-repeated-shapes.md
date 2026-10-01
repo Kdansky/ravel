@@ -30,16 +30,7 @@ should have said so. The second kind is a word that is missing.
 lesson that shaped it: death is a state the rules resolve, not a moment, so a
 hook that moves the corpse first loses the slot, the owner, and any replacement.
 
-**Left:**
-
-- **A death with no room in its grave loops.** `death_step` destroys, the move
-  is refused (a full command zone, say), the card stays at `dies_at`, and settle
-  spins until "transition budget exhausted". It should say which card and why.
-- **Sacrifice is a purge**, so `sacrifice:unit` fires no `leaves`: a sacrificed
-  patroller pays no post and an insured one claims nothing.
-- LoR needs nothing: no death triggers, and its late `destroy:dead` is what
-  lets an Overwhelm attacker that traded still carry `spill` to the nexus.
-  Spellstorm has no deaths at all.
+Nothing left.
 
 ### 6. A printed stat that steps
 

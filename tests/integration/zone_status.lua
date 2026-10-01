@@ -39,6 +39,7 @@ local GAME = [==[{
     { "key": "board", "layout": "grid", "use": "abilities", "grid": [4, 1],
       "pos": [0.20, 0.35, 0.50, 0.50] },
     { "key": "trash", "layout": "stack", "pos": [0.05, 0.45, 0.15, 0.60] },
+    { "key": "pyre", "status": "grave", "layout": "stack", "pos": [0.05, 0.05, 0.15, 0.18] },
     { "key": "stack", "layout": "stack", "tags": ["stack"], "pos": [0.05, 0.20, 0.15, 0.35] }
   ],
   "phases": [
@@ -127,9 +128,7 @@ function M.test_status_sacrifice_reaches_what_is_in_play(check)
 		local lamp = zones.add(zone_of("ongoing", "one"), "lamp")
 		check("a laid-out chip is something to sacrifice", flow.can_play(burner.id))
 		flow.play_card(burner.id, {})
-		-- Destroying a card empties it rather than unregistering it, so what says
-		-- it is gone is that it is nowhere.
-		check("and it was the one that went", entity.get(lamp.id).zone_id == nil)
+		check("and it was the one that went", entity.get(lamp.id).zone_id == zone_of("pyre").id)
 	end)
 end
 

@@ -2477,4 +2477,26 @@ function M.test_codex_channeling_ends_with_its_hero(check)
 	check("and the drums went with him", entity.get(drums.id).zone_id == zones.find_id("discard", "mine"))
 end
 
+-- A hero's death is a death into the discard that its `leaves` redirects to command. With command full the
+-- redirect is refused and the death goes where any death goes, rather than leaving the hero at nought.
+function M.test_codex_a_hero_with_no_room_in_command_dies_plainly(check)
+	start("pick_red", "pick_green")
+	local copy = summon("zane", "mine.army")
+	copy.stats.life = 0
+	flow.settle()
+	check("the copy went to the discard", entity.get(copy.id).zone_id == zones.find_id("discard", "mine"))
+	check("and command still holds its three", count_in("command") == 3, tostring(count_in("command")))
+end
+
+-- A sacrifice is a death the payer chooses, so the scavenger post pays for it as it pays for any other.
+function M.test_codex_a_sacrificed_scavenger_pays_its_post(check)
+	start("pick_red", "pick_green")
+	local scav = post("mad_man", "mine", 3)
+	local gold = seat("south").stats.gold
+	require("costs").pay({ ["sacrifice:unit"] = 1 }, {}, { { sacrifice = "unit", n = 1, ids = { scav.id } } })
+	flow.settle()
+	check("it died into the discard", entity.get(scav.id).zone_id == zones.find_id("discard", "mine"))
+	check("and the post paid its gold", seat("south").stats.gold == gold + 1, tostring(seat("south").stats.gold))
+end
+
 return M

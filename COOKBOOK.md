@@ -869,7 +869,8 @@ ready at the round boundary.
 
 The player picks which unit — a sacrifice is always theirs to choose, and needs no word to say so. A
 tag names a kind and never a side, so the pool refuses anything with a foreign owner: you may spend
-your own and whatever stands on a board nobody owns, never theirs.
+your own and whatever stands on a board nobody owns, never theirs. The unit dies as `destroy:` kills it: into its grave,
+with its `leaves` firing.
 
 ### Sacrifice this to use its ability.
 

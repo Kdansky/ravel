@@ -937,6 +937,8 @@ local CASES = {
 		function(g) g.stat_defs.hp.dies_at = "zero" end },
 	{ "a dies_at the floor never lets it reach", "so nothing ever dies of it",
 		function(g) g.stat_defs.hp.min = 0; g.stat_defs.hp.dies_at = -1 end },
+	{ "a grave that can fill up", "a grave must always have room",
+		function(g) g.card_defs.pearl.grave = "board" end },
 }
 
 -- The verb check runs last for a reason: what a game emits is only known once

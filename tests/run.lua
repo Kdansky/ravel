@@ -878,8 +878,9 @@ local flee = find_card("c_flee", "hand")
 check("a sacrifice cost gates without the board card", flow.can_play(flee.id) == false)
 eval("create:board:pearl:1")
 check("the sacrifice cost opens with it on the board", flow.can_play(flee.id) == true)
+cards.edit("pearl", "grave", '"chest_deck"')
 flow.play_card(flee.id, {})
-check("paying destroyed the sacrificed card", zone_count("board") == 0)
+check("paying destroyed the sacrificed card", zone_count("board") == 0 and find_card("pearl", "chest_deck") ~= nil)
 local logged = false
 for _, l in ipairs(log.tail(8)) do
 	if l:find("Sacrificed The Pearl", 1, true) then logged = true end

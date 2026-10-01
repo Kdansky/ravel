@@ -3702,6 +3702,25 @@ function M.check(G)
 		end
 	end
 
+	-- A death cannot be refused for want of room: a card that may not go to its grave stays at the number
+	-- it dies at, and the next settle kills it again. A grid is the one layout that fills up.
+	local graves = {}
+	for key, z in pairs(G.zone_defs or {}) do
+		if z.status == "grave" then graves[key] = true end
+		if z.grave then graves[z.grave] = true end
+	end
+	for _, defs in ipairs({ G.card_defs or {}, tag_defs }) do
+		for _, d in pairs(defs) do
+			if d.grave then graves[d.grave] = true end
+		end
+	end
+	for key in pairs(graves) do
+		local z = G.zone_defs[key]
+		if z and z.layout == "grid" then
+			warn("zone '%s': cards die into it, but it is a grid, which fills up — a grave must always have room", key)
+		end
+	end
+
 	-- Every game is a merge, so an entry may come from a file the author never
 	-- opened. Its name is already at the front of the message; this says whose
 	-- it is. Done once over the finished list rather than at forty call sites,

@@ -86,7 +86,7 @@ end
 --   { subject, n }            owed exactly as written — "each", a measuring fn,
 --                             or a scope that waits on targets
 --   { subject, n, id, stat }  n of a pool, off that one card
---   { sacrifice, n, ids }     those cards, purged
+--   { sacrifice, n, ids }     those cards, destroyed
 --   { exhaust }               the asking card's own readiness
 local function demands_of(cost, ctx)
 	local demands = {}
@@ -434,7 +434,7 @@ function M.legal(cost, ctx, payment)
 end
 
 -- Pay a cost: a pooled step spends n off the one card it names, a sacrifice
--- purges the cards its step names, "exhaust" spends the asking card's readiness,
+-- destroys the cards its step names (a death, so `leaves` fires), "exhaust" spends the asking card's readiness,
 -- and everything else is spent through its subject so a scope and quantifier are
 -- honoured. Every step was decided before any of them ran, so there is no
 -- half-paid cost to unwind.
@@ -449,7 +449,7 @@ function M.pay(cost, ctx, payment)
 				if victim then
 					local vdef = cards.def(victim)
 					log.add("Sacrificed " .. (vdef and vdef.text or victim.def_key))
-					zones.purge_card(id)
+					actions.destroy(id)
 				end
 			end
 		else

@@ -1480,7 +1480,7 @@ disk cache with no network at all.
 | `story` | Long-form prose, shown on the reveal page panel and in the detail view |
 | `tags` | Free vocabulary for targeting and counting, plus any style the card claims. The words the engine itself reads are in *Every tag the engine reads* |
 | `card_stats` | Per-instance stats stamped at creation. A number is a bare current value; a card that carries its own bounds writes them by name — `{ "value": 4, "max": 4 }`, and `min` beside them — which are the same three words the `stats` entry uses. `hp` shows a badge; 0 hp = ruined, skips `turn.action` |
-| `play` | Playing the card. `cost` is spent (gates the card and dims it when unaffordable; `"sacrifice:<tag>": n` pays by purging n board cards with that tag, and **the player always chooses which** — `"sacrifice:self"` is the card spending itself, which no tag can name). `needs` is a non-consuming gate, asked once before targeting opens and so blind to targets — see *`needs` and `where`*, which also carries the escape hatch. `target` is click-to-target (below). `phases` is a phase key or list, and naming none means any — this is "cast only during your main phase". `action` is what happens |
+| `play` | Playing the card. `cost` is spent (gates the card and dims it when unaffordable; `"sacrifice:<tag>": n` pays by destroying n board cards with that tag — a death like any other, so each goes to its grave and its `leaves` fires, and **the player always chooses which** — `"sacrifice:self"` is the card spending itself, which no tag can name). `needs` is a non-consuming gate, asked once before targeting opens and so blind to targets — see *`needs` and `where`*, which also carries the escape hatch. `target` is click-to-target (below). `phases` is a phase key or list, and naming none means any — this is "cast only during your main phase". `action` is what happens |
 | `abilities` | What the card can be used for, one entry each — `cost`, `target`, `phases`, `needs`, `compute`, `action`. A card that does one thing writes a list of one. **A `needs` asks and takes nothing**, which is the difference from a cost: a button reading "you must have bought at least one chip" is a question, and writing it as a cost would spend the purchase it was checking for. **Being spent is a cost**: `"cost": { "exhaust": 1 }` makes it once-a-round, and an ability that does not charge it stays available, which is how a permanent button works ("pass the time"). A board card shows three states — ready, greyed "exhausted" (spent this round), greyed "can't yet" (cost or targets unavailable). `moves` says how a piece moves on a grid and writes the `target` for you (see *Pieces that move*) |
 | `reactions` | A list of subscriptions to another player's action — each with the verb it answers (`to`), a condition about the event (`where`), a condition about the reactor (`needs`), and the `cost`, `target` and `action` an ability has. `spent` says where the card lands once its answer is over. See *Reactions* |
 | `emits` | What playing or activating this card **announces**, so a reaction may answer it: `{ "play": "cast" }`. Beside the moments rather than inside them, because a tag granting a `play` block grants it whole — written on a tag, one line makes every spell in the game answerable |
@@ -4285,9 +4285,12 @@ it. A game says which numbers kill, on the stat:
 *A unit with no hp left dies; so does a building with no structure.* The engine
 then does the rest, and does it as `destroy:` does: the card moves into its
 grave — its own, its tags', its zone's, its seat's, the table's, narrowest
-first — so its `leaves` fires and the table may answer. **Where it goes instead**
-is that same lookup: `"grave": "command"` on the hero tag, `"grave": "hand"` on a
-knight that rides home.
+first — so its `leaves` fires and the table may answer. **A grave always has
+room**, so the check refuses a grid as one: a death the grave refused would leave
+the card at the number it dies at, to be killed again. **Where it goes instead**
+is a move in its `leaves`: Codex's hero dies into its discard and its block says
+`move_to:mine.command`. If that move is refused, say because command is full, the
+death goes on into the grave as any other does.
 
 **A death a card refuses** is its own `leaves` saying `stay`. The block runs
 while the card still stands, so it can heal it, mark it, and keep it there:

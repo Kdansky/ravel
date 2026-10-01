@@ -212,7 +212,7 @@
       "contents": ["tome:2"]
     },
     { "key": "seat_box", "status": "board", "layout": "stack", "pos": [0.02, 0.47, 0.17, 0.94] },
-    { "key": "discard", "label": "Spent", "layout": "stack", "pos": [0.875, 0.05, 0.99, 0.4] },
+    { "key": "discard", "label": "Spent", "status": "grave", "layout": "stack", "pos": [0.875, 0.05, 0.99, 0.4] },
     {
       "key": "fate",
       "layout": "stack",

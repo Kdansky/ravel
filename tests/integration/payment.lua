@@ -198,9 +198,9 @@ function M.test_payment_a_sacrifice_always_asks(check)
 		end
 		check("one of them takes the newest", want ~= nil)
 		check("it was played", flow.play_card(rite.id, {}, want) == true)
-		check("the newest died", entity.get(three.id).zone_id == nil)
+		check("the newest died", entity.get(entity.get(three.id).zone_id).key == "discard")
 		check("and the older two are standing",
-			entity.get(one.id).zone_id ~= nil and entity.get(two.id).zone_id ~= nil)
+			entity.get(entity.get(one.id).zone_id).key == "army" and entity.get(entity.get(two.id).zone_id).key == "army")
 	end)
 end
 
@@ -214,8 +214,8 @@ function M.test_payment_sacrifice_self_takes_the_asking_card(check)
 		local ways = flow.rule_payments(second.id, cards.def(entity.get(second.id)).abilities[1], {})
 		check("spending itself is one way, never two", #ways == 1, tostring(#ways))
 		check("it went off", flow.activate(second.id, {}, 1, ways[1]) == true)
-		check("the card that asked is gone", entity.get(second.id).zone_id == nil)
-		check("and the other one is untouched", entity.get(first.id).zone_id ~= nil)
+		check("the card that asked died", entity.get(entity.get(second.id).zone_id).key == "discard")
+		check("and the other one is untouched", entity.get(entity.get(first.id).zone_id).key == "army")
 	end)
 end
 
@@ -317,7 +317,7 @@ function M.test_payment_a_sacrifice_cannot_take_the_other_seat(check)
 		check("one unit of my own is one way", #ways == 1, tostring(#ways))
 		check("and it is mine", ways[1][1].ids[1] == mine.id)
 		check("it was played", flow.play_card(rite.id, {}, ways[1]) == true)
-		check("mine died", entity.get(mine.id).zone_id == nil)
+		check("mine died", entity.get(entity.get(mine.id).zone_id).key == "discard")
 		check("and theirs is standing", entity.get(theirs.id).zone_id ~= nil)
 	end)
 end

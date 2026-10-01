@@ -1549,8 +1549,15 @@ nothing writes nothing. `becomes`, the tag-transition hook built first, is gone.
   redrawn dead.
 - **Trap:** `each_seat:` moved the turn, but a lens outranks it, so inside a
   death every pass was the owner's. It now holds each seat's lens.
+- **A grave always has room**, and the check refuses a grid as one: a refused
+  death left the card at `dies_at`, and settle killed it again until the budget
+  ran out. Going somewhere else is a move in `leaves` — Codex's hero dies into its
+  discard and moves to command — and a refused redirect is an ordinary death.
+- **Sacrifice is `destroy`**, a death the payer chooses: grave, `leaves` and all.
 - **Codex** dies at 0 on `hp`, `life` and `integrity`; the base dies into
-  `ruins`. LoR and Spellstorm need nothing.
+  `ruins`. Brave Knight's way home asks `slain`, which only a fight writes. LoR's
+  late `destroy:dead` is what lets a traded Overwhelm attacker still spill;
+  Spellstorm has no deaths.
 
 # Bugs found on the way, and what they bought
 
