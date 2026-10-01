@@ -1249,6 +1249,9 @@ function M.test_codex_white_reversal(check)
 	start("pick_white", "pick_green")
 	take_the_field("grave")
 	local prey = post("ironbark_treant", "enemy", 3)
+	-- Sturdy enough to live through the three, or what is read below is a corpse's, and a card out of
+	-- play keeps nothing.
+	prey.stat_max.hp, prey.stats.hp = 9, 9
 	local spell = require("cards").create("reversal", zones.find_id("hand", "mine"))
 	seat("south").stats.gold = 20
 	flow.play_card(spell.id, { prey.id })
@@ -1292,6 +1295,7 @@ function M.test_codex_orpal_damages_in_runes(check)
 	-- The scavenger post lends no armour, so the blow lands and there is a
 	-- survivor to read: Orpal is 1 ATK and the cub is a 2/2.
 	local prey = post("tiger_cub", "enemy", 3)
+	prey.stat_max.hp, prey.stats.hp = 9, 9
 	use(hero, "strike_patrol", { prey.id })
 	flow.settle()
 	local p = entity.get(prey.id)
@@ -1944,6 +1948,7 @@ function M.test_codex_armour_can_be_pierced(check)
 	take_the_field("calamandra")
 	local tree2 = post("ironbark_treant", "enemy", 1)
 	tree2.stats.guard = 3
+	tree2.stat_max.hp, tree2.stats.hp = 9, 9
 	local cub2 = summon("tiger_cub", "mine.army")
 	seat("south").stats.gold = 20
 	local rage = require("cards").create("ferocity", zones.find_id("hand", "mine"))

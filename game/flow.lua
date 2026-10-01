@@ -544,10 +544,14 @@ local function becomes_step()
 			end
 		end
 	end
+	-- Heard as the card's owner, as an aim is: nobody whose turn it is chose this, so "draw a card"
+	-- draws for the card's own side. "my_turn@self" is how a rule asks whose turn it happened on.
 	local function hear(d, b)
 		if d.e.zone_id ~= d.zone or not tags.entity_has(d.e, d.tag) then return end
 		local ctx = { card_id = d.e.id, targets = {} }
-		if predicate.meets_all(b.needs, ctx) then actions.run(b.action, ctx) end
+		zones.as_seat(predicate.seat_of(d.e), function()
+			if predicate.meets_all(b.needs, ctx) then actions.run(b.action, ctx) end
+		end)
 	end
 	for _, d in ipairs(due) do
 		if d.own then hear(d, d.own) end

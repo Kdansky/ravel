@@ -1691,6 +1691,17 @@ is an empty deck. It needs the scope, because a tag names a *kind* and "empty"
 is about none of them — which is the question a route and an end condition used
 to need a `zone_empty` field for.
 
+`in_play@<scope>` is yes when anything there stands in a zone whose status is
+`board`. A scope names cards wherever they lie, so this is how a computed tag says
+"while on the table": `"dead": ["in_play@self", "hp@self < 1"]` — a card at nought
+in a discard is not dead, it is a card.
+
+`my_turn@<scope>` is yes when the seat whose turn it is owns anything there, and
+`their_turn@<scope>` its exact complement. It is how a rule asks whose turn it is
+where `mine` means the card's owner rather than whoever is up — inside a `becomes`
+block, or an aim being answered: *"dies on another player's turn"* is
+`their_turn@self`. The turn, not priority: answering inside a window is not having it.
+
 `saved:<slot>` is the same yes/no shape asked of the machine rather than of any
 card: 1 when that save slot holds a game and 0 when it does not, which is how a
 menu offers *Continue* only when there is something to continue.
@@ -4251,7 +4262,7 @@ knows which slot it fell in, whose it was and whether anything saves it. The
 engine does not learn what dying is. The game says it once, as a computed tag:
 
 ```json
-"computed_tags": { "dead": { "needs": { "req": ["hp@self < 1"] } } }
+"computed_tags": { "dead": { "needs": { "req": ["in_play@self", "hp@self < 1"] } } }
 ```
 
 and a card says what happens when it starts wearing it:
@@ -4295,7 +4306,17 @@ the card, or carries it somewhere, has answered the death — and the keyword's
 *Brave Knight goes to your hand instead.* A card that heals itself back up is
 the same sentence with `stat_gain:hp@self:2` in it.
 
+**`mine` is the card's owner**, as it is when a card answers an aim: nobody whose
+turn it is chose this, so *"when this dies, draw a card"* draws for its own side
+whichever turn it fell on. A rule about the turn asks with its own word —
+`"needs": { "theirs": "their_turn@self" }` is *dies on another player's turn*.
+
 **`needs`** takes `req` and gates, as on `leaves`, asked of the card as `@self`.
+
+**Leaving play makes a card new.** Out of a `status: board` zone into one that is
+not, it gets its printed `card_stats` back — all but `owner` — and forgets what it
+was wearing, before its `leaves` is asked. So a unit bounced or killed at nought
+does not come back dead.
 
 **Not a way to watch another card.** A `becomes` is what happens *to this card*;
 what the rest of the table does about it is a reaction to what it emits.

@@ -912,7 +912,15 @@ function M.move_card(card_id, to_id, where)
 	c.zone_id = to_id
 	if want_slot then bind_slot(card_id, want_slot) else M.auto_slot(card_id) end
 	if M.on_change then M.on_change("move", card_id) end
-	fire_leaves(lent or from, to, card_id)
+	-- **A card leaving play is a new card.** Its damage, runes and counters were true of it while it
+	-- stood there, and a unit redrawn out of the discard at nought would land dead. So it gets its
+	-- printed numbers back — all but whose it is — and forgets what it was wearing, before anything is
+	-- asked about the departure. Lent to a question it has not left, and is not reset.
+	local gone = lent or from
+	if gone and gone.status == "board" and to.status ~= "board" and to.status ~= "offer" then
+		require("cards").reprint(c)
+	end
+	fire_leaves(gone, to, card_id)
 	-- **A rider does not land in the zone, it lands on a card.** So the zone's
 	-- "what happens when something arrives here" is not its business, the same
 	-- way a square is not: a shelf that deals a guardian onto every site that
@@ -922,7 +930,7 @@ function M.move_card(card_id, to_id, where)
 		fire_receive(to, card_id)
 		-- After the zone's own, as `receive` is after `leaves`: the place settles
 		-- what landed in it before the table is told a card has arrived.
-		fire_arrives(lent or from, to, card_id)
+		fire_arrives(gone, to, card_id)
 	end
 	-- The riders follow, as moves of their own, so a hand they were lent from and
 	-- a departure trigger watching them both still fire. Each is riding into the

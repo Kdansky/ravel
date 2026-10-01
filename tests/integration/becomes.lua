@@ -18,7 +18,7 @@ local GAME = [==[{
   "players": [{ "card": "one" }, { "card": "two" }],
   "stats": [
     { "key": "deaths", "min": 0, "max": 40, "on": ["player"], "start": 0 },
-    { "key": "rattles", "min": 0, "max": 40, "on": ["player"], "start": 0 },
+    { "key": "rattles", "min": 0, "max": 9999, "on": ["player"], "start": 0 },
     { "key": "hp", "min": 0, "max": 9, "on": ["unit"] }
   ],
   "computed_tags": { "dead": { "needs": { "req": ["hp@self < 1"] } } },
@@ -39,7 +39,8 @@ local GAME = [==[{
   "phases": [
     { "key": "deal", "type": "automatic",
       "actions": ["set_active_seat:seat_one", "create:mine.army:grunt:1", "create:mine.army:bomber:1",
-                  "create:mine.army:knight:1", "create:mine.army:troll:1", "create:mine.army:coward:1"],
+                  "create:mine.army:knight:1", "create:mine.army:troll:1", "create:mine.army:coward:1",
+                  "create:mine.army:sapper:1"],
       "next": [{ "then": "main" }] },
     { "key": "main", "type": "player_input", "zone": "hand", "next": [{ "then": "main" }] }
   ],
@@ -53,6 +54,9 @@ local GAME = [==[{
       "becomes": { "dead": { "action": ["move_to:mine.hand"] } } },
     { "key": "troll", "text": "Troll", "tags": ["unit"], "card_stats": { "hp": 2 },
       "becomes": { "dead": { "action": ["stat_gain:hp@self:2"] } } },
+    { "key": "sapper", "text": "Sapper", "tags": ["unit"], "card_stats": { "hp": 2 },
+      "becomes": { "dead": { "needs": { "theirs": "their_turn@self" },
+                             "action": ["theirs? stat_gain:rattles@mine.player:100", "!theirs? stat_gain:rattles@mine.player:1000"] } } },
     { "key": "coward", "text": "Coward", "tags": ["unit"], "card_stats": { "hp": 2 },
       "becomes": { "dead": { "needs": { "req": ["count@mine.army.grunt >= 1"] },
                              "action": ["stat_gain:rattles@mine.player:10"] } } }
@@ -154,28 +158,79 @@ function M.test_becomes_needs_reads_the_board_the_card_died_on(check)
 	end)
 end
 
+-- Dying is not something whoever is up chose, so the rattle speaks for the card's own side.
+function M.test_becomes_is_heard_as_the_owner(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		actions.run({ "set_active_seat:seat_two" }, {})
+		hit("bomber", 2)
+		check("the bomber's owner gained, on the other seat's turn", seat().stats.rattles == 1,
+			tostring(seat().stats.rattles))
+	end)
+end
+
+-- Which is why a death asks whose turn it is with its own word: "mine" is already the owner.
+function M.test_becomes_asks_whose_turn_it_died_on(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		hit("sapper", 2)
+		check("on its owner's turn", seat().stats.rattles == 1000, tostring(seat().stats.rattles))
+	end)
+	with_game(function(name)
+		flow.init(name, 3)
+		actions.run({ "set_active_seat:seat_two" }, {})
+		hit("sapper", 2)
+		check("on the other seat's", seat().stats.rattles == 100, tostring(seat().stats.rattles))
+	end)
+end
+
+-- A card off the table cannot be dead, whatever its number says.
+function M.test_becomes_in_play_scopes_a_state_to_the_table(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local g = find("grunt", "army")
+		check("in play", require("predicate").meets_all({ "in_play@self" }, { card_id = g.id }))
+		actions.run({ "move:self:mine.hand" }, { card_id = g.id, targets = {} })
+		check("not in a hand", not require("predicate").meets_all({ "in_play@self" }, { card_id = g.id }))
+	end)
+end
+
 -- Two deaths in one action list are one settle, and each is heard once.
 function M.test_becomes_many_deaths_at_once(check)
 	with_game(function(name)
 		flow.init(name, 3)
 		actions.run({ "stat_damage:hp@each.mine.army.unit:5" }, { card_id = seat().id, targets = {} })
 		flow.settle()
-		-- grunt, bomber and coward die; knight goes home; troll heals.
-		check("three deaths", seat().stats.deaths == 3, tostring(seat().stats.deaths))
-		check("one rattle and the coward's ten, the grunt still standing beside it",
-			seat().stats.rattles == 11, tostring(seat().stats.rattles))
+		-- grunt, bomber, coward and sapper die; knight goes home; troll heals.
+		check("four deaths", seat().stats.deaths == 4, tostring(seat().stats.deaths))
+		check("the rattles, and the coward's ten with the grunt still standing beside it",
+			seat().stats.rattles == 1011, tostring(seat().stats.rattles))
 	end)
 end
 
--- What it was wearing travels as state, so it must pass the shape a peer's card is held to.
-function M.test_becomes_what_a_card_wore_is_state_a_peer_accepts(check)
+-- A card leaving play is a new card: its printed numbers back, nothing remembered. Without it a unit
+-- bounced at nought would come back still dead, and never be heard dying again.
+function M.test_becomes_leaving_play_forgets_the_death(check)
 	with_game(function(name)
 		flow.init(name, 3)
 		hit("knight", 2)
 		local k = find("knight", "hand")
-		check("it remembers", k.wore and k.wore.dead == true)
-		check("and the shape takes it", shape.check(k, shape.ENTITY.card, "card") == nil,
-			tostring(shape.check(k, shape.ENTITY.card, "card")))
+		check("its health is printed again", k.stats.hp == 2, tostring(k.stats.hp))
+		check("and it remembers nothing", k.wore == nil)
+		actions.run({ "move:self:mine.army" }, { card_id = k.id, targets = {} })
+		hit("knight", 2)
+		check("so dying again is heard again", find("knight", "hand") ~= nil and find("knight", "army") == nil)
+	end)
+end
+
+-- What a card wore travels as state, so it must pass the shape a peer's card is held to.
+function M.test_becomes_what_a_card_wore_is_state_a_peer_accepts(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local g = find("grunt", "army")
+		g.wore = { dead = true }
+		check("the shape takes it", shape.check(g, shape.ENTITY.card, "card") == nil,
+			tostring(shape.check(g, shape.ENTITY.card, "card")))
 	end)
 end
 

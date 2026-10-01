@@ -303,6 +303,14 @@ function M.create(def_key, zone_id)
 	return e
 end
 
+-- Back to what the template prints, keeping whose it is. See zones.move_card, which calls it on the
+-- way out of play.
+function M.reprint(e)
+	local owner = e.stats.owner
+	e.stats, e.stat_max, e.stat_min, e.wore = { owner = owner }, {}, {}, nil
+	for k, v in pairs(M.def(e).card_stats or {}) do M.attach_stat(e, k, v) end
+end
+
 function M.def(card_entity)
 	return declaration.G.card_defs[card_entity.def_key]
 end

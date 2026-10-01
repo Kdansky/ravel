@@ -951,6 +951,10 @@ function M.check(G)
 			if p.scope == nil then
 				warn("%s: '%s' needs a scope to ask about, like \"%s@self\"", where, p.fn, p.fn)
 			end
+		elseif p.fn == "in_play" or p.fn == "my_turn" or p.fn == "their_turn" then
+			if p.scope == nil then
+				warn("%s: '%s' needs a scope to ask about, like \"%s@self\"", where, p.fn, p.fn)
+			end
 		elseif p.fn == "not_self" then
 			-- Nothing to name: what it compares against is the card whose
 			-- condition this is. A scope is the whole of the question, and

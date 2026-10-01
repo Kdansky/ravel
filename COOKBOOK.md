@@ -1446,7 +1446,7 @@ The zone answers for itself, exactly as a card does.
 ### When this dies — damaged to nothing, or its last buff gone.
 
 ```json
-"computed_tags": { "dead": { "needs": { "req": ["hp@self < 1"] } } },
+"computed_tags": { "dead": { "needs": { "req": ["in_play@self", "hp@self < 1"] } } },
 "tags": { "unit": { "becomes": { "dead": { "action": ["emit:died", "destroy:self"] } } } }
 ```
 
@@ -1457,7 +1457,8 @@ The zone answers for itself, exactly as a card does.
 Damage moves nothing, so `leaves` never hears it. `becomes` fires when a card starts wearing a tag,
 noticed when the game comes to rest, while the corpse still stands. The tag's block and the card's
 own add up, the card's first — and every dying card's own before any tag's, so all the corpses are
-still there to be counted.
+still there to be counted. `mine` is the dying card's owner; `in_play@self` keeps a card at nought
+off the table from being dead.
 
 ### When this would die, return it to your hand instead.
 
