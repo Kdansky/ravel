@@ -13,13 +13,15 @@ local GAME = [==[{
   "players": [{ "card": "one" }, { "card": "two" }],
   "stats": [
     { "key": "rattles", "min": 0, "max": 99, "on": ["player"], "start": 0 },
+    { "key": "marks", "min": 0, "max": 99, "on": ["player"], "start": 0 },
+    { "key": "mark", "min": 0, "max": 9, "on": ["unit"], "start": 0 },
     { "key": "hp", "min": 0, "max": 9, "on": ["unit"], "dies_at": 0 },
     { "key": "life", "min": 0, "max": 9, "on": ["hero"], "dies_at": 0 },
     { "key": "atk", "min": 0, "max": 9, "on": ["unit"], "start": 1 }
   ],
   "computed_tags": { "hurt": { "needs": { "req": ["hp@self < 1"] } } },
   "tags": {
-    "unit": { "leaves": { "into": "discard", "action": ["stat_gain:rattles@mine.player:1"] } },
+    "unit": { "leaves": { "into": "discard", "action": ["stat_gain:rattles@mine.player:1", "stat_gain:marks@mine.player:sum:mark@self"] } },
     "hero": { "grave": "command" },
     "blessed": { "buffs": { "hp": 1 } }
   },
@@ -38,7 +40,7 @@ local GAME = [==[{
   "phases": [
     { "key": "deal", "type": "automatic",
       "actions": ["set_active_seat:seat_one", "create:mine.army:grunt:2", "create:mine.army:troll:1",
-                  "create:mine.army:champion:1", "create:mine.hand:grunt:1", "create:mine.shrine:grunt:1"],
+                  "create:mine.army:champion:1", "create:mine.army:knight:1", "create:mine.hand:grunt:1", "create:mine.shrine:grunt:1"],
       "next": [{ "then": "main" }] },
     { "key": "main", "type": "player_input", "zone": "hand", "next": [{ "then": "main" }] }
   ],
@@ -48,6 +50,8 @@ local GAME = [==[{
     { "key": "grunt", "text": "Grunt", "tags": ["unit"], "card_stats": { "hp": 1 } },
     { "key": "troll", "text": "Troll", "tags": ["unit"], "card_stats": { "hp": 2 },
       "becomes": { "hurt": { "action": ["stat_gain:hp@self:2"] } } },
+    { "key": "knight", "text": "Knight", "tags": ["unit"], "card_stats": { "hp": 2 },
+      "leaves": { "into": "discard", "action": ["move_to:mine.hand"] } },
     { "key": "champion", "text": "Champion", "tags": ["hero"], "card_stats": { "life": 3 } }
   ],
   "setup": { "place": [{ "card": "one", "zone": "army" }, { "card": "two", "zone": "army" }] }
@@ -148,6 +152,31 @@ function M.test_dies_at_a_stat_without_it_kills_nothing(check)
 		local g = cards_in("army", "grunt")[1]
 		run({ "stat_damage:atk@self:1" }, g)
 		check("no attack is not death", cards_in("army", "grunt")[1] == g)
+	end)
+end
+
+-- `leaves` reads the card as it stood: its runes are gone only once it has landed.
+function M.test_dies_at_leaves_reads_the_corpse_before_its_reset(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local g = cards_in("army", "grunt")[1]
+		run({ "stat_gain:mark@self:3", "exhaust:self" }, g)
+		run({ "stat_damage:hp@self:1" }, g)
+		check("its leaves read the three runes", seat().stats.marks == 3, tostring(seat().stats.marks))
+		check("and it landed without them", g.stats.mark == 0, tostring(g.stats.mark))
+		check("and no longer exhausted", not g.exhausted)
+	end)
+end
+
+-- A departure rule that carries the card elsewhere has answered the move; the grave never gets it.
+function M.test_dies_at_leaves_may_reroute_the_death(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local k = cards_in("army", "knight")[1]
+		run({ "stat_damage:hp@self:2" }, k)
+		check("the knight went home", cards_in("hand", "knight")[1] == k)
+		check("not to the discard", #cards_in("discard", "knight") == 0)
+		check("and arrived whole", k.stats.hp == 2, tostring(k.stats.hp))
 	end)
 end
 

@@ -594,9 +594,10 @@ local receiving = 0
 -- which is what naming one has always been for. `purge:` stays the verb for
 -- things nobody may ask about.
 --
--- Fired after the move so the card is standing where it landed and `into` is
--- answerable, and before the destination's own `receive`, because a card leaves
--- and then the place does something about it.
+-- **Fired before the move**, while the card still stands in its zone and slot with every number it
+-- had: a death trigger asks which post it fell at and what it carried, and that is gone once it lands
+-- and is reprinted. `into` is answerable all the same, since the destination is known. Before the
+-- destination's own `receive`, because a card leaves and then the place does something about it.
 local function fire_leaves(from, to, card_id)
 	if not (from and to and M.run_actions) then return end
 	local c   = entity.get(card_id)
@@ -609,8 +610,7 @@ local function fire_leaves(from, to, card_id)
 	end
 	local want = def.leaves_into
 	if want and want ~= to.key then return end
-	-- Asked with the departing card as @self, and asked here rather than before
-	-- the move so it reads the world the action will run in. **As the card's owner**, as a death is:
+	-- Asked with the departing card as @self. **As the card's owner**, as a death is:
 	-- nobody whose turn it is chose to be discarded, so "when you discard this, gain 1" pays the
 	-- card's own side even when an opponent's spell threw it away. "their_turn@self" asks the turn.
 	local predicate = require("predicate")
@@ -872,6 +872,21 @@ function M.move_card(card_id, to_id, where)
 	local want_slot = landing_slot(to, where, card_id)
 	if want_slot == false then return false end
 
+	-- A card in the offer is lent, not moved: somebody is holding it up out of a
+	-- hand it has not left, which is why it remembers a home to be sent back to.
+	-- So a departure is measured from there, or "when you discard this" would
+	-- miss every discard that went through a question. Forgotten on the way out
+	-- for the same reason it is forgotten going home: it is only true while the
+	-- card is being looked at.
+	local from = entity.get(c.zone_id)
+	local lent = from and from.status == "offer" and entity.get(c.borrowed_from)
+	local gone = lent or from
+	local zone_was = c.zone_id
+	fire_leaves(gone, to, card_id)
+	-- A departure rule that carried the card somewhere else has answered the move, as a `becomes`
+	-- block that carries off a corpse has answered its death.
+	if c.zone_id ~= zone_was or not entity.get(card_id) then return true end
+
 	-- Going somewhere is getting off whatever it was standing on, and taking
 	-- with it whatever was standing on it. Read before the move, because the
 	-- carry re-links against a list these very moves empty. A rider going where
@@ -891,14 +906,6 @@ function M.move_card(card_id, to_id, where)
 		c.slot_id = nil
 	end
 
-	local from = entity.get(c.zone_id)
-	-- A card in the offer is lent, not moved: somebody is holding it up out of a
-	-- hand it has not left, which is why it remembers a home to be sent back to.
-	-- So a departure is measured from there, or "when you discard this" would
-	-- miss every discard that went through a question. Forgotten on the way out
-	-- for the same reason it is forgotten going home: it is only true while the
-	-- card is being looked at.
-	local lent = from and from.status == "offer" and entity.get(c.borrowed_from)
 	if lent then c.borrowed_from = nil end
 	if from then
 		for i, id in ipairs(from.cards) do
@@ -919,15 +926,14 @@ function M.move_card(card_id, to_id, where)
 	c.zone_id = to_id
 	if want_slot then bind_slot(card_id, want_slot) else M.auto_slot(card_id) end
 	if M.on_change then M.on_change("move", card_id) end
-	-- **A card leaving play is a new card.** Its damage, runes and counters were true of it while it
-	-- stood there, and a unit redrawn out of the discard at nought would land dead. So it gets its
-	-- printed numbers back — all but whose it is — and forgets what it was wearing, before anything is
-	-- asked about the departure. Lent to a question it has not left, and is not reset.
-	local gone = lent or from
+	-- **A card arriving out of play is a new card.** Its damage, runes and counters were true of it
+	-- while it stood there, and a unit redrawn out of the discard at nought would land dead. So it gets
+	-- its printed numbers back — all but whose it is — on landing, after `leaves` has read it as it
+	-- stood: the destination decides, so a departure rerouted onto another board is no reset at all.
+	-- Lent to a question it has not left, and is not reset.
 	if gone and gone.status == "board" and to.status ~= "board" and to.status ~= "offer" then
 		require("cards").reprint(c)
 	end
-	fire_leaves(gone, to, card_id)
 	-- **A rider does not land in the zone, it lands on a card.** So the zone's
 	-- "what happens when something arrives here" is not its business, the same
 	-- way a square is not: a shelf that deals a guardian onto every site that

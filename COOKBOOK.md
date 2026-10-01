@@ -1493,8 +1493,8 @@ same way, and it can die again later.
             "action": ["damage:integrity@enemy.base:1"] }
 ```
 
-`needs` is for what `from` and `into` cannot say — they are both places. Asked after the move,
-so it reads the world the action will run in, and as the card's owner: `mine` is its side and
+`needs` is for what `from` and `into` cannot say — they are both places. Asked before the move,
+while the card still stands where it fell with every number it had, and as the card's owner: `mine` is its side and
 `enemy` the other, whoever's turn it is. Two seats; with more, `enemy.base` is every other base.
 
 ### Dies on your turn: 1 damage to a patroller or building. On another player's turn: 1 to their base.

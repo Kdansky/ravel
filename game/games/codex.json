@@ -1882,8 +1882,6 @@
       "becomes": { "fallen": { "action": ["activate_zone:rules_death"] } },
       "zone": "army",
       "grave": "command",
-      "leaves": { "into": "command",
-        "action": ["stat_set:hero_wait@self:2"] },
       "abilities": [
         {
           "key": "upkeep",
@@ -3235,6 +3233,7 @@
           0.35
         ]
       ],
+      "receive": { "action": ["stat_set:hero_wait@target:2"] },
       "tooltip": "Your three heroes wait here to be summoned, and each comes back here when it dies."
     },
     {

@@ -307,7 +307,7 @@ end
 -- way out of play.
 function M.reprint(e)
 	local owner = e.stats.owner
-	e.stats, e.stat_max, e.stat_min, e.wore = { owner = owner }, {}, {}, nil
+	e.stats, e.stat_max, e.stat_min, e.wore, e.exhausted = { owner = owner }, {}, {}, nil, nil
 	for k, v in pairs(M.def(e).card_stats or {}) do M.attach_stat(e, k, v) end
 end
 

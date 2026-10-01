@@ -4213,8 +4213,17 @@ and one departure is often two rules told apart by something that is not a place
 ```
 
 *Dies on somebody else's turn: a point off that player's base* — and nothing at
-all on its owner's. Asked of the departing card as `@self`, and asked after the
-move, so it reads the world the action will run in.
+all on its owner's. Asked of the departing card as `@self`.
+
+**It fires before the card moves.** The card still stands in its zone and its
+slot, with every number and rune it had: a death trigger asks which post it fell
+at and what it carried, and none of that survives the landing. Only then does it
+arrive — and **a card arriving out of play is a new card**: its printed stats
+back, all but whose it is, and no longer exhausted. The destination decides
+that, so a departure rule that carries the card somewhere else has answered the
+move, and one that carries it onto another board was never a reset. Something
+the corpse must keep on arriving — a hero's wait in its command zone — is the
+destination's `receive`, which runs after the reset.
 
 **`mine` is the departing card's owner**, as it is in `becomes` and when a card
 answers an aim: nobody whose turn it is chose to be discarded, so *"when you
