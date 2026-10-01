@@ -1526,38 +1526,31 @@ the Power Track is `fill_track`, the two Ruby cards are one `ruby_pick`.
 - **Migration:** random play over 80 seeds × 200 moves reads the same board card
   by card before and after (Puzzle Strike and Arnak: 40 seeds, every move's board).
 
-# A card starting to wear a tag — `becomes` · shipped
+# Death through the game file — `dies_at` and `leaves` · shipped
 
-`"becomes": { "<tag>": { needs, action } }` on a card or a tag runs when a card
-starts wearing that tag. `flow.settle` checks every tag some block listens for
-(`G.becomes_list`, sorted) before the response window, remembers what each card
-wore in `e.wore` (string keys, so it survives saves and the wire), and loops if
-anything fired. `cards.becomes` gathers the blocks from the same four places
-`receive` does. Built for death: `dead` = `hp@self < 1`, so "when this dies" is
-`"becomes": { "dead": … }` on any card.
+A stat says where its card dies: `"hp": { "dies_at": 0 }`. `flow.settle`'s
+`death_step` gathers every card in a board zone at or below a `dies_at`, in card
+order, and destroys each. The engine knows no stat by name; a game that kills
+nothing writes nothing. `becomes`, the tag-transition hook built first, is gone.
 
-- **Why at rest and not at the stat write:** a buff running out or a zone's
-  `applies` going away kills without writing to the card.
 - **Why a state and not a move:** Codex has death replacement, and its payout
-  rules read the corpse's slot and insurance — any hook that moved it first threw
-  that away. Four such hooks were tried and failed (see [38](38-repeated-shapes.md)).
-- **Replacement is a guard, not a precedence rule:** each block runs only while
-  the card still wears the tag and stands where it stood. Card and tag blocks add
-  up — unlike `play` and `leaves`, where the card's own replaces the tag's.
-- **Trap:** fired card by card, the first corpse's `destroy:self` removed it
-  before the next card's rattle could count it. Every card's own block now runs
-  before any granted one.
-- **Whose `mine`:** the card's owner, in `becomes` and `leaves` both, as in an
-  answered aim — nobody whose turn it is chose it. `my_turn@`/`their_turn@` ask
-  the turn. Fixed on the way: Spellstorm's on-discard effects and Codex's
-  Thieving Imp paid whoever was up.
+  rules read the corpse's slot and insurance. Four hooks that moved it first
+  threw that away (see [38](38-repeated-shapes.md)). So `leaves` fires before the
+  move, while the card stands where it stood, and the card is reset on landing.
+- **`leaves` adds up:** the card's own block, then each tag's. A block may say
+  `stay`, which cancels the move: Juggernaut's second life heals and stays.
+- **Each death is its own event.** Two heroes falling together run two `leaves`,
+  so a gate must not read the other corpse as standing or as fallen: Codex's
+  boon asks `count:standing@enemy.hero` (in play, `life >= 1`).
+- **Whose `mine`:** the card's owner in `leaves`, as in an answered aim; nobody
+  whose turn it is chose it. `my_turn@`/`their_turn@` ask the turn.
 - **Leaving play makes a card new** (printed stats, nothing worn), and
   `in_play@self` scopes a state to the table. A unit killed at nought used to be
   redrawn dead.
-- **Trap:** `each_seat:` moved the turn, but a lens outranks the turn, so inside
-  a death every pass was the owner's. It now holds each seat's lens.
-- **Codex** runs its death column from `becomes` on `unit`/`hero`/`building`;
-  LoR and Spellstorm need nothing (see [38](38-repeated-shapes.md)).
+- **Trap:** `each_seat:` moved the turn, but a lens outranks it, so inside a
+  death every pass was the owner's. It now holds each seat's lens.
+- **Codex** dies at 0 on `hp`, `life` and `integrity`; the base dies into
+  `ruins`. LoR and Spellstorm need nothing.
 
 # Bugs found on the way, and what they bought
 

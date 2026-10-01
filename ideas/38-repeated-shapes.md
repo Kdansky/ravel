@@ -26,26 +26,9 @@ should have said so. The second kind is a word that is missing.
 
 ### 4. The death half
 
-**The word shipped: `becomes`** (2026-10-01) — a card or tag block keyed by a tag,
-run when a card starts wearing it, heard in `flow.settle` before the response
-window. `dead` is already Codex's computed tag, so "when this dies" is
-`"becomes": { "dead": ... }`. Reference: AUTHORING *`becomes` — a card starting to
-wear a tag*; COOKBOOK *Triggers*; tests `tests/integration/becomes.lua`.
-
-What cost the time, kept because it is why the word has the shape it has: four
-hooks failed on one fact — **death here is a state the rules resolve, not a
-moment** — and any hook that moved the corpse first threw away the slot it died
-in, whose it was, and whether it is insured or comes back. Hence noticed at rest,
-blocks run only while the card still wears the tag and stands where it stood
-(that is death replacement), and every card's own block before any tag's (a
-rattle must find the others that fell with it still standing).
-
-**Codex dies through `dies_at` (2026-10-01), and `becomes` is gone.** `hp`,
-`life` and `integrity` die at 0. Every death rule is a gated line on a tag's or a
-card's `leaves`, which fires before the move and adds up; Juggernaut's second life
-is a `leaves` that heals and says `stay`, so a destroy no longer skips it. The
-base dies into `ruins` and the endings read an empty base zone. The column holds
-only `r_channel` now.
+**Shipped as `dies_at` and `leaves` (2026-10-01)**; see DONE.md and AUTHORING's `dies_at`. The
+lesson that shaped it: death is a state the rules resolve, not a moment, so a
+hook that moves the corpse first loses the slot, the owner, and any replacement.
 
 **Left:**
 
