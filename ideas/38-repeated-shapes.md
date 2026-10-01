@@ -35,12 +35,6 @@ hook that moves the corpse first loses the slot, the owner, and any replacement.
 - **A death with no room in its grave loops.** `death_step` destroys, the move
   is refused (a full command zone, say), the card stays at `dies_at`, and settle
   spins until "transition budget exhausted". It should say which card and why.
-- **Channeling never ends on its hero's death**, before this change or after:
-  `count:h_blood@mine.hero == 0` still counts the hero waiting in its command
-  zone. It wants an in-play scope (`mine.fielded.h_blood`?) — check the rulebook
-  on whether the hero must be in play.
-- **Brave Knight rides home from any death**, a destroy included, where the card
-  says combat damage. Exact only with a mark the fight sets, which Codex lacks.
 - **Sacrifice is a purge**, so `sacrifice:unit` fires no `leaves`: a sacrificed
   patroller pays no post and an insured one claims nothing.
 - LoR needs nothing: no death triggers, and its late `destroy:dead` is what

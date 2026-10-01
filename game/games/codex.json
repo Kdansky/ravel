@@ -9075,7 +9075,7 @@
       ],
       "asset": "brave_knight",
       "tooltip": "Readiness: does not exhaust to attack, but attacks once a turn. Dying to combat damage returns him to hand instead.",
-      "leaves": { "into": "discard", "needs": { "req": ["homing@self >= 1"] }, "action": ["move_to:mine.hand"] },
+      "leaves": { "into": "discard", "needs": { "req": ["homing@self >= 1", "tagged:slain@self"] }, "action": ["move_to:mine.hand"] },
       "card_stats": {
         "price": 3,
         "atk": 3,

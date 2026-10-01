@@ -1348,16 +1348,25 @@ function M.test_codex_blue_arrivals(check)
 end
 
 -- Two deaths that are not deaths, both the card's own `leaves`: the knight's carries him home, and
--- the juggernaut's heals it and says `stay`.
+-- the juggernaut's heals it and says `stay`. The knight's only from combat damage, which `slain` says:
+-- `left` is written by a fight's tally and nowhere else, and landing anywhere resets it.
 function M.test_codex_blue_second_chances(check)
 	start("pick_blue", "pick_green")
 	local knight = summon("brave_knight", "mine.army")
-	knight.stats.hp = 0
+	use(knight, "strike_patrol", { post("crashbarrow", "enemy", 3).id })
 	flow.settle()
 	check("the knight went back to hand instead of dying",
 		in_zone("hand", "brave_knight") ~= nil)
 	check("and is whole again", read(entity.get(knight.id), "hp") == 3,
 		tostring(read(entity.get(knight.id), "hp")))
+
+	local scarred = summon("brave_knight", "mine.army")
+	use(scarred, "strike_patrol", { post("mad_man", "enemy", 3).id })
+	flow.settle()
+	scarred.stats.hp = 0
+	flow.settle()
+	check("a knight that survived his fight and died later stays dead",
+		in_zone("discard", "brave_knight") ~= nil and in_zone("hand", "brave_knight") == knight)
 
 	local bull = summon("justice_juggernaut", "mine.army")
 	bull.stats.hp = 0
@@ -2452,6 +2461,20 @@ function M.test_codex_heroes_falling_together(check)
 		check("only the side with a hero standing takes two levels" .. tag,
 			gain[1] == want[1] and gain[2] == want[2], gain[1] .. "/" .. gain[2])
 	end
+end
+
+-- A channeling spell lasts as long as a hero of its spec is in play. The count reads `mine.hero`, which is the
+-- army's heroes and not the one waiting in command, so the hero's death is the spell's end.
+function M.test_codex_channeling_ends_with_its_hero(check)
+	start("pick_red", "pick_green")
+	take_the_field("drakk")
+	local drums = require("cards").create("war_drums", zones.find_id("ongoing", "mine"))
+	flow.settle()
+	check("the drums stay while drakk stands", in_zone("ongoing", "war_drums") ~= nil)
+	in_zone("army", "drakk").stats.life = 0
+	flow.settle()
+	check("drakk went back to command", in_zone("command", "drakk") ~= nil)
+	check("and the drums went with him", entity.get(drums.id).zone_id == zones.find_id("discard", "mine"))
 end
 
 return M
