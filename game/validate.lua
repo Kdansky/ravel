@@ -135,8 +135,6 @@ local CARD_FIELDS = {
 	name = true,
 	play = true, challenge = true, receive = true, round = true,
 	chosen = true, leaves = true, grave = true,
-	-- What the card does on starting to wear a tag, keyed by the tag: "dead" is how a death is heard.
-	becomes = true,
 	-- Everything the card can be used for, one entry each. A card that does one
 	-- thing writes a list of one: there is no second spelling, so no two sets of
 	-- fields to keep in step.
@@ -246,8 +244,7 @@ local TAG_FIELDS      = { zone = true, grave = true, tooltip = true, play = true
 	-- derived from the blocks, as on a card
 	on_play = true, cost = true, needs = true, target = true, phases = true, spent = true,
 	compute = true, buffs = true, adjusts = true,
-	-- Like leaves and unlike play, this adds to a card's own rather than standing in for it.
-	becomes = true }
+}
 
 -- Words the format had and dropped. declaration.parse reports each by name and
 -- says what replaced it, so check_fields stays quiet about them.
@@ -256,7 +253,7 @@ local TAG_FIELDS      = { zone = true, grave = true, tooltip = true, play = true
 -- does not drown it out.
 local RETIRED       = { activate = true, ends_after = true, zone_empty = true,
 	stat = true, less_than = true, less_than_stat = true, less_than_max = true,
-	at_least = true, equals = true, all_of = true }
+	at_least = true, equals = true, all_of = true, becomes = true }
 
 local VERB_FIELDS   = { key = true, does = true, action = true, needs = true, tooltip = true, effect = true }
 local ADJUST_FIELDS = { key = true, verb = true, stat = true, covers = true, needs = true, by = true,
@@ -2100,26 +2097,6 @@ function M.check(G)
 		end
 	end
 
-	-- A tag nothing wears never starts being worn, so a misspelt one is a death rattle that never rattles.
-	local function check_becomes(where, becomes)
-		if becomes == nil then return end
-		if type(becomes) ~= "table" then
-			warn('%s becomes: should be keyed by tag, like { "dead": { "action": [...] } }', where)
-			return
-		end
-		for tag, b in pairs(becomes) do
-			local at = ("%s becomes '%s'"):format(where, tostring(tag))
-			if not known_tags[tag] and not M.ENGINE_TAGS[tag] then
-				warn("%s: listens for a tag nothing wears%s", at, suggest(tag, known_tags))
-			end
-			if type(b) == "table" then
-				check_conditions(at .. " needs", b.needs)
-				check_list(at .. " action", b.action)
-				if b.action == nil then warn('%s: does nothing — add "action"', at) end
-			end
-		end
-	end
-
 	-- Tag behaviour.
 	for tag, td in pairs(tag_defs) do
 		local where = "tag '" .. tostring(tag) .. "'"
@@ -2140,9 +2117,12 @@ function M.check(G)
 			check_whose(where, td.receive_whose)
 		check_conditions(where .. " receive when", td.on_receive_needs)
 			check_list(where .. " receive action", td.on_receive)
-			check_becomes(where, td.becomes)
 			-- Run for every card wearing it, on top of the card's own, so it is checked here and not through them.
 			check_list(where .. " leaves action", td.on_leaves)
+			if td.becomes ~= nil then
+				warn('%s: becomes is gone — a death is "dies_at" on the stat, what happens is the card\'s "leaves", and a'
+					.. ' death it refuses is "stay" there', where)
+			end
 			for _, z in ipairs({ td.leaves_into, td.leaves_from }) do
 				if not G.zone_defs[z] and z ~= nil then
 					warn("%s leaves: names zone '%s', but no zone has that key%s", where, tostring(z), suggest(z, G.zone_defs))
@@ -2178,7 +2158,7 @@ function M.check(G)
 			-- narrowest first, so a card naming its own is the rule working
 			-- rather than a contradiction.
 			for field in pairs(td) do
-				if field ~= "zone" and field ~= "grave" and field ~= "abilities" and field ~= "becomes"
+				if field ~= "zone" and field ~= "grave" and field ~= "abilities"
 					and not GRANTED_PLAY[field] then
 					for _, ck in ipairs(G.card_list) do
 						local cd = G.card_defs[ck]
@@ -2206,7 +2186,7 @@ function M.check(G)
 			-- the card being played, and there is no card here to be it.
 			local grantable = { buffs = true, adjusts = true, abilities = true, tooltip = true,
 				accepts = true, receive = true, receive_whose = true, on_receive = true,
-				on_receive_needs = true, becomes = true }
+				on_receive_needs = true }
 			-- Seeded false and earned by the loop below, rather than read off a
 			-- field: "abilities" is left behind empty on every tag by the loader,
 			-- so seeding from it was seeding from something no game ever said,
@@ -2828,12 +2808,15 @@ function M.check(G)
 		check_list(where .. " on_play", def.on_play)
 		check_list(where .. " on_round", def.on_round)
 		check_list(where .. " on_chosen", def.on_chosen)
-		check_becomes(where, def.becomes)
 		-- Leaving play, and the zone that says which kind of leaving it was. A
 		-- name that is not a zone is the whole of what can go wrong here: it
 		-- would match nothing and the rule would silently never run, which is
 		-- the failure a "dies" trigger is least likely to be noticed missing.
 		check_list(where .. " leaves action", def.on_leaves)
+		if def.becomes ~= nil then
+			warn('%s: becomes is gone — a death is "dies_at" on the stat, what happens is the card\'s "leaves", and a'
+				.. ' death it refuses is "stay" there', where)
+		end
 		-- Asked of the departing card, so "@self" is it. The same word every other
 		-- block carries, and here for the reason "into" is not enough on its own:
 		-- one departure is often two rules, told apart by something that is not a

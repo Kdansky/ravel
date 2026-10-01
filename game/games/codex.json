@@ -163,6 +163,7 @@
     },
     {
       "key": "integrity",
+      "dies_at": 0,
       "label": "Structure",
       "icon": "shield",
       "color": "slate",
@@ -1868,8 +1869,16 @@
       }
     },
     "building": {
-      "becomes": { "rubble": { "action": ["activate_zone:rules_death"] } },
       "zone": "structures"
+    },
+    "tech_building": {
+      "leaves": { "action": ["stat_damage:integrity@mine.base:2", "purge:self"] }
+    },
+    "attachment": {
+      "leaves": { "action": ["stat_damage:integrity@mine.base:2", "purge:self", "move:mine.lab_spec.unbacked:mine.specs"] }
+    },
+    "home": {
+      "grave": "ruins"
     },
     "upgrade": {
       "zone": "ongoing"
@@ -2861,6 +2870,13 @@
       "tooltip": "Where an attacker and its target stand while the blows land. Nothing waits here: a combat begins and ends inside one action."
     },
     {
+      "key": "ruins",
+      "layout": "stack",
+      "visibility": "secret",
+      "display": "offscreen",
+      "tooltip": "Where a base goes when it falls. The game ends on its way here."
+    },
+    {
       "key": "rules_death",
       "layout": "stack",
       "visibility": "secret",
@@ -3554,14 +3570,14 @@
   ],
   "end_conditions": [
     {
-      "when": "integrity@enemy.base <= 0",
+      "when": "count@enemy.base == 0",
       "then": [
         "stat_gain:won@mine.player:1",
         "push_phase:game_over"
       ]
     },
     {
-      "when": "integrity@mine.base <= 0",
+      "when": "count@mine.base == 0",
       "then": [
         "stat_gain:won@opponent:1",
         "push_phase:game_over"
@@ -3665,18 +3681,6 @@
         "at": [
           "f2"
         ]
-      },
-      {
-        "card": "r_tech_rubble",
-        "zone": "rules_death"
-      },
-      {
-        "card": "r_addon_rubble",
-        "zone": "rules_death"
-      },
-      {
-        "card": "r_buildings",
-        "zone": "rules_death"
       },
       {
         "card": "r_channel",
@@ -6671,61 +6675,6 @@
       }
     },
     {
-      "key": "r_tech_rubble",
-      "text": "Broken tech",
-      "tags": [
-        "immutable"
-      ],
-      "abilities": [
-        {
-          "key": "falls",
-          "text": "Broken tech",
-          "phases": [],
-          "action": [
-            "each_seat:stat_damage:integrity@mine.base:count:rubble@mine.tech:x:2",
-            "each_seat:purge:mine.tech.rubble"
-          ]
-        }
-      ]
-    },
-    {
-      "key": "r_addon_rubble",
-      "text": "Broken add-on",
-      "tags": [
-        "immutable"
-      ],
-      "abilities": [
-        {
-          "key": "falls",
-          "text": "Broken add-on",
-          "phases": [],
-          "action": [
-            "each_seat:stat_damage:integrity@mine.base:count:rubble@mine.addon:x:2",
-            "each_seat:purge:mine.addon.rubble",
-            "each_seat:move:mine.lab_spec.unbacked:mine.specs"
-          ]
-        }
-      ]
-    },
-    {
-      "key": "r_buildings",
-      "text": "Rubble",
-      "tags": [
-        "immutable"
-      ],
-      "abilities": [
-        {
-          "key": "sweep",
-          "text": "Rubble",
-          "phases": [],
-          "action": [
-            "destroy:mine.structures.rubble",
-            "destroy:enemy.structures.rubble"
-          ]
-        }
-      ]
-    },
-    {
       "key": "r_channel",
       "text": "Channeling",
       "tags": [
@@ -8860,7 +8809,7 @@
       ],
       "asset": "justice_juggernaut",
       "tooltip": "Unstoppable but can't patrol. Two lives: the first death heals it and leaves a crumbling rune instead.",
-      "becomes": { "dead": { "needs": { "req": ["lives@self == 0"] }, "action": ["stat_set:lives@self:3", "stat_gain:hp@self:9"] } },
+      "leaves": { "into": "discard", "needs": { "req": ["lives@self == 0"] }, "action": ["stat_set:lives@self:3", "stat_gain:hp@self:9", "stay"] },
       "card_stats": {
         "price": 6,
         "atk": 4,
@@ -9118,7 +9067,7 @@
       ],
       "asset": "brave_knight",
       "tooltip": "Readiness: does not exhaust to attack, but attacks once a turn. Dying to combat damage returns him to hand instead.",
-      "becomes": { "dead": { "needs": { "req": ["homing@self >= 1"] }, "action": ["move_to:mine.hand"] } },
+      "leaves": { "into": "discard", "needs": { "req": ["homing@self >= 1"] }, "action": ["move_to:mine.hand"] },
       "card_stats": {
         "price": 3,
         "atk": 3,
@@ -21371,8 +21320,6 @@
           ]
         },
         "action": [
-          "stat_set:integrity@target:0",
-          "activate_zone:rules_death",
           "destroy:target"
         ],
         "spent": "mine.discard"

@@ -845,6 +845,17 @@ function M.destroy(id)
 	end
 end
 
+-- stay  — inside a `leaves` block: the departure does not happen. The card keeps its zone, its square and
+-- every number on it, which is the whole of "the first time this would die, instead…". Anywhere else
+-- there is no departure to refuse, and it says so.
+HANDLERS["stay"] = function(_, ctx)
+	if ctx.card_id and zones.leaving == ctx.card_id then
+		zones.stayed = ctx.card_id
+	else
+		content_error("stay: only a leaves block can keep a card where it stands")
+	end
+end
+
 HANDLERS["destroy"] = function(p, ctx)
 	for _, id in ipairs(doomed(p, ctx)) do M.destroy(id) end
 end
@@ -1749,6 +1760,7 @@ local SPEC = {
 	load_save         = "save",
 	compact           = "scope pattern",
 	set_name          = "scope any",
+	stay = "",
 }
 
 -- The full op vocabulary, for the validator's suggestions — and for the test

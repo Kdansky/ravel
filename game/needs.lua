@@ -175,9 +175,6 @@ local function each_block(def, what, pp)
 		moves_of(r, at, pp)
 		unfold(r, at, BLOCKS.reaction, pp)
 	end
-	for tag, b in pairs(type(def.becomes) == "table" and def.becomes or {}) do
-		unfold(b, what .. " becomes '" .. tostring(tag) .. "'", BLOCKS.leaves, pp)
-	end
 	for i, ad in ipairs(type(def.adjusts) == "table" and def.adjusts or {}) do
 		unfold(ad, what .. " adjusts " .. i, BLOCKS.plain, pp)
 	end

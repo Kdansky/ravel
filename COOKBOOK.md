@@ -1453,32 +1453,34 @@ Checked when the game comes to rest, in play only, everything that fell at once 
 `destroy:` kills — into its grave, so `leaves` hears it. `"grave": "hand"` on the card is *returns to
 your hand instead*.
 
-### When this dies — damaged to nothing, or its last buff gone, and read where it fell.
+### When this dies — a patroller at the scavenger's post pays its owner.
 
 ```json
-"computed_tags": { "dead": { "needs": { "req": ["in_play@self", "hp@self < 1"] } } },
-"tags": { "unit": { "becomes": { "dead": { "action": ["emit:died", "destroy:self"] } } } }
+"tags": { "unit": { "leaves": { "into": "discard", "needs": { "scav": "slot@self == 3" },
+                                "action": ["emit:died", "scav? stat_gain:gold@mine.player:1"] } } }
 ```
 
-```json
-"becomes": { "dead": { "action": ["stat_damage:integrity@enemy.base:1"] } }
-```
-
-For a rule that must read the corpse before it goes — its slot, a mark on it. `becomes` fires when a card starts wearing a tag,
-noticed when the game comes to rest, while the corpse still stands. The tag's block and the card's
-own add up, the card's first — and every dying card's own before any tag's, so all the corpses are
-still there to be counted. `mine` is the dying card's owner; `in_play@self` keeps a card at nought
-off the table from being dead.
+`leaves` runs before the card moves, so it reads the corpse as it stood — its slot, a rune on it —
+and the reset to printed stats comes on landing. A card's own `leaves` adds to its tags', its own
+first. `mine` is the dying card's owner.
 
 ### When this would die, return it to your hand instead.
 
 ```json
-"becomes": { "dead": { "action": ["move_to:mine.hand"] } }
+"leaves": { "into": "discard", "action": ["move_to:mine.hand"] }
 ```
 
-Each block runs only while the card still wears the tag and stands where it stood. This one moves
-it, so the keyword's `destroy:self` after it does not run. Healing it back up replaces the death the
-same way, and it can die again later.
+A block that carries the card somewhere else has answered the move: it never reaches the discard,
+and the blocks after it do not run.
+
+### The first time this would die, it heals instead.
+
+```json
+"leaves": { "into": "discard", "needs": { "req": ["lives@self == 0"] },
+            "action": ["stat_set:lives@self:3", "stat_gain:hp@self:9", "stay"] }
+```
+
+`stay` refuses the departure: the card keeps its zone, its square and every number on it.
 
 ### When you discard this from your hand, gain 1 power.
 

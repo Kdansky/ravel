@@ -40,28 +40,24 @@ blocks run only while the card still wears the tag and stands where it stood
 (that is death replacement), and every card's own block before any tag's (a
 rattle must find the others that fell with it still standing).
 
-**Codex dies through `dies_at` (2026-10-01).** `hp` and `life` die at 0; the
-column's unit and hero rules are gated lines on the `unit` and `hero` tags'
-`leaves`, which now fire before the move and add up; Drakk's is his own `leaves`,
-and Juggernaut's and Brave Knight's replacements are their own `becomes: dead`.
-The 14 trailing `rules_death` calls went, so a destroyed patroller pays its post.
+**Codex dies through `dies_at` (2026-10-01), and `becomes` is gone.** `hp`,
+`life` and `integrity` die at 0. Every death rule is a gated line on a tag's or a
+card's `leaves`, which fires before the move and adds up; Juggernaut's second life
+is a `leaves` that heals and says `stay`, so a destroy no longer skips it. The
+base dies into `ruins` and the endings read an empty base zone. The column holds
+only `r_channel` now.
 
 **Left:**
 
-- **Juggernaut against `destroy:`.** Two Lives is a `becomes`, which only an hp
-  death reaches; a destroy carries it off with no second life. Wants a way for
-  `leaves` to refuse a departure, or a replacement on the death itself.
 - **Two heroes falling together.** The first's `leaves` sees the second still
   fallen and boons nobody; the second's finds the first gone and boons its side
   if that side has another hero standing. The column boon'd neither.
-- **Buildings stay on the column.** `integrity` has no `dies_at` because the base
-  is a building and dies to an ending, not a grave; tech and add-on rubble purge
-  and charge the base two. `r_channel` rides along, run when a hero lands in its
-  command zone.
 - **Channeling never ends on its hero's death**, before this change or after:
   `count:h_blood@mine.hero == 0` still counts the hero waiting in its command
   zone. It wants an in-play scope (`mine.fielded.h_blood`?) — check the rulebook
   on whether the hero must be in play.
+- **Brave Knight rides home from any death**, a destroy included, where the card
+  says combat damage. Exact only with a mark the fight sets, which Codex lacks.
 - **Sacrifice is a purge**, so `sacrifice:unit` fires no `leaves`: a sacrificed
   patroller pays no post and an insured one claims nothing.
 - LoR needs nothing: no death triggers, and its late `destroy:dead` is what

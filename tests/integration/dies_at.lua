@@ -19,7 +19,6 @@ local GAME = [==[{
     { "key": "life", "min": 0, "max": 9, "on": ["hero"], "dies_at": 0 },
     { "key": "atk", "min": 0, "max": 9, "on": ["unit"], "start": 1 }
   ],
-  "computed_tags": { "hurt": { "needs": { "req": ["hp@self < 1"] } } },
   "tags": {
     "unit": { "leaves": { "into": "discard", "action": ["stat_gain:rattles@mine.player:1", "stat_gain:marks@mine.player:sum:mark@self"] } },
     "hero": { "grave": "command" },
@@ -49,7 +48,7 @@ local GAME = [==[{
     { "key": "two", "text": "Two", "tags": ["seat_two"] },
     { "key": "grunt", "text": "Grunt", "tags": ["unit"], "card_stats": { "hp": 1 } },
     { "key": "troll", "text": "Troll", "tags": ["unit"], "card_stats": { "hp": 2 },
-      "becomes": { "hurt": { "action": ["stat_gain:hp@self:2"] } } },
+      "leaves": { "action": ["stat_gain:hp@self:2", "stay"] } },
     { "key": "knight", "text": "Knight", "tags": ["unit"], "card_stats": { "hp": 2 },
       "leaves": { "into": "discard", "action": ["move_to:mine.hand"] } },
     { "key": "gorgon", "text": "Gorgon", "tags": ["unit"], "card_stats": { "hp": 1 },
@@ -128,13 +127,14 @@ function M.test_dies_at_losing_a_buff_is_a_death(check)
 	end)
 end
 
--- `becomes` is heard first, so a block that heals the card has answered the death.
-function M.test_dies_at_waits_for_becomes(check)
+-- A `leaves` that heals the card and says `stay` has refused the death: it never left, so it is not new.
+function M.test_dies_at_a_card_may_refuse_its_death(check)
 	with_game(function(name)
 		flow.init(name, 3)
 		local t = cards_in("army", "troll")[1]
 		run({ "stat_damage:hp@self:2" }, t)
 		check("the troll got up again", cards_in("army", "troll")[1] == t and t.stats.hp == 2, tostring(t.stats.hp))
+		check("and its leaves was its own, not the unit's", seat().stats.rattles == 0, tostring(seat().stats.rattles))
 	end)
 end
 

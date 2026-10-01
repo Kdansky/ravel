@@ -710,8 +710,8 @@ function M.test_codex_slots(check)
 	check("the lookout gets neither", look.stats.guard == 0 and look.stats.atk == 1)
 end
 
--- Burning the base down is the only way to win, and it is an end condition
--- rather than anything the combat knows about.
+-- Burning the base down is the only way to win. It dies at nought like any building, into the ruins,
+-- and the ending reads an empty base zone rather than anything the combat knows about.
 function M.test_codex_ending(check)
 	start("pick_red", "pick_green")
 	local base = entity.get(zones.find_id("base", "enemy")).cards[1]
@@ -721,8 +721,7 @@ function M.test_codex_ending(check)
 	check("with nothing patrolling, anything may be struck", offers(ram, "strike_free"))
 	use(ram, "strike_free", { base })
 	flow.settle()
-	check("the base is down", entity.get(base).stats.integrity == 0,
-		tostring(entity.get(base).stats.integrity))
+	check("the base fell into the ruins", entity.get(base).zone_id == zones.find_id("ruins"))
 	check("south is recorded as the winner", seat("south").stats.won == 1,
 		tostring(seat("south").stats.won))
 	check("and the game is over", phase.current().key == "game_over", phase.current().key)
@@ -1348,8 +1347,8 @@ function M.test_codex_blue_arrivals(check)
 		tostring(seat("south").stats.gold))
 end
 
--- Two deaths that are not deaths, both a `becomes` on the card, which is heard
--- before `dies_at` carries the corpse off.
+-- Two deaths that are not deaths, both the card's own `leaves`: the knight's carries him home, and
+-- the juggernaut's heals it and says `stay`.
 function M.test_codex_blue_second_chances(check)
 	start("pick_blue", "pick_green")
 	local knight = summon("brave_knight", "mine.army")
@@ -1369,6 +1368,13 @@ function M.test_codex_blue_second_chances(check)
 	flow.settle()
 	check("so the second death is a real one", entity.get(bull.id) == nil
 		or entity.get(bull.id).zone_id ~= zones.find_id("army", "mine"))
+
+	-- Two lives is any first death, a destroy as much as a blow.
+	local other = summon("justice_juggernaut", "mine.army")
+	actions.execute("destroy:self", { card_id = other.id, targets = {} })
+	flow.settle()
+	check("a destroyed juggernaut stays", other.zone_id == zones.find_id("army", "mine"))
+	check("and has spent its second life", other.stats.lives == 3, tostring(other.stats.lives))
 end
 
 -- A keyword a card has only while a number holds, and one that reads a number on
@@ -2416,7 +2422,7 @@ function M.test_codex_a_bomber_dying_on_its_turn_picks_what_it_hits(check)
 
 	flow.play_card(base.id, {})
 	flow.settle()
-	check("the base went home", base.zone_id == zones.find_id("base", "enemy"))
+	check("the base fell into the ruins", base.zone_id == zones.find_id("ruins"))
 	check("the patroller went home untouched", guard.zone_id == zones.find_id("patrol", "enemy")
 		and guard.stats.hp == 2, tostring(guard.stats.hp))
 	check("and the point ended the war", phase.current().key == "game_over", phase.current().key)

@@ -931,6 +931,8 @@ local CASES = {
 		function(g) g.card_defs.c_flee.on_play = { "purge:board.owned_by.keepsak" } end },
 	{ "an owned_by whose cards are misspelled", "did you mean 'keepsake'",
 		function(g) g.card_defs.c_flee.on_play = { "purge:keepsak.owned_by.keepsake" } end },
+	{ "a becomes, which the format dropped", "becomes is gone",
+		function(g) g.card_defs.pearl.becomes = { dead = { action = { "purge:self" } } } end },
 	{ "a dies_at that is not a number", "dies_at is the number a card dies at",
 		function(g) g.stat_defs.hp.dies_at = "zero" end },
 	{ "a dies_at the floor never lets it reach", "so nothing ever dies of it",

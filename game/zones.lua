@@ -598,6 +598,10 @@ local receiving = 0
 -- had: a death trigger asks which post it fell at and what it carried, and that is gone once it lands
 -- and is reprinted. `into` is answerable all the same, since the destination is known. Before the
 -- destination's own `receive`, because a card leaves and then the place does something about it.
+-- The card a `leaves` block is running for, and whether it said `stay`. Saved and put back round each
+-- block, since a block may move another card whose own `leaves` runs inside it.
+M.leaving, M.stayed = nil, nil
+
 local function fire_leaves(from, to, card_id)
 	if not (from and to and M.run_actions) then return end
 	local c   = entity.get(card_id)
@@ -607,8 +611,8 @@ local function fire_leaves(from, to, card_id)
 	local seat = predicate.seat_of(c)
 	local zone_was = c.zone_id
 	for _, b in ipairs(def.leaves_list) do
-		-- One block that carried the card off has answered the move, and the rest with it.
-		if c.zone_id ~= zone_was then return end
+		-- One block that carried the card off, or kept it, has answered the move, and the rest with it.
+		if c.zone_id ~= zone_was or M.stayed == card_id then return end
 		local left
 		if b.from then
 			left = from.key == b.from
@@ -633,7 +637,10 @@ local function fire_leaves(from, to, card_id)
 				return
 			end
 			receiving = receiving + 1
+			local was = M.leaving
+			M.leaving = card_id
 			local ok, err = pcall(M.as_seat, seat, function() M.run_actions(b.action, { card_id = card_id, targets = {} }) end)
+			M.leaving = was
 			receiving = receiving - 1
 			if not ok then error(err, 0) end
 		end
@@ -734,7 +741,6 @@ local function unhook(c)
 	end
 	c.zone_id = nil
 	c.stats   = {}
-	c.wore = nil
 	-- A card off the table is lent to nothing. move_card clears this on the way
 	-- out of an offer; a purge does not pass that way, and the husk would carry
 	-- a home it no longer has into every snapshot, save and sync.
@@ -890,8 +896,12 @@ function M.move_card(card_id, to_id, where)
 	local gone = lent or from
 	local zone_was = c.zone_id
 	fire_leaves(gone, to, card_id)
-	-- A departure rule that carried the card somewhere else has answered the move, as a `becomes`
-	-- block that carries off a corpse has answered its death.
+	-- A departure rule that said `stay` has refused the move: the card is where it was, with everything on it.
+	if M.stayed == card_id then
+		M.stayed = nil
+		return false
+	end
+	-- One that carried the card somewhere else has answered it.
 	if c.zone_id ~= zone_was or not entity.get(card_id) then return true end
 
 	-- Going somewhere is getting off whatever it was standing on, and taking
