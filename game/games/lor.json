@@ -124,7 +124,7 @@
           "text": "Block",
           "tooltip": "Meet an attacker. A lane with nothing across it cannot be blocked into.",
           "phases": ["declare_block"],
-          "needs": { "where": ["row@target == side@mine.player", "count:unit@across >= 1"] },
+          "needs": { "where": ["row@target == side@mine.player", "tagged:unit@across"] },
           "target": {
             "type": "slot",
             "count": 1,
@@ -145,7 +145,7 @@
         { "key": "land", "action": ["damage:health@self:sum:incoming@self"] },
         {
           "key": "spill",
-          "needs": { "req": ["attacking@self >= 1", "count:unit@across == 0"] },
+          "needs": { "req": ["attacking@self >= 1", "not_tagged:unit@across"] },
           "action": ["stat_set:spill@self:sum:power@self"]
         }
       ]

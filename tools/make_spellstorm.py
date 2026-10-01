@@ -214,7 +214,7 @@ VERBS += [
     # "SPECIAL: this card ALWAYS goes first." The duel is ordered by `lead`, which
     # the reveal sets to the Initiative Tracker; this is the one thing that beats it.
     {"key": "strike_first", "tooltip": "A revealed Shuriken resolves before anything else, whoever holds the Initiative Tracker.",
-     "needs": {"shuriken": "count:first_strike@mine.battle >= 1"}, "action": ["shuriken? stat_gain:lead@mine.player:9"]},
+     "needs": {"shuriken": "tagged:first_strike@mine.battle"}, "action": ["shuriken? stat_gain:lead@mine.player:9"]},
     # **Glittering Dust: "[EARTH] cards do nothing when resolved but Heal 2."**
     #
     # "Does nothing when resolved" is said by not being there to do it. The step
@@ -229,7 +229,7 @@ VERBS += [
     # its own and runs before this one. The card says the Earth card's *effect*
     # is replaced, and casting your Ultimate here is not that.
     {"key": "settle_dust", "tooltip": "While Glittering Dust is the weather, Earth cards do nothing when resolved but heal 2.",
-     "needs": {"dust": ["card:glitteringdust@weather_now >= 1", "count:earth@mine.battle >= 1"]},
+     "needs": {"dust": ["card:glitteringdust@weather_now >= 1", "tagged:earth@mine.battle"]},
      "action": ["dust? " + HEAL(2), "dust? destroy:mine.battle.earth"]},
     # Your Blast Score is what you still hold once the discard effects have gone;
     # a single highest takes two Shards, a tie takes one each. Every seat scores
@@ -251,16 +251,16 @@ VERBS += [
     # The Dragon pile is the one whose empty rule is a reward rather than a
     # penalty, because a Dragon is what you were owed.
     {"key": "dragons_gone", "tooltip": "When the Dragon pile is empty, gaining a Dragon deals 2 damage and gains 2 Storm Shards instead.",
-     "needs": {"empty": "count:dragon@dragon_deck <= 0"}, "action": ["empty? " + DMG(2), "empty? " + SHARD(2)]},
+     "needs": {"empty": "not_tagged:dragon@dragon_deck"}, "action": ["empty? " + DMG(2), "empty? " + SHARD(2)]},
     # Ruby's two branches, told apart by which card came back in the offer. A
     # pick leaves the offer holding exactly the card that was taken -- the rest go
     # home before the chosen actions run -- so "@options" is the answer and not
     # the question.
     {"key": "ruby_pick", "tooltip": "Ruby: taking the flame deals 1 damage for each Fire card among the three; taking one of the three VOIDs it.",
-     "needs": {"flame": "count:burn@options >= 1"},
+     "needs": {"flame": "tagged:burn@options"},
      "action": ["flame? hit:health@opponent:sum:counted@options", "!flame? move:options:void"]},
     {"key": "lapis_heal", "tooltip": "Lapis heals 1 for each Water card you discard to it.",
-     "needs": {"water": "count:water@options >= 1"}, "action": ["water? " + HEAL(1)]},
+     "needs": {"water": "tagged:water@options"}, "action": ["water? " + HEAL(1)]},
     # Star Shot asks about the card the player just chose, which is still lying
     # in the offer while the `chosen` list runs.
     {"key": "star_shot", "tooltip": "May deals 1 more damage if the card she discarded was Tier II.",
@@ -272,13 +272,13 @@ VERBS += [
 VERBS += [
     {"key": "open_gain",
      "tooltip": "Whoever is owed a gain from the Storm Cloud chooses it, the player with Initiative first. With nothing on the shelf they may take, the gain passes.",
-     "needs": {"first": "count:owes_init >= 1", "may": "gain_kind@mine.player != %d" % GAIN_KINDS["must"],
-               "none": "count:takeable_now@storm_cloud <= 0"},
+     "needs": {"first": "tagged:owes_init", "may": "gain_kind@mine.player != %d" % GAIN_KINDS["must"],
+               "none": "not_tagged:takeable_now@storm_cloud"},
      "action": ["first? set_priority:owes_init", "!first? set_priority:owes_gain",
                 "may? create:menu:btn_no_gain:1"] + ["none? " + a for a in GAIN_DONE]},
     # Where a taken card goes, read off `gained` while it waits there.
     {"key": "settle_gain", "tooltip": "A card gained goes to your hand, or your discard if the gain said so. Coffee Run's Earth card takes the Initiative too.",
-     "needs": {"coffee": ["gain_kind@mine.player == %d" % GAIN_KINDS["coffee"], "count:earth@gained >= 1"],
+     "needs": {"coffee": ["gain_kind@mine.player == %d" % GAIN_KINDS["coffee"], "tagged:earth@gained"],
                "discard": "gain_kind@mine.player == %d" % GAIN_KINDS["discard"],
                "took": "gain_kind@mine.player == 0", "owed": "gain_kind@mine.player >= 1"},
      "action": ["coffee? " + a for a in GAIN_INIT]
@@ -373,7 +373,7 @@ SPELLS = [
          tooltip="Gain 2 mana. If your opponent revealed Water, VOID this, gain a CURSE and take 1 damage.",
          flavour="Do not keep sentient fire spirits trapped in a lantern, for any reason.",
          cast=[MANA, MANA],
-         cast2=("count:water@enemy.battle >= 1",
+         cast2=("tagged:water@enemy.battle",
                 ["move_to:void"] + GAIN_JUNK("curse") + [SELF_DMG(1)])),
     card("lavabat", "Lava Bat", FIRE, tier=1,
          tooltip="Gain 1 mana. You may move a card from your opponent's discard to your own. Gain Initiative.",
@@ -465,7 +465,7 @@ SPELLS = [
          tooltip="Gain Initiative and heal 1. If your opponent revealed Fire, you may VOID a card from your hand or discard.",
          flavour="Azure wizards historically specialized in Water Gems, but they have since taken others from throughout the globe.",
          cast=GAIN_INIT + [HEAL(1)],
-         cast2=("count:fire@enemy.battle >= 1", [OFFER_HELD]),
+         cast2=("tagged:fire@enemy.battle", [OFFER_HELD]),
          chosen=["move:target:void"], chosen_where=VOIDABLE),
     card("moonstone", "Moonstone", WATER, tier=3,
          tooltip="Heal 4. On discard: heal 2.",
@@ -475,7 +475,7 @@ SPELLS = [
          tooltip="Draw a card, gain Initiative, heal 1. If your opponent revealed Fire, they take 2 damage.",
          flavour='"He just needs a little splash, is all he needs." - The Splashmaster',
          cast=[DRAW] + GAIN_INIT + [HEAL(1)],
-         cast2=("count:fire@enemy.battle >= 1", [DMG(2)])),
+         cast2=("tagged:fire@enemy.battle", [DMG(2)])),
     card("sapphire", "Sapphire", WATER, tier=1, ult=True,
          tooltip="Draw a card, heal 1, and gain an ASH.",
          flavour='Many of Omia\'s most impressive Wizards have a signature move, which some call an "Ultimate".',
@@ -563,7 +563,7 @@ SPELLS = [
          tooltip="Power up twice and you may gain a card from the Storm Cloud at or below your Tier. If anyone revealed Water, power up again. On discard: power up twice.",
          flavour='When you see the "Gain Card" icon on a card, keep in mind that you may choose not to gain a card.',
          cast=[POWER(2)] + GAIN(),
-         cast2=("count:water@battle >= 1", [POWER()]),
+         cast2=("tagged:water@battle", [POWER()]),
          disc=[POWER(2)]),
     card("twopower", "Two Power", EARTH, tier=1,
          tooltip="Power up twice and you may gain a card from the Storm Cloud at or below your Tier. On discard: power up twice.",
@@ -634,7 +634,7 @@ def weather(key, name, tooltip, wx=(), wy=None, wz=(), calm=False, copies=1,
                 wz=list(wz), calm=calm, copies=copies, simplified=simplified,
                 chosen=chosen, chosen_where=chosen_where)
 
-REVEALED = lambda el: "count:%s@mine.battle >= 1" % el
+REVEALED = lambda el: "tagged:%s@mine.battle" % el
 
 WEATHER = [
     # The eight Calm Before the Storm cards, which sit on top of the deck so
@@ -772,7 +772,7 @@ def choice_templates():
         entry("omar_recall", "Take a card back",
               "Return a card from your discard to your hand.",
               ["show:mine.discard:optional"],
-              needs=["count:spell@mine.discard >= 1"],
+              needs=["tagged:spell@mine.discard"],
               chosen=["move:target:mine.hand"]),
         entry("omar_draw", "Draw instead", "Draw a card.", [DRAW]),
 
@@ -787,12 +787,12 @@ def choice_templates():
         entry("shuriken_strike", "Knock their card out",
               "Your opponent discards their revealed card without resolving it, and draws.",
               ["destroy:enemy.battle", "draw_from:enemy.deck:enemy.hand:1"],
-              needs=["count:spell@enemy.battle >= 1"]),
+              needs=["tagged:spell@enemy.battle"]),
 
         entry("croh_take", "Take a card back",
               "Return a card of your choice from your discard to your hand.",
               ["show:mine.discard:optional"],
-              needs=["count:spell@mine.discard >= 1"],
+              needs=["tagged:spell@mine.discard"],
               chosen=["move:target:mine.hand"]),
         entry("croh_draw", "Draw instead", "Draw a card.", [DRAW]),
 
@@ -806,13 +806,13 @@ def choice_templates():
         entry("may_hand", "From your hand",
               "Resolve a non-Wizard card from your hand, then put it on the bottom of the Spellstorm Deck.",
               ["show:mine.hand:optional"],
-              needs=["count:spell@mine.hand >= 1"],
+              needs=["tagged:spell@mine.hand"],
               chosen=["move:target:spellstorm_deck:bottom", "copy:target:activate"],
               where=["not_tagged:wizard_spell@target"]),
         entry("may_void", "From the VOID",
               "Resolve a card in the VOID, then put it on the bottom of the Spellstorm Deck.",
               ["show:void:optional"],
-              needs=["count:spell@void >= 1"],
+              needs=["tagged:spell@void"],
               chosen=["move:target:spellstorm_deck:bottom", "copy:target:activate"]),
 
         # Lava Bat: "from any discard to any other discard", which with two
@@ -823,13 +823,13 @@ def choice_templates():
         entry("bat_take", "Take one of theirs",
               "Move a non-Wizard Fire card from your opponent's discard to yours.",
               ["show:enemy.discard.fire:optional"],
-              needs=["count:fire@enemy.discard >= 1"],
+              needs=["tagged:fire@enemy.discard"],
               chosen=["set_owner:target:mine.player", "move:target:mine.discard"],
               where=["not_tagged:wizard_spell@target"]),
         entry("bat_give", "Give one of yours",
               "Move a non-Wizard Fire card from your discard to your opponent's.",
               ["show:mine.discard.fire:optional"],
-              needs=["count:fire@mine.discard >= 1"],
+              needs=["tagged:fire@mine.discard"],
               chosen=["set_owner:target:opponent", "move:target:enemy.discard"],
               where=["not_tagged:wizard_spell@target"]),
 
@@ -873,7 +873,7 @@ def trap_templates():
 
     def counter_trap(key, name, tooltip, element, action):
         return trap(key, name, tooltip, "countered", "mine",
-                    ["count:%s@mine.battle >= 1" % element], action)
+                    ["tagged:%s@mine.battle" % element], action)
 
     return [
         counter_trap("trap_mud", "Mud Trap",
@@ -1029,7 +1029,7 @@ WIZARDS = [
                     flavour="Long ago, Croh Vosh was betrayed and killed at Dragon Bridge by his longtime ally, Salutaire Ruupart.",
                     cast=[MANA, MANA,
                           "hit:health@opponent:sum:doom@mine.player"],
-                    cast2=("count:junk@curse_pile <= 0",
+                    cast2=("not_tagged:junk@curse_pile",
                            ["stat_gain:doom@mine.player:1"])),
                card("croh_undertow", "Undertow", WATER, kind="wizard_spell", ult=True,
                     tooltip="Your opponent discards a card. Draw a card. If you hold at least 3 more cards than they do, gain a DOOM Token.",
@@ -1106,7 +1106,7 @@ WIZARDS = [
                     tooltip="Heal 2. Give an ICE to your opponent if they have none in their discard.",
                     flavour="The Stuffies are a species of stuffed animals that have been brought to life by powerful Star magic.",
                     cast=[HEAL(2)],
-                    cast2=("count:junk@enemy.discard <= 0", GIVE("ice"))),
+                    cast2=("not_tagged:junk@enemy.discard", GIVE("ice"))),
            ]),
 
     wizard("oren", "Oren Bark", "Magical Chemistry Student", "Fire, Earth", 16, 6, 5,
@@ -1141,7 +1141,7 @@ WIZARDS = [
                     # condition rather than a tag because no tag says what a card
                     # is *not*. The whole hand still comes up, which is right --
                     # you are looking through it either way.
-                    chosen_where=["count:wizard_spell@target <= 0"]),
+                    chosen_where=["not_tagged:wizard_spell@target"]),
                # Six ways to pour one beaker into another, dealt as an offer of six.
                # Two questions would read better -- which down, then which up -- but
                # the second could not leave the first one out, and pouring Fire into
@@ -1151,7 +1151,7 @@ WIZARDS = [
                     tooltip="Power up and gain 1 mana. Lower one Element by 2 to raise another by 2. If anyone revealed Water, gain 1 Earth Element.",
                     flavour='"Oh, it\'ll work, trust me. But, uh... you might wanna stand back a bit..."',
                     cast=[POWER(), MANA, OFFER_SWAP],
-                    cast2=("count:water@battle >= 1", ["stat_gain:earth_el@mine.player:1"])),
+                    cast2=("tagged:water@battle", ["stat_gain:earth_el@mine.player:1"])),
            ]),
 
     wizard("may", "May Danaris", "Hacker", "Fire, Earth", 12, 4, 6,
@@ -1351,11 +1351,11 @@ def tip(base, flavour=None, simplified=None):
 # straight back.
 GATE_NAMES = {
     HAS_INIT: "init",
-    "count:fire@enemy.battle >= 1": "vs_fire",
-    "count:water@enemy.battle >= 1": "vs_water",
-    "count:water@battle >= 1": "water",
-    "count:junk@curse_pile <= 0": "no_curses",
-    "count:junk@enemy.discard <= 0": "clean_discard",
+    "tagged:fire@enemy.battle": "vs_fire",
+    "tagged:water@enemy.battle": "vs_water",
+    "tagged:water@battle": "water",
+    "not_tagged:junk@curse_pile": "no_curses",
+    "not_tagged:junk@enemy.discard": "clean_discard",
     "count:spell@mine.hand >= count:spell@enemy.hand": "more_spells",
     "tier@opponent <= 1": "low_tier",
     "mana@mine.player >= 2": "can_pay",
@@ -1596,8 +1596,8 @@ def rules_templates():
             # action list runs to completion, so anything written beside an emit
             # would happen before the answer arrived.
             [ability("check", ["emit:countered:" + DRAW],
-                     when=["count:%s@mine.battle >= 1" % a,
-                           "count:%s@enemy.battle >= 1" % b])]))
+                     when=["tagged:%s@mine.battle" % a,
+                           "tagged:%s@enemy.battle" % b])]))
 
     # What the board prints for a pile that has run out. Six ICE, six ASH and
     # six CURSE is few enough to reach in a long game, and until now giving from
@@ -1629,7 +1629,7 @@ def rules_templates():
             RULES_HOME[key] = "dry_" + way
             out.append(rules_card(
                 key, "The %s pile is empty" % kind.upper(), rule,
-                [ability("dry_" + way, acts, when=["count:junk@%s_pile <= 0" % kind])],
+                [ability("dry_" + way, acts, when=["not_tagged:junk@%s_pile" % kind])],
                 chosen={"action": ["move:target:%s_pile" % kind]}, tags=[kind]))
 
     # Abragail's journal: every researched space fires at battle start. The
@@ -1642,7 +1642,7 @@ def rules_templates():
                 " with her Ultimate and it fires at the start of every battle from then on."
                 % (what, n)),
             [ability("jr%d" % n if chosen else "bstart", acts,
-                     when=["count:abra@mine.wizard >= 1", "researched@self >= 1"])],
+                     when=["tagged:abra@mine.wizard", "researched@self >= 1"])],
             chosen=chosen if isinstance(chosen, dict) else None, tags=["jspace"], stats={"researched": 0}))
 
     # The second half of May's *Data Breach*, here rather than on the card
@@ -1690,7 +1690,7 @@ def rules_templates():
     out.append(rules_card(
         "r_research", "Did Her Research",
         "At the start of each battle, Abragail powers up.",
-        [ability("bstart", [POWER()], when=["count:abra@mine.wizard >= 1"])]))
+        [ability("bstart", [POWER()], when=["tagged:abra@mine.wizard"])]))
 
     return out
 
@@ -2026,7 +2026,7 @@ def phases():
          "phases": ["play_card"], "next": [{"then": "showdown"}]},
         {"key": "play_card", "type": "player_input",
          "label": "Play a card face down", "zone": ["hand", "wizard", "menu"],
-         "ends_when": "count:spell@mine.commit >= 1"},
+         "ends_when": "tagged:spell@mine.commit"},
 
         # This move is the reveal, and it has to come before anything that reads
         # the two cards against each other: countering asks about `enemy.battle`.
@@ -2154,7 +2154,7 @@ def build():
         "tooltip": "If your hand is nothing but ICE, ASH and CURSE, use this: discard them all with their effects, take 1 damage, and draw a new hand of 4.",
         # Read each time it is pressed, so a new hand of junk may press it again.
         "abilities": [{"phases": ["play_card"],
-                     "needs": {"req": ["count@mine.hand >= 1", "count:playable@mine.hand <= 0"]},
+                     "needs": {"req": ["any@mine.hand", "not_tagged:playable@mine.hand"]},
                      "action": ["destroy:mine.hand",
                                 SELF_DMG(1),
                                 "draw_from:mine.deck:mine.hand:4"]}]})

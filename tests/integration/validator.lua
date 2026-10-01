@@ -79,7 +79,7 @@ local CASES = {
 	{ "a player whose card is not a key", 'its "card" should be the key of a card',
 		function(g) g.players[1].card = 3 end },
 	{ "a sort by a number nobody carries", "sorts by 'vigour'",
-		function(g) g.card_defs.c_flee.needs = { "count:keepsake@lowest:vigour.board >= 1" } end },
+		function(g) g.card_defs.c_flee.needs = { "tagged:keepsake@lowest:vigour.board" } end },
 	-- condition subjects, said as subjects
 
 	{ "a subject that is not a subject at all", "is not something the engine can measure",
@@ -211,7 +211,7 @@ local CASES = {
 	-- condition subjects
 
 	{ "an unknown tag in a count", "counts the tag 'dragons'",
-		function(g) g.card_defs.c_flee.needs = { "count:dragons >= 1" } end },
+		function(g) g.card_defs.c_flee.needs = { "count:dragons >= 2" } end },
 	{ "an aims at an ability nobody has", "no ability has that key",
 		function(g) g.card_defs.c_flee.needs = { "aims:pounce == 0" } end },
 	{ "an aims at an ability that points at nothing", "aims at nothing",
@@ -1166,11 +1166,11 @@ function M.test_validator_reads_fills_scope_form(check)
 		has_problem(said, "names the card 'thign'"), table.concat(said, "; "))
 end
 
--- "@self" is one card, so counting it is asking whether it is one. Codex was
--- written before "tagged:" existed and said it that way 79 times, which is how a
--- corpus keeps two spellings for one question -- and the counts above nought
--- cannot hold at all, so nothing tells them from a typo.
-function M.test_validator_counting_one_card_is_asking_about_it(check)
+-- Whether there is one is not a count. Codex said it the counted way hundreds of
+-- times, which is how a corpus keeps two spellings for one question -- and on
+-- "@self" the counts above nought cannot hold at all, so nothing tells them from a
+-- typo.
+function M.test_validator_counting_to_one_is_asking_whether_there_is_one(check)
 	local path = "game/games/" .. harness.tmp("count_self")
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
@@ -1180,8 +1180,11 @@ function M.test_validator_counting_one_card_is_asking_about_it(check)
 		"cards": [{ "key": "thing", "text": "Thing", "tags": ["gem", "red"], "abilities": [
 			{ "key": "a", "needs": { "req": ["count:gem@self >= 1"] }, "action": ["end_phase"] },
 			{ "key": "b", "needs": { "req": ["count:red@self == 0"] }, "action": ["end_phase"] },
-			{ "key": "c", "needs": { "req": ["count:gem@board >= 1"] }, "action": ["end_phase"] },
-			{ "key": "d", "needs": { "req": ["count:gem@self >= 2"] }, "action": ["end_phase"] }] }]
+			{ "key": "c", "needs": { "req": ["count:gem@board > 0"] }, "action": ["end_phase"] },
+			{ "key": "d", "needs": { "req": ["count:gem@self >= 2"] }, "action": ["end_phase"] },
+			{ "key": "e", "needs": { "req": ["count@mine.self >= 1"] }, "action": ["end_phase"] },
+			{ "key": "f", "needs": { "req": ["count@board <= 0"] }, "action": ["end_phase"] },
+			{ "key": "g", "needs": { "req": ["count:gem@board >= 2"] }, "action": ["end_phase"] }] }]
 	}]==])
 	f:close()
 	local ok, G = pcall(declaration.parse, harness.tmp("count_self"))
@@ -1191,10 +1194,12 @@ function M.test_validator_counting_one_card_is_asking_about_it(check)
 	check("the positive form is sent to tagged:", said:find('write "tagged:gem@self"', 1, true), said)
 	check("and the nought form to its complement",
 		said:find('write "not_tagged:red@self"', 1, true), said)
-	check("a scope that is a pool is left alone",
-		not said:find("count:gem@board", 1, true), said)
-	check("and a count that can never hold is still reported as a count",
+	check("a pool is asked the same way", said:find('write "tagged:gem@board"', 1, true), said)
+	check("with no tag, anything there is any@", said:find('write "any@mine.self"', 1, true), said)
+	check("and nothing there is none@", said:find('write "none@board"', 1, true), said)
+	check("a count that can never hold is still reported as a count",
 		said:find("count:gem@self >= 2", 1, true), said)
+	check("and a count that means a number is left alone", not said:find("count:gem@board >= 2", 1, true), said)
 end
 
 -- "<zone>.<tag>" is two names, and both have to exist. The complaint says which
@@ -1211,7 +1216,7 @@ function M.test_validator_names_the_wrong_half_of_a_zone_tag_scope(check)
 		"cards": [{ "key": "thing", "text": "Thing", "tags": ["gem"], "abilities": [
 			{ "key": "a", "action": ["purge:vualt.gem"] },
 			{ "key": "b", "action": ["purge:vault.gme"] },
-			{ "key": "c", "needs": { "req": ["count:gem@vualt.gem >= 1"] }, "action": ["end_phase"] },
+			{ "key": "c", "needs": { "req": ["count:gem@vualt.gem >= 2"] }, "action": ["end_phase"] },
 			{ "key": "d", "action": ["purge:vault.gem"] }] }]
 	}]==])
 	f:close()

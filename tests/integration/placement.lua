@@ -49,7 +49,7 @@ local GAME = [==[{
         "action": ["move_to:target"] }] },
     { "key": "blocker", "text": "Blocker", "tags": ["mark"],
       "abilities": [{
-        "needs": { "where": ["row@target == 2", "count:mark@across >= 1"] },
+        "needs": { "where": ["row@target == 2", "tagged:mark@across"] },
         "target": { "type": "slot", "count": 1, "zones": ["board"], "fill": "empty" },
         "action": ["move_to:target"] }] }
   ]

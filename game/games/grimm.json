@@ -180,7 +180,7 @@
 
     { "key": "pick_gather", "type": "player_input", "zone": "plan",
       "label": "Choose where to gather — face down",
-      "ends_when": "count@mine.commit >= 1" },
+      "ends_when": "any@mine.commit" },
 
     { "key": "pick_fable", "type": "player_input", "zone": "fables", "pass_card": "no_fable",
       "label": "Play a Fable with it, or none" },
@@ -343,7 +343,7 @@
       "tooltip": "*Straw.* Five more is laid down here at the end of every round.",
       "abilities": [
         { "key": "divide", "compute": ["split_straw"],
-          "needs": { "req": ["count:pig@fields >= 1"] },
+          "needs": { "req": ["tagged:pig@fields"] },
           "action": ["stat_set:share@self:split_straw"] },
         { "key": "spend",
           "action": ["stat_damage:pool@self:sum:share@self:x:count:pig@fields"] },
@@ -356,7 +356,7 @@
       "tooltip": "*Wood.* Four more is laid down here at the end of every round.",
       "abilities": [
         { "key": "divide", "compute": ["split_wood"],
-          "needs": { "req": ["count:pig@forest >= 1"] },
+          "needs": { "req": ["tagged:pig@forest"] },
           "action": ["stat_set:share@self:split_wood"] },
         { "key": "spend",
           "action": ["stat_damage:pool@self:sum:share@self:x:count:pig@forest"] },
@@ -369,7 +369,7 @@
       "tooltip": "*Brick.* Three more is laid down here at the end of every round.",
       "abilities": [
         { "key": "divide", "compute": ["split_brick"],
-          "needs": { "req": ["count:pig@brickyard >= 1"] },
+          "needs": { "req": ["tagged:pig@brickyard"] },
           "action": ["stat_set:share@self:split_brick"] },
         { "key": "spend",
           "action": ["stat_damage:pool@self:sum:share@self:x:count:pig@brickyard"] },
@@ -455,19 +455,19 @@
     { "key": "start_straw", "text": "Lay a Straw floor", "tags": ["plate_straw", "immutable"],
       "tooltip": "*One action, 2 Straw.* Start a house on an empty build site. You may not start a second Straw house while one is unfinished.",
       "abilities": [{ "key": "use", "text": "Lay a Straw floor", "phases": ["build_turn"],
-        "needs": { "req": ["count:wip_straw@mine.sites == 0", "count@mine.sites <= 4"] },
+        "needs": { "req": ["not_tagged:wip_straw@mine.sites", "count@mine.sites <= 4"] },
         "cost": { "acts@mine.player": 1, "straw@mine.player": 2, "stock@box.sec_straw": 1 },
         "action": ["create:mine.sites:house_straw:1"] }] },
     { "key": "start_wood", "text": "Lay a Wood floor", "tags": ["plate_wood", "immutable"],
       "tooltip": "*One action, 2 Wood.* Start a house on an empty build site. You may not start a second Wood house while one is unfinished.",
       "abilities": [{ "key": "use", "text": "Lay a Wood floor", "phases": ["build_turn"],
-        "needs": { "req": ["count:wip_wood@mine.sites == 0", "count@mine.sites <= 4"] },
+        "needs": { "req": ["not_tagged:wip_wood@mine.sites", "count@mine.sites <= 4"] },
         "cost": { "acts@mine.player": 1, "wood@mine.player": 2, "stock@box.sec_wood": 1 },
         "action": ["create:mine.sites:house_wood:1"] }] },
     { "key": "start_brick", "text": "Lay a Brick floor", "tags": ["plate_brick", "immutable"],
       "tooltip": "*One action, 2 Brick.* Start a house on an empty build site. You may not start a second Brick house while one is unfinished.",
       "abilities": [{ "key": "use", "text": "Lay a Brick floor", "phases": ["build_turn"],
-        "needs": { "req": ["count:wip_brick@mine.sites == 0", "count@mine.sites <= 4"] },
+        "needs": { "req": ["not_tagged:wip_brick@mine.sites", "count@mine.sites <= 4"] },
         "cost": { "acts@mine.player": 1, "brick@mine.player": 2, "stock@box.sec_brick": 1 },
         "action": ["create:mine.sites:house_brick:1"] }] },
 

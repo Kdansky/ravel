@@ -40,7 +40,7 @@ local GAME = [==[{
     { "key": "attack", "does": "target", "tooltip": "One fighter throwing itself at another." }
   ],
   "computed_tags": {
-    "fragile": { "needs": { "req": ["tagged:illusion@self", "count:ward_aura@field == 0"] } }
+    "fragile": { "needs": { "req": ["tagged:illusion@self", "not_tagged:ward_aura@field"] } }
   },
   "tags": {
     "illusion": { "tooltip": "Illusion — dies when a spell or an ability aims at it." },

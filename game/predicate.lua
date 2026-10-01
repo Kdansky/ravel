@@ -66,6 +66,11 @@ local M = {}
 -- is up — a death, an aim answered — and that is exactly where "dies on your turn" is asked. The
 -- turn and not priority: answering inside a window is not having the turn.
 --
+-- "any@<scope>" is yes when anything at all is there, and "none@<scope>" its exact complement:
+-- "any@mine.self" is *this card is mine*, "none@deck" an empty deck. Whether something exists is not
+-- a quantity, and spelling it "count@deck == 0" made the reader do the arithmetic back into a
+-- question. A tag narrows it the way it narrows a count, so a kind of card is "tagged:".
+--
 -- Its own words rather than a tag, because the tag namespace is the *game's* —
 -- every other word in it is one an author wrote — and readiness is the engine's
 -- own state, written by the "exhaust" cost, the "exhaust:" action and the round
@@ -98,20 +103,21 @@ local M = {}
 local FNS    = { count = true, card = true, sum = true, max = true, min = true,
 	tagged = true, not_tagged = true, saved = true, not_self = true,
 	verb = true, not_verb = true, aims = true, exhausted = true, ready = true, in_play = true,
-	my_turn = true, their_turn = true }
+	my_turn = true, their_turn = true, any = true, none = true }
 -- The fns that answer a question rather than measure a quantity. They are the
 -- conditions that need no comparison: "there is a pawn behind it" is the whole
 -- sentence, and `>= 1` after it was the grammar's tax, not the author's meaning.
 -- Kept as a set because the validator refuses the taxed spelling by name.
 local YESNO  = { tagged = true, not_tagged = true, saved = true, not_self = true,
-	verb = true, not_verb = true, exhausted = true, ready = true, in_play = true, my_turn = true, their_turn = true }
+	verb = true, not_verb = true, exhausted = true, ready = true, in_play = true, my_turn = true, their_turn = true,
+	any = true, none = true }
 -- The fns written bare, with no ":<something>" in front of the "@". "count@road"
 -- is how many cards are lying there whatever they are, which is the one question
 -- the tag vocabulary could not ask: a tag names a kind, and "is this pile empty"
 -- is about none of them. It used to have its own field on a route and on an end
 -- condition ("zone_empty") because of it.
 local NULLARY = { not_self = true, count = true, exhausted = true, ready = true, in_play = true,
-	my_turn = true, their_turn = true }
+	my_turn = true, their_turn = true, any = true, none = true }
 -- "others" is a pool with the asking card taken out of it, and it is the scope
 -- half of what "not_self" answers as a yes/no. A rule about the rest of the board
 -- could not be written before: "as long as a unit with flying is in play" read
@@ -732,6 +738,11 @@ function M.total(subject, ctx)
 		return (p.fn == "my_turn") == any and 1 or 0
 	end
 
+	if p.fn == "any" or p.fn == "none" then
+		local some = #M.entities_in_scope(p.scope, ctx, p.owner, p.quant) > 0
+		return (p.fn == "any") == some and 1 or 0
+	end
+
 	if p.fn == "in_play" then
 		for _, e in ipairs(M.entities_in_scope(p.scope, ctx, p.owner, p.quant)) do
 			local z = e.kind == "card" and e.zone_id and entity.get(e.zone_id)
@@ -1152,7 +1163,7 @@ end
 
 -- A routing entry or an end condition: { "when": "hp == 0" }. It used to carry
 -- a zone_empty beside the when, for the one question the comparison grammar
--- could not ask; "count@road == 0" asks it now, so there is one field again.
+-- could not ask; "none@road" asks it now, so there is one field again.
 function M.met(cond, ctx)
 	if type(cond) == "string" then return M.holds(cond, ctx) end
 	return type(cond) == "table" and cond.when ~= nil and M.meets_all(cond.when, ctx)

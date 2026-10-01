@@ -2346,7 +2346,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "needs": { "req": ["count:chip@mine.discard >= 1"] },
+        "needs": { "req": ["tagged:chip@mine.discard"] },
         "action": ["set_priority:enemy.player", "show:enemy.discard"],
         "spent": "mine.table"
       },

@@ -517,7 +517,7 @@ def phases():
          "label": "Take tokens, buy a card, or reserve one",
          "on_enter": turn_top, "actions": REPRICE, "next": routes},
         {"key": "noble_check", "type": "automatic", "actions": ["activate_zone:nobles"],
-         "next": [{"when": "count:noble_ready >= 1", "then": "noble_pick"},
+         "next": [{"when": "tagged:noble_ready", "then": "noble_pick"},
                   {"then": "cleanup"}]},
         {"key": "noble_pick", "type": "player_input", "zone": "nobles",
          "label": "A noble will visit you — choose which",

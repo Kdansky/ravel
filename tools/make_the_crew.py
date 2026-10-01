@@ -349,7 +349,7 @@ def phases():
     follow = [{"key": "follow", "type": "turn", "seat": "each",
                "phases": ["follow_card"], "next": [{"then": "resolve"}]},
               {"key": "follow_card", "type": "player_input",
-               "zone": ["hand", "open"], "ends_when": "count:play_card@mine.trick >= 1",
+               "zone": ["hand", "open"], "ends_when": "tagged:play_card@mine.trick",
                "label": "Follow the suit that was led, if you can"}]
     return [
         {"key": "setup", "type": "automatic", "actions": ["push_phase:mission"],
@@ -361,14 +361,14 @@ def phases():
         # rule about who starts.
         {"key": "draft", "type": "player_input", "zone": "task_offer", "ends_when": "plays >= 1",
          "label": "Commander: take a task",
-         "next": [{"when": "count@task_offer == 0", "then": "first_lead"}, {"then": "draft_on"}]},
+         "next": [{"when": "none@task_offer", "then": "first_lead"}, {"then": "draft_on"}]},
         {"key": "draft_on", "type": "player_input", "seat": "next", "zone": "task_offer",
          "ends_when": "plays >= 1", "label": "Take a task",
-         "next": [{"when": "count@task_offer == 0", "then": "first_lead"}, {"then": "draft_on"}]},
+         "next": [{"when": "none@task_offer", "then": "first_lead"}, {"then": "draft_on"}]},
         {"key": "first_lead", "type": "automatic", "actions": ["set_active_seat:commander"],
          "next": [{"then": "lead"}]},
         {"key": "lead", "type": "player_input", "zone": ["hand", "open"],
-         "ends_when": "count:play_card@trick >= 1",
+         "ends_when": "tagged:play_card@trick",
          "label": "Lead a card", "next": [{"then": "led"}]},
         # Once, between the lead and the follows. Written by any played card's
         # own actions it would be overwritten by the second player and the third
@@ -392,12 +392,12 @@ def phases():
              "activate_zone:trick:by_column:claim",
              "set_active_seat:taker",
          ],
-         "next": [{"when": "count:hit_now@enemy.tasks >= 1", "then": "failed"},
+         "next": [{"when": "tagged:hit_now@enemy.tasks", "then": "failed"},
                   {"then": "collect"}]},
         {"key": "collect", "type": "automatic",
          "actions": ["move:mine.hit_now:archive", "move:trick:won", "stat_set:led@plan:0",
                      "stat_gain:tricks@plan:1", "stat_gain:tricks_won@mine.player:1"],
-         "next": [{"when": "count:task@tasks == 0", "then": "complete"},
+         "next": [{"when": "not_tagged:task@tasks", "then": "complete"},
                   {"when": f"tricks@plan >= {TRICKS}", "then": "failed"},
                   {"then": "lead"}]},
         {"key": "complete", "type": "automatic",

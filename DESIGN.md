@@ -388,7 +388,7 @@ Games declare win/lose checks that run after every action:
 ```json
 "end_conditions": [
   { "when": "morale == 0",       "then": ["push_phase:defeat"] },
-  { "when": "count@road == 0",   "then": ["push_phase:victory"] }
+  { "when": "none@road", "then": ["push_phase:victory"] }
 ]
 ```
 

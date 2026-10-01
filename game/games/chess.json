@@ -62,8 +62,8 @@
       "label": "White to move",
       "seat": "next",
       "next": [
-        { "when": "count:king@enemy.taken >= 1", "then": "white_won" },
-        { "when": "count:king@mine.reach >= 1", "then": "black_check" },
+        { "when": "tagged:king@enemy.taken", "then": "white_won" },
+        { "when": "tagged:king@mine.reach", "then": "black_check" },
         { "then": "black_move" }
       ]
     },
@@ -73,8 +73,8 @@
       "label": "Black to move — in check",
       "seat": "next",
       "next": [
-        { "when": "count:king@enemy.taken >= 1", "then": "black_won" },
-        { "when": "count:king@mine.reach >= 1", "then": "white_check" },
+        { "when": "tagged:king@enemy.taken", "then": "black_won" },
+        { "when": "tagged:king@mine.reach", "then": "white_check" },
         { "then": "white_move" }
       ]
     },
@@ -84,8 +84,8 @@
       "label": "Black to move",
       "seat": "next",
       "next": [
-        { "when": "count:king@enemy.taken >= 1", "then": "black_won" },
-        { "when": "count:king@mine.reach >= 1", "then": "white_check" },
+        { "when": "tagged:king@enemy.taken", "then": "black_won" },
+        { "when": "tagged:king@mine.reach", "then": "white_check" },
         { "then": "white_move" }
       ]
     },
@@ -95,8 +95,8 @@
       "label": "White to move — in check",
       "seat": "next",
       "next": [
-        { "when": "count:king@enemy.taken >= 1", "then": "white_won" },
-        { "when": "count:king@mine.reach >= 1", "then": "black_check" },
+        { "when": "tagged:king@enemy.taken", "then": "white_won" },
+        { "when": "tagged:king@mine.reach", "then": "black_check" },
         { "then": "black_move" }
       ]
     },

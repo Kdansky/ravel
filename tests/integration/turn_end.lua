@@ -38,7 +38,7 @@ local GAME = [==[{
   ],
   "phases": [
     { "key": "act", "type": "player_input", "zone": ["hand", "open"],
-      "ends_when": "count:chip@table >= 1", "next": [{ "then": "over" }] },
+      "ends_when": "tagged:chip@table", "next": [{ "then": "over" }] },
     { "key": "over", "type": "player_input", "label": "done", "next": [{ "then": "over" }] }
   ],
   "cards": [

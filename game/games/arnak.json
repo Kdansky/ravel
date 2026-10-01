@@ -64,7 +64,7 @@
   },
 
   "computed_tags": {
-    "afraid": { "needs": { "req": ["count:guardian@attached_to.host_of.self >= 1"] } }
+    "afraid": { "needs": { "req": ["tagged:guardian@attached_to.host_of.self"] } }
   },
 
   "tags": {
@@ -116,7 +116,7 @@
       "abilities": [
         { "key": "dig", "text": "Dig at a site", "phases": ["turn"],
           "cost": { "exhaust": 1, "main@mine.player": 1, "travel@mine.player": "toll@target" },
-          "needs": { "where": ["count:digger@attached_to.target == 0"] },
+          "needs": { "where": ["not_tagged:digger@attached_to.target"] },
           "target": { "type": "card", "count": 1, "tags": ["site"], "zones": ["island"] },
           "action": ["attach_to_target",
                      "stat_gain:coin@mine.player:sum:y_coin@target",
@@ -138,7 +138,7 @@
       "tooltip": "It stands on the site until somebody standing there beats it. Leave it behind and your archaeologist brings home a Fear card.",
       "abilities": [
         { "key": "overcome", "text": "Overcome it", "phases": ["turn"],
-          "needs": { "req": ["count:digger@mine.attached_to.host_of.self >= 1"] },
+          "needs": { "req": ["tagged:digger@mine.attached_to.host_of.self"] },
           "cost": { "main@mine.player": 1, "arrowhead@mine.player": "sum:g_arrow@self",
                     "tablet@mine.player": "sum:g_tablet@self", "jewel@mine.player": "sum:g_jewel@self" },
           "action": ["stat_gain:guardians@mine.player:1", "purge:self"] }

@@ -247,7 +247,7 @@ rulebook open alongside.
 7. **Costs and prerequisites**: what is spent is `cost`; what merely has to be
    true is `needs`.
 8. **End of game**: a condition on a stat goes in `end_conditions`; "when the
-   deck runs out" is a route — `{ "when": "count@deck == 0", "then": "scoring" }`
+   deck runs out" is a route — `{ "when": "none@deck", "then": "scoring" }`
    on the last phase of the turn.
 9. **Scoring** is a phase whose `pass_card` list is one card per scoring rule,
    each gated by `needs` so it only appears when it applies, each ending in
@@ -266,7 +266,7 @@ rulebook open alongside.
 | "…or discard it instead" | a second destination in the same `target` spec |
 | "Cards must be played in ascending order" | `receive.needs` on the destination |
 | "Costs 2 gold" | `"play": { "cost": { "gold": 2 } }` |
-| "Only if you control a farm" | `"play": { "needs": ["count:farm >= 1"] }` |
+| "Only if you control a farm" | `"play": { "needs": ["tagged:farm"] }` |
 | "Draw from the deck or a discard pile" | a token in the draw phase's `zone` for the deck; for the piles, `"applies": ["takeable"]` on each and one tag def carrying an `abilities` list |
 | "Only during your main phase" | `"play": { "phases": ["main"] }`, or an ability's own `phases` |
 | "Put it on the discard pile" | `"target": { "type": "zone", "zones": ["discard"] }` — point at the place, not at a card lying in it |
@@ -274,7 +274,7 @@ rulebook open alongside.
 | "Destroy all enemy creatures" | `purge:each.enemy.creature` |
 | "Choose an enemy creature" | `"target": { "tags": ["creature"], "owner": "enemy", "count": 1 }` |
 | "Roll / draw randomly" | `shuffle` then `reveal_top:<zone>` |
-| "The game ends when the deck is empty" | a route on `{ "when": "count@deck == 0" }` |
+| "The game ends when the deck is empty" | a route on `{ "when": "none@deck" }` |
 | "Score 3 points per set" | a scoring card: `stat_gain:score:3:x:count:<tag>` |
 | "(sum − 20) × multiplier" | two actions: `stat_gain:score:sum:…:x:…` then `stat_damage:score:20:x:…` |
 | "Whoever has more points wins" | a route: `{ "when": "score@north_side >= score@south_side" }` |
@@ -649,7 +649,7 @@ whatever they are — the question a tag cannot ask, since a tag names a kind an
 "empty" is about none of them:
 
 ```json
-"end_conditions": [{ "when": ["count@deck == 0", "count@hand == 0"], "then": ["push_phase:victory"] }]
+"end_conditions": [{ "when": ["none@deck", "none@hand"], "then": ["push_phase:victory"] }]
 ```
 
 **With a screen rather than a jump to the menu.** An ending is an overlay
@@ -709,7 +709,7 @@ your turn and everything else you may do does not:
 
 ```json
 { "key": "lead", "type": "player_input", "zone": ["hand", "open"],
-  "ends_when": "count:play_card@trick >= 1" }
+  "ends_when": "tagged:play_card@trick" }
 ```
 
 **A crisis that persists** (`castle.json`). `resolve_challenge` with a
@@ -1493,7 +1493,7 @@ disk cache with no network at all.
 | `chosen` | `action`: run when somebody picks a card out of the offer **this** card opened with `show:`, with the pick as `@target` and this card as `@self`. The reverse of an `options:` offer, where the entry carries the rule and the asker is what it is about — here the entry is somebody else's property and carries nothing of ours |
 | `play.target` / an ability's `target` | Click-to-target with the arrow. Fields: `type` (`"card"`, `"slot"` or `"zone"` — a zone target names places in `zones` and ignores `tags`), `min`/`max` (or `count` for both), `tags` (all must match; computed tags count), `zones` (search only these — a per-seat key means *yours*), `owner` (`mine`/`enemy`/`anyone`), `fill` (slots only — see below) |
 | `fill` | What may already be standing on a targeted square: `empty` (default), `enemy`, `open` (empty or enemy — "not blocked by my own"), `any`. Anything but `empty` is how a square you are about to capture becomes clickable |
-| `where` | A condition asked of **each candidate**, with the candidate as `@target` and as the anchor for any pattern inside — so a target spec can say things about the destination that `fill` cannot. `"row@target == 1"` is the near row of a grid; `"count:unit@across >= 1"` is a cell with something standing opposite it. The same word a move rule carries, asked one level up so a destination nothing *walks* to can be narrowed too |
+| `where` | A condition asked of **each candidate**, with the candidate as `@target` and as the anchor for any pattern inside — so a target spec can say things about the destination that `fill` cannot. `"row@target == 1"` is the near row of a grid; `"tagged:unit@across"` is a cell with something standing opposite it. The same word a move rule carries, asked one level up so a destination nothing *walks* to can be narrowed too |
 
 ### Every seat, once
 
@@ -1619,7 +1619,7 @@ middle ends your turn and everything else you may do does not:
 
 ```json
 { "key": "lead", "type": "player_input", "zone": ["hand", "open"],
-  "ends_when": "count:play_card@trick >= 1" }
+  "ends_when": "tagged:play_card@trick" }
 ```
 
 `ends_when` is an ordinary condition in the ordinary vocabulary, and it is asked
@@ -1686,10 +1686,16 @@ zone's. Subjects: a stat key,
 `count:<tag>` (cards **in play** with that tag), or `card:<key>` (instances of
 that specific template in play — "does the player have the rusty key?").
 
-`count` with no tag is everything in a scope, whatever it is: `"count@deck == 0"`
-is an empty deck. It needs the scope, because a tag names a *kind* and "empty"
-is about none of them — which is the question a route and an end condition used
-to need a `zone_empty` field for.
+`count` with no tag is everything in a scope, whatever it is: `"count@hand >= 7"`
+is a full hand. It needs the scope, because a tag names a *kind* and "how many
+are there" is about none of them.
+
+`any@<scope>` is yes when anything at all is there, and `none@<scope>` its exact
+complement: `"none@deck"` is an empty deck, `"any@mine.self"` is *this card is
+mine*. Whether something exists is not a quantity, so it is not a count —
+`"count@deck == 0"` is refused and names `none@deck`, and `"count:farm >= 1"` is
+refused and names `tagged:farm`. A tag narrows `any@` the way it narrows a count,
+which is what `tagged:` is.
 
 `in_play@<scope>` is yes when anything there stands in a zone whose status is
 `board`. A scope names cards wherever they lie, so this is how a computed tag says
@@ -1721,7 +1727,7 @@ two abilities.
   and `["gold >= 3", "gold <= 8"]` is a range.
 - A routing entry and an `end_condition` say the same thing under `when`, and
   one condition may be written on its own: `{ "when": "progress >= 12", "then":
-  "trial" }`, or `{ "when": ["count@road == 0", "count@hand == 0"] }`.
+  "trial" }`, or `{ "when": ["none@road", "none@hand"] }`.
 - A **cost** is not a condition and keeps its map: `{ "gold": 2 }` is what gets
   *spent*, where `"gold >= 2"` would only say what to check.
 
@@ -2000,7 +2006,7 @@ what comes back, so `@enemy.reach` is every square an opponent could move to —
 and asking what stands there is how a game asks about threats:
 
 ```json
-{ "when": "count:king@enemy.reach == 0" }
+{ "when": "not_tagged:king@enemy.reach" }
 ```
 
 *No king of mine stands where an enemy could move* — which is "not in check",
@@ -2024,7 +2030,7 @@ the feature on the game's side:
 
 ```json
 { "key": "white_move", "label": "White to move", "seat": "next",
-  "next": [{ "when": "count:king@mine.reach >= 1", "then": "black_check" },
+  "next": [{ "when": "tagged:king@mine.reach", "then": "black_check" },
            { "then": "black_move" }] }
 ```
 
@@ -2700,8 +2706,12 @@ should not exist: `"tagged:purple@target < 1"` was in a shipped game, where
 `"not_tagged:purple@target"` is the word for it. **Polarity lives in the word**,
 which is why the pair exists.
 
-The four that are written this way: `tagged:`, `not_tagged:`, `saved:` and
-`not_self`.
+Counting to one is refused the same way: `"count:pawn@behind >= 1"` names
+`tagged:pawn@behind`, and with no tag `any@` and `none@`.
+
+The words written this way: `tagged:` and `not_tagged:`, `any@` and `none@`,
+`ready@` and `exhausted@`, `my_turn@` and `their_turn@`, `verb:` and `not_verb:`,
+`in_play@`, `saved:` and `not_self`.
 
 **`others.`** is the pool half of the same idea, and it stands where a
 quantifier stands. `sum:alt@others.anyone.fighter` is every flier on the table
@@ -2916,7 +2926,7 @@ The same name answers *what is standing there* as readily as *where may I go*,
 so no separate "is this square empty" condition exists or is needed:
 
 ```json
-"play": { "needs": { "req": ["count:piece@castle_k_path == 0"] } }
+"play": { "needs": { "req": ["not_tagged:piece@castle_k_path"] } }
 ```
 
 An absolute pattern names its squares outright. A relative one is anchored on
@@ -2985,7 +2995,7 @@ five patrol slots answers *sparkshot* — 1 damage to a patroller adjacent to th
 one struck:
 
 ```json
-{ "key": "sparked", "needs": { "req": ["count:marked@beside >= 1"] },
+{ "key": "sparked", "needs": { "req": ["tagged:marked@beside"] },
   "action": ["stat_damage:hp@self:1"] }
 ```
 
@@ -3412,7 +3422,7 @@ there is nobody to refuse, the two are the same, and the validator asks for
 
 ```json
 { "key": "spill", "text": "Overwhelm", "phases": [],
-  "needs": { "req": ["attacking@self >= 1", "count:unit@across == 0"] },
+  "needs": { "req": ["attacking@self >= 1", "not_tagged:unit@across"] },
   "action": ["stat_set:spill@self:sum:power@self"] }
 ```
 
@@ -4693,7 +4703,7 @@ the card being played, and there is no card here to be it.
 its own name, and let a condition decide who is wearing it:
 
 ```json
-"computed_tags": { "runed": { "needs": { "req": ["runes@self >= 1", "count:elm@mine.structures >= 1"] } } },
+"computed_tags": { "runed": { "needs": { "req": ["runes@self >= 1", "tagged:elm@mine.structures"] } } },
 "tags": { "runed": {
   "tooltip": "Overpower, lent by a Blooming Elm to anything wearing a +1/+1 rune.",
   "abilities": [{ "key": "spill", "phases": [], "text": "Blooming Elm", "action": [ … ] }] } }
@@ -4711,7 +4721,7 @@ but me*, so *"as long as another card has overpower, this one does"* is one
 condition wearing one grant.
 
 ```json
-"computed_tags": { "mimic_over": { "needs": { "req": ["count:overpower@others.anyone.fighter >= 1"] } } },
+"computed_tags": { "mimic_over": { "needs": { "req": ["tagged:overpower@others.anyone.fighter"] } } },
 "tags":          { "mimic_over": { "abilities": [ … the same ability "overpower" grants … ] } }
 ```
 
@@ -5084,7 +5094,7 @@ the word a reaction already uses, and the same three values:
 
 ```json
 "tags": { "hidden": { "receive": {
-  "whose": "enemy", "needs": { "req": ["count:detector@mine.addon >= 1"] } } } }
+  "whose": "enemy", "needs": { "req": ["tagged:detector@mine.addon"] } } } }
 ```
 
 `"enemy"` answers an opponent's aim and nobody else's, `"mine"` its own side's,
@@ -5122,14 +5132,14 @@ aimer *pays*:
 "tags": {
   "resist_1": {
     "adjusts": [{ "key": "resist", "verb": "cast", "stat": "gold", "covers": "self", "by": 1,
-      "needs": { "req": ["count@enemy.self >= 1"] } }]
+      "needs": { "req": ["any@enemy.self"] } }]
   }
 }
 ```
 
 Every chosen target is asked, so aiming at two resisting things costs two. **Who
 is charged is the game's business**: the `needs` above is what makes it
-*opponents* who pay — `count@enemy.self` is the aura's own card read from the
+*opponents* who pay — `any@enemy.self` is the aura's own card read from the
 acting seat's side. Leave it out and everyone pays.
 
 The one thing to know before using it: **a price that depends on the target
@@ -5146,7 +5156,7 @@ case: resist 1 for as long as something stands on the fifth patrol square.
 ```json
 "computed_tags": { "at_lookout": { "needs": { "req": ["slot@self == 5"] } } },
 "tags": { "at_lookout": { "adjusts": [{ "key": "resist", "verb": "cast",
-  "stat": "gold", "covers": "self", "by": 1, "needs": { "req": ["count@enemy.self >= 1"] } }] } }
+  "stat": "gold", "covers": "self", "by": 1, "needs": { "req": ["any@enemy.self"] } }] } }
 ```
 
 ### Keywords: a tag that means something to the player

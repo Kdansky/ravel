@@ -935,7 +935,7 @@
         "req": [
           "tagged:unit@self",
           "atk@self <= 3",
-          "count:ferns@mine.ongoing >= 1"
+          "tagged:ferns@mine.ongoing"
         ]
       }
     },
@@ -974,7 +974,7 @@
     "showdown": {
       "needs": {
         "req": [
-          "count:finale@attached_to.self >= 1"
+          "tagged:finale@attached_to.self"
         ]
       }
     },
@@ -1006,7 +1006,7 @@
         "req": [
           "tagged:stalker@self",
           "slot@self == 0",
-          "count:h_feral@mine.hero >= 1"
+          "tagged:h_feral@mine.hero"
         ]
       }
     },
@@ -1030,7 +1030,7 @@
       "needs": {
         "req": [
           "tagged:tech1@self",
-          "count:t1@mine.tech >= 1"
+          "tagged:t1@mine.tech"
         ]
       }
     },
@@ -1038,7 +1038,7 @@
       "needs": {
         "req": [
           "tagged:anarchy@self",
-          "count:anarchy@mine.declared >= 1"
+          "tagged:anarchy@mine.declared"
         ]
       }
     },
@@ -1046,7 +1046,7 @@
       "needs": {
         "req": [
           "tagged:blood@self",
-          "count:blood@mine.declared >= 1"
+          "tagged:blood@mine.declared"
         ]
       }
     },
@@ -1054,7 +1054,7 @@
       "needs": {
         "req": [
           "tagged:fire@self",
-          "count:fire@mine.declared >= 1"
+          "tagged:fire@mine.declared"
         ]
       }
     },
@@ -1062,7 +1062,7 @@
       "needs": {
         "req": [
           "tagged:balance@self",
-          "count:balance@mine.declared >= 1"
+          "tagged:balance@mine.declared"
         ]
       }
     },
@@ -1070,7 +1070,7 @@
       "needs": {
         "req": [
           "tagged:feral@self",
-          "count:feral@mine.declared >= 1"
+          "tagged:feral@mine.declared"
         ]
       }
     },
@@ -1078,7 +1078,7 @@
       "needs": {
         "req": [
           "tagged:growth@self",
-          "count:growth@mine.declared >= 1"
+          "tagged:growth@mine.declared"
         ]
       }
     },
@@ -1086,7 +1086,7 @@
       "needs": {
         "req": [
           "tagged:law@self",
-          "count:law@mine.declared >= 1"
+          "tagged:law@mine.declared"
         ]
       }
     },
@@ -1094,7 +1094,7 @@
       "needs": {
         "req": [
           "tagged:peace@self",
-          "count:peace@mine.declared >= 1"
+          "tagged:peace@mine.declared"
         ]
       }
     },
@@ -1102,7 +1102,7 @@
       "needs": {
         "req": [
           "tagged:truth@self",
-          "count:truth@mine.declared >= 1"
+          "tagged:truth@mine.declared"
         ]
       }
     },
@@ -1110,7 +1110,7 @@
       "needs": {
         "req": [
           "tagged:demonology@self",
-          "count:demonology@mine.declared >= 1"
+          "tagged:demonology@mine.declared"
         ]
       }
     },
@@ -1118,7 +1118,7 @@
       "needs": {
         "req": [
           "tagged:disease@self",
-          "count:disease@mine.declared >= 1"
+          "tagged:disease@mine.declared"
         ]
       }
     },
@@ -1126,7 +1126,7 @@
       "needs": {
         "req": [
           "tagged:necromancy@self",
-          "count:necromancy@mine.declared >= 1"
+          "tagged:necromancy@mine.declared"
         ]
       }
     },
@@ -1134,7 +1134,7 @@
       "needs": {
         "req": [
           "tagged:discipline@self",
-          "count:discipline@mine.declared >= 1"
+          "tagged:discipline@mine.declared"
         ]
       }
     },
@@ -1142,7 +1142,7 @@
       "needs": {
         "req": [
           "tagged:ninjutsu@self",
-          "count:ninjutsu@mine.declared >= 1"
+          "tagged:ninjutsu@mine.declared"
         ]
       }
     },
@@ -1150,7 +1150,7 @@
       "needs": {
         "req": [
           "tagged:strength@self",
-          "count:strength@mine.declared >= 1"
+          "tagged:strength@mine.declared"
         ]
       }
     },
@@ -1158,7 +1158,7 @@
       "needs": {
         "req": [
           "tagged:future@self",
-          "count:future@mine.declared >= 1"
+          "tagged:future@mine.declared"
         ]
       }
     },
@@ -1166,7 +1166,7 @@
       "needs": {
         "req": [
           "tagged:past@self",
-          "count:past@mine.declared >= 1"
+          "tagged:past@mine.declared"
         ]
       }
     },
@@ -1174,14 +1174,14 @@
       "needs": {
         "req": [
           "tagged:present@self",
-          "count:present@mine.declared >= 1"
+          "tagged:present@mine.declared"
         ]
       }
     },
     "unbacked": {
       "needs": {
         "req": [
-          "count:lab@mine.addon == 0"
+          "not_tagged:lab@mine.addon"
         ]
       }
     },
@@ -1211,7 +1211,7 @@
       "needs": {
         "req": [
           "tagged:tech2@self",
-          "count:t2@mine.tech >= 1",
+          "tagged:t2@mine.tech",
           "tagged:in_spec@self"
         ]
       }
@@ -1220,7 +1220,7 @@
       "needs": {
         "req": [
           "tagged:tech3@self",
-          "count:t3@mine.tech >= 1",
+          "tagged:t3@mine.tech",
           "tagged:in_spec@self"
         ]
       }
@@ -1245,7 +1245,7 @@
         "req": [
           "plus@self >= 1",
           "not_tagged:overpower@self",
-          "count:elm@mine.structures >= 1"
+          "tagged:elm@mine.structures"
         ]
       }
     },
@@ -1267,7 +1267,7 @@
       "needs": {
         "req": [
           "tagged:mimic@self",
-          "count:haste@others.anyone.fighter >= 1"
+          "tagged:haste@others.anyone.fighter"
         ]
       }
     },
@@ -1275,7 +1275,7 @@
       "needs": {
         "req": [
           "tagged:mimic@self",
-          "count:overpower@others.anyone.fighter >= 1"
+          "tagged:overpower@others.anyone.fighter"
         ]
       }
     },
@@ -1283,7 +1283,7 @@
       "needs": {
         "req": [
           "tagged:mimic@self",
-          "count:untargetable@others.anyone.fighter >= 1"
+          "tagged:untargetable@others.anyone.fighter"
         ]
       }
     },
@@ -1343,8 +1343,8 @@
       "needs": {
         "req": [
           "tagged:hammer@self",
-          "count:building@across >= 1",
-          "count:damaged@across >= 1"
+          "tagged:building@across",
+          "tagged:damaged@across"
         ]
       }
     },
@@ -1359,7 +1359,7 @@
     "debilitated": {
       "needs": {
         "req": [
-          "count:debil@across >= 1",
+          "tagged:debil@across",
           "sum:slot@across >= 1"
         ]
       }
@@ -1398,7 +1398,7 @@
       "needs": {
         "req": [
           "tagged:skeleton@self",
-          "count:archery@mine.structures >= 1"
+          "tagged:archery@mine.structures"
         ]
       }
     },
@@ -1414,7 +1414,7 @@
         "req": [
           "tagged:unit@self",
           "not_tagged:abom@self",
-          "count:abom@others.anyone.unit >= 1"
+          "tagged:abom@others.anyone.unit"
         ]
       }
     },
@@ -1430,7 +1430,7 @@
       "needs": {
         "req": [
           "tagged:skeleton@self",
-          "count:bonelord@mine.unit >= 1"
+          "tagged:bonelord@mine.unit"
         ]
       }
     },
@@ -1440,7 +1440,7 @@
           "tagged:black@self",
           "tagged:unit@self",
           "slot@self == 0",
-          "count:shadowlord@mine.unit >= 1"
+          "tagged:shadowlord@mine.unit"
         ]
       }
     },
@@ -1451,7 +1451,7 @@
           "attacking@self >= 1",
           "not_tagged:tech2@self",
           "not_tagged:tech3@self",
-          "count:safely@mine.safely >= 1"
+          "tagged:safely@mine.safely"
         ]
       }
     },
@@ -1459,7 +1459,7 @@
       "needs": {
         "req": [
           "tagged:fighter@self",
-          "count:mindparry@mine.unit >= 1"
+          "tagged:mindparry@mine.unit"
         ]
       }
     },
@@ -1467,7 +1467,7 @@
       "needs": {
         "req": [
           "tagged:hero@self",
-          "count:dojo@mine.structures >= 1"
+          "tagged:dojo@mine.structures"
         ]
       }
     },
@@ -1475,7 +1475,7 @@
       "needs": {
         "req": [
           "tagged:hero@self",
-          "count:monument@mine.structures >= 1"
+          "tagged:monument@mine.structures"
         ]
       }
     },
@@ -1484,7 +1484,7 @@
         "req": [
           "tagged:ninja@self",
           "slot@self == 0",
-          "count:den@mine.structures >= 1"
+          "tagged:den@mine.structures"
         ]
       }
     },
@@ -1492,7 +1492,7 @@
       "needs": {
         "req": [
           "tagged:ninja@self",
-          "count:headmistress@mine.unit >= 1"
+          "tagged:headmistress@mine.unit"
         ]
       }
     },
@@ -1500,7 +1500,7 @@
       "needs": {
         "req": [
           "tagged:legendary@self",
-          "count:myth@mine.ongoing >= 1"
+          "tagged:myth@mine.ongoing"
         ]
       }
     },
@@ -1508,7 +1508,7 @@
       "needs": {
         "req": [
           "tagged:legendary@self",
-          "count:myth@enemy.ongoing >= 1"
+          "tagged:myth@enemy.ongoing"
         ]
       }
     },
@@ -1551,7 +1551,7 @@
         "req": [
           "tagged:unit@self",
           "slot@self == 0",
-          "count:nebular@mine.unit >= 1",
+          "tagged:nebular@mine.unit",
           "not_tagged:nebular@self"
         ]
       }
@@ -1818,7 +1818,7 @@
       "zone": "army",
       "leaves": {
         "into": "discard",
-        "needs": { "scav": "slot@self == 3", "tech": "slot@self == 4", "gang": "count@mine.gang >= 1",
+        "needs": { "scav": "slot@self == 3", "tech": "slot@self == 4", "gang": "any@mine.gang",
                    "insured": "insured@self >= 1" },
         "action": [
           "emit:died",
@@ -1835,7 +1835,7 @@
       "zone": "army",
       "leaves": {
         "into": "discard",
-        "needs": { "scav": "slot@self == 3", "tech": "slot@self == 4", "boon": "count:standing@enemy.hero >= 1" },
+        "needs": { "scav": "slot@self == 3", "tech": "slot@self == 4", "boon": "tagged:standing@enemy.hero" },
         "action": [
           "scav? stat_gain:gold@mine.player:1",
           "tech? draw_from:mine.deck:mine.hand:1",
@@ -1857,7 +1857,7 @@
           "needs": {
             "req": [
               "attacking@self >= 1",
-              "count:finale@attached_to.self >= 1"
+              "tagged:finale@attached_to.self"
             ]
           },
           "action": [
@@ -1916,7 +1916,7 @@
         ],
         "needs": {
           "req": [
-            "count:t1@mine.tech >= 1"
+            "tagged:t1@mine.tech"
           ]
         },
         "cost": {
@@ -2225,7 +2225,7 @@
           "needs": {
             "req": [
               "attacking@self >= 1",
-              "count:spirit@attached_to.self >= 1"
+              "tagged:spirit@attached_to.self"
             ]
           },
           "action": [
@@ -2240,7 +2240,7 @@
             "req": [
               "attacking@self >= 1",
               "sum:power@self >= 1",
-              "count:might@mine.ongoing >= 1"
+              "tagged:might@mine.ongoing"
             ]
           },
           "action": [
@@ -2326,7 +2326,7 @@
           "needs": {
             "req": [
               "attacking@self >= 1",
-              "count:detector@enemy.addon >= 1"
+              "tagged:detector@enemy.addon"
             ]
           },
           "action": [
@@ -2373,7 +2373,7 @@
           "needs": {
             "req": [
               "raw@self >= 1",
-              "count:deathtouch@across >= 1"
+              "tagged:deathtouch@across"
             ]
           },
           "action": [
@@ -2421,7 +2421,7 @@
           "needs": {
             "req": [
               "sparking@mine.player >= 1",
-              "count:marked@beside >= 1"
+              "tagged:marked@beside"
             ]
           },
           "action": [
@@ -2447,7 +2447,7 @@
           "by": 1,
           "needs": {
             "req": [
-              "count@enemy.source >= 1"
+              "any@enemy.source"
             ]
           }
         }
@@ -2463,7 +2463,7 @@
           "by": 1,
           "needs": {
             "req": [
-              "count@enemy.source >= 1"
+              "any@enemy.source"
             ]
           }
         }
@@ -2479,7 +2479,7 @@
           "by": 2,
           "needs": {
             "req": [
-              "count@enemy.source >= 1"
+              "any@enemy.source"
             ]
           }
         }
@@ -2495,7 +2495,7 @@
           "by": 1,
           "needs": {
             "req": [
-              "count@enemy.source >= 1"
+              "any@enemy.source"
             ]
           }
         }
@@ -2511,7 +2511,7 @@
           "by": 1,
           "needs": {
             "req": [
-              "count@enemy.source >= 1"
+              "any@enemy.source"
             ]
           }
         }
@@ -2563,7 +2563,7 @@
         "whose": "enemy",
         "needs": {
           "req": [
-            "count:detector@mine.addon >= 1"
+            "tagged:detector@mine.addon"
           ]
         }
       }
@@ -2660,7 +2660,7 @@
             "req": [
               "level@self >= 4",
               "sum:slot@across == 4",
-              "count:slain@across >= 1"
+              "tagged:slain@across"
             ]
           },
           "action": [
@@ -2679,7 +2679,7 @@
           "by": 1,
           "needs": {
             "req": [
-              "count@mine.source >= 1",
+              "any@mine.source",
               "tagged:red@source"
             ]
           }
@@ -2692,7 +2692,7 @@
           "by": 1,
           "needs": {
             "req": [
-              "count@mine.source >= 1",
+              "any@mine.source",
               "tagged:red@source"
             ]
           }
@@ -2705,7 +2705,7 @@
           "by": 1,
           "needs": {
             "req": [
-              "count@mine.source >= 1",
+              "any@mine.source",
               "tagged:red@source"
             ]
           }
@@ -2823,7 +2823,7 @@
           "by": 1,
           "needs": {
             "req": [
-              "count@enemy.source >= 1",
+              "any@enemy.source",
               "slot@self == 0"
             ]
           }
@@ -3578,14 +3578,14 @@
   ],
   "end_conditions": [
     {
-      "when": "count@enemy.base == 0",
+      "when": "none@enemy.base",
       "then": [
         "stat_gain:won@mine.player:1",
         "push_phase:game_over"
       ]
     },
     {
-      "when": "count@mine.base == 0",
+      "when": "none@mine.base",
       "then": [
         "stat_gain:won@opponent:1",
         "push_phase:game_over"
@@ -5923,7 +5923,7 @@
           },
           "needs": {
             "req": [
-              "count:rich_earth@mine.ongoing == 0"
+              "not_tagged:rich_earth@mine.ongoing"
             ]
           },
           "target": {
@@ -5950,7 +5950,7 @@
           },
           "needs": {
             "req": [
-              "count:rich_earth@mine.ongoing >= 1"
+              "tagged:rich_earth@mine.ongoing"
             ]
           },
           "target": {
@@ -5989,8 +5989,8 @@
           "needs": {
             "req": [
               "workers@mine.player >= 6",
-              "count:t1@mine.tech == 0",
-              "count:t1@mine.site == 0",
+              "not_tagged:t1@mine.tech",
+              "not_tagged:t1@mine.site",
               "t1_ever@mine.player == 0"
             ]
           },
@@ -6008,8 +6008,8 @@
           "needs": {
             "req": [
               "workers@mine.player >= 6",
-              "count:t1@mine.tech == 0",
-              "count:t1@mine.site == 0",
+              "not_tagged:t1@mine.tech",
+              "not_tagged:t1@mine.site",
               "t1_ever@mine.player >= 1"
             ]
           },
@@ -6040,9 +6040,9 @@
           "needs": {
             "req": [
               "workers@mine.player >= 8",
-              "count:t1@mine.tech >= 1",
-              "count:t2@mine.tech == 0",
-              "count:t2@mine.site == 0",
+              "tagged:t1@mine.tech",
+              "not_tagged:t2@mine.tech",
+              "not_tagged:t2@mine.site",
               "t2_ever@mine.player == 0"
             ]
           },
@@ -6061,9 +6061,9 @@
           "needs": {
             "req": [
               "workers@mine.player >= 8",
-              "count:t1@mine.tech >= 1",
-              "count:t2@mine.tech == 0",
-              "count:t2@mine.site == 0",
+              "tagged:t1@mine.tech",
+              "not_tagged:t2@mine.tech",
+              "not_tagged:t2@mine.site",
               "t2_ever@mine.player >= 1"
             ]
           },
@@ -6094,9 +6094,9 @@
           "needs": {
             "req": [
               "workers@mine.player >= 10",
-              "count:t2@mine.tech >= 1",
-              "count:t3@mine.tech == 0",
-              "count:t3@mine.site == 0",
+              "tagged:t2@mine.tech",
+              "not_tagged:t3@mine.tech",
+              "not_tagged:t3@mine.site",
               "t3_ever@mine.player == 0"
             ]
           },
@@ -6114,9 +6114,9 @@
           "needs": {
             "req": [
               "workers@mine.player >= 10",
-              "count:t2@mine.tech >= 1",
-              "count:t3@mine.tech == 0",
-              "count:t3@mine.site == 0",
+              "tagged:t2@mine.tech",
+              "not_tagged:t3@mine.tech",
+              "not_tagged:t3@mine.site",
               "t3_ever@mine.player >= 1"
             ]
           },
@@ -6450,8 +6450,8 @@
           },
           "needs": {
             "req": [
-              "count:attachment@mine.addon == 0",
-              "count:attachment@mine.site == 0"
+              "not_tagged:attachment@mine.addon",
+              "not_tagged:attachment@mine.site"
             ]
           },
           "action": [
@@ -6478,8 +6478,8 @@
           },
           "needs": {
             "req": [
-              "count:attachment@mine.addon == 0",
-              "count:attachment@mine.site == 0"
+              "not_tagged:attachment@mine.addon",
+              "not_tagged:attachment@mine.site"
             ]
           },
           "action": [
@@ -6507,8 +6507,8 @@
           },
           "needs": {
             "req": [
-              "count:attachment@mine.addon == 0",
-              "count:attachment@mine.site == 0"
+              "not_tagged:attachment@mine.addon",
+              "not_tagged:attachment@mine.site"
             ]
           },
           "action": [
@@ -6538,8 +6538,8 @@
           },
           "needs": {
             "req": [
-              "count:attachment@mine.addon == 0",
-              "count:attachment@mine.site == 0"
+              "not_tagged:attachment@mine.addon",
+              "not_tagged:attachment@mine.site"
             ]
           },
           "action": [
@@ -6563,7 +6563,7 @@
           ],
           "needs": {
             "req": [
-              "count:attachment@mine.addon >= 1"
+              "tagged:attachment@mine.addon"
             ]
           },
           "action": [
@@ -6695,7 +6695,7 @@
           "phases": [],
           "needs": {
             "req": [
-              "count:h_blood@mine.hero == 0"
+              "not_tagged:h_blood@mine.hero"
             ]
           },
           "action": [
@@ -6708,7 +6708,7 @@
           "phases": [],
           "needs": {
             "req": [
-              "count:h_blood@enemy.hero == 0"
+              "not_tagged:h_blood@enemy.hero"
             ]
           },
           "action": [
@@ -6721,7 +6721,7 @@
           "phases": [],
           "needs": {
             "req": [
-              "count:h_feral@mine.hero == 0"
+              "not_tagged:h_feral@mine.hero"
             ]
           },
           "action": [
@@ -6734,7 +6734,7 @@
           "phases": [],
           "needs": {
             "req": [
-              "count:h_feral@enemy.hero == 0"
+              "not_tagged:h_feral@enemy.hero"
             ]
           },
           "action": [
@@ -6747,7 +6747,7 @@
           "phases": [],
           "needs": {
             "req": [
-              "count:h_balance@mine.hero == 0"
+              "not_tagged:h_balance@mine.hero"
             ]
           },
           "action": [
@@ -6760,7 +6760,7 @@
           "phases": [],
           "needs": {
             "req": [
-              "count:h_balance@enemy.hero == 0"
+              "not_tagged:h_balance@enemy.hero"
             ]
           },
           "action": [
@@ -6782,7 +6782,7 @@
           "phases": [],
           "needs": {
             "req": [
-              "count:healing@mine.healing >= 1"
+              "tagged:healing@mine.healing"
             ]
           },
           "action": [
@@ -6806,7 +6806,7 @@
           "phases": [],
           "needs": {
             "req": [
-              "count:drums@mine.ongoing >= 1"
+              "tagged:drums@mine.ongoing"
             ]
           },
           "action": [
@@ -6852,7 +6852,7 @@
           "phases": [],
           "needs": {
             "req": [
-              "count@enemy.dothram >= 1",
+              "any@enemy.dothram",
               "sum:atk@mine.fighter > sum:atk@enemy.fighter"
             ]
           },
@@ -6879,7 +6879,7 @@
           "phases": [],
           "needs": {
             "req": [
-              "count:held@enemy.army >= 1"
+              "tagged:held@enemy.army"
             ]
           },
           "action": [
@@ -6923,7 +6923,7 @@
           "phases": [],
           "needs": {
             "req": [
-              "count:chameleon_lizzo@mine.unit >= 1"
+              "tagged:chameleon_lizzo@mine.unit"
             ]
           },
           "action": [
@@ -7319,7 +7319,7 @@
             "req": [
               "level@self >= 4",
               "sum:slot@across == 3",
-              "count:slain@across >= 1"
+              "tagged:slain@across"
             ]
           },
           "action": [
@@ -8456,7 +8456,7 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1"
+            "tagged:hero@mine.hero"
           ]
         },
         "cost": {
@@ -8504,7 +8504,7 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1"
+            "tagged:hero@mine.hero"
           ]
         },
         "cost": {
@@ -8734,7 +8734,7 @@
           "needs": {
             "req": [
               "sum:power@self >= 1",
-              "count:unit@across >= 1"
+              "tagged:unit@across"
             ]
           },
           "action": [
@@ -8896,8 +8896,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_law@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_law@mine.hero"
           ]
         },
         "cost": {
@@ -8947,11 +8947,11 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_law@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_law@mine.hero"
           ],
           "where": [
-            "count:t3@target == 0"
+            "not_tagged:t3@target"
           ]
         },
         "cost": {
@@ -9020,8 +9020,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_law@mine.hero >= 1",
+            "tagged:hero@mine.hero",
+            "tagged:h_law@mine.hero",
             "max:level@mine.h_law >= 5"
           ]
         },
@@ -9290,7 +9290,7 @@
             "req": [
               "attacking@self >= 1",
               "sum:power@self >= 1",
-              "count:building@across >= 1"
+              "tagged:building@across"
             ]
           },
           "action": [
@@ -9337,8 +9337,8 @@
           "needs": {
             "req": [
               "attacking@self >= 1",
-              "count:building@across >= 1",
-              "count:rubble@across >= 1"
+              "tagged:building@across",
+              "tagged:rubble@across"
             ]
           },
           "action": [
@@ -9372,8 +9372,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_peace@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_peace@mine.hero"
           ]
         },
         "cost": {
@@ -9421,8 +9421,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_peace@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_peace@mine.hero"
           ]
         },
         "cost": {
@@ -9468,8 +9468,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_peace@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_peace@mine.hero"
           ]
         },
         "cost": {
@@ -9516,8 +9516,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_peace@mine.hero >= 1",
+            "tagged:hero@mine.hero",
+            "tagged:h_peace@mine.hero",
             "max:level@mine.h_peace >= 8"
           ]
         },
@@ -9849,8 +9849,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_truth@mine.hero >= 1",
+            "tagged:hero@mine.hero",
+            "tagged:h_truth@mine.hero",
             "max:level@mine.h_truth >= 5"
           ]
         },
@@ -10015,7 +10015,7 @@
               "level@self <= 4"
             ],
             "where": [
-              "count:tech2@target == 0",
+              "not_tagged:tech2@target",
               "tech_level@target <= 2"
             ]
           },
@@ -10624,8 +10624,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_future@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_future@mine.hero"
           ]
         },
         "cost": {
@@ -10741,8 +10741,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_strength@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_strength@mine.hero"
           ]
         },
         "cost": {
@@ -10942,8 +10942,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_disease@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_disease@mine.hero"
           ]
         },
         "cost": {
@@ -11145,7 +11145,7 @@
             "req": [
               "attacking@self >= 1",
               "sum:power@self >= 1",
-              "count:building@across >= 1"
+              "tagged:building@across"
             ]
           },
           "action": [
@@ -11230,8 +11230,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_demonology@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_demonology@mine.hero"
           ]
         },
         "cost": {
@@ -11277,8 +11277,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_disease@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_disease@mine.hero"
           ]
         },
         "cost": {
@@ -11316,8 +11316,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_necromancy@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_necromancy@mine.hero"
           ]
         },
         "cost": {
@@ -11352,7 +11352,7 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1"
+            "tagged:hero@mine.hero"
           ]
         },
         "cost": {
@@ -11417,8 +11417,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_necromancy@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_necromancy@mine.hero"
           ],
           "where": [
             "tech_level@target <= 2"
@@ -11530,8 +11530,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_strength@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_strength@mine.hero"
           ]
         },
         "cost": {
@@ -11663,8 +11663,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_strength@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_strength@mine.hero"
           ]
         },
         "cost": {
@@ -11842,11 +11842,11 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1"
+            "tagged:hero@mine.hero"
           ],
           "where": [
             "atk@target <= 2",
-            "count:tech2@target == 0",
+            "not_tagged:tech2@target",
             "tech_level@target <= 2"
           ]
         },
@@ -11969,8 +11969,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_ninjutsu@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_ninjutsu@mine.hero"
           ]
         },
         "cost": {
@@ -12241,7 +12241,7 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1"
+            "tagged:hero@mine.hero"
           ]
         },
         "cost": {
@@ -12498,8 +12498,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_ninjutsu@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_ninjutsu@mine.hero"
           ],
           "where": [
             "atk@target <= 4"
@@ -12957,8 +12957,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_necromancy@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_necromancy@mine.hero"
           ]
         },
         "cost": {
@@ -13050,8 +13050,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_discipline@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_discipline@mine.hero"
           ]
         },
         "cost": {
@@ -13356,8 +13356,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_necromancy@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_necromancy@mine.hero"
           ]
         },
         "cost": {
@@ -13428,8 +13428,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_present@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_present@mine.hero"
           ]
         },
         "cost": {
@@ -13683,8 +13683,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_past@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_past@mine.hero"
           ]
         },
         "cost": {
@@ -13896,7 +13896,7 @@
             "req": [
               "attacking@self >= 1",
               "sum:power@self >= 1",
-              "count:fighter@across >= 1"
+              "tagged:fighter@across"
             ]
           },
           "action": [
@@ -13992,7 +13992,7 @@
             "req": [
               "attacking@self >= 1",
               "sum:power@self >= 1",
-              "count:fighter@across >= 1"
+              "tagged:fighter@across"
             ]
           },
           "action": [
@@ -14117,8 +14117,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_present@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_present@mine.hero"
           ]
         },
         "cost": {
@@ -14302,8 +14302,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_present@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_present@mine.hero"
           ]
         },
         "cost": {
@@ -14338,8 +14338,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_discipline@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_discipline@mine.hero"
           ]
         },
         "cost": {
@@ -14414,8 +14414,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_past@mine.hero >= 1",
+            "tagged:hero@mine.hero",
+            "tagged:h_past@mine.hero",
             "max:level@mine.h_past >= 7"
           ]
         },
@@ -14610,7 +14610,7 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1"
+            "tagged:hero@mine.hero"
           ]
         },
         "cost": {
@@ -14710,8 +14710,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_demonology@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_demonology@mine.hero"
           ],
           "dies": "hp@target < 1"
         },
@@ -14836,8 +14836,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_ninjutsu@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_ninjutsu@mine.hero"
           ]
         },
         "cost": {
@@ -14872,8 +14872,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_disease@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_disease@mine.hero"
           ]
         },
         "cost": {
@@ -15051,7 +15051,7 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1"
+            "tagged:hero@mine.hero"
           ]
         },
         "cost": {
@@ -15125,8 +15125,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_demonology@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_demonology@mine.hero"
           ]
         },
         "cost": {
@@ -15264,8 +15264,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_ninjutsu@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_ninjutsu@mine.hero"
           ]
         },
         "cost": {
@@ -15303,8 +15303,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_disease@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_disease@mine.hero"
           ]
         },
         "cost": {
@@ -15421,7 +15421,7 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1"
+            "tagged:hero@mine.hero"
           ]
         },
         "cost": {
@@ -15456,8 +15456,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_present@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_present@mine.hero"
           ],
           "where": [
             "tech_level@target >= 1",
@@ -15507,7 +15507,7 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1"
+            "tagged:hero@mine.hero"
           ]
         },
         "cost": {
@@ -15686,8 +15686,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_strength@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_strength@mine.hero"
           ],
           "where": [
             "alt@target == 0",
@@ -15740,7 +15740,7 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1"
+            "tagged:hero@mine.hero"
           ],
           "where": [
             "time@target >= 1"
@@ -16003,8 +16003,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_discipline@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_discipline@mine.hero"
           ]
         },
         "cost": {
@@ -16093,8 +16093,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_past@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_past@mine.hero"
           ],
           "where": [
             "tech_level@target <= 2"
@@ -16143,8 +16143,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_future@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_future@mine.hero"
           ]
         },
         "cost": {
@@ -16215,8 +16215,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_discipline@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_discipline@mine.hero"
           ],
           "where": [
             "alt@target >= 1"
@@ -16388,7 +16388,7 @@
           "text": "Voidblocker",
           "needs": {
             "req": [
-              "count:fighter@across >= 1"
+              "tagged:fighter@across"
             ]
           },
           "action": [
@@ -16422,8 +16422,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_past@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_past@mine.hero"
           ]
         },
         "cost": {
@@ -16702,7 +16702,7 @@
             "req": [
               "attacking@self >= 1",
               "sum:power@self >= 1",
-              "count:building@across >= 1"
+              "tagged:building@across"
             ]
           },
           "action": [
@@ -17164,7 +17164,7 @@
             "req": [
               "attacking@self >= 1",
               "sum:power@self >= 1",
-              "count:fighter@across >= 1"
+              "tagged:fighter@across"
             ]
           },
           "action": [
@@ -18827,7 +18827,7 @@
           "text": "Bloodrage Ogre",
           "needs": {
             "req": [
-              "count@mine.self >= 1",
+              "any@mine.self",
               "ready_since@self >= 1",
               "fought@self == 0"
             ]
@@ -18872,7 +18872,7 @@
           "needs": {
             "req": [
               "attacking@self >= 1",
-              "count:building@across >= 1"
+              "tagged:building@across"
             ]
           },
           "action": [
@@ -18949,7 +18949,7 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1"
+            "tagged:hero@mine.hero"
           ]
         },
         "cost": {
@@ -18993,7 +18993,7 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1"
+            "tagged:hero@mine.hero"
           ]
         },
         "cost": {
@@ -19039,7 +19039,7 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1"
+            "tagged:hero@mine.hero"
           ]
         },
         "cost": {
@@ -19159,7 +19159,7 @@
             "req": [
               "attacking@self >= 1",
               "sum:slot@across >= 1",
-              "count:slain@across >= 1"
+              "tagged:slain@across"
             ]
           },
           "action": [
@@ -19379,7 +19379,7 @@
           "needs": {
             "req": [
               "attacking@self >= 1",
-              "count:building@across >= 1"
+              "tagged:building@across"
             ]
           },
           "action": [
@@ -19490,8 +19490,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_anarchy@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_anarchy@mine.hero"
           ]
         },
         "cost": {
@@ -19539,8 +19539,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_anarchy@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_anarchy@mine.hero"
           ]
         },
         "cost": {
@@ -19575,7 +19575,7 @@
         ],
         "needs": {
           "req": [
-            "count:h_anarchy@mine.hero >= 1",
+            "tagged:h_anarchy@mine.hero",
             "max:ripe@mine.h_anarchy >= 6"
           ]
         },
@@ -19855,8 +19855,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_blood@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_blood@mine.hero"
           ]
         },
         "cost": {
@@ -19923,8 +19923,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_blood@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_blood@mine.hero"
           ],
           "where": [
             "tech_level@target <= 2"
@@ -20025,7 +20025,7 @@
         ],
         "needs": {
           "req": [
-            "count:h_blood@mine.hero >= 1",
+            "tagged:h_blood@mine.hero",
             "max:ripe@mine.h_blood >= 6"
           ]
         },
@@ -20282,7 +20282,7 @@
           "tooltip": "Nothing records who did a killing, so the firehouse marks what it aimed at and asks afterwards whether the mark is still standing.",
           "needs": {
             "req": [
-              "count:marked@anyone.finished >= 1"
+              "tagged:marked@anyone.finished"
             ]
           },
           "action": [
@@ -20346,7 +20346,7 @@
             "req": [
               "attacking@self >= 1",
               "sum:power@self >= 1",
-              "count:building@across >= 1"
+              "tagged:building@across"
             ]
           },
           "action": [
@@ -20408,8 +20408,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_fire@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_fire@mine.hero"
           ]
         },
         "cost": {
@@ -20453,8 +20453,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_fire@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_fire@mine.hero"
           ]
         },
         "cost": {
@@ -20497,8 +20497,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_fire@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_fire@mine.hero"
           ]
         },
         "cost": {
@@ -20543,7 +20543,7 @@
         ],
         "needs": {
           "req": [
-            "count:h_fire@mine.hero >= 1",
+            "tagged:h_fire@mine.hero",
             "max:ripe@mine.h_fire >= 7"
           ]
         },
@@ -20866,7 +20866,7 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1"
+            "tagged:hero@mine.hero"
           ],
           "where": [
             "plus@target == 0"
@@ -20914,7 +20914,7 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1"
+            "tagged:hero@mine.hero"
           ]
         },
         "cost": {
@@ -21263,7 +21263,7 @@
       "card_stats": { "price": 3 },
       "play": {
         "phases": ["main"],
-        "needs": { "req": ["count:hero@mine.hero >= 1", "count:h_balance@mine.hero >= 1"] },
+        "needs": { "req": ["tagged:hero@mine.hero", "tagged:h_balance@mine.hero"] },
         "cost": { "gold@mine.player": "price@self" },
         "action": ["options:col_give:optional"],
         "spent": "mine.discard"
@@ -21309,8 +21309,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_balance@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_balance@mine.hero"
           ]
         },
         "cost": {
@@ -21359,7 +21359,7 @@
         ],
         "needs": {
           "req": [
-            "count:h_balance@mine.hero >= 1",
+            "tagged:h_balance@mine.hero",
             "max:ripe@mine.h_balance >= 8"
           ]
         },
@@ -21549,7 +21549,7 @@
             "req": [
               "attacking@self >= 1",
               "sum:power@self >= 1",
-              "count:home@across >= 1"
+              "tagged:home@across"
             ]
           },
           "action": [
@@ -21724,8 +21724,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_feral@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_feral@mine.hero"
           ]
         },
         "cost": {
@@ -21760,8 +21760,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_feral@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_feral@mine.hero"
           ]
         },
         "cost": {
@@ -21796,8 +21796,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_feral@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_feral@mine.hero"
           ]
         },
         "cost": {
@@ -21879,11 +21879,11 @@
         ],
         "needs": {
           "req": [
-            "count:h_feral@mine.hero >= 1",
+            "tagged:h_feral@mine.hero",
             "max:ripe@mine.h_feral >= 5"
           ],
           "where": [
-            "count:buildable@target >= 1"
+            "tagged:buildable@target"
           ]
         },
         "cost": {
@@ -21941,9 +21941,9 @@
         ],
         "needs": {
           "req": [
-            "count:t1@mine.tech >= 1",
-            "count:galina_glimmer@mine.army == 0",
-            "count:galina_glimmer@mine.patrol == 0"
+            "tagged:t1@mine.tech",
+            "not_tagged:galina_glimmer@mine.army",
+            "not_tagged:galina_glimmer@mine.patrol"
           ]
         },
         "cost": {
@@ -21985,7 +21985,7 @@
         ],
         "needs": {
           "req": [
-            "count:t1@mine.tech >= 1"
+            "tagged:t1@mine.tech"
           ]
         },
         "cost": {
@@ -22238,8 +22238,8 @@
         "needs": {
           "req": [
             "tagged:t3_ok@self",
-            "count:guargum@mine.army == 0",
-            "count:guargum@mine.patrol == 0"
+            "not_tagged:guargum@mine.army",
+            "not_tagged:guargum@mine.patrol"
           ]
         },
         "cost": {
@@ -22302,8 +22302,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_growth@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_growth@mine.hero"
           ]
         },
         "cost": {
@@ -22351,8 +22351,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_growth@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_growth@mine.hero"
           ]
         },
         "cost": {
@@ -22400,8 +22400,8 @@
         ],
         "needs": {
           "req": [
-            "count:hero@mine.hero >= 1",
-            "count:h_growth@mine.hero >= 1"
+            "tagged:hero@mine.hero",
+            "tagged:h_growth@mine.hero"
           ]
         },
         "cost": {
@@ -22450,7 +22450,7 @@
         ],
         "needs": {
           "req": [
-            "count:h_growth@mine.hero >= 1",
+            "tagged:h_growth@mine.hero",
             "max:ripe@mine.h_growth >= 5"
           ]
         },
@@ -22673,7 +22673,7 @@
           "phases": [],
           "needs": {
             "req": [
-              "count:fading@mine.fading >= 1"
+              "tagged:fading@mine.fading"
             ]
           },
           "action": [
@@ -22686,7 +22686,7 @@
           "phases": [],
           "needs": {
             "req": [
-              "count@mine.soon >= 1"
+              "any@mine.soon"
             ]
           },
           "action": [
@@ -22699,7 +22699,7 @@
           "phases": [],
           "needs": {
             "req": [
-              "count:faded@mine.fading >= 1"
+              "tagged:faded@mine.fading"
             ]
           },
           "action": [
@@ -22712,7 +22712,7 @@
           "phases": [],
           "needs": {
             "req": [
-              "count:due@mine.soon >= 1"
+              "tagged:due@mine.soon"
             ]
           },
           "action": [

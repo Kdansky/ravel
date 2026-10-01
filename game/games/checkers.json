@@ -58,7 +58,7 @@
       "seat": "next",
       "on_enter": ["stat_set:chaining@each.anyone.piece:0"],
       "next": [
-        { "when": "count:piece@enemy.board == 0", "then": "red_won" },
+        { "when": "not_tagged:piece@enemy.board", "then": "red_won" },
         { "when": "tagged:chain_open@mine.board", "then": "red_move", "seat": "same" },
         { "then": "white_move" }
       ]
@@ -70,7 +70,7 @@
       "seat": "next",
       "on_enter": ["stat_set:chaining@each.anyone.piece:0"],
       "next": [
-        { "when": "count:piece@enemy.board == 0", "then": "white_won" },
+        { "when": "not_tagged:piece@enemy.board", "then": "white_won" },
         { "when": "tagged:chain_open@mine.board", "then": "white_move", "seat": "same" },
         { "then": "red_move" }
       ]

@@ -125,7 +125,7 @@ def templates():
             "tooltip": "Total the " + label.lower() + " expedition.",
             "tags": ["scoring", "token", look],
             "play": {
-                "needs": {"req": ["count:expedition@mine." + c + " >= 1"]},
+                "needs": {"req": ["tagged:expedition@mine." + c]},
                 # (sum - 20) x (1 + wagers), distributed as (sum - 20) plus
                 # (sum - 20) x wagers, because a product cannot add one inside
                 # itself. The route marker used to carry the "wager" tag so that
@@ -302,7 +302,7 @@ def phases():
         {"key": "draw", "type": "player_input", "zone": "choice",
          "label": "Draw from the deck, or take the top of a discard",
          "tags": ["discard_hand"],
-         "next": [{"when": "count@deck == 0", "then": "tally"}, {"then": "play"}]},
+         "next": [{"when": "none@deck", "then": "tally"}, {"then": "play"}]},
         # One tally phase, entered once per seat. It counts itself: each seat
         # marks its own card as it finishes, and the sum across both is how the
         # routing knows the second one is done.

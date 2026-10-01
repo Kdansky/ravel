@@ -409,13 +409,13 @@
     {
       "key": "strike_first",
       "tooltip": "A revealed Shuriken resolves before anything else, whoever holds the Initiative Tracker.",
-      "needs": { "shuriken": "count:first_strike@mine.battle >= 1" },
+      "needs": { "shuriken": "tagged:first_strike@mine.battle" },
       "action": ["shuriken? stat_gain:lead@mine.player:9"]
     },
     {
       "key": "settle_dust",
       "tooltip": "While Glittering Dust is the weather, Earth cards do nothing when resolved but heal 2.",
-      "needs": { "dust": ["card:glitteringdust@weather_now >= 1", "count:earth@mine.battle >= 1"] },
+      "needs": { "dust": ["card:glitteringdust@weather_now >= 1", "tagged:earth@mine.battle"] },
       "action": ["dust? heal:health@mine.player:2", "dust? destroy:mine.battle.earth"]
     },
     {
@@ -445,19 +445,19 @@
     {
       "key": "dragons_gone",
       "tooltip": "When the Dragon pile is empty, gaining a Dragon deals 2 damage and gains 2 Storm Shards instead.",
-      "needs": { "empty": "count:dragon@dragon_deck <= 0" },
+      "needs": { "empty": "not_tagged:dragon@dragon_deck" },
       "action": ["empty? hit:health@opponent:2", "empty? stat_gain:shards@mine.player:2"]
     },
     {
       "key": "ruby_pick",
       "tooltip": "Ruby: taking the flame deals 1 damage for each Fire card among the three; taking one of the three VOIDs it.",
-      "needs": { "flame": "count:burn@options >= 1" },
+      "needs": { "flame": "tagged:burn@options" },
       "action": ["flame? hit:health@opponent:sum:counted@options", "!flame? move:options:void"]
     },
     {
       "key": "lapis_heal",
       "tooltip": "Lapis heals 1 for each Water card you discard to it.",
-      "needs": { "water": "count:water@options >= 1" },
+      "needs": { "water": "tagged:water@options" },
       "action": ["water? heal:health@mine.player:1"]
     },
     {
@@ -470,9 +470,9 @@
       "key": "open_gain",
       "tooltip": "Whoever is owed a gain from the Storm Cloud chooses it, the player with Initiative first. With nothing on the shelf they may take, the gain passes.",
       "needs": {
-        "first": "count:owes_init >= 1",
+        "first": "tagged:owes_init",
         "may": "gain_kind@mine.player != 7",
-        "none": "count:takeable_now@storm_cloud <= 0"
+        "none": "not_tagged:takeable_now@storm_cloud"
       },
       "action": [
         "first? set_priority:owes_init",
@@ -487,7 +487,7 @@
       "key": "settle_gain",
       "tooltip": "A card gained goes to your hand, or your discard if the gain said so. Coffee Run's Earth card takes the Initiative too.",
       "needs": {
-        "coffee": ["gain_kind@mine.player == 6", "count:earth@gained >= 1"],
+        "coffee": ["gain_kind@mine.player == 6", "tagged:earth@gained"],
         "discard": "gain_kind@mine.player == 5",
         "took": "gain_kind@mine.player == 0",
         "owed": "gain_kind@mine.player >= 1"
@@ -1062,7 +1062,7 @@
       "type": "player_input",
       "label": "Play a card face down",
       "zone": ["hand", "wizard", "menu"],
-      "ends_when": "count:spell@mine.commit >= 1"
+      "ends_when": "tagged:spell@mine.commit"
     },
     {
       "key": "showdown",
@@ -1337,7 +1337,7 @@
             "vs_water? gain_junk:curse",
             "vs_water? hurt:health@mine.player:1"
           ],
-          "needs": { "vs_water": "count:water@enemy.battle >= 1" }
+          "needs": { "vs_water": "tagged:water@enemy.battle" }
         }
       ]
     },
@@ -1580,7 +1580,7 @@
           "key": "cast",
           "text": "Resolve",
           "action": ["take_initiative", "heal:health@mine.player:1", "vs_fire? show:mine.held:optional"],
-          "needs": { "vs_fire": "count:fire@enemy.battle >= 1" }
+          "needs": { "vs_fire": "tagged:fire@enemy.battle" }
         }
       ],
       "chosen": { "action": ["move:target:void"], "needs": { "where": ["not_tagged:no_void@target"] } }
@@ -1612,7 +1612,7 @@
             "heal:health@mine.player:1",
             "vs_fire? hit:health@opponent:2"
           ],
-          "needs": { "vs_fire": "count:fire@enemy.battle >= 1" }
+          "needs": { "vs_fire": "tagged:fire@enemy.battle" }
         }
       ]
     },
@@ -1867,7 +1867,7 @@
           "key": "cast",
           "text": "Resolve",
           "action": ["power_up:power@mine.player:2", "water? power_up:power@mine.player:1"],
-          "needs": { "water": "count:water@battle >= 1" }
+          "needs": { "water": "tagged:water@battle" }
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["gain_tier"] }
       ],
@@ -2336,7 +2336,7 @@
             "hit:health@opponent:sum:doom@mine.player",
             "no_curses? stat_gain:doom@mine.player:1"
           ],
-          "needs": { "no_curses": "count:junk@curse_pile <= 0" }
+          "needs": { "no_curses": "not_tagged:junk@curse_pile" }
         }
       ]
     },
@@ -2533,7 +2533,7 @@
           "key": "cast",
           "text": "Resolve",
           "action": ["heal:health@mine.player:2", "clean_discard? give_junk:ice"],
-          "needs": { "clean_discard": "count:junk@enemy.discard <= 0" }
+          "needs": { "clean_discard": "not_tagged:junk@enemy.discard" }
         }
       ]
     },
@@ -2614,7 +2614,7 @@
           "stat_gain:water_el@mine.player:count:water@options:x:2",
           "move:target:enemy.hand"
         ],
-        "needs": { "where": ["count:wizard_spell@target <= 0"] }
+        "needs": { "where": ["not_tagged:wizard_spell@target"] }
       }
     },
     {
@@ -2632,7 +2632,7 @@
             "stat_gain:mana@mine.player:1",
             "water? stat_gain:earth_el@mine.player:1"
           ],
-          "needs": { "water": "count:water@battle >= 1" }
+          "needs": { "water": "tagged:water@battle" }
         },
         {
           "key": "cast_ask",
@@ -2764,7 +2764,7 @@
         {
           "key": "wy",
           "text": "Weather",
-          "needs": { "req": ["count:water@mine.battle >= 1"] },
+          "needs": { "req": ["tagged:water@mine.battle"] },
           "action": ["stat_gain:mana@mine.player:1"]
         }
       ]
@@ -2780,7 +2780,7 @@
         {
           "key": "wy",
           "text": "Weather",
-          "needs": { "req": ["count:fire@mine.battle >= 1"] },
+          "needs": { "req": ["tagged:fire@mine.battle"] },
           "action": ["stat_gain:mana@mine.player:1"]
         }
       ]
@@ -2796,7 +2796,7 @@
         {
           "key": "wy",
           "text": "Weather",
-          "needs": { "req": ["count:earth@mine.battle >= 1"] },
+          "needs": { "req": ["tagged:earth@mine.battle"] },
           "action": ["power_up:power@mine.player:1"]
         }
       ]
@@ -2864,7 +2864,7 @@
         {
           "key": "wy",
           "text": "Weather",
-          "needs": { "req": ["count:fire@mine.battle >= 1"] },
+          "needs": { "req": ["tagged:fire@mine.battle"] },
           "action": ["stat_gain:mana@mine.player:1", "stat_gain:mana@mine.player:1"]
         }
       ]
@@ -3386,7 +3386,7 @@
       "tooltip": "Return a card from your discard to your hand.",
       "play": {
         "action": ["show:mine.discard:optional"],
-        "needs": { "req": ["count:spell@mine.discard >= 1"] }
+        "needs": { "req": ["tagged:spell@mine.discard"] }
       },
       "chosen": { "action": ["move:target:mine.hand"] }
     },
@@ -3414,7 +3414,7 @@
       "tooltip": "Your opponent discards their revealed card without resolving it, and draws.",
       "play": {
         "action": ["destroy:enemy.battle", "draw_from:enemy.deck:enemy.hand:1"],
-        "needs": { "req": ["count:spell@enemy.battle >= 1"] }
+        "needs": { "req": ["tagged:spell@enemy.battle"] }
       }
     },
     {
@@ -3425,7 +3425,7 @@
       "tooltip": "Return a card of your choice from your discard to your hand.",
       "play": {
         "action": ["show:mine.discard:optional"],
-        "needs": { "req": ["count:spell@mine.discard >= 1"] }
+        "needs": { "req": ["tagged:spell@mine.discard"] }
       },
       "chosen": { "action": ["move:target:mine.hand"] }
     },
@@ -3451,10 +3451,7 @@
       "tags": ["immutable"],
       "asset": "auto",
       "tooltip": "Resolve a non-Wizard card from your hand, then put it on the bottom of the *Spellstorm Deck*.",
-      "play": {
-        "action": ["show:mine.hand:optional"],
-        "needs": { "req": ["count:spell@mine.hand >= 1"] }
-      },
+      "play": { "action": ["show:mine.hand:optional"], "needs": { "req": ["tagged:spell@mine.hand"] } },
       "chosen": {
         "action": ["move:target:spellstorm_deck:bottom", "copy:target:activate"],
         "needs": { "where": ["not_tagged:wizard_spell@target"] }
@@ -3466,7 +3463,7 @@
       "tags": ["immutable"],
       "asset": "auto",
       "tooltip": "Resolve a card in the *VOID*, then put it on the bottom of the *Spellstorm Deck*.",
-      "play": { "action": ["show:void:optional"], "needs": { "req": ["count:spell@void >= 1"] } },
+      "play": { "action": ["show:void:optional"], "needs": { "req": ["tagged:spell@void"] } },
       "chosen": { "action": ["move:target:spellstorm_deck:bottom", "copy:target:activate"] }
     },
     {
@@ -3477,7 +3474,7 @@
       "tooltip": "Move a non-Wizard *Fire* card from your opponent's discard to yours.",
       "play": {
         "action": ["show:enemy.discard.fire:optional"],
-        "needs": { "req": ["count:fire@enemy.discard >= 1"] }
+        "needs": { "req": ["tagged:fire@enemy.discard"] }
       },
       "chosen": {
         "action": ["set_owner:target:mine.player", "move:target:mine.discard"],
@@ -3492,7 +3489,7 @@
       "tooltip": "Move a non-Wizard *Fire* card from your discard to your opponent's.",
       "play": {
         "action": ["show:mine.discard.fire:optional"],
-        "needs": { "req": ["count:fire@mine.discard >= 1"] }
+        "needs": { "req": ["tagged:fire@mine.discard"] }
       },
       "chosen": {
         "action": ["set_owner:target:opponent", "move:target:enemy.discard"],
@@ -3550,7 +3547,7 @@
           "to": "countered",
           "whose": "mine",
           "in": "traps",
-          "needs": { "req": ["sprung@self <= 0", "count:fire@mine.battle >= 1"] },
+          "needs": { "req": ["sprung@self <= 0", "tagged:fire@mine.battle"] },
           "action": [
             "stat_set:sprung@self:1",
             "hit:health@opponent:1",
@@ -3572,7 +3569,7 @@
           "to": "countered",
           "whose": "mine",
           "in": "traps",
-          "needs": { "req": ["sprung@self <= 0", "count:water@mine.battle >= 1"] },
+          "needs": { "req": ["sprung@self <= 0", "tagged:water@mine.battle"] },
           "action": [
             "stat_set:sprung@self:1",
             "give_junk:ice",
@@ -3608,7 +3605,7 @@
       "abilities": [
         {
           "key": "check",
-          "needs": { "req": ["count:fire@mine.battle >= 1", "count:earth@enemy.battle >= 1"] },
+          "needs": { "req": ["tagged:fire@mine.battle", "tagged:earth@enemy.battle"] },
           "action": ["emit:countered:draw_from:mine.deck:mine.hand:1"]
         }
       ]
@@ -3622,7 +3619,7 @@
       "abilities": [
         {
           "key": "check",
-          "needs": { "req": ["count:earth@mine.battle >= 1", "count:water@enemy.battle >= 1"] },
+          "needs": { "req": ["tagged:earth@mine.battle", "tagged:water@enemy.battle"] },
           "action": ["emit:countered:draw_from:mine.deck:mine.hand:1"]
         }
       ]
@@ -3636,7 +3633,7 @@
       "abilities": [
         {
           "key": "check",
-          "needs": { "req": ["count:water@mine.battle >= 1", "count:fire@enemy.battle >= 1"] },
+          "needs": { "req": ["tagged:water@mine.battle", "tagged:fire@enemy.battle"] },
           "action": ["emit:countered:draw_from:mine.deck:mine.hand:1"]
         }
       ]
@@ -3650,7 +3647,7 @@
       "abilities": [
         {
           "key": "dry_take",
-          "needs": { "req": ["count:junk@ash_pile <= 0"] },
+          "needs": { "req": ["not_tagged:junk@ash_pile"] },
           "action": ["stat_damage:power@mine.player:2", "show:mine.held.ash"]
         }
       ],
@@ -3665,7 +3662,7 @@
       "abilities": [
         {
           "key": "dry_give",
-          "needs": { "req": ["count:junk@ash_pile <= 0"] },
+          "needs": { "req": ["not_tagged:junk@ash_pile"] },
           "action": ["stat_damage:power@opponent:2", "set_priority:enemy.player", "show:mine.held.ash"]
         }
       ],
@@ -3680,7 +3677,7 @@
       "abilities": [
         {
           "key": "dry_take",
-          "needs": { "req": ["count:junk@curse_pile <= 0"] },
+          "needs": { "req": ["not_tagged:junk@curse_pile"] },
           "action": ["hurt:health@mine.player:1", "show:mine.held.curse"]
         }
       ],
@@ -3695,7 +3692,7 @@
       "abilities": [
         {
           "key": "dry_give",
-          "needs": { "req": ["count:junk@curse_pile <= 0"] },
+          "needs": { "req": ["not_tagged:junk@curse_pile"] },
           "action": ["hit:health@opponent:1", "set_priority:enemy.player", "show:mine.held.curse"]
         }
       ],
@@ -3710,7 +3707,7 @@
       "abilities": [
         {
           "key": "dry_take",
-          "needs": { "req": ["count:junk@ice_pile <= 0"] },
+          "needs": { "req": ["not_tagged:junk@ice_pile"] },
           "action": ["destroy:random.mine.hand:2", "show:mine.held.ice"]
         }
       ],
@@ -3725,7 +3722,7 @@
       "abilities": [
         {
           "key": "dry_give",
-          "needs": { "req": ["count:junk@ice_pile <= 0"] },
+          "needs": { "req": ["not_tagged:junk@ice_pile"] },
           "action": ["destroy:random.enemy.hand:2", "set_priority:enemy.player", "show:mine.held.ice"]
         }
       ],
@@ -3740,7 +3737,7 @@
       "abilities": [
         {
           "key": "bstart",
-          "needs": { "req": ["count:abra@mine.wizard >= 1", "researched@self >= 1"] },
+          "needs": { "req": ["tagged:abra@mine.wizard", "researched@self >= 1"] },
           "action": ["stat_gain:mana@mine.player:1"]
         }
       ],
@@ -3755,7 +3752,7 @@
       "abilities": [
         {
           "key": "jr2",
-          "needs": { "req": ["count:abra@mine.wizard >= 1", "researched@self >= 1"] },
+          "needs": { "req": ["tagged:abra@mine.wizard", "researched@self >= 1"] },
           "action": ["show:mine.hand:optional"]
         }
       ],
@@ -3771,7 +3768,7 @@
       "abilities": [
         {
           "key": "bstart",
-          "needs": { "req": ["count:abra@mine.wizard >= 1", "researched@self >= 1"] },
+          "needs": { "req": ["tagged:abra@mine.wizard", "researched@self >= 1"] },
           "action": ["stat_gain:mana@mine.player:1"]
         }
       ],
@@ -3786,7 +3783,7 @@
       "abilities": [
         {
           "key": "jr4",
-          "needs": { "req": ["count:abra@mine.wizard >= 1", "researched@self >= 1"] },
+          "needs": { "req": ["tagged:abra@mine.wizard", "researched@self >= 1"] },
           "action": ["show:mine.discard.junk:optional"]
         }
       ],
@@ -3802,7 +3799,7 @@
       "abilities": [
         {
           "key": "bstart",
-          "needs": { "req": ["count:abra@mine.wizard >= 1", "researched@self >= 1"] },
+          "needs": { "req": ["tagged:abra@mine.wizard", "researched@self >= 1"] },
           "action": ["power_up:power@mine.player:1"]
         }
       ],
@@ -3817,7 +3814,7 @@
       "abilities": [
         {
           "key": "jr6",
-          "needs": { "req": ["count:abra@mine.wizard >= 1", "researched@self >= 1"] },
+          "needs": { "req": ["tagged:abra@mine.wizard", "researched@self >= 1"] },
           "action": ["gain_tier"]
         }
       ],
@@ -3832,7 +3829,7 @@
       "abilities": [
         {
           "key": "bstart",
-          "needs": { "req": ["count:abra@mine.wizard >= 1", "researched@self >= 1"] },
+          "needs": { "req": ["tagged:abra@mine.wizard", "researched@self >= 1"] },
           "action": ["power_up:power@mine.player:1"]
         }
       ],
@@ -3847,7 +3844,7 @@
       "abilities": [
         {
           "key": "bstart",
-          "needs": { "req": ["count:abra@mine.wizard >= 1", "researched@self >= 1"] },
+          "needs": { "req": ["tagged:abra@mine.wizard", "researched@self >= 1"] },
           "action": ["draw_from:mine.deck:mine.hand:1"]
         }
       ],
@@ -3907,7 +3904,7 @@
       "abilities": [
         {
           "key": "bstart",
-          "needs": { "req": ["count:abra@mine.wizard >= 1"] },
+          "needs": { "req": ["tagged:abra@mine.wizard"] },
           "action": ["power_up:power@mine.player:1"]
         }
       ]
@@ -3944,7 +3941,7 @@
       "abilities": [
         {
           "phases": ["play_card"],
-          "needs": { "req": ["count@mine.hand >= 1", "count:playable@mine.hand <= 0"] },
+          "needs": { "req": ["any@mine.hand", "not_tagged:playable@mine.hand"] },
           "action": ["destroy:mine.hand", "hurt:health@mine.player:1", "draw_from:mine.deck:mine.hand:4"]
         }
       ]

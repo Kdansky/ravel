@@ -834,6 +834,13 @@ answered as 1 or 0, because asking "is there a pawn there" by counting to one
 reads like arithmetic about a question with no arithmetic in it. Castling's path
 check became `not_tagged:piece@w_castle_k_path` at the same time.
 
+**Counting to one is refused now, everywhere** (2026-10-01): 678 conditions moved,
+mostly Codex and Ghost Stories. With a tag it is `tagged:`/`not_tagged:`; with
+none it is `any@`/`none@` — `any@mine.self` is *this card is mine*, `none@deck` an
+empty deck. The old refusal covered `@self` alone, which is why a corpus written
+before `tagged:` existed kept the counted spelling. A count that means a number
+(`>= 2`) is untouched.
+
 **The clause that looks like decoration is load-bearing.** `rank@behind` was the
 one I tried to cut, reasoning that `moves_made == 1` already implied a double
 step. It does not: a pawn that stepped *one* square sits exactly where a pawn

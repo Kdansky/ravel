@@ -338,7 +338,7 @@ replacement be worth what it replaced. Bound inside this hook and nowhere else; 
 ```json
 "tags": { "taxed": { "adjusts": [
   { "key": "resist", "verb": "cast", "stat": "gold", "covers": "self", "by": 1,
-    "needs": { "req": ["count@enemy.self >= 1"] } }] } }
+    "needs": { "req": ["any@enemy.self"] } }] } }
 ```
 
 Resist is the same word as armour, pointed at a cost rather than at damage.
@@ -958,7 +958,7 @@ cost never has to know which currencies exist.
 ### You may only play this if you control a Farm.
 
 ```json
-"play": { "needs": { "req": ["count@mine.farm >= 1"] } }
+"play": { "needs": { "req": ["any@mine.farm"] } }
 ```
 
 ### You may only play this during your main phase.
@@ -1130,7 +1130,7 @@ argument.
 ### Gain a Dragon — or, if the pile is empty, 2 damage and 2 Shards instead.
 
 ```json
-"verbs": [{ "key": "dragons_gone", "needs": { "empty": "count:dragon@dragon_deck <= 0" },
+"verbs": [{ "key": "dragons_gone", "needs": { "empty": "not_tagged:dragon@dragon_deck" },
             "action": ["empty? hit:health@opponent:2", "empty? stat_gain:shards@mine.player:2"] }],
 "action": ["dragons_gone", "draw_from:dragon_deck:mine.hand:1"]
 ```
@@ -1191,7 +1191,7 @@ is not `gem_2` — so the value cannot pick the key by itself.
   { "key": "ash_pile", "tags": ["junk_pile"], "contents": ["ash:6"] },
   { "key": "dry_give", "display": "offscreen", "use": "none" }],
 "cards": [{ "key": "r_dry_give_ice", "tags": ["immutable", "ice"],
-  "abilities": [{ "key": "dry_give", "needs": { "req": ["count:junk@ice_pile <= 0"] }, "action": ["…the penalty…"] }] }],
+  "abilities": [{ "key": "dry_give", "needs": { "req": ["not_tagged:junk@ice_pile"] }, "action": ["…the penalty…"] }] }],
 "play": { "action": ["give_junk:ice"] }
 ```
 
@@ -1389,7 +1389,7 @@ spot is the right one here.
 
 ```json
 "tags": { "hidden": { "receive": {
-  "whose": "enemy", "needs": { "req": ["count:detector@mine.addon >= 1"] } } } }
+  "whose": "enemy", "needs": { "req": ["tagged:detector@mine.addon"] } } } }
 ```
 
 `whose` is the side the block is addressed to, in the word a reaction already uses: `"enemy"`
@@ -1635,7 +1635,7 @@ something that is not a card being played at all.
 ### A rule of the game announces itself, and the rest of it waits.
 
 ```json
-"abilities": [{ "key": "check", "when": ["count:fire@mine.battle >= 1"],
+"abilities": [{ "key": "check", "when": ["tagged:fire@mine.battle"],
                 "action": ["emit:countered:draw_from:mine.deck:mine.hand:1"] }]
 ```
 
@@ -1711,7 +1711,7 @@ button's name.
 
 ```json
 { "key": "opt_raid", "text": "Raid", "tags": ["immutable"],
-  "play": { "needs": { "req": ["count:farm@mine.army >= 1"] },
+  "play": { "needs": { "req": ["tagged:farm@mine.army"] },
             "action": ["stat_gain:gold@mine.player:3"] } }
 ```
 
@@ -1729,7 +1729,7 @@ cards are somebody else's and carry nothing of yours.
 
 ```json
 { "key": "opt_recall", "text": "Take a card back", "tags": ["immutable"],
-  "play": { "needs": { "req": ["count:card@mine.discard >= 1"] },
+  "play": { "needs": { "req": ["tagged:card@mine.discard"] },
             "action": ["show:mine.discard:optional"] },
   "chosen": { "action": ["move:target:mine.hand"] } },
 { "key": "opt_draw", "text": "Draw instead", "tags": ["immutable"],
@@ -1781,7 +1781,7 @@ A zone instead of a list is how a variable set of choices is written.
 ```json
 "zones": [{ "key": "spec", "tags": ["declared"] }, { "key": "lab_spec", "tags": ["declared"] }],
 "computed_tags": {
-  "sp_fire": { "needs": { "req": ["tagged:fire@self", "count:fire@mine.declared >= 1"] } },
+  "sp_fire": { "needs": { "req": ["tagged:fire@self", "tagged:fire@mine.declared"] } },
   "in_spec": { "any_of": ["sp_anarchy", "sp_blood", "sp_fire"] } }
 ```
 
@@ -1886,7 +1886,7 @@ Naming `zone` also bounds what may be played: only cards lying there.
 
 `plays` is engine-kept and reset when the turn begins. It cannot tell one play from another —
 if some of what a player does should not end the turn, count the thing that should:
-`"ends_when": "count:play_card@trick >= 1"`.
+`"ends_when": "tagged:play_card@trick"`.
 
 ### The turn keeps going until the player is done.
 
@@ -1934,7 +1934,7 @@ when the chain is over — see *Known gaps*.
 ### While this is out, EARTH cards do nothing when they resolve but heal 2.
 
 ```json
-{ "key": "dust", "needs": { "req": ["card:glitteringdust@weather >= 1", "count:earth@mine.battle >= 1"] },
+{ "key": "dust", "needs": { "req": ["card:glitteringdust@weather >= 1", "tagged:earth@mine.battle"] },
   "action": ["heal:health@mine.player:2", "destroy:mine.battle.earth"] }
 ```
 
@@ -1969,12 +1969,12 @@ the group is entered, so the stat is written in the step *before* it — here th
 is the first moment what was played is known. One number holds both the ordinary order and the
 card that breaks it, as long as the exception outweighs anything the ordinary rule can be
 worth. The exception itself is an ability with a `when`: `stat_gain:lead@mine.player:9` under
-`count:first_strike@mine.battle >= 1`.
+`tagged:first_strike@mine.battle`.
 
 ### Go somewhere else if a condition holds.
 
 ```json
-"next": [{ "when": "count:king@enemy.reach >= 1", "then": "check" },
+"next": [{ "when": "tagged:king@enemy.reach", "then": "check" },
          { "then": "black_move" }]
 ```
 
@@ -2077,7 +2077,7 @@ knows which way the piece went and an action shared by two rules does not.
 ### Is my king standing where they could move?
 
 ```json
-"next": [{ "when": "count:king@enemy.reach >= 1", "then": "check" }]
+"next": [{ "when": "tagged:king@enemy.reach", "then": "check" }]
 ```
 
 `@<owner>.reach` is every square that side could move onto right now, answered as what stands
@@ -2122,14 +2122,14 @@ The player *is* a card, so everything that works on a card works on a seat.
 ### Whose is it?
 
 ```json
-"needs": { "req": ["count:player@enemy.owner_of.target >= 1"] }
+"needs": { "req": ["tagged:player@enemy.owner_of.target"] }
 ```
 
 ### Spend the tokens of any Taoist on your tile.
 
 ```json
 "target": { "type": "card", "count": 1, "tags": ["token"], "zones": ["tao"], "owner": "enemy" },
-"needs": { "where": ["count:taoist@attached_to.host_of.mine.taoist.owned_by.target >= 1"] },
+"needs": { "where": ["tagged:taoist@attached_to.host_of.mine.taoist.owned_by.target"] },
 "action": ["move:target:mine.spent"]
 ```
 

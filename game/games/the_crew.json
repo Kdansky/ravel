@@ -343,7 +343,7 @@
       "zone": "task_offer",
       "ends_when": "plays >= 1",
       "label": "Commander: take a task",
-      "next": [{ "when": "count@task_offer == 0", "then": "first_lead" }, { "then": "draft_on" }]
+      "next": [{ "when": "none@task_offer", "then": "first_lead" }, { "then": "draft_on" }]
     },
     {
       "key": "draft_on",
@@ -352,7 +352,7 @@
       "zone": "task_offer",
       "ends_when": "plays >= 1",
       "label": "Take a task",
-      "next": [{ "when": "count@task_offer == 0", "then": "first_lead" }, { "then": "draft_on" }]
+      "next": [{ "when": "none@task_offer", "then": "first_lead" }, { "then": "draft_on" }]
     },
     {
       "key": "first_lead",
@@ -364,7 +364,7 @@
       "key": "lead",
       "type": "player_input",
       "zone": ["hand", "open"],
-      "ends_when": "count:play_card@trick >= 1",
+      "ends_when": "tagged:play_card@trick",
       "label": "Lead a card",
       "next": [{ "then": "led" }]
     },
@@ -386,7 +386,7 @@
         "activate_zone:trick:by_column:claim",
         "set_active_seat:taker"
       ],
-      "next": [{ "when": "count:hit_now@enemy.tasks >= 1", "then": "failed" }, { "then": "collect" }]
+      "next": [{ "when": "tagged:hit_now@enemy.tasks", "then": "failed" }, { "then": "collect" }]
     },
     {
       "key": "collect",
@@ -399,7 +399,7 @@
         "stat_gain:tricks_won@mine.player:1"
       ],
       "next": [
-        { "when": "count:task@tasks == 0", "then": "complete" },
+        { "when": "not_tagged:task@tasks", "then": "complete" },
         { "when": "tricks@plan >= 10", "then": "failed" },
         { "then": "lead" }
       ]
@@ -440,7 +440,7 @@
       "key": "follow_card",
       "type": "player_input",
       "zone": ["hand", "open"],
-      "ends_when": "count:play_card@mine.trick >= 1",
+      "ends_when": "tagged:play_card@mine.trick",
       "label": "Follow the suit that was led, if you can"
     }
   ],

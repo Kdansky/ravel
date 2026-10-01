@@ -199,7 +199,7 @@ function M.test_abilities_the_engine_prefix_is_not_a_games_to_write(check)
   "title": "Reserved",
   "zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] }],
   "phases": [{ "key": "turn", "type": "player_input" }],
-  "end_conditions": [{ "when": "count@board == 0", "then": ["end_phase"], "ravel_fired": true }],
+  "end_conditions": [{ "when": "none@board", "then": ["end_phase"], "ravel_fired": true }],
   "cards": [{ "key": "thing", "text": "Thing", "ravel_menu_for": { "card": "thing" } }]
 }]==])
 	f:close()

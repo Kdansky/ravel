@@ -577,13 +577,13 @@ def tags():
 def curse_effects():
     """What the face lying in `curse` does, read by the ghost that rolled it."""
     return [
-        {"key": "curse_qi", "needs": {"req": ["rolls@self >= 1", "count:c_qi@curse >= 1"]},
+        {"key": "curse_qi", "needs": {"req": ["rolls@self >= 1", "tagged:c_qi@curse"]},
          "action": ["stat_damage:qi@mine.player:1"]},
-        {"key": "curse_tao", "needs": {"req": ["rolls@self >= 1", "count:c_tao@curse >= 1"]},
+        {"key": "curse_tao", "needs": {"req": ["rolls@self >= 1", "tagged:c_tao@curse"]},
          "action": ["purge:mine.tao"]},
-        {"key": "curse_ghost", "needs": {"req": ["rolls@self >= 1", "count:c_ghost@curse >= 1"]},
+        {"key": "curse_ghost", "needs": {"req": ["rolls@self >= 1", "tagged:c_ghost@curse"]},
          "action": ["stat_gain:incoming@mine.player:1"]},
-        {"key": "curse_haunt", "needs": {"req": ["rolls@self >= 1", "count:c_haunt@curse >= 1"]},
+        {"key": "curse_haunt", "needs": {"req": ["rolls@self >= 1", "tagged:c_haunt@curse"]},
          "action": ["stat_gain:to_haunt@self:1"]},
         {"key": "curse_done", "needs": {"req": ["rolls@self >= 1"]},
          "action": ["stat_set:rolls@self:0", "stat_set:rolling@mine.player:0"]},
@@ -641,14 +641,14 @@ def monks():
              "action": ["attach_to_target", "end_phase"]},
             {"key": "step", "phases": ["yang_move"],
              "needs": {"req": ["moved@mine.player == 0"],
-                       "where": ["count:taoist@mine.attached_to.adjacent >= 1"]},
+                       "where": ["tagged:taoist@mine.attached_to.adjacent"]},
              "target": {"type": "card", "count": 1, "tags": ["village"]},
              "action": ["attach_to_target", "stat_set:moved@mine.player:1", "end_phase"]},
             # The Dance of the Spires: every tile `step` does not already offer, bar the one it stands on.
             {"key": "fly", "phases": ["yang_move"],
-             "needs": {"req": ["moved@mine.player == 0", "count:spires@mine.power >= 1", "powered@mine.player >= 1"],
-                       "where": ["count:taoist@mine.attached_to.adjacent == 0",
-                                 "count:taoist@mine.attached_to.target == 0"]},
+             "needs": {"req": ["moved@mine.player == 0", "tagged:spires@mine.power", "powered@mine.player >= 1"],
+                       "where": ["not_tagged:taoist@mine.attached_to.adjacent",
+                                 "not_tagged:taoist@mine.attached_to.target"]},
              "target": {"type": "card", "count": 1, "tags": ["village"]},
              "action": ["attach_to_target", "stat_set:moved@mine.player:1", "end_phase"]},
         ],
@@ -664,14 +664,14 @@ def plaques():
             "tooltip": "The %s board: the three ghost spaces beside this plaque. Ask the "
                        "Night Watchman here to send this board's haunting figures home." % colour,
             "abilities": [
-                {"key": "overrun", "needs": {"req": ["count@mine.self >= 1", "count:ghost@%s >= 3" % pat]},
+                {"key": "overrun", "needs": {"req": ["any@mine.self", "count:ghost@%s >= 3" % pat]},
                  "action": ["stat_damage:qi@mine.player:1", "stat_set:skip@mine.player:1"]},
                 {"key": "watch", "phases": ["yang_act"],
-                 "needs": {"req": ["count:taoist@mine.attached_to.watchman >= 1",
+                 "needs": {"req": ["tagged:taoist@mine.attached_to.watchman",
                            "haunted@watchman == 0"] + MAY_ASK},
                  "action": ["stat_set:haunt@each.%s:0" % pat,
                             "spend_action:asked"]},
-                {"key": "mute", "needs": {"req": ["count@mine.self >= 1", "count:power_off@%s >= 1" % pat]},
+                {"key": "mute", "needs": {"req": ["any@mine.self", "tagged:power_off@%s" % pat]},
                  "action": ["stat_set:powered@mine.player:0"]},
             ],
         })
@@ -686,7 +686,7 @@ MAY_TRY = ["tried@mine.player < tries@mine.player", "asked@mine.player < mix@min
 
 def _villager(key, needs, action, target=None, where=None):
     rule = {"key": "ask", "phases": ["yang_act"],
-            "needs": {"req": ["count:taoist@mine.attached_to.self >= 1", "haunted@self == 0"] + MAY_ASK + needs},
+            "needs": {"req": ["tagged:taoist@mine.attached_to.self", "haunted@self == 0"] + MAY_ASK + needs},
             "action": action + ["spend_action:asked"]}
     if target:
         rule["target"] = target
@@ -718,12 +718,12 @@ def village():
             ["purge:target", "stat_damage:qi@mine.player:1"],
             {"type": "card", "count": 1, "tags": ["ghost"], "zones": ["table"]}),
         "temple": _villager(
-            "temple", ["count@shrine >= 1"], ["move:shrine:mine.held:1"]),
+            "temple", ["any@shrine"], ["move:shrine:mine.held:1"]),
         "watchman": None,
         "circle_tile": _villager(
             "circle_tile", [], ["purge:circle", "stat_gain:owed_c@mine.player:1"]),
         "pavilion": _villager(
-            "pavilion", ["count:ghost@table >= 1"], ["stat_set:blowing@mine.player:1"]),
+            "pavilion", ["tagged:ghost@table"], ["stat_set:blowing@mine.player:1"]),
         "tea_house": _villager(
             "tea_house", [], ["stat_gain:owed@mine.player:1", "stat_gain:qi@mine.player:1",
                               "stat_gain:incoming@mine.player:1"]),
@@ -744,13 +744,13 @@ def village():
             # haunting face turns this very tile over, which is the one place
             # the die is not about a ghost.
             rules += [
-                {"key": "curse_qi", "needs": {"req": ["rolls@self >= 1", "count:c_qi@curse >= 1"]},
+                {"key": "curse_qi", "needs": {"req": ["rolls@self >= 1", "tagged:c_qi@curse"]},
                  "action": ["stat_damage:qi@mine.player:1"]},
-                {"key": "curse_tao", "needs": {"req": ["rolls@self >= 1", "count:c_tao@curse >= 1"]},
+                {"key": "curse_tao", "needs": {"req": ["rolls@self >= 1", "tagged:c_tao@curse"]},
                  "action": ["purge:mine.tao"]},
-                {"key": "curse_ghost", "needs": {"req": ["rolls@self >= 1", "count:c_ghost@curse >= 1"]},
+                {"key": "curse_ghost", "needs": {"req": ["rolls@self >= 1", "tagged:c_ghost@curse"]},
                  "action": ["stat_gain:incoming@mine.player:1"]},
-                {"key": "curse_haunt", "needs": {"req": ["rolls@self >= 1", "count:c_haunt@curse >= 1"]},
+                {"key": "curse_haunt", "needs": {"req": ["rolls@self >= 1", "tagged:c_haunt@curse"]},
                  "action": ["stat_gain:haunted@self:1"]},
                 {"key": "curse_done", "needs": {"req": ["rolls@self >= 1"]},
                  "action": ["stat_set:rolls@self:0", "stat_set:rolling@mine.player:0"]},
@@ -759,11 +759,11 @@ def village():
             # The wind's second gust, the Twin Winds' two clicks from the tile: a Taoist not the asker's, then any tile.
             rules += [
                 {"key": "gust", "text": "Move another Taoist", "phases": ["gust"],
-                 "needs": {"req": ["count:led@table == 0"], "where": ["count@mine.target == 0"]},
+                 "needs": {"req": ["not_tagged:led@table"], "where": ["none@mine.target"]},
                  "target": {"type": "card", "count": 1, "tags": ["taoist"]},
                  "action": ["stat_set:guided@target:1"]},
                 {"key": "gust_to", "phases": ["gust"],
-                 "needs": {"req": ["count:led@table >= 1"]},
+                 "needs": {"req": ["tagged:led@table"]},
                  "target": {"type": "card", "count": 1, "tags": ["village"]},
                  "action": ["move:table.led:target", "stat_set:guided@each.attached_to.target:0",
                             "stat_set:gusting@mine.player:0"]},
@@ -771,10 +771,10 @@ def village():
         if key == "herbalist":
             for c in TAO_KEYS:
                 rules.append({"key": "herb_" + c,
-                              "needs": {"req": ["rolls@self >= 1", "count:%s@dice >= 1" % c]},
+                              "needs": {"req": ["rolls@self >= 1", "tagged:%s@dice" % c]},
                               "action": ["take:box.%s:mine.tao:1" % c]})
             rules.append({"key": "herb_white",
-                          "needs": {"req": ["rolls@self >= 1", "count:white@dice >= 1"]},
+                          "needs": {"req": ["rolls@self >= 1", "tagged:white@dice"]},
                           "action": ["stat_gain:owed@mine.player:count:white@dice"]})
             rules.append({"key": "herb_done", "needs": {"req": ["rolls@self >= 1"]},
                           "action": ["stat_set:rolls@self:0", "stat_set:herbs@mine.player:0"]})
@@ -816,15 +816,15 @@ def ghost_card(key, name, colour, res, left, mid, right, incarnation=False):
     # the village is empty. The pattern for the other axis names nothing from
     # where it stands, so both may be asked and only one of them is about it.
     if key == "howling":
-        needs += ["count:ghost@vert4 == 0", "count:ghost@horiz4 == 0"]
+        needs += ["not_tagged:ghost@vert4", "not_tagged:ghost@horiz4"]
     rules = [{
         "key": "exorcise", "phases": ["yang_exorcise"], "compute": powers,
-        "needs": {"req": ["count:taoist@mine.attached_to.orthogonal >= 1", "dying@self == 0"] + needs},
+        "needs": {"req": ["tagged:taoist@mine.attached_to.orthogonal", "dying@self == 0"] + needs},
         "action": ["drive_out"],
     }]
     # Counted when the dice are rolled, so the tray knows whether a die may be
     # kept back for a second ghost.
-    rules.append({"key": "faced", "needs": {"req": ["count:taoist@mine.attached_to.orthogonal >= 1"]},
+    rules.append({"key": "faced", "needs": {"req": ["tagged:taoist@mine.attached_to.orthogonal"]},
                   "action": ["stat_gain:facing@mine.player:1"]})
 
     arrive = []
@@ -998,7 +998,7 @@ def pieces():
                         "asset": "circle:" + _face_plate(f),
                         "abilities": [
                             {"key": "reroll", "text": "Roll this die again", "phases": ["yang_exorcise"],
-                             "needs": {"req": ["count:favour@mine.power >= 1", "powered@mine.player >= 1",
+                             "needs": {"req": ["tagged:favour@mine.power", "powered@mine.player >= 1",
                                                "again@self == 0"]},
                              "action": ["move:self:bag%d" % n, "shuffle:bag%d" % n, "draw_from:bag%d:dice:1" % n,
                                         "stat_set:again@dice.d%d:1" % n]},
@@ -1020,7 +1020,7 @@ def pieces():
             "asset": "circle:" + colour,
             "tooltip": "A %s Tao token. Commit it to an exorcism against a %s ghost."
                        % (key, key),
-            "play": {"phases": ["yang_exorcise"], "needs": {"req": ["count:tao_off@table == 0"]},
+            "play": {"phases": ["yang_exorcise"], "needs": {"req": ["not_tagged:tao_off@table"]},
                      "action": ["move_to:mine.spent"]},
             "abilities": [
                 {"key": "take", "phases": ["spoils"], "needs": {"req": ["owed@mine.player >= 1"]},
@@ -1028,7 +1028,7 @@ def pieces():
                 {"key": "pray", "phases": ["prayer"], "needs": {"req": ["owed_c@mine.player >= 1"]},
                  "action": ["take:self:circle:1", "stat_damage:owed_c@mine.player:1"]},
                 {"key": "pocket", "phases": ["yang_move"],
-                 "needs": {"req": ["count:pockets@mine.power >= 1", "powered@mine.player >= 1",
+                 "needs": {"req": ["tagged:pockets@mine.power", "powered@mine.player >= 1",
                                    "pocketed@mine.player == 0"]},
                  "action": ["take:self:mine.tao:1", "stat_set:pocketed@mine.player:1"]},
             ],
@@ -1064,13 +1064,13 @@ def powers():
         elif tag == "twin_winds":
             rules = [{"key": "lead", "text": "Move another Taoist", "phases": ["yang_act"],
                       "needs": {"req": ["powered@mine.player >= 1", "winded@mine.player == 0", "acts@mine.player == 0"],
-                                "where": ["count@mine.target == 0"]},
+                                "where": ["none@mine.target"]},
                       "target": {"type": "card", "count": 1, "tags": ["taoist"]},
                       "action": ["stat_set:guided@target:1", "stat_set:winded@mine.player:1", "end_phase"]},
                      # The second click: a tile beside the Taoist the first one picked. Moved onto a card, a card
                      # stands on it, which is all a Taoist walking is.
                      {"key": "lead_to", "phases": ["winds"],
-                      "needs": {"where": ["count:led@attached_to.adjacent >= 1"]},
+                      "needs": {"where": ["tagged:led@attached_to.adjacent"]},
                       "target": {"type": "card", "count": 1, "tags": ["village"]},
                       "action": ["move:table.led:target", "stat_set:guided@each.attached_to.target:0", "end_phase"]}]
         elif tag == "strength":
@@ -1113,7 +1113,7 @@ def buttons():
         btn("roll_dice", "Attempt an exorcism",
             # A captive ghost holds a die out of the roll, so each die is there only while fewer than its number are held.
             {"phases": ["yang_act"], "needs": {"req": MAY_TRY, "d1": "count:die_captive@table <= 2",
-                                               "d2": "count:die_captive@table <= 1", "d3": "count:die_captive@table == 0",
+                                               "d2": "count:die_captive@table <= 1", "d3": "not_tagged:die_captive@table",
                                                "strong": "mountain@mine.player >= 1"},
              "action": roll_tao(()) + ["d%d? %s" % (n, a) for n in (1, 2, 3)
                                        for a in ("shuffle:bag%d" % n, "draw_from:bag%d:dice:1" % n)]
@@ -1131,8 +1131,8 @@ def buttons():
         # success spends it from its owner's supply.
         btn("borrow", "Borrow a token",
             {"phases": ["yang_exorcise"],
-             "needs": {"req": ["count:tao_off@table == 0"],
-                       "where": ["count:taoist@attached_to.host_of.mine.taoist.owned_by.target >= 1"]},
+             "needs": {"req": ["not_tagged:tao_off@table"],
+                       "where": ["tagged:taoist@attached_to.host_of.mine.taoist.owned_by.target"]},
              "target": {"type": "card", "count": 1, "tags": ["token"], "zones": ["tao"], "owner": "enemy"},
              "action": ["move:target:mine.spent"]},
             "Commit a Tao token belonging to another Taoist standing on your tile."),
@@ -1186,7 +1186,7 @@ def phases():
                  for a in ("v", "h") for d in (1, 2, 3)]
     read_curse = ["activate_zone:table:by_column:" + k
                   for k in ("curse_qi", "curse_tao", "curse_ghost", "curse_haunt", "curse_done")]
-    favour = ["count:favour@mine.power >= 1", "powered@mine.player >= 1"]
+    favour = ["tagged:favour@mine.power", "powered@mine.player >= 1"]
     fell = {"when": "max:to_haunt@ghost >= 1", "then": "lost_village"}
     # Wherever a ghost may have come or gone, every seat asks again whether its power works.
     settle = ["each_seat:settle_powers"]
@@ -1195,8 +1195,8 @@ def phases():
         {"key": "station", "type": "player_input", "zone": "figure", "seat": "next",
          "label": "Take your place on the central tile",
          "actions": ["move:random.mine.sides:mine.power:1"],
-         "ends_when": "count@mine.figure == 0",
-         "next": [{"when": "count:taoist@anyone.figure == 0", "then": "turn_end"},
+         "ends_when": "none@mine.figure",
+         "next": [{"when": "not_tagged:taoist@anyone.figure", "then": "turn_end"},
                   {"then": "station", "seat": "next"}]},
 
         {"key": "yin_stamp", "type": "automatic", "label": "Yin — the ghosts",
@@ -1232,7 +1232,7 @@ def phases():
                   {"then": "yin_draw"}]},
 
         {"key": "yin_draw", "type": "automatic",
-         "next": [{"when": "count@deck == 0", "then": "lost_deck"},
+         "next": [{"when": "none@deck", "then": "lost_deck"},
                   {"when": "count:ghost@table >= 12", "then": "yin_full"},
                   {"when": "count@deck == 10", "then": "yin_draw_urn"},
                   {"then": "yin_draw_deck"}]},
@@ -1246,7 +1246,7 @@ def phases():
 
         {"key": "yin_place", "type": "player_input", "zone": "arriving",
          "label": "Lay the ghost on a free space",
-         "ends_when": "count@arriving == 0",
+         "ends_when": "none@arriving",
          "next": [{"then": "yin_arrived"}]},
 
         {"key": "yin_arrived", "type": "automatic",
@@ -1269,7 +1269,7 @@ def phases():
          "label": "Ask a villager, or attempt an exorcism",
          "zone": ["choices", "power", "table"],
          "next": [{"when": "exorcising@mine.player >= 1", "then": "yang_exorcise"},
-                  {"when": "count:led@table >= 1", "then": "winds"},
+                  {"when": "tagged:led@table", "then": "winds"},
                   {"then": "aftermath"}]},
 
         {"key": "winds", "type": "player_input", "zone": ["power", "table"],
@@ -1421,7 +1421,7 @@ def build():
         "zones": zones(),
         "phases": phases(),
         "end_conditions": [
-            {"when": "count:incarnation@hell >= 1", "then": ["push_phase:won"]},
+            {"when": "tagged:incarnation@hell", "then": ["push_phase:won"]},
             {"when": "max:qi@player <= 0", "then": ["push_phase:lost_dead"]},
             {"when": "sum:haunted@village >= 4", "then": ["push_phase:lost_village"]},
         ],

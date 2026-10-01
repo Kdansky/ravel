@@ -1673,7 +1673,7 @@ def character_chips():
          # The `needs` is not flavour — an offer with nothing in it never opens,
          # and priority handed across an offer that never opens never comes home.
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
-                  "needs": {"req": ["count:chip@mine.discard >= 1"]},
+                  "needs": {"req": ["tagged:chip@mine.discard"]},
                   "action": ["set_priority:enemy.player", "show:enemy.discard"],
                   "spent": "mine.table"},
          "chosen": {"action": ["move:target:enemy.hand", "clear_priority"]}},
