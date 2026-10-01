@@ -137,6 +137,7 @@
     },
     {
       "key": "hp",
+      "dies_at": 0,
       "label": "Hit points",
       "icon": "heart",
       "color": "red",
@@ -149,6 +150,7 @@
     },
     {
       "key": "life",
+      "dies_at": 0,
       "label": "Hero life",
       "icon": "heart",
       "color": "pink",
@@ -846,14 +848,6 @@
         ]
       }
     },
-    "fell_low": {
-      "needs": {
-        "req": [
-          "life@self < 1",
-          "level@self <= 3"
-        ]
-      }
-    },
     "rubble": {
       "needs": {
         "req": [
@@ -880,20 +874,6 @@
       "needs": {
         "req": [
           "slot@self == 2"
-        ]
-      }
-    },
-    "at_scav": {
-      "needs": {
-        "req": [
-          "slot@self == 3"
-        ]
-      }
-    },
-    "at_tech": {
-      "needs": {
-        "req": [
-          "slot@self == 4"
         ]
       }
     },
@@ -1375,49 +1355,6 @@
         ]
       }
     },
-    "claimed": {
-      "needs": {
-        "req": [
-          "insured@self >= 1",
-          "hp@self < 1"
-        ]
-      }
-    },
-    "reviving": {
-      "needs": {
-        "req": [
-          "tagged:juggernaut@self",
-          "hp@self < 1",
-          "lives@self == 0"
-        ]
-      }
-    },
-    "revived": {
-      "needs": {
-        "req": [
-          "tagged:juggernaut@self",
-          "hp@self < 1",
-          "lives@self == 2"
-        ]
-      }
-    },
-    "returning": {
-      "needs": {
-        "req": [
-          "homing@self >= 1",
-          "hp@self < 1"
-        ]
-      }
-    },
-    "crumbled": {
-      "needs": {
-        "req": [
-          "tagged:juggernaut@self",
-          "hp@self >= 1",
-          "lives@self == 2"
-        ]
-      }
-    },
     "rousable": {
       "needs": {
         "req": [
@@ -1869,19 +1806,34 @@
   },
   "tags": {
     "unit": {
-      "becomes": { "dead": { "action": ["activate_zone:rules_death"] } },
       "zone": "army",
       "leaves": {
         "into": "discard",
+        "needs": { "scav": "slot@self == 3", "tech": "slot@self == 4", "gang": "count@mine.gang >= 1",
+                   "insured": "insured@self >= 1" },
         "action": [
-          "emit:died"
+          "emit:died",
+          "stat_gain:blood@each.anyone.ongoing.bloodburn:1",
+          "scav? stat_gain:gold@mine.player:1",
+          "tech? draw_from:mine.deck:mine.hand:1",
+          "gang? stat_damage:integrity@enemy.base:1",
+          "insured? stat_gain:gold@mine.player:sum:price@self",
+          "insured? draw_from:mine.deck:mine.hand:1"
         ]
       }
     },
     "hero": {
-      "becomes": { "fallen": { "action": ["activate_zone:rules_death"] } },
       "zone": "army",
       "grave": "command",
+      "leaves": {
+        "into": "command",
+        "needs": { "scav": "slot@self == 3", "tech": "slot@self == 4", "boon": ["count:hero@enemy.hero >= 1", "count:fallen@enemy.hero == 0"] },
+        "action": [
+          "scav? stat_gain:gold@mine.player:1",
+          "tech? draw_from:mine.deck:mine.hand:1",
+          "boon? stat_gain:xp@opponent:2"
+        ]
+      },
       "abilities": [
         {
           "key": "upkeep",
@@ -3233,7 +3185,7 @@
           0.35
         ]
       ],
-      "receive": { "action": ["stat_set:hero_wait@target:2"] },
+      "receive": { "action": ["stat_set:hero_wait@target:2", "activate_zone:rules_death"] },
       "tooltip": "Your three heroes wait here to be summoned, and each comes back here when it dies."
     },
     {
@@ -3713,46 +3665,6 @@
         "at": [
           "f2"
         ]
-      },
-      {
-        "card": "r_scav",
-        "zone": "rules_death"
-      },
-      {
-        "card": "r_techie",
-        "zone": "rules_death"
-      },
-      {
-        "card": "r_bloodburn",
-        "zone": "rules_death"
-      },
-      {
-        "card": "r_gang",
-        "zone": "rules_death"
-      },
-      {
-        "card": "r_drakk",
-        "zone": "rules_death"
-      },
-      {
-        "card": "r_heroes",
-        "zone": "rules_death"
-      },
-      {
-        "card": "r_lives",
-        "zone": "rules_death"
-      },
-      {
-        "card": "r_homing",
-        "zone": "rules_death"
-      },
-      {
-        "card": "r_insured",
-        "zone": "rules_death"
-      },
-      {
-        "card": "r_units",
-        "zone": "rules_death"
       },
       {
         "card": "r_tech_rubble",
@@ -6759,180 +6671,6 @@
       }
     },
     {
-      "key": "r_scav",
-      "text": "Scavenger",
-      "tags": [
-        "immutable"
-      ],
-      "abilities": [
-        {
-          "key": "pays",
-          "text": "Scavenger",
-          "phases": [],
-          "action": [
-            "each_seat:stat_gain:gold@mine.player:count:dead@mine.patrol.at_scav",
-            "each_seat:stat_gain:gold@mine.player:count:fallen@mine.patrol.at_scav"
-          ]
-        }
-      ]
-    },
-    {
-      "key": "r_techie",
-      "text": "Technician",
-      "tags": [
-        "immutable"
-      ],
-      "abilities": [
-        {
-          "key": "draws",
-          "text": "Technician",
-          "phases": [],
-          "action": [
-            "each_seat:draw_from:mine.deck:mine.hand:count:dead@mine.patrol.at_tech",
-            "each_seat:draw_from:mine.deck:mine.hand:count:fallen@mine.patrol.at_tech"
-          ]
-        }
-      ]
-    },
-    {
-      "key": "r_bloodburn",
-      "text": "Bloodburn",
-      "tags": [
-        "immutable"
-      ],
-      "abilities": [
-        {
-          "key": "runes",
-          "text": "Blood runes",
-          "phases": [],
-          "action": [
-            "each_seat:stat_gain:blood@mine.ongoing.bloodburn:count:dead@anyone.unit"
-          ]
-        }
-      ]
-    },
-    {
-      "key": "r_gang",
-      "text": "Pirate-Gang Commander",
-      "tags": [
-        "immutable"
-      ],
-      "abilities": [
-        {
-          "key": "mine",
-          "text": "Pirate-Gang Commander",
-          "phases": [],
-          "needs": {
-            "req": [
-              "count@mine.gang >= 1",
-              "count:dead@mine.unit >= 1"
-            ]
-          },
-          "action": [
-            "stat_damage:integrity@enemy.base:count:dead@mine.unit"
-          ]
-        },
-        {
-          "key": "theirs",
-          "text": "Pirate-Gang Commander",
-          "phases": [],
-          "needs": {
-            "req": [
-              "count@enemy.gang >= 1",
-              "count:dead@enemy.unit >= 1"
-            ]
-          },
-          "action": [
-            "stat_damage:integrity@mine.base:count:dead@enemy.unit"
-          ]
-        }
-      ]
-    },
-    {
-      "key": "r_drakk",
-      "text": "Drakk falls",
-      "tags": [
-        "immutable"
-      ],
-      "abilities": [
-        {
-          "key": "falls",
-          "text": "Drakk falls",
-          "phases": [],
-          "action": [
-            "each_seat:stat_damage:integrity@enemy.base:count:fell_low@mine.h_blood"
-          ]
-        }
-      ]
-    },
-    {
-      "key": "r_heroes",
-      "text": "Fallen heroes",
-      "tags": [
-        "immutable"
-      ],
-      "abilities": [
-        {
-          "key": "boon_m",
-          "text": "Two free levels",
-          "phases": [],
-          "needs": {
-            "req": [
-              "count:fallen@mine.hero >= 1",
-              "count:hero@enemy.hero >= 1",
-              "count:fallen@enemy.hero == 0"
-            ]
-          },
-          "action": [
-            "stat_gain:xp@opponent:2"
-          ]
-        },
-        {
-          "key": "boon_t",
-          "text": "Two free levels",
-          "phases": [],
-          "needs": {
-            "req": [
-              "count:fallen@enemy.hero >= 1",
-              "count:hero@mine.hero >= 1",
-              "count:fallen@mine.hero == 0"
-            ]
-          },
-          "action": [
-            "stat_gain:xp@mine.player:2"
-          ]
-        },
-        {
-          "key": "buried",
-          "text": "Fallen hero",
-          "phases": [],
-          "action": [
-            "each_seat:move:mine.fallen:mine.command"
-          ]
-        }
-      ]
-    },
-    {
-      "key": "r_units",
-      "text": "The dead",
-      "tags": [
-        "immutable"
-      ],
-      "abilities": [
-        {
-          "key": "sweep",
-          "text": "The dead",
-          "phases": [],
-          "action": [
-            "move:mine.dead:mine.discard",
-            "move:enemy.dead:enemy.discard",
-            "purge:mine.discard.token",
-            "purge:enemy.discard.token"
-          ]
-        }
-      ]
-    },
-    {
       "key": "r_tech_rubble",
       "text": "Broken tech",
       "tags": [
@@ -7210,8 +6948,7 @@
           "phases": [],
           "action": [
             "destroy:mine.ephemeral",
-            "destroy:mine.fading",
-            "activate_zone:rules_death"
+            "destroy:mine.fading"
           ]
         }
       ]
@@ -7647,6 +7384,7 @@
       ],
       "asset": "drakk",
       "tooltip": "War Drummer. Levels 1-3 1/3: Dies — deal 1 damage to each opponent's base. Levels 4-5 2/3: your units get Frenzy 1. Level 6 3/4: the first unit that arrives from your hand each turn gets haste.",
+      "leaves": { "into": "command", "needs": { "req": ["level@self <= 3"] }, "action": ["stat_damage:integrity@enemy.base:1"] },
       "card_stats": {
         "price": 2,
         "atk": 1,
@@ -9122,6 +8860,7 @@
       ],
       "asset": "justice_juggernaut",
       "tooltip": "Unstoppable but can't patrol. Two lives: the first death heals it and leaves a crumbling rune instead.",
+      "becomes": { "dead": { "needs": { "req": ["lives@self == 0"] }, "action": ["stat_set:lives@self:3", "stat_gain:hp@self:9"] } },
       "card_stats": {
         "price": 6,
         "atk": 4,
@@ -9171,8 +8910,7 @@
           },
           "action": [
             "destroy:lowest:tech_level.enemy.army:4",
-            "destroy:lowest:tech_level.enemy.patrol:4",
-            "activate_zone:rules_death"
+            "destroy:lowest:tech_level.enemy.patrol:4"
           ]
         }
       ]
@@ -9334,8 +9072,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "destroy:each.anyone.judged",
-          "activate_zone:rules_death"
+          "destroy:each.anyone.judged"
         ],
         "spent": "mine.discard"
       }
@@ -9381,6 +9118,7 @@
       ],
       "asset": "brave_knight",
       "tooltip": "Readiness: does not exhaust to attack, but attacks once a turn. Dying to combat damage returns him to hand instead.",
+      "becomes": { "dead": { "needs": { "req": ["homing@self >= 1"] }, "action": ["move_to:mine.hand"] } },
       "card_stats": {
         "price": 3,
         "atk": 3,
@@ -11085,8 +10823,7 @@
       },
       "leaves": {
         "action": [
-          "destroy:lowest:tech_level.mine.army:1",
-          "activate_zone:rules_death"
+          "destroy:lowest:tech_level.mine.army:1"
         ]
       }
     },
@@ -11630,8 +11367,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "destroy:lowest:tech_level.enemy.army:1",
-          "activate_zone:rules_death"
+          "destroy:lowest:tech_level.enemy.army:1"
         ],
         "spent": "mine.discard"
       }
@@ -11747,8 +11483,7 @@
           "zones": ["fighters"]
         },
         "action": [
-          "destroy:target",
-          "activate_zone:rules_death"
+          "destroy:target"
         ]
       }
     },
@@ -13585,8 +13320,7 @@
             "zones": ["fielded"]
           },
           "action": [
-            "destroy:target",
-            "activate_zone:rules_death"
+            "destroy:target"
           ]
         }
       ]
@@ -15021,7 +14755,8 @@
           "req": [
             "count:hero@mine.hero >= 1",
             "count:h_demonology@mine.hero >= 1"
-          ]
+          ],
+          "dies": "hp@target < 1"
         },
         "cost": {
           "gold@mine.player": "price@self"
@@ -15040,11 +14775,8 @@
           ]
         },
         "action": [
-          "stat_set:mark@target:1",
           "harm:hp@target:3",
-          "activate_zone:rules_death",
-          "move:random.enemy.hand:enemy.discard",
-          "stat_set:mark@each.anyone.marked:0"
+          "dies? move:random.enemy.hand:enemy.discard"
         ]
       }
     },
@@ -15623,8 +15355,7 @@
         },
         "spent": "mine.discard",
         "action": [
-          "destroy:each.anyone.plagued",
-          "activate_zone:rules_death"
+          "destroy:each.anyone.plagued"
         ]
       }
     },
@@ -15910,8 +15641,7 @@
           },
           "action": [
             "destroy:lowest:tech_level.enemy.army:2",
-            "destroy:lowest:tech_level.enemy.patrol:2",
-            "activate_zone:rules_death"
+            "destroy:lowest:tech_level.enemy.patrol:2"
           ]
         }
       ]
@@ -17111,8 +16841,7 @@
           },
           "action": [
             "destroy:lowest:tech_level.enemy.army:4",
-            "destroy:lowest:tech_level.enemy.patrol:4",
-            "activate_zone:rules_death"
+            "destroy:lowest:tech_level.enemy.patrol:4"
           ]
         }
       ]
@@ -17978,8 +17707,7 @@
             "zones": ["fighters"]
           },
           "action": [
-            "destroy:target",
-            "activate_zone:rules_death"
+            "destroy:target"
           ]
         }
       ]
@@ -19747,8 +19475,7 @@
           },
           "action": [
             "destroy:lowest:tech_level.enemy.army:2",
-            "destroy:lowest:tech_level.enemy.patrol:2",
-            "activate_zone:rules_death"
+            "destroy:lowest:tech_level.enemy.patrol:2"
           ]
         },
         {
@@ -19938,8 +19665,7 @@
         },
         "action": [
           "theirs? stat_damage:integrity@enemy.base:1",
-          "!theirs? show:enemy.bombable:optional",
-          "emit:died"
+          "!theirs? show:enemy.bombable:optional"
         ]
       },
       "chosen": {
@@ -22580,8 +22306,7 @@
           },
           "action": [
             "destroy:lowest:tech_level.enemy.army:4",
-            "destroy:lowest:tech_level.enemy.patrol:4",
-            "activate_zone:rules_death"
+            "destroy:lowest:tech_level.enemy.patrol:4"
           ]
         },
         {
@@ -22852,79 +22577,6 @@
       }
     },
     {
-      "key": "r_insured",
-      "text": "Insurance Agent",
-      "tags": [
-        "immutable"
-      ],
-      "tooltip": "Every insured unit that dies pays its owner what it cost and draws them a card, so two claims in one death step pay twice and draw twice.",
-      "abilities": [
-        {
-          "key": "pays",
-          "text": "Insurance Agent",
-          "phases": [],
-          "action": [
-            "each_seat:stat_gain:gold@mine.player:sum:price@mine.claimed",
-            "each_seat:draw_from:mine.deck:mine.hand:count:claimed@mine.unit",
-            "each_seat:stat_set:insured@each.mine.claimed:0"
-          ]
-        }
-      ]
-    },
-    {
-      "key": "r_lives",
-      "text": "Two Lives",
-      "tags": [
-        "immutable"
-      ],
-      "tooltip": "The first death of a Justice Juggernaut heals it and leaves a crumbling rune instead. Said in three steps because a column recomputes its scope between them: mark, heal, then spend the mark — so the heal cannot see the death it has just undone.",
-      "abilities": [
-        {
-          "key": "mark",
-          "text": "Two Lives",
-          "phases": [],
-          "action": [
-            "each_seat:stat_set:lives@each.mine.reviving:2"
-          ]
-        },
-        {
-          "key": "heal",
-          "text": "Two Lives",
-          "phases": [],
-          "action": [
-            "each_seat:stat_gain:hp@each.mine.revived:9"
-          ]
-        },
-        {
-          "key": "spend",
-          "text": "Two Lives",
-          "phases": [],
-          "action": [
-            "each_seat:stat_set:lives@each.mine.crumbled:3"
-          ]
-        }
-      ]
-    },
-    {
-      "key": "r_homing",
-      "text": "Brave Knight",
-      "tags": [
-        "immutable"
-      ],
-      "tooltip": "A Brave Knight that would die goes back to his owner's hand instead.",
-      "abilities": [
-        {
-          "key": "rides_home",
-          "text": "Brave Knight",
-          "phases": [],
-          "action": [
-            "each_seat:move:mine.returning:mine.hand",
-            "each_seat:stat_gain:hp@each.mine.hand.returning:9"
-          ]
-        }
-      ]
-    },
-    {
       "key": "pick_black",
       "text": "Black — Demonology, Disease, Necromancy",
       "tags": ["immutable"],
@@ -23096,8 +22748,7 @@
             ]
           },
           "action": [
-            "destroy:each.mine.faded",
-            "activate_zone:rules_death"
+            "destroy:each.mine.faded"
           ]
         },
         {

@@ -246,7 +246,7 @@ local TAG_FIELDS      = { zone = true, grave = true, tooltip = true, play = true
 	-- derived from the blocks, as on a card
 	on_play = true, cost = true, needs = true, target = true, phases = true, spent = true,
 	compute = true, buffs = true, adjusts = true,
-	-- Unlike play and leaves this adds to a card's own rather than standing in for it.
+	-- Like leaves and unlike play, this adds to a card's own rather than standing in for it.
 	becomes = true }
 
 -- Words the format had and dropped. declaration.parse reports each by name and
@@ -2141,6 +2141,13 @@ function M.check(G)
 		check_conditions(where .. " receive when", td.on_receive_needs)
 			check_list(where .. " receive action", td.on_receive)
 			check_becomes(where, td.becomes)
+			-- Run for every card wearing it, on top of the card's own, so it is checked here and not through them.
+			check_list(where .. " leaves action", td.on_leaves)
+			for _, z in ipairs({ td.leaves_into, td.leaves_from }) do
+				if not G.zone_defs[z] and z ~= nil then
+					warn("%s leaves: names zone '%s', but no zone has that key%s", where, tostring(z), suggest(z, G.zone_defs))
+				end
+			end
 			for i, ab in ipairs(td.abilities or {}) do
 				check_ability(("%s ability %d ('%s')"):format(where, i, tostring(ab.key)), ab)
 			end

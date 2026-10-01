@@ -1348,13 +1348,13 @@ function M.test_codex_blue_arrivals(check)
 		tostring(seat("south").stats.gold))
 end
 
--- Two deaths that are not deaths, both written as a rules_death column that runs
--- before the sweep — which is the only place a card can be caught on its way out.
+-- Two deaths that are not deaths, both a `becomes` on the card, which is heard
+-- before `dies_at` carries the corpse off.
 function M.test_codex_blue_second_chances(check)
 	start("pick_blue", "pick_green")
 	local knight = summon("brave_knight", "mine.army")
 	knight.stats.hp = 0
-	actions.run({ "activate_zone:rules_death" }, {})
+	flow.settle()
 	check("the knight went back to hand instead of dying",
 		in_zone("hand", "brave_knight") ~= nil)
 	check("and is whole again", read(entity.get(knight.id), "hp") == 3,
@@ -1362,11 +1362,11 @@ function M.test_codex_blue_second_chances(check)
 
 	local bull = summon("justice_juggernaut", "mine.army")
 	bull.stats.hp = 0
-	actions.run({ "activate_zone:rules_death" }, {})
+	flow.settle()
 	check("the juggernaut healed rather than died", read(bull, "hp") == 6, tostring(read(bull, "hp")))
 	check("and is crumbling now", bull.stats.lives >= 2, tostring(bull.stats.lives))
 	bull.stats.hp = 0
-	actions.run({ "activate_zone:rules_death" }, {})
+	flow.settle()
 	check("so the second death is a real one", entity.get(bull.id) == nil
 		or entity.get(bull.id).zone_id ~= zones.find_id("army", "mine"))
 end
@@ -2106,11 +2106,8 @@ function M.test_codex_a_killed_hero_goes_home_to_wait(check)
 	check("nor on whoever killed it", in_zone("command", "zane").stats.hero_wait == 0)
 end
 
--- The death column used to say every rule twice, once as "mine" and once as
--- "theirs", because a rule read from the seat that is up and only one side's
--- death was that seat's. `each_seat:` wraps the *action* rather than the zone,
--- so the card keeps its place in the column and both sides are answered before
--- the next rule starts — which is the whole reason the halves could go.
+-- A post pays its own side: the rule is the unit tag's `leaves`, run as the dying card's owner, so
+-- whose turn it is has nothing to say about whose gold it is.
 function M.test_codex_the_death_column_answers_both_sides(check)
 	start("pick_red", "pick_green")
 	post("nautical_dog", "mine", 3).stats.hp = 0
@@ -2120,7 +2117,6 @@ function M.test_codex_the_death_column_answers_both_sides(check)
 	local gold_s, gold_n = seat("south").stats.gold, seat("north").stats.gold
 	local hand_s, hand_n = count_in("hand"), count_in("enemy.hand")
 
-	actions.execute("activate_zone:rules_death", {})
 	flow.settle()
 
 	check("the scavenger post paid its own side", seat("south").stats.gold == gold_s + 1,
@@ -2131,6 +2127,22 @@ function M.test_codex_the_death_column_answers_both_sides(check)
 		tostring(count_in("hand") - hand_s))
 	check("and drew for the other side too", count_in("enemy.hand") == hand_n + 1,
 		tostring(count_in("enemy.hand") - hand_n))
+end
+
+-- **A destroyed patroller is as dead as a beaten one.** `destroy:` used to move it before any rule
+-- asked, so the Scavenger paid nothing for an Obliterate and Insurance never paid out on one.
+function M.test_codex_a_destroyed_patroller_pays_its_post(check)
+	start("pick_red", "pick_green")
+	local dog = post("nautical_dog", "mine", 3)
+	dog.stats.insured = 1
+	local gold, hand = seat("south").stats.gold, count_in("hand")
+	actions.execute("destroy:mine.patrol.unit", {})
+	flow.settle()
+	check("it is in the discard", in_zone("mine.discard", "nautical_dog") ~= nil)
+	check("the scavenger paid one and insurance its price", seat("south").stats.gold == gold + 1 + read(dog, "price"),
+		tostring(seat("south").stats.gold - gold))
+	check("and insurance drew a card", count_in("hand") == hand + 1, tostring(count_in("hand") - hand))
+	check("and it landed uninsured", dog.stats.insured == 0, tostring(dog.stats.insured))
 end
 
 -- Two conditions over one card, said as a tag on the card rather than as a

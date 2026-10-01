@@ -40,36 +40,30 @@ blocks run only while the card still wears the tag and stands where it stood
 (that is death replacement), and every card's own block before any tag's (a
 rattle must find the others that fell with it still standing).
 
-**Codex is on it** (2026-10-01): `dead`, `fallen` and `rubble` are
-`in_play@self` and a number at nought, and `unit`, `hero` and `building` each say
-`"becomes": { <state>: ["activate_zone:rules_death"] }`. The column stays whole —
-it sees every corpse before sweeping any, which is what simultaneous deaths
-need — and 38 hand-placed calls went. Built on the way, all agreed:
-
-- a card leaving play gets its printed stats back (a unit killed at nought was
-  redrawn dead);
-- `becomes` and `leaves` read `mine` as the card's owner, and `my_turn@` /
-  `their_turn@` ask whose turn it is; `each_seat:` holds each seat's lens;
-- Codex's discard purges a token on arrival, so a token destroyed outside the
-  column no longer lingers there.
+**Codex dies through `dies_at` (2026-10-01).** `hp` and `life` die at 0; the
+column's unit and hero rules are gated lines on the `unit` and `hero` tags'
+`leaves`, which now fire before the move and add up; Drakk's is his own `leaves`,
+and Juggernaut's and Brave Knight's replacements are their own `becomes: dead`.
+The 14 trailing `rules_death` calls went, so a destroyed patroller pays its post.
 
 **Left:**
 
-- **`dies_at` shipped in the engine (2026-10-01); Codex is not on it yet.** A stat
-  says its card dies at a number, and the engine kills it as `destroy:` does, so
-  one death path serves both and the column could become `leaves` on tags. What
-  blocks the move: `leaves` runs after the reprint (dc3c9fa), and seven of the
-  column's rules read the corpse as it stood — `r_scav`/`r_techie` its `slot`,
-  `r_insured` its `insured`, `r_drakk` its `level`, `r_lives` its `lives`,
-  `r_homing` its `homing`. Decision wanted: does `leaves` read the card before
-  its reprint. Juggernaut's Two Lives also wants a way to refuse a death, which
-  no grave can say.
-- **Decomposing the column** onto tags and cards reads better, but each card's
-  block then sweeps itself before the next card's rules run: two heroes falling
-  together would boon one side only. Needs a rule for ordering the blocks of
-  several cards first.
-- `shadow_blade`, `nature_reclaims` and the `draw` phase call the column
-  mid-list, and keep doing so.
+- **Juggernaut against `destroy:`.** Two Lives is a `becomes`, which only an hp
+  death reaches; a destroy carries it off with no second life. Wants a way for
+  `leaves` to refuse a departure, or a replacement on the death itself.
+- **Two heroes falling together.** The first's `leaves` sees the second still
+  fallen and boons nobody; the second's finds the first gone and boons its side
+  if that side has another hero standing. The column boon'd neither.
+- **Buildings stay on the column.** `integrity` has no `dies_at` because the base
+  is a building and dies to an ending, not a grave; tech and add-on rubble purge
+  and charge the base two. `r_channel` rides along, run when a hero lands in its
+  command zone.
+- **Channeling never ends on its hero's death**, before this change or after:
+  `count:h_blood@mine.hero == 0` still counts the hero waiting in its command
+  zone. It wants an in-play scope (`mine.fielded.h_blood`?) — check the rulebook
+  on whether the hero must be in play.
+- **Sacrifice is a purge**, so `sacrifice:unit` fires no `leaves`: a sacrificed
+  patroller pays no post and an insured one claims nothing.
 - LoR needs nothing: no death triggers, and its late `destroy:dead` is what
   lets an Overwhelm attacker that traded still carry `spill` to the nexus.
   Spellstorm has no deaths at all.
