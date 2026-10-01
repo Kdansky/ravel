@@ -218,7 +218,9 @@ local STAT_FIELDS     = { key = true, label = true, min = true, max = true, subj
 	-- attack" has no quantity, and the 1 carrying it is noise on the card.
 	number = true,
 	-- Whether its row is shown: onscreen, offscreen, or only while nonzero.
-	display = true }
+	display = true,
+	-- The number at or below which a card in play carrying this stat dies.
+	dies_at = true }
 -- A tag def is a mixin: it may carry a home zone, and the card behaviour a zone
 -- hands to whatever sits in it ("applies"). Kept to the fields a granted rule
 -- can honestly mean — nothing that would have to be re-derived as state moves.
@@ -2018,6 +2020,12 @@ function M.check(G)
 			elseif d == key then
 				warn("%s: pays_for names itself, which every stat already does", where)
 			end
+		end
+		-- A threshold under the floor is a death the clamp never lets happen.
+		if def.dies_at ~= nil and type(def.dies_at) ~= "number" then
+			warn("%s: dies_at is the number a card dies at, like 0", where)
+		elseif type(def.dies_at) == "number" and type(def.min) == "number" and def.dies_at < def.min then
+			warn("%s: dies_at (%s) is below min (%s), so nothing ever dies of it", where, def.dies_at, def.min)
 		end
 		if def.icon ~= nil and not M.ICONS[def.icon] then
 			warn("%s: asks to be drawn as '%s', which is not a shape the engine has%s",

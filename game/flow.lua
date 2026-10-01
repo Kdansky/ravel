@@ -562,6 +562,37 @@ local function becomes_step()
 	return #due > 0
 end
 
+-- **A stat may say its card dies at a number** (`dies_at`), and this is where that happens. Not at
+-- the write: a fight's second blow lands on a card the first has already brought to nought, and a buff
+-- running out kills as surely as a blow and writes nothing. Only in play — a card in hand at nought is
+-- a number, not a corpse. Everything due is gathered before the first moves, so cards that fell
+-- together die together, and each dies as `destroy` kills: into its grave, `leaves` and all.
+--
+-- After `becomes`, so a block that heals the card or carries it off has answered the death first.
+-- True when anything died.
+local function death_step()
+	local lethal = {}
+	for _, key in ipairs(declaration.G.stat_defs_list or {}) do
+		local s = declaration.G.stat_defs[key]
+		if type(s.dies_at) == "number" then lethal[#lethal + 1] = s end
+	end
+	if #lethal == 0 then return false end
+	local due = {}
+	for e in entity.each("card") do
+		local z = e.zone_id and entity.get(e.zone_id)
+		if z and z.status == "board" then
+			for _, s in ipairs(lethal) do
+				if e.stats[s.key] ~= nil and stats.current(e, s.key) <= s.dies_at then
+					due[#due + 1] = e.id
+					break
+				end
+			end
+		end
+	end
+	for _, id in ipairs(due) do actions.destroy(id) end
+	return #due > 0
+end
+
 -- Drive the game to a stable point: consume a queued load, fire end conditions,
 -- run automatic phases, run on_round triggers after a full round, deal freshly
 -- entered phases. Loops because each step can trigger the next. The budget
@@ -618,7 +649,7 @@ function M.settle()
 		-- without a stack and every moment its stack is empty — unchanged.
 		-- Before the window, so nobody answers anything while a corpse is still on the board. What fired
 		-- counts as a resolution: look again before an outcome or a phase moves.
-		local rstate = becomes_step() and "resolved" or M.react_step()
+		local rstate = (becomes_step() or death_step()) and "resolved" or M.react_step()
 		if rstate == "waiting" then return end
 		-- A question waiting to be asked holds up phases exactly as an unanswered
 		-- window does, and is settled in the same place for the same reason.

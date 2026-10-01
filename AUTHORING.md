@@ -62,7 +62,7 @@ and a line here names a section that exists:
 - **What a file holds** — Top-level fields · One game out of several files · `comment` — the one field the engine will not read · `ravel_` — the fields that are the engine's · Stats · Zones · A shelf — several zones on one rect · The system column · Players · Setup · Card templates · Two marks in card text · A caption that reads the board · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · A turn each · Two or more players · The player is a card · A stat says whose number it is
 - **Asking the board a question** — Conditions (one vocabulary everywhere) · `lowest:` and `highest:` — a pool in order · `aims:` — what an ability could point at · `spread` — an aim that spends points rather than cards · `needs` — what failing it does · `@everywhere` — every card, hands and decks included · `select` — a cost the player settles · `@owner_of` — the seat a card belongs to · `@attached_to` and `@host_of` — a card standing on another · `owned_by` — the cards of seats picked by what is true of them · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A place may be a word several zones wear · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
-- **What a card does** — Actions · A card that can do several things · Readiness — spent, given back, and asked about · `merge` — what an ability says to the others on its card · Gates — an if inside an ability · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag, or a counter, that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · A verb with a body — the game's own action · `does: "target"` — naming the aim, so the target can answer it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out · `becomes` — a card starting to wear a tag
+- **What a card does** — Actions · A card that can do several things · Readiness — spent, given back, and asked about · `merge` — what an ability says to the others on its card · Gates — an if inside an ability · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag, or a counter, that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · A verb with a body — the game's own action · `does: "target"` — naming the aim, so the target can answer it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out · `dies_at` — a number a card dies at · `becomes` — a card starting to wear a tag
 - **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · A second asker is a second answer · `chosen`'s `where` — which of the revealed cards may be taken · An answer may have a price · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · A list waits for the question it asked
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `answered` — the announcement itself · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · An automatic phase can ask, if the ask is the last thing it does · A mandatory reaction is how you ask somebody else a question · What it will not do yet
 - **Boards and pieces** — Pieces that move · Asking about the square you are considering · Moves with fixed destinations (castling) · Legality between two cards · Which end of a deck a card lands on · A cell, where the destination is a grid · Filling a row up · `origin` — back where it came from · `fan` — a stack you can read
@@ -4258,13 +4258,43 @@ zone** — which is what naming one has always been for. `purge:` stays the way
 to take something off the table that nobody may ask about, which is what a token
 vanishing and a swept husk both want.
 
-### `becomes` — a card starting to wear a tag
+### `dies_at` — a number a card dies at
 
 **In most card games a death is not a move.** Damage writes a number and moves
-nothing, so `leaves` never hears it; the rules then look at the board, find a
-unit at nought, and resolve it — and until they do, the corpse still standing
-knows which slot it fell in, whose it was and whether anything saves it. The
-engine does not learn what dying is. The game says it once, as a computed tag:
+nothing; the rules then look at the board, find a unit at nought, and resolve
+it. A game says which numbers kill, on the stat:
+
+```json
+"stats": [
+  { "key": "hp", "min": 0, "on": ["unit"], "dies_at": 0 },
+  { "key": "integrity", "min": 0, "on": ["building"], "dies_at": 0 }
+]
+```
+
+*A unit with no hp left dies; so does a building with no structure.* The engine
+then does the rest, and does it as `destroy:` does: the card moves into its
+grave — its own, its tags', its zone's, its seat's, the table's, narrowest
+first — so its `leaves` fires and the table may answer. **Where it goes instead**
+is that same lookup: `"grave": "command"` on the hero tag, `"grave": "hand"` on a
+knight that rides home.
+
+**When.** When the game comes to rest, as `becomes` is heard, and after it: a
+fight lands both blows before anything dies, a buff running out kills as surely
+as a blow, and everything that fell at once dies at once.
+
+**Where.** Only in play — a `status: board` zone. A card in hand at nought is a
+number, not a corpse.
+
+A stat without it is only a number, which is every stat in a game with no
+deaths. `destroy:` stays the verb for *"destroy a unit"*: it is a death too, and
+the same one.
+
+### `becomes` — a card starting to wear a tag
+
+**A death read where it fell.** `dies_at` carries a card off as soon as it is
+due; until then, the corpse still standing knows which slot it fell in, whose
+it was and whether anything saves it. A rule that needs that reads it through a
+computed tag:
 
 ```json
 "computed_tags": { "dead": { "needs": { "req": ["in_play@self", "hp@self < 1"] } } }

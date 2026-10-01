@@ -1443,7 +1443,17 @@ The zone answers for itself, exactly as a card does.
 `into` names where it landed, and that is what tells one kind of leaving from another. Leave
 `from` out and it means leaving **play**; a card walking between two board zones fires nothing.
 
-### When this dies — damaged to nothing, or its last buff gone.
+### A unit with no health left dies.
+
+```json
+"stats": [{ "key": "hp", "min": 0, "on": ["unit"], "dies_at": 0 }]
+```
+
+Checked when the game comes to rest, in play only, everything that fell at once together. It dies as
+`destroy:` kills — into its grave, so `leaves` hears it. `"grave": "hand"` on the card is *returns to
+your hand instead*.
+
+### When this dies — damaged to nothing, or its last buff gone, and read where it fell.
 
 ```json
 "computed_tags": { "dead": { "needs": { "req": ["in_play@self", "hp@self < 1"] } } },
@@ -1454,7 +1464,7 @@ The zone answers for itself, exactly as a card does.
 "becomes": { "dead": { "action": ["stat_damage:integrity@enemy.base:1"] } }
 ```
 
-Damage moves nothing, so `leaves` never hears it. `becomes` fires when a card starts wearing a tag,
+For a rule that must read the corpse before it goes — its slot, a mark on it. `becomes` fires when a card starts wearing a tag,
 noticed when the game comes to rest, while the corpse still stands. The tag's block and the card's
 own add up, the card's first — and every dying card's own before any tag's, so all the corpses are
 still there to be counted. `mine` is the dying card's owner; `in_play@self` keeps a card at nought

@@ -216,7 +216,7 @@ local PHASE = rec({
 local STAT = rec({
 	key = STR, label = STR, min = NUM, max = NUM, subject = STR, tags = STRS,
 	icon = STR, color = either(STR, COLOUR), on = STRS, start = NUM, pays_for = STRS,
-	buffs = map(NUM), number = BOOL, display = STR,
+	buffs = map(NUM), number = BOOL, display = STR, dies_at = NUM,
 })
 
 -- Directions as [dx, dy] pairs, or squares by name in an absolute pattern.

@@ -835,16 +835,18 @@ end
 --
 -- A card with nowhere to die says so rather than vanishing quietly. Silence
 -- here would be the very bug the two verbs were split to end.
-HANDLERS["destroy"] = function(p, ctx)
-	for _, id in ipairs(doomed(p, ctx)) do
-		local c = entity.get(id)
-		local grave = c and zones.grave_of(c)
-		if grave then
-			zones.move_card(id, grave.id)
-		else
-			content_error("destroy: " .. tostring(c and c.def_key) .. " has no grave to go to")
-		end
+function M.destroy(id)
+	local c = entity.get(id)
+	local grave = c and zones.grave_of(c)
+	if grave then
+		zones.move_card(id, grave.id)
+	else
+		content_error("destroy: " .. tostring(c and c.def_key) .. " has no grave to go to")
 	end
+end
+
+HANDLERS["destroy"] = function(p, ctx)
+	for _, id in ipairs(doomed(p, ctx)) do M.destroy(id) end
 end
 
 -- move:<scope>:<zone>  — every card the scope names goes to that zone.
