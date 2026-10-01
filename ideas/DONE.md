@@ -1547,6 +1547,17 @@ anything fired. `cards.becomes` gathers the blocks from the same four places
 - **Trap:** fired card by card, the first corpse's `destroy:self` removed it
   before the next card's rattle could count it. Every card's own block now runs
   before any granted one.
+- **Whose `mine`:** the card's owner, in `becomes` and `leaves` both, as in an
+  answered aim — nobody whose turn it is chose it. `my_turn@`/`their_turn@` ask
+  the turn. Fixed on the way: Spellstorm's on-discard effects and Codex's
+  Thieving Imp paid whoever was up.
+- **Leaving play makes a card new** (printed stats, nothing worn), and
+  `in_play@self` scopes a state to the table. A unit killed at nought used to be
+  redrawn dead.
+- **Trap:** `each_seat:` moved the turn, but a lens outranks the turn, so inside
+  a death every pass was the owner's. It now holds each seat's lens.
+- **Codex** runs its death column from `becomes` on `unit`/`hero`/`building`;
+  LoR and Spellstorm need nothing (see [38](38-repeated-shapes.md)).
 
 # Bugs found on the way, and what they bought
 
