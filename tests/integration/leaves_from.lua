@@ -85,6 +85,18 @@ function M.test_leaves_from_a_discard_from_hand_fires_it(check)
 	end)
 end
 
+-- Thrown away by the other seat, it still pays its own: nobody whose turn it is chose to be discarded.
+function M.test_leaves_from_pays_the_owner_on_another_seats_turn(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local gem = gem_in("hand")
+		require("actions").run({ "set_active_seat:seat_two" }, {})
+		check("the other seat is up", zones.active_seat() ~= "one", tostring(zones.active_seat()))
+		zones.move_card(gem.id, zones.find_id("discard", "one"))
+		check("its owner gained the power", power() == 1, power())
+	end)
+end
+
 function M.test_leaves_from_stays_narrow(check)
 	with_game(function(name)
 		flow.init(name, 3)

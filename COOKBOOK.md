@@ -1479,24 +1479,25 @@ same way, and it can die again later.
 ### When this dies on somebody else's turn.
 
 ```json
-"leaves": { "into": "discard", "needs": { "req": ["count:player@enemy.owner_of >= 1"] },
-            "action": ["damage:integrity@mine.base:1"] }
+"leaves": { "into": "discard", "needs": { "req": ["their_turn@self"] },
+            "action": ["damage:integrity@enemy.base:1"] }
 ```
 
 `needs` is for what `from` and `into` cannot say — they are both places. Asked after the move,
-so it reads the world the action will run in.
+so it reads the world the action will run in, and as the card's owner: `mine` is its side and
+`enemy` the other, whoever's turn it is. Two seats; with more, `enemy.base` is every other base.
 
 ### Dies on your turn: 1 damage to a patroller or building. On another player's turn: 1 to their base.
 
 ```json
-"leaves": { "into": "discard", "needs": { "theirs": "count:player@enemy.owner_of >= 1" },
-            "action": ["theirs? stat_damage:integrity@mine.base:1", "!theirs? show:enemy.bombable:optional"] },
+"leaves": { "into": "discard", "needs": { "theirs": "their_turn@self" },
+            "action": ["theirs? stat_damage:integrity@enemy.base:1", "!theirs? show:enemy.bombable:optional"] },
 "chosen": { "action": ["harm:hp@target:1", "harm:integrity@target:1", "activate_zone:rules_death"] }
 ```
 
 A card has one `leaves`, so two rules on one departure are a gate and its other branch. `bombable`
 is a zone tag on the patrol and every building zone, which is how one scope names both. The
-question is asked of whoever is up, and on the owner's own turn that is the owner. What it shows
+question is asked as the owner, so `enemy` is the other side on either turn. What it shows
 is lent: the base sits in the offer while it is open and goes home the moment it is picked.
 
 ### Every unit's death is announceable.

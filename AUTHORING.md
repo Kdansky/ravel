@@ -4208,21 +4208,26 @@ that happens *to* the card, and belongs here.
 and one departure is often two rules told apart by something that is not a place:
 
 ```json
-"leaves": { "into": "discard", "needs": { "req": ["count:player@enemy.owner_of >= 1"] },
-            "action": ["stat_damage:integrity@mine.base:1", "emit:died"] }
+"leaves": { "into": "discard", "needs": { "req": ["their_turn@self"] },
+            "action": ["stat_damage:integrity@enemy.base:1", "emit:died"] }
 ```
 
 *Dies on somebody else's turn: a point off that player's base* — and nothing at
 all on its owner's. Asked of the departing card as `@self`, and asked after the
 move, so it reads the world the action will run in.
 
+**`mine` is the departing card's owner**, as it is in `becomes` and when a card
+answers an aim: nobody whose turn it is chose to be discarded, so *"when you
+discard this, gain 1 power"* pays the card's own side even when an opponent's
+spell threw it away. Whose turn it left on is `my_turn@self` and `their_turn@self`.
+
 A card has one `leaves`, so when both turns do something the condition becomes a
 gate (see *Gates*) and the other half is its other branch — Crash Bomber, whose
 own-turn half asks which patroller or building takes the point:
 
 ```json
-"leaves": { "into": "discard", "needs": { "theirs": "count:player@enemy.owner_of >= 1" },
-            "action": ["theirs? stat_damage:integrity@mine.base:1",
+"leaves": { "into": "discard", "needs": { "theirs": "their_turn@self" },
+            "action": ["theirs? stat_damage:integrity@enemy.base:1",
                        "!theirs? show:enemy.bombable:optional", "emit:died"] }
 ```
 

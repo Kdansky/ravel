@@ -610,8 +610,14 @@ local function fire_leaves(from, to, card_id)
 	local want = def.leaves_into
 	if want and want ~= to.key then return end
 	-- Asked with the departing card as @self, and asked here rather than before
-	-- the move so it reads the world the action will run in.
-	if not require("predicate").meets_all(def.leaves_needs, { card_id = card_id }) then return end
+	-- the move so it reads the world the action will run in. **As the card's owner**, as a death is:
+	-- nobody whose turn it is chose to be discarded, so "when you discard this, gain 1" pays the
+	-- card's own side even when an opponent's spell threw it away. "their_turn@self" asks the turn.
+	local predicate = require("predicate")
+	local seat = predicate.seat_of(c)
+	local wanted
+	M.as_seat(seat, function() wanted = predicate.meets_all(def.leaves_needs, { card_id = card_id }) end)
+	if not wanted then return end
 	-- The same depth guard receive keeps, for the same reason: a rule that moves
 	-- the card it just watched leave says so in the log rather than taking the
 	-- process with it.
@@ -622,7 +628,7 @@ local function fire_leaves(from, to, card_id)
 		return
 	end
 	receiving = receiving + 1
-	local ok, err = pcall(M.run_actions, def.on_leaves, { card_id = card_id, targets = {} })
+	local ok, err = pcall(M.as_seat, seat, function() M.run_actions(def.on_leaves, { card_id = card_id, targets = {} }) end)
 	receiving = receiving - 1
 	if not ok then error(err, 0) end
 end

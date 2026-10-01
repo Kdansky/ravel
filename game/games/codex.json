@@ -1906,6 +1906,7 @@
       "leaves": {
         "from": "hand",
         "into": "discard",
+        "needs": { "req": ["my_turn@self"] },
         "action": [
           "stat_gain:spells@mine.player:1"
         ]
@@ -19956,10 +19957,10 @@
       "leaves": {
         "into": "discard",
         "needs": {
-          "theirs": "count:player@enemy.owner_of >= 1"
+          "theirs": "their_turn@self"
         },
         "action": [
-          "theirs? stat_damage:integrity@mine.base:1",
+          "theirs? stat_damage:integrity@enemy.base:1",
           "!theirs? show:enemy.bombable:optional",
           "emit:died"
         ]
