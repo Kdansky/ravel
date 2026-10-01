@@ -4253,9 +4253,12 @@ line makes every unit's death answerable and no unit knows it is being watched:
                 "action": ["stat_damage:hp@enemy.hero:1"] }]
 ```
 
-A tag hands the block over whole, and a card writing its own takes none of the
-tag's — the same rule `play` keeps, and for the same reason. So a card with its
-own `leaves` that still wants the announcement writes `emit:` into its own list.
+**Blocks add up.** The card's own runs first, then each of its tags' in the order
+they are written, each with its own `from`, `into` and `needs`. A card printing
+*"Dies: draw a card"* still announces its death and still pays out at the
+Scavenger's post, because those are the tag's lines and not the card's. A block
+that carries the card somewhere else has answered the move, and the blocks after
+it do not run.
 
 **`purge:` does not fire it, and that is the point of the verb.** A destroyed
 card lands in no zone, so there is no `into` to name, and its stats are cleared
@@ -4315,8 +4318,8 @@ and a card says what happens when it starts wearing it:
 "becomes": { "dead": { "action": ["stat_damage:integrity@enemy.base:1"] } }
 ```
 
-**Written on a tag it is the whole game's rule**, and unlike `play` and `leaves`
-a tag's block *adds to* a card's own rather than standing in for it — a card's
+**Written on a tag it is the whole game's rule**, and as with `leaves` and
+unlike `play`, a tag's block *adds to* a card's own rather than standing in for it — a card's
 death rattle is said on top of dying, not instead of it:
 
 ```json

@@ -40,7 +40,7 @@ local GAME = [==[{
   "phases": [
     { "key": "deal", "type": "automatic",
       "actions": ["set_active_seat:seat_one", "create:mine.army:grunt:2", "create:mine.army:troll:1",
-                  "create:mine.army:champion:1", "create:mine.army:knight:1", "create:mine.hand:grunt:1", "create:mine.shrine:grunt:1"],
+                  "create:mine.army:champion:1", "create:mine.army:knight:1", "create:mine.army:gorgon:1", "create:mine.hand:grunt:1", "create:mine.shrine:grunt:1"],
       "next": [{ "then": "main" }] },
     { "key": "main", "type": "player_input", "zone": "hand", "next": [{ "then": "main" }] }
   ],
@@ -52,6 +52,8 @@ local GAME = [==[{
       "becomes": { "hurt": { "action": ["stat_gain:hp@self:2"] } } },
     { "key": "knight", "text": "Knight", "tags": ["unit"], "card_stats": { "hp": 2 },
       "leaves": { "into": "discard", "action": ["move_to:mine.hand"] } },
+    { "key": "gorgon", "text": "Gorgon", "tags": ["unit"], "card_stats": { "hp": 1 },
+      "leaves": { "action": ["stat_gain:rattles@mine.player:10"] } },
     { "key": "champion", "text": "Champion", "tags": ["hero"], "card_stats": { "life": 3 } }
   ],
   "setup": { "place": [{ "card": "one", "zone": "army" }, { "card": "two", "zone": "army" }] }
@@ -177,6 +179,15 @@ function M.test_dies_at_leaves_may_reroute_the_death(check)
 		check("the knight went home", cards_in("hand", "knight")[1] == k)
 		check("not to the discard", #cards_in("discard", "knight") == 0)
 		check("and arrived whole", k.stats.hp == 2, tostring(k.stats.hp))
+	end)
+end
+
+-- A card's own trigger is said on top of its tag's, not instead of it.
+function M.test_dies_at_a_cards_own_leaves_adds_to_its_tags(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		run({ "stat_damage:hp@self:1" }, cards_in("army", "gorgon")[1])
+		check("its own and the unit's both ran", seat().stats.rattles == 11, tostring(seat().stats.rattles))
 	end)
 end
 

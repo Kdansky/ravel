@@ -151,7 +151,7 @@ local CARD_FIELDS = {
 	-- derived by declaration.parse from the blocks above
 	cost = true, needs = true, target = true, phases = true, on_play = true, spent = true,
 	compute = true,
-	on_leaves = true, leaves_into = true, leaves_from = true, leaves_needs = true,
+	on_leaves = true, leaves_into = true, leaves_from = true, leaves_needs = true, leaves_list = true,
 	requires = true, on_pass = true, on_fail = true,
 	accepts = true, on_receive = true, on_receive_needs = true, on_round = true, on_chosen = true, receive_whose = true,
 	chosen_where = true,
@@ -398,7 +398,7 @@ M.DERIVED = { tags_set = true, injected = true, move_rules = true, style = true,
 	requires = true, on_pass = true, on_fail = true, accepts = true,
 	on_receive = true, on_receive_needs = true, on_arrives = true, arrives_needs = true, receive_whose = true,
 	on_round = true, on_chosen = true, chosen_where = true,
-	on_leaves = true, leaves_into = true, leaves_from = true, leaves_needs = true,
+	on_leaves = true, leaves_into = true, leaves_from = true, leaves_needs = true, leaves_list = true,
 	zone_list = true, auto_play = true, to_slot = true }
 
 -- Edit distance (with swapped-letter typos counting as one edit), for

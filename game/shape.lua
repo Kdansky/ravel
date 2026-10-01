@@ -252,7 +252,7 @@ local FILE = rec({
 -- Names the parser writes onto a def. A file writing one would have it read as
 -- the engine's own, so it goes, whatever it holds.
 local ENGINE_WRITES = { tags_set = true, style = true, injected = true, zone_list = true,
-	move_rules = true, auto_play = true, to_slot = true, menu_card = true }
+	move_rules = true, auto_play = true, to_slot = true, menu_card = true, leaves_list = true }
 
 local function kind(v)
 	local t = type(v)

@@ -602,35 +602,42 @@ local function fire_leaves(from, to, card_id)
 	if not (from and to and M.run_actions) then return end
 	local c   = entity.get(card_id)
 	local def = c and declaration.G.card_defs[c.def_key]
-	if not (def and def.on_leaves) then return end
-	if def.leaves_from then
-		if from.key ~= def.leaves_from then return end
-	elseif from.status ~= "board" or to.status == "board" then
-		return
-	end
-	local want = def.leaves_into
-	if want and want ~= to.key then return end
-	-- Asked with the departing card as @self. **As the card's owner**, as a death is:
-	-- nobody whose turn it is chose to be discarded, so "when you discard this, gain 1" pays the
-	-- card's own side even when an opponent's spell threw it away. "their_turn@self" asks the turn.
+	if not (def and def.leaves_list) then return end
 	local predicate = require("predicate")
 	local seat = predicate.seat_of(c)
-	local wanted
-	M.as_seat(seat, function() wanted = predicate.meets_all(def.leaves_needs, { card_id = card_id }) end)
-	if not wanted then return end
-	-- The same depth guard receive keeps, for the same reason: a rule that moves
-	-- the card it just watched leave says so in the log rather than taking the
-	-- process with it.
-	if receiving >= 8 then
-		local msg = "! leaves: '" .. tostring(c.def_key) .. "' is moving cards round in a circle — stopped"
-		log.add(msg)
-		print(msg)
-		return
+	local zone_was = c.zone_id
+	for _, b in ipairs(def.leaves_list) do
+		-- One block that carried the card off has answered the move, and the rest with it.
+		if c.zone_id ~= zone_was then return end
+		local left
+		if b.from then
+			left = from.key == b.from
+		else
+			left = from.status == "board" and to.status ~= "board"
+		end
+		-- Asked with the departing card as @self. **As the card's owner**, as a death is:
+		-- nobody whose turn it is chose to be discarded, so "when you discard this, gain 1" pays the
+		-- card's own side even when an opponent's spell threw it away. "their_turn@self" asks the turn.
+		local wanted = left and (not b.into or b.into == to.key)
+		if wanted then
+			M.as_seat(seat, function() wanted = predicate.meets_all(b.needs, { card_id = card_id }) end)
+		end
+		if wanted then
+			-- The same depth guard receive keeps, for the same reason: a rule that moves
+			-- the card it just watched leave says so in the log rather than taking the
+			-- process with it.
+			if receiving >= 8 then
+				local msg = "! leaves: '" .. tostring(c.def_key) .. "' is moving cards round in a circle — stopped"
+				log.add(msg)
+				print(msg)
+				return
+			end
+			receiving = receiving + 1
+			local ok, err = pcall(M.as_seat, seat, function() M.run_actions(b.action, { card_id = card_id, targets = {} }) end)
+			receiving = receiving - 1
+			if not ok then error(err, 0) end
+		end
 	end
-	receiving = receiving + 1
-	local ok, err = pcall(M.as_seat, seat, function() M.run_actions(def.on_leaves, { card_id = card_id, targets = {} }) end)
-	receiving = receiving - 1
-	if not ok then error(err, 0) end
 end
 
 local function fire_receive(to, card_id)

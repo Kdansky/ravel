@@ -1000,10 +1000,7 @@ function M.parse(filename)
 	-- neither. Two tags granting it is refused rather than resolved, exactly as an
 	-- ambiguous home is no home: picking one would make what a card does depend on
 	-- the order somebody typed its tags.
-	-- Two moments a tag may hand over whole, and the same rule for both: "leaves"
-	-- is the one a keyword most wants, since "every unit of ours announces its
-	-- death" is one line on the tag and one per card everywhere else.
-	for _, moment in ipairs({ "play", "leaves" }) do
+	for _, moment in ipairs({ "play" }) do
 		for _, key in ipairs(G.card_list) do
 			local cd = G.card_defs[key]
 			local own = false
@@ -1030,6 +1027,23 @@ function M.parse(filename)
 				end
 			end
 		end
+	end
+
+	-- **`leaves` adds up**, as `becomes` does: the card's own block, then each of its tags' in the order
+	-- they are written. A death rattle is said on top of dying, and "every unit of ours announces its
+	-- death" or "a patroller at the scavenger's post pays its owner" is one line on the tag that a card
+	-- printing its own trigger must not silence.
+	local function leaves_block(d)
+		if type(d) ~= "table" or d.on_leaves == nil then return nil end
+		return { from = d.leaves_from, into = d.leaves_into, needs = d.leaves_needs, action = d.on_leaves }
+	end
+	for _, key in ipairs(G.card_list) do
+		local cd = G.card_defs[key]
+		local list = { leaves_block(cd) }
+		for _, tg in ipairs(type(cd.tags) == "table" and cd.tags or {}) do
+			list[#list + 1] = leaves_block(G.tag_defs[tg])
+		end
+		cd.leaves_list = #list > 0 and list or nil
 	end
 
 	-- Every tag some card or tag listens for with `becomes`. Sorted, because settle walks them in this
