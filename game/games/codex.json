@@ -849,6 +849,14 @@
         ]
       }
     },
+    "standing": {
+      "needs": {
+        "req": [
+          "in_play@self",
+          "life@self >= 1"
+        ]
+      }
+    },
     "rubble": {
       "needs": {
         "req": [
@@ -1828,7 +1836,7 @@
       "grave": "command",
       "leaves": {
         "into": "command",
-        "needs": { "scav": "slot@self == 3", "tech": "slot@self == 4", "boon": ["count:hero@enemy.hero >= 1", "count:fallen@enemy.hero == 0"] },
+        "needs": { "scav": "slot@self == 3", "tech": "slot@self == 4", "boon": "count:standing@enemy.hero >= 1" },
         "action": [
           "scav? stat_gain:gold@mine.player:1",
           "tech? draw_from:mine.deck:mine.hand:1",

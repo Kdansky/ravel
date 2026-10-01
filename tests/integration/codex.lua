@@ -2428,4 +2428,30 @@ function M.test_codex_a_bomber_dying_on_its_turn_picks_what_it_hits(check)
 	check("and the point ended the war", phase.current().key == "game_over", phase.current().key)
 end
 
+-- Two heroes falling at once are two deaths, each asking whether the other side has a hero still standing to
+-- take the levels. Deaths resolve in card order, so the spare hero goes to each side in turn: one of the two
+-- runs the deaths in the order that once read a dying hero as a reason to withhold the levels.
+function M.test_codex_heroes_falling_together(check)
+	for _, spare in ipairs({ "mine", "enemy" }) do
+		start("pick_red", "pick_green")
+		-- Straight out of command, since a dead hero goes back there and a full command zone has no room for a copy.
+		local function field(key, side)
+			local h = in_zone(side .. ".command", key)
+			zones.move_card(h.id, zones.find_id("army", side))
+			return h
+		end
+		local mine, theirs = field("zane", "mine"), field("calamandra", "enemy")
+		field(spare == "mine" and "drakk" or "midori", spare)
+		local south, north = seat("south").stats.xp or 0, seat("north").stats.xp or 0
+		mine.stats.life, theirs.stats.life = 0, 0
+		flow.settle()
+		local tag = " (spare on " .. spare .. ")"
+		check("both fell" .. tag, in_zone("mine.army", "zane") == nil and in_zone("enemy.army", "calamandra") == nil)
+		local gain = { (seat("south").stats.xp or 0) - south, (seat("north").stats.xp or 0) - north }
+		local want = spare == "mine" and { 2, 0 } or { 0, 2 }
+		check("only the side with a hero standing takes two levels" .. tag,
+			gain[1] == want[1] and gain[2] == want[2], gain[1] .. "/" .. gain[2])
+	end
+end
+
 return M

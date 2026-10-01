@@ -49,9 +49,9 @@ only `r_channel` now.
 
 **Left:**
 
-- **Two heroes falling together.** The first's `leaves` sees the second still
-  fallen and boons nobody; the second's finds the first gone and boons its side
-  if that side has another hero standing. The column boon'd neither.
+- **A death with no room in its grave loops.** `death_step` destroys, the move
+  is refused (a full command zone, say), the card stays at `dies_at`, and settle
+  spins until "transition budget exhausted". It should say which card and why.
 - **Channeling never ends on its hero's death**, before this change or after:
   `count:h_blood@mine.hero == 0` still counts the hero waiting in its command
   zone. It wants an in-play scope (`mine.fielded.h_blood`?) — check the rulebook
