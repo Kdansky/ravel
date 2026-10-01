@@ -66,16 +66,16 @@ local M = {}
 -- is up — a death, an aim answered — and that is exactly where "dies on your turn" is asked. The
 -- turn and not priority: answering inside a window is not having the turn.
 --
--- "any@<scope>" is yes when anything at all is there, and "none@<scope>" its exact complement:
--- "any@mine.self" is *this card is mine*, "none@deck" an empty deck. Whether something exists is not
--- a quantity, and spelling it "count@deck == 0" made the reader do the arithmetic back into a
--- question. A tag narrows it the way it narrows a count, so a kind of card is "tagged:".
---
 -- Its own words rather than a tag, because the tag namespace is the *game's* —
 -- every other word in it is one an author wrote — and readiness is the engine's
 -- own state, written by the "exhaust" cost, the "exhaust:" action and the round
 -- wrap. A game that wants it to *mean* something says so in its own computed tag:
 -- { "spent": { "needs": ["exhausted@self"] } } and a buff under that name.
+--
+-- "any@<scope>" is yes when anything at all is there, and "none@<scope>" its exact complement:
+-- "any@mine.self" is *this card is mine*, "none@deck" an empty deck. Whether something exists is not
+-- a quantity, and spelling it "count@deck == 0" made the reader do the arithmetic back into a
+-- question. A tag narrows it the way it narrows a count, so a kind of card is "tagged:".
 --
 -- "aims:<ability>" is how many cards one of this card's own abilities could point
 -- at right now. It exists because "may I go past this" and "may I attack this"
@@ -155,6 +155,13 @@ M.WORDS = { fns = FNS, quants = QUANTS, owners = OWNERS, yesno = YESNO }
 -- Whether a subject answers yes or no rather than measuring something.
 function M.is_yesno(p)
 	return p ~= nil and p.fn ~= nil and YESNO[p.fn] == true
+end
+
+-- The yes/no word for the other answer. Most are spelled "not_"; these pairs are not.
+local OPPOSITE = { any = "none", none = "any", my_turn = "their_turn", their_turn = "my_turn",
+	exhausted = "ready", ready = "exhausted" }
+function M.opposite(fn)
+	return OPPOSITE[fn] or fn:match("^not_(.+)$") or ("not_" .. fn)
 end
 
 -- A scope expression: [<quant>.][<owner>.]<zone-or-tag>. It is the part after

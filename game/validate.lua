@@ -45,6 +45,7 @@ local SLOT_STATS = { col = true, row = true }
 -- declares it, for the same reason col and row are — the zone declared it, on
 -- behalf of every card that lands there.
 local SUPPLY_STATS = { stock = true }
+
 -- Every tag the engine itself reads, what it attaches to, and what it does.
 --
 -- One table because there were four half-lists: a set in this file that only
@@ -1003,16 +1004,12 @@ function M.check(G)
 		-- the numeric dress invites shapes that should not exist at all, like
 		-- "tagged:x@y < 1" where the vocabulary already has "not_tagged".
 		if not c.yesno and predicate.is_yesno(c.left.subject) then
-			-- The words whose other answer is not spelled "not_".
-			local OPPOSITE = { any = "none", none = "any", my_turn = "their_turn", their_turn = "my_turn",
-				exhausted = "ready", ready = "exhausted" }
 			warn('%s: "%s" compares a question to a number. It answers yes or no, '
 				.. 'so write it on its own: "%s"%s', where, tostring(s),
 				tostring(c.left.src),
 				(c.op == "<" or c.op == "<=" or c.op == "==" and c.right.n == 0)
 					and (" — or, for the other answer, the word that says so: \"" ..
-						(OPPOSITE[c.left.subject.fn] or c.left.subject.fn:match("^not_") and c.left.subject.fn:gsub("^not_", "")
-							or ("not_" .. c.left.subject.fn))
+						predicate.opposite(c.left.subject.fn)
 						.. (c.left.subject.arg and (":" .. c.left.subject.arg) or "")
 						.. (c.left.subject.scope and ("@" .. c.left.subject.scope) or "") .. "\"")
 					or "")
@@ -1031,7 +1028,7 @@ function M.check(G)
 			if yes or no then
 				local want = ls.arg and ((yes and "tagged:" or "not_tagged:") .. ls.arg) or (yes and "any" or "none")
 				warn('%s: "%s" counts to ask whether there is one — write "%s%s"', where, tostring(s), want,
-					ls.scope and ("@" .. c.left.src:match("@(.*)$")) or "")
+					c.left.src:match("@.*$") or "")
 				return
 			end
 		end

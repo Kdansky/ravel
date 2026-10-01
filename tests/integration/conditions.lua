@@ -480,6 +480,12 @@ function M.test_conditions_everywhere_reaches_a_hand_and_a_deck(check)
 			tostring(predicate.total("count:gem@mine.everywhere")))
 		check("and a card in a shared deck belongs to neither seat",
 			predicate.holds("count:gem@enemy.everywhere == 0", {}))
+
+		-- Whether anything is there, whatever it is, and without counting it.
+		check("any@ is yes where something lies", predicate.holds("any@vault", {}))
+		check("and none@ where nothing does", predicate.holds("none@mine.vault", {}))
+		check("each the other's exact complement",
+			not predicate.holds("none@vault", {}) and not predicate.holds("any@mine.vault", {}))
 	end)
 	os.remove(path)
 	if not ok then error(err, 0) end
@@ -547,7 +553,7 @@ function M.test_conditions_a_question_is_written_on_its_own(check)
 		bare and (bare.op .. "/" .. tostring(bare.right.n)))
 
 	-- The refusal has to be narrow: a count is a number and still says what it
-	-- is being compared to. "At least one" is a real thing to write.
+	-- is being compared to.
 	check("a counting form on its own is still an error",
 		predicate.parse_condition("count:gem@mine.hand") == nil)
 	check("and so is a bare stat, which would otherwise read as a stat worth nothing",
@@ -562,6 +568,11 @@ function M.test_conditions_a_question_is_written_on_its_own(check)
 		check("the taxed spelling is reported", said:find("compares a question to a number", 1, true), said)
 		check("and the message shows the spelling to use instead",
 			said:find("tagged:beast@board\"", 1, true), said)
+
+		G.card_defs.one_gate.needs = { "any@board < 1" }
+		said = table.concat(validate.check(G), "; ")
+		check("the other answer is named by its own word, not by not_",
+			said:find("the word that says so: \"none@board\"", 1, true), said)
 	end)
 end
 
