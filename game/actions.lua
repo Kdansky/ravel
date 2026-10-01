@@ -1620,7 +1620,9 @@ HANDLERS["each_seat"] = function(p, ctx)
 		-- off the stack — an emit's tail, a reaction's action — would ignore this
 		-- loop and run one seat's action once per seat. Move whichever is read.
 		if held > 0 then sys.stats.priority = i end
-		M.execute(inner, ctx)
+		-- And the lens, which outranks both: inside a death or an answered aim "mine" is held to the
+		-- card's owner, and the loop would run that one seat's action once per seat.
+		zones.as_seat(seats[i], function() M.execute(inner, ctx) end)
 	end
 	sys.stats.turn = was
 	if held > 0 then sys.stats.priority = held end

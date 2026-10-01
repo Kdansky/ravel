@@ -2138,22 +2138,23 @@ end
 -- count can ask, and "the highest level among my blood heroes is at most three"
 -- was only ever a way of saying "this one is".
 function M.test_codex_drakk_falls_low(check)
+	-- Fielded out of command rather than summoned: a fourth hero has no seat in a full command zone
+	-- to be buried back into, and would stand at nought being heard dying for ever.
 	start("pick_red", "pick_green")
-	local him = summon("drakk", "army")
-	him.stats.life, him.stats.level = 0, 2
+	take_the_field("drakk")
+	local him = in_zone("army", "drakk")
 	local theirs = entity.get(entity.get(zones.find_id("base", "enemy")).cards[1])
-
-	actions.execute("activate_zone:rules_death", {})
+	him.stats.life, him.stats.level = 0, 2
 	flow.settle()
 	check("falling before level four cost them one", theirs.stats.integrity == 19,
 		tostring(theirs.stats.integrity))
+	check("and it went back to command", in_zone("command", "drakk") ~= nil)
 
 	start("pick_red", "pick_green")
-	local grown = summon("drakk", "army")
-	grown.stats.life, grown.stats.level = 0, 4
+	take_the_field("drakk")
+	local grown = in_zone("army", "drakk")
 	theirs = entity.get(entity.get(zones.find_id("base", "enemy")).cards[1])
-
-	actions.execute("activate_zone:rules_death", {})
+	grown.stats.life, grown.stats.level = 0, 4
 	flow.settle()
 	check("falling at four cost them nothing", theirs.stats.integrity == 20,
 		tostring(theirs.stats.integrity))

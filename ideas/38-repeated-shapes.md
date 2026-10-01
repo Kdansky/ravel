@@ -40,28 +40,36 @@ blocks run only while the card still wears the tag and stands where it stood
 (that is death replacement), and every card's own block before any tag's (a
 rattle must find the others that fell with it still standing).
 
-**Left — Codex does not use it yet.** Codex still writes its death as the
-`rules_death` column plus 54 `activate_zone:rules_death` calls:
+**Codex is on it** (2026-10-01): `dead`, `fallen` and `rubble` are
+`in_play@self` and a number at nought, and `unit`, `hero` and `building` each say
+`"becomes": { <state>: ["activate_zone:rules_death"] }`. The column stays whole —
+it sees every corpse before sweeping any, which is what simultaneous deaths
+need — and 38 hand-placed calls went. Built on the way, all agreed:
 
-- Move the column's abilities onto `tags.unit.becomes.dead` (and hero,
-  building) and onto the cards that replace their death (Brave Knight, Justice
-  Juggernaut, Insurance Agent's payout), then delete the 46 trailing calls, the
-  attack abilities' three, `draw`'s one, and `deteriorate`/`sickness`'s two.
-  [Assumption: every column ability splits cleanly into "what every unit does"
-  and "what one card does instead"; the payout rules that read `at_scav` and
-  `insured` are the ones to check first.]
-- **`shadow_blade` and `nature_reclaims` need deaths settled mid-list**, which
-  `becomes` alone does not do — it is heard when the list ends. They keep their
-  `activate_zone` call until an action meaning "hear it now" exists; that is a
-  new word and wants agreeing first.
-- **`destroy:` still moves before anyone asks.** `r_scav` reads
-  `count:dead@mine.patrol.at_scav`, and a destroyed patroller has already left
-  the patrol, so the Scavenger pays nothing where Codex pays on any death.
-  [Assumption: Codex's fix is a game verb `destroy` that sets hp to nought, so
-  both roads end in `becomes.dead`; content only.]
-- `hp` must come back when a card leaves play, or a Brave Knight bounced at
-  nought is still wearing `dead` in hand. [Assumption: unchecked — `unhook`
-  clears stats only on `purge`.]
+- a card leaving play gets its printed stats back (a unit killed at nought was
+  redrawn dead);
+- `becomes` and `leaves` read `mine` as the card's owner, and `my_turn@` /
+  `their_turn@` ask whose turn it is; `each_seat:` holds each seat's lens;
+- Codex's discard purges a token on arrival, so a token destroyed outside the
+  column no longer lingers there.
+
+**Left:**
+
+- **`destroy:` still moves before anyone asks**, so a destroyed card never wears
+  `dead`. 14 lists that `destroy` keep their trailing `rules_death` call, and
+  `r_scav` still pays nothing for a destroyed patroller. [Assumption: the fix is
+  Codex saying destroy as a death — a state the column then resolves — but
+  `stat_set:hp:0` is beaten by an hp buff, so it wants a word for "dies" rather
+  than a number.]
+- **Decomposing the column** onto tags and cards reads better, but each card's
+  block then sweeps itself before the next card's rules run: two heroes falling
+  together would boon one side only. Needs a rule for ordering the blocks of
+  several cards first.
+- `shadow_blade`, `nature_reclaims` and the `draw` phase call the column
+  mid-list, and keep doing so.
+- LoR needs nothing: no death triggers, and its late `destroy:dead` is what
+  lets an Overwhelm attacker that traded still carry `spill` to the nexus.
+  Spellstorm has no deaths at all.
 
 ### 6. A printed stat that steps
 
