@@ -1582,19 +1582,12 @@ function M.check(G)
 				-- A value slot: a number, a measuring fn over a subject, or a
 				-- compute the ability bound. Anything else used to read as 0 and
 				-- say nothing, so a misspelled amount was a silent no-op.
+				-- An optional count with a position behind it never lands here unread:
+				-- the loop's first test hands a non-amount to the position slot.
 				if not amount_ok(a) then
-					-- A count that may be left out with a position behind it: what
-					-- stands here is neither, and saying so names both. Read off
-					-- the shape rather than off a list of ops, because it is the
-					-- grammar that makes the slot ambiguous and not the verb.
-					if optional == "?" and spec:find("n%? pos%?") then
-						warn("%s: '%s' says the card lands '%s' — it should be 'top' or 'bottom', "
-							.. "or a count and then one", where, op, tostring(a))
-					else
-						warn("%s: '%s' takes an amount, and '%s' is not one — write a number, a measure "
-							.. '("count:farm", "sum:power@self"), or a compute this ability names%s',
-							where, op, tostring(a), suggest(a, G.compute_defs or {}))
-					end
+					warn("%s: '%s' takes an amount, and '%s' is not one — write a number, a measure "
+						.. '("count:farm", "sum:power@self"), or a compute this ability names%s',
+						where, op, tostring(a), suggest(a, G.compute_defs or {}))
 				end
 			elseif t == "stat" then
 				-- An action's stat argument is a full subject: it may carry a
