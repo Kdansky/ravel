@@ -19,6 +19,7 @@ local reactions   = require("reactions")
 local tags        = require("tags")
 local validate    = require("validate")
 local log         = require("log")
+local label = require("label")
 local stats       = require("stats")
 local costs       = require("costs")
 local stack       = require("stack")
@@ -219,8 +220,7 @@ local function hand_to(i)
 	if #seats < 2 or not sys or not seats[i] then return end
 	sys.stats.turn = i
 	history = {}
-	local def = declaration.G.card_defs[seats[i]]
-	log.add("— " .. ((def and def.text) or seats[i]) .. " to play —")
+	log.add("— " .. label.seat_text(seats[i]) .. " to play —")
 end
 
 local function rotate_seat()
@@ -1013,7 +1013,7 @@ function M.play_card(card_id, targets, payment)
 	-- have, and flow is the one gate all four come through.
 	if charged and not M.payment_legal(def.cost, ctx, payment) then return false end
 	checkpoint()
-	log.add((overlay and "Chose " or "Played ") .. (def.text or c.def_key))
+	log.add((overlay and "Chose " or "Played ") .. label.name(c))
 	local pl = player()
 	-- An overlay is a phase of its own, and the counter that bounds a hand
 	-- belongs to the phase underneath it: counting a choice as a play would end
@@ -1323,7 +1323,7 @@ function M.activate(card_id, targets, index, payment)
 	if not M.payment_legal(a.cost, ctx, payment) then return false end
 	checkpoint()
 	cards.mark_acted(card_id)
-	log.add("Activated " .. (def.text or c.def_key)
+	log.add("Activated " .. label.name(c)
 		.. (a.text and #usable > 1 and (" — " .. a.text) or ""))
 	costs.pay(a.cost, ctx, payment)
 	if aimed then fire_aimed(targets, card_id, a.target.verb) end
@@ -1391,7 +1391,7 @@ end
 -- read path found bypassing label.fill, and the only one a player sees.
 function M.winner()
 	local won = victor()
-	return won and (require("label").seat_text(won) or won) or nil
+	return won and (label.seat_text(won) or won) or nil
 end
 
 -- One entry per visible stat, for the end-of-run summary. Read as the seat
@@ -1460,7 +1460,7 @@ function M.activate_zone(zone_id, index, payment)
 	-- card and nothing carries the mark. Leaving a stale one would keep a window
 	-- open through a draw.
 	cards.mark_acted(nil)
-	log.add("Used " .. (z.label or z.key)
+	log.add("Used " .. (label.fill(z.label, z) or z.key)
 		.. (a.text and #usable > 1 and (" — " .. a.text) or ""))
 	costs.pay(a.cost, ctx, payment)
 	actions.run(a.action, ctx)
@@ -1500,7 +1500,7 @@ function M.todo_step()
 	end
 	for _, id in ipairs({ unpack(z.cards) }) do
 		local e = entity.get(id)
-		log.add("Nothing to do with " .. ((e and cards.def(e) or {}).text or "a copy"))
+		log.add("Nothing to do with " .. (e and label.name(e) or "a copy"))
 		zones.purge_card(id)
 	end
 	return true
@@ -1568,7 +1568,7 @@ function M.cast(card_id, targets, verb)
 	local c = entity.get(card_id)
 	if not c or not stack.zone() then return false end
 	checkpoint()
-	log.add("Cast " .. ((cards.def(c) or {}).text or c.def_key))
+	log.add("Cast " .. label.name(c))
 	stack.push { verb = verb or "play", action = cards.behaviour(c, "on_play"),
 		subject = { card_id }, targets = targets, source = card_id,
 		spent = cards.behaviour(c, "spent") }
@@ -1610,7 +1610,7 @@ function M.react(card_id, index, targets, payment)
 	if not M.payment_legal(r.cost, ctx, payment) then return false end
 	checkpoint()
 	costs.pay(r.cost, ctx, payment)
-	log.add(((cards.def(c) or {}).text or c.def_key) .. " in response")
+	log.add(label.name(c) .. " in response")
 	local rec = stack.push { verb = "play", action = r.action, subject = { card_id },
 		event = top.re_subject, targets = targets, source = card_id, spent = r.spent,
 		let = ctx.let }

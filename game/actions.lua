@@ -269,8 +269,7 @@ local function change_stat(e, key, delta, ctx, verb)
 	if v ~= old then
 		local txt = string.format("%+d %s", v - old, key)
 		if e.kind == "card" then
-			local d = declaration.G.card_defs[e.def_key]
-			txt = (d and d.text or e.def_key) .. " " .. txt
+			txt = label.name(e) .. " " .. txt
 		end
 		log.add(txt)
 		-- The ctx carries who did it. A number changing on a card says nothing
@@ -1168,7 +1167,7 @@ HANDLERS["resolve_challenge"] = function(p, ctx)
 	-- silently named nothing in here — a gate that reads as false whatever the
 	-- board says.
 	local passed = predicate.meets_all(def.requires, ctx)
-	log.add((def.text or c.def_key) .. (passed and " — passed" or " — failed"))
+	log.add(label.name(c) .. (passed and " — passed" or " — failed"))
 	M.run(passed and def.on_pass or def.on_fail, ctx)
 end
 
@@ -1241,8 +1240,7 @@ HANDLERS["transform"] = function(p, ctx)
 		local new = cards.create(key, zone)
 		if owner then new.stats.owner = owner end
 		if slot then zones.place_in_slot(new.id, slot) else zones.auto_slot(new.id) end
-		log.add(((cards.def(e) or {}).text or e.def_key) .. " became "
-			.. (declaration.G.card_defs[key].text or key))
+		log.add(label.name(e) .. " became " .. label.name(new))
 	end
 end
 
@@ -1336,7 +1334,7 @@ HANDLERS["copy"] = function(p, ctx)
 		for _ = 1, amount(p, 4, 1, ctx) do
 			for _, id in ipairs(doing) do
 				local e = entity.get(id)
-				if e then log.add("Copied " .. ((cards.def(e) or {}).text or e.def_key)) end
+				if e then log.add("Copied " .. label.name(e)) end
 				-- A record on the stack, not a card: an announcement waiting to be
 				-- answered. It went up carrying its targets, so this is the one copy
 				-- that needs nothing asked and nothing imagined — and the moment word
@@ -1492,8 +1490,7 @@ HANDLERS["set_active_seat"] = function(p, ctx)
 	-- The undo history goes with the seat that had it, exactly as it does when a
 	-- turn ends normally: undoing across a handover rewrites somebody else's move.
 	if M.on_seat_change then M.on_seat_change() end
-	local def = G.card_defs[seat]
-	log.add("— " .. ((def and def.text) or seat) .. " to play —")
+	log.add("— " .. label.seat_text(seat) .. " to play —")
 end
 
 -- set_priority:<scope>  — whoever the scope names may act right now, without the

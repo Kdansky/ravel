@@ -10,6 +10,7 @@ local cards       = require("cards")
 local actions     = require("actions")
 local predicate   = require("predicate")
 local tags        = require("tags")
+local label = require("label")
 local log         = require("log")
 local stats       = require("stats")
 local auras       = require("auras")
@@ -447,8 +448,7 @@ function M.pay(cost, ctx, payment)
 			for _, id in ipairs(step.ids or {}) do
 				local victim = entity.get(id)
 				if victim then
-					local vdef = cards.def(victim)
-					log.add("Sacrificed " .. (vdef and vdef.text or victim.def_key))
+					log.add("Sacrificed " .. label.name(victim))
 					actions.destroy(id)
 				end
 			end

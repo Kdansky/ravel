@@ -26,6 +26,7 @@ local actions     = require("actions")
 local targeting   = require("targeting")
 local predicate   = require("predicate")
 local reactions   = require("reactions")
+local label = require("label")
 local log         = require("log")
 local costs       = require("costs")
 
@@ -245,7 +246,8 @@ function M.redirect(record_id, ids)
 	-- cards that may be aimed at *now* and the standing they have now is the one
 	-- the aim was made against.
 	top.re_aimed   = predicate.standing(kept)
-	log.add("Redirected " .. ((cards.def(entity.get(top.re_source) or {}) or {}).text or "it"))
+	local src = entity.get(top.re_source)
+	log.add("Redirected " .. (src and label.name(src) or "it"))
 	return true
 end
 
@@ -294,7 +296,7 @@ end
 local function fire_forced(top, r)
 	local c = entity.get(r.card)
 	costs.pay(r.reaction.cost, { card_id = r.card })
-	log.add(((cards.def(c) or {}).text or c.def_key) .. " triggers")
+	log.add(label.name(c) .. " triggers")
 	local rec = push_event { verb = "play", action = r.reaction.action, subject = { r.card },
 		event = top.re_subject, source = r.card, spent = r.reaction.spent }
 	-- Marked as having had its go either way. A refused push is the stack at its

@@ -1361,9 +1361,12 @@ Two things it deliberately is not:
 - **It is not read twice.** The answer is printed as it comes back, so a seat
   whose own `text` said `{owner}` is a label that says `{owner}`, not one that
   resolves for ever.
-- **It is not an identity.** Only the drawing substitutes. The log, the network,
+- **It is not an identity.** Only what a player reads substitutes. The network,
   a save and every condition still name the thing what the file called it, so a
   caption can be rewritten without any rule changing meaning.
+- **The log is filled as it is written.** A line keeps no card to read later, so
+  it names a renamed seat by the name it had then — *Merlin +2 gold*, not
+  *{name} +2 gold*.
 
 `{` is the mark because it was the one still free: `$` is already money in card
 prose, and `<` and `[` are commoner still. A brace around anything that is not a

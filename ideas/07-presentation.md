@@ -120,17 +120,6 @@ Menu asks first (COOKBOOK, *a button that asks first*), and the offer is shared
 state: in a networked game it is asked of the seat *to play* rather than the one
 that clicked, so the opponent could be handed your Menu question. Untested.
 
-## Still open — the log says `{name}`
-
-A seat renamed by `set_name` reads correctly on its card, in its tooltip and on
-the ending banner, because `label.fill` runs when a string is *drawn*. A log line
-is not drawn from anything: `flow` writes `log.add("Played " .. def.text)` and the
-finished string keeps the template, so `tooltip.lua`'s event-log card prints
-`{name} +1 mana` and `— {name} to play —`. Filling it at write time would defeat
-the whole point of [27](27-reactions-and-the-stack.md)'s answer-when-drawn rule;
-filling it at read time needs the entity the line was about, which the log does
-not keep. Found by watching an engine-played Spellstorm seat.
-
 ## What shipped, and what each cost to find
 
 **Text, contrast and layout.** The text band is gone — a card was a picture plus

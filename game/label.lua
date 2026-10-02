@@ -12,9 +12,10 @@
 -- `{` is the mark because it is the one that was free: `$` is Puzzle Strike's
 -- money nineteen times over, and `<` and `[` are commoner still in card prose.
 --
--- **Only the drawing substitutes.** The log, the network and every condition
--- name a thing by what the file called it, so a label is a caption and never an
--- identity.
+-- **Only what a player reads substitutes.** The network and every condition name
+-- a thing by what the file called it, so a label is a caption and never an
+-- identity. The log is read too, but keeps no entity to fill from later, so its
+-- lines are filled as they are written and say what the card was called then.
 --
 -- Substituted once for an ordinary label. A seat's own text is the one
 -- exception — {owner}/{active} resolve to it, and it may itself be a
@@ -149,6 +150,12 @@ function M.fill(s, e)
 	end)
 	depth = depth - 1
 	return out
+end
+
+-- What a card is called right now, for a line written once: the log.
+function M.name(e)
+	local def = def_of(e)
+	return M.fill(def and def.text or e.def_key, e)
 end
 
 return M

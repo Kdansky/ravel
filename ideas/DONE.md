@@ -1341,8 +1341,9 @@ only kind worth suspecting.
 # A label that names what it is about · shipped (`0eb44ab`)
 
 `{owner}'s hand` on a per-seat zone, `{stats.fuel} left` on a card. `label.fill`
-answers a name when the string is **drawn**, so the log, the network, saves and
-every condition still see what the file wrote.
+answers a name when the string is **drawn**, so the network, saves and every
+condition still see what the file wrote. The log is the exception: a line keeps
+no entity to read later, so `label.name` fills it as it is written.
 
 **Three engine words** — `{owner}`, `{active}`, `{phase}` — and **everything else
 is a field of the thing wearing the label**: the live entity first, its template

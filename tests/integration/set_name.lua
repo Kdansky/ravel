@@ -8,6 +8,7 @@ local actions     = require("actions")
 local flow        = require("flow")
 local label       = require("label")
 local declaration = require("declaration")
+local log = require("log")
 local harness = require("harness")
 
 local M = {}
@@ -16,7 +17,7 @@ local GAME = [==[{
   "title": "Set Name",
   "players": [ { "card": "p1" }, { "card": "p2" } ],
   "cards": [
-    { "key": "p1", "text": "{name}", "name": "Player One" },
+    { "key": "p1", "text": "{name}", "name": "Player One", "card_stats": { "gold": 0 } },
     { "key": "p2", "text": "Player Two" },
     { "key": "merlin", "text": "Merlin", "tags": ["wizard"] }
   ],
@@ -83,6 +84,19 @@ function M.test_set_name_a_seat_reads_its_declared_name_until_one_is_written(che
 		actions.execute("set_name:mine.player:text@self", { card_id = wizard.id })
 		check("and the written one wins from then on",
 			label.seat_text("p1") == "Merlin", label.seat_text("p1"))
+	end)
+end
+
+-- The log keeps no entity to fill from when it is read, so a line says the name
+-- the seat had when it was written — not the template's braces.
+function M.test_set_name_reaches_the_log(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local wizard = zones.add(zones.find("roster"), "merlin")
+		actions.execute("set_name:mine.player:text@self", { card_id = wizard.id })
+		actions.execute("stat_gain:gold@mine.player:2", { card_id = wizard.id })
+		local last = log.tail(1)[1]
+		check("the log names the seat as it is now called", last == "Merlin +2 gold", last)
 	end)
 end
 
