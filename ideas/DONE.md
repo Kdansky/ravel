@@ -1614,3 +1614,20 @@ case was a *check*, not just a patch.
 **Invariants the engine gained:** randomness belongs to the engine (ARCHITECTURE
 invariant 8); layouts may not overlap; and — from the Brave bug — a readback is a
 correctness surface in a browser.
+
+# Codex: overpower aims its excess · shipped
+
+Sirlin's rulings, all in the game file, with no engine word.
+
+- **The excess is the attacker's to aim.** The `spill` step stores it as `spilling` and pushes
+  a `spill` phase. In that phase only `fighter`'s three picks work: `spill_lead`, `spill_patrol`
+  and `spill_free`, gated like the three strikes. So a patroller that could still be attacked
+  takes it, and only once none is left does anything with HP. The pick finishes with
+  `pop_phase`. Reactions can't do this: only a card holds them, never a tag.
+- **The pick reruns the fight** from armor to kills, with the target's `power` zeroed. So armor
+  applies, the target doesn't hit back, and a kill is heard as one (Gunpoint Taxman steals
+  twice). `spill` never runs a second time, so the excess can't cascade.
+- **Two overpowers are one.** The step asks `spilling@self < 1`, so a card that both rampages
+  and mimics asks once. Before this change it hit the base twice.
+- **A death announced in the walk waits for the pick**, because the excess is part of the same
+  combat damage.

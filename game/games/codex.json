@@ -325,6 +325,14 @@
       "display": "offscreen"
     },
     {
+      "key": "spilling",
+      "min": 0,
+      "max": 99,
+      "on": ["fighter"],
+      "start": 0,
+      "display": "offscreen"
+    },
+    {
       "key": "left",
       "min": 0,
       "max": 99,
@@ -2341,6 +2349,120 @@
             "stat_damage:life@self:sum:bleeds@self",
             "stat_set:bleeds@self:0"
           ]
+        },
+        {
+          "key": "spill_lead",
+          "text": "Overpower the squad leader",
+          "phases": ["spill"],
+          "needs": {
+            "req": ["spilling@self >= 1"],
+            "where": [
+              "slot@target == 1",
+              "alt@target <= sum:aa@self",
+              "bars_t0@target <= tech_level@self"
+            ]
+          },
+          "target": {
+            "verb": "attack",
+            "type": "card",
+            "count": 1,
+            "owner": "enemy",
+            "zones": ["patrol"]
+          },
+          "action": [
+            "stat_set:attacking@self:1",
+            "move_to:duel",
+            "move:target:duel",
+            "activate_zone:duel:by_column:clear",
+            "stat_set:power@target:0",
+            "stat_set:incoming@target:sum:spilling@self",
+            "stat_set:raw@target:sum:spilling@self",
+            "stat_set:back@target:sum:spilling@self",
+            "stat_set:spilling@self:0",
+            "activate_zone:duel:by_column:armor",
+            "activate_zone:duel:by_column:land",
+            "activate_zone:duel:by_column:venom",
+            "activate_zone:duel:by_column:tally",
+            "activate_zone:duel:by_column:kills",
+            "stat_set:attacking@each.duel:0",
+            "move:duel:origin",
+            "pop_phase"
+          ]
+        },
+        {
+          "key": "spill_patrol",
+          "text": "Overpower a patroller",
+          "phases": ["spill"],
+          "compute": ["watching", "sneak_ok", "lead_t0", "lead_pass", "lead_un", "lead_wk", "lead_hold"],
+          "needs": {
+            "req": ["spilling@self >= 1", "aims:strike_lead <= lead_hold"],
+            "where": [
+              "slot@target >= 2",
+              "alt@target <= sum:aa@self",
+              "bars_t0@target <= tech_level@self"
+            ]
+          },
+          "target": {
+            "verb": "attack",
+            "type": "card",
+            "count": 1,
+            "owner": "enemy",
+            "zones": ["patrol"]
+          },
+          "action": [
+            "stat_set:attacking@self:1",
+            "move_to:duel",
+            "move:target:duel",
+            "activate_zone:duel:by_column:clear",
+            "stat_set:power@target:0",
+            "stat_set:incoming@target:sum:spilling@self",
+            "stat_set:raw@target:sum:spilling@self",
+            "stat_set:back@target:sum:spilling@self",
+            "stat_set:spilling@self:0",
+            "activate_zone:duel:by_column:armor",
+            "activate_zone:duel:by_column:land",
+            "activate_zone:duel:by_column:venom",
+            "activate_zone:duel:by_column:tally",
+            "activate_zone:duel:by_column:kills",
+            "stat_set:attacking@each.duel:0",
+            "move:duel:origin",
+            "pop_phase"
+          ]
+        },
+        {
+          "key": "spill_free",
+          "text": "Overpower",
+          "phases": ["spill"],
+          "needs": {
+            "req": ["spilling@self >= 1", "aims:strike_lead == 0", "aims:strike_patrol == 0"],
+            "where": ["alt@target <= sum:aa@self", "bars_t0@target <= tech_level@self"]
+          },
+          "target": {
+            "verb": "attack",
+            "type": "card",
+            "count": 1,
+            "owner": "enemy",
+            "zones": ["built", "army"]
+          },
+          "action": [
+            "stat_set:attacking@self:1",
+            "move_to:duel",
+            "move:target:duel",
+            "activate_zone:duel:by_column:clear",
+            "stat_set:power@target:0",
+            "stat_set:incoming@target:sum:spilling@self",
+            "stat_set:raw@target:sum:spilling@self",
+            "stat_set:back@target:sum:spilling@self",
+            "stat_set:spilling@self:0",
+            "activate_zone:duel:by_column:armor",
+            "activate_zone:duel:by_column:land",
+            "activate_zone:duel:by_column:venom",
+            "activate_zone:duel:by_column:tally",
+            "activate_zone:duel:by_column:kills",
+            "stat_set:attacking@each.duel:0",
+            "move:duel:origin",
+            "pop_phase"
+          ]
         }
       ]
     },
@@ -2515,11 +2637,13 @@
             "req": [
               "attacking@self >= 1",
               "sum:slot@across >= 1",
-              "sum:spill@across >= 1"
+              "sum:spill@across >= 1",
+              "spilling@self < 1"
             ]
           },
           "action": [
-            "stat_damage:integrity@base.owned_by.opponent:sum:spill@across"
+            "stat_set:spilling@self:sum:spill@across",
+            "push_phase:spill"
           ]
         }
       ]
@@ -2660,11 +2784,13 @@
             "req": [
               "attacking@self >= 1",
               "sum:slot@across >= 1",
-              "sum:spill@across >= 1"
+              "sum:spill@across >= 1",
+              "spilling@self < 1"
             ]
           },
           "action": [
-            "stat_damage:integrity@base.owned_by.opponent:sum:spill@across"
+            "stat_set:spilling@self:sum:spill@across",
+            "push_phase:spill"
           ]
         }
       ]
@@ -2728,11 +2854,13 @@
             "req": [
               "attacking@self >= 1",
               "sum:slot@across >= 1",
-              "sum:spill@across >= 1"
+              "sum:spill@across >= 1",
+              "spilling@self < 1"
             ]
           },
           "action": [
-            "stat_damage:integrity@base.owned_by.opponent:sum:spill@across"
+            "stat_set:spilling@self:sum:spill@across",
+            "push_phase:spill"
           ]
         }
       ]
@@ -2748,11 +2876,13 @@
             "req": [
               "attacking@self >= 1",
               "sum:slot@across >= 1",
-              "sum:spill@across >= 1"
+              "sum:spill@across >= 1",
+              "spilling@self < 1"
             ]
           },
           "action": [
-            "stat_damage:integrity@base.owned_by.opponent:sum:spill@across"
+            "stat_set:spilling@self:sum:spill@across",
+            "push_phase:spill"
           ]
         }
       ]
@@ -3694,6 +3824,11 @@
       "deck": "fate",
       "zone": "options",
       "draw": 1
+    },
+    {
+      "key": "spill",
+      "type": "player_input",
+      "label": "Overpower: choose what the excess hits"
     }
   ],
   "end_conditions": [

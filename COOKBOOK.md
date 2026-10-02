@@ -2065,6 +2065,24 @@ The only thing that ticks the round: counter +1, exhausted cards ready, `round.a
 An overlay is resolved by **playing** one of the cards in it; cost, needs and targeting are all
 skipped, because a choice is not a purchase.
 
+### Halfway through, make them pick a card on the board — and nothing else until they have.
+
+```json
+"phases": [{ "key": "spill", "type": "player_input", "label": "Overpower: choose what the excess hits" }],
+"abilities": [
+  { "key": "spill", "phases": [], "needs": { "req": ["sum:spill@across >= 1"] },
+    "action": ["stat_set:spilling@self:sum:spill@across", "push_phase:spill"] },
+  { "key": "spill_free", "phases": ["spill"], "needs": { "req": ["spilling@self >= 1"] },
+    "target": { "type": "card", "count": 1, "owner": "enemy", "zones": ["built", "army"] },
+    "action": ["stat_damage:hp@target:sum:spilling@self", "stat_set:spilling@self:0", "pop_phase"] }]
+```
+
+An action list cannot stop for an answer, but it can push a phase, and a phase is where a player
+acts. The pick is an ordinary ability, so its target takes `where`, `compute` and `aims:` like any
+other; gating it on the pushed phase is what makes it the only thing on offer, and `pop_phase` at
+its end hands back the phase underneath. Whatever the list still had to do runs first, and an
+announcement it made waits for the pick. A stat carries the number across. `game/games/codex.json`.
+
 ### End the game when someone's life hits zero.
 
 ```json

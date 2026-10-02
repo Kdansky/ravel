@@ -214,12 +214,5 @@ step, keeps half of his flagged.
 
 ## Open
 
-- **Overpower's spill.** `clear` still zeroes a `spill` stat that nothing reads
-  — there is no `spill` step, so overkill stops at the card it killed. The
-  drafted step needs an attacker's excess to reach *another attackable thing*,
-  which is a second victim chosen after the first is dead, and nothing in the
-  walk picks a card mid-step. [Assumption: this is why it was left out; the
-  file records the step in the design table and never in the game.]
-
 - **Keyword grants** — Wandering Mimic, Blooming Elm, Ferocity, Drakk. These are
   continuous effects, and they wait on that word rather than on this one.

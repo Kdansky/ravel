@@ -288,6 +288,10 @@ function M.test_codex_overpower(check)
 
 	use(ram, "strike_lead", { guard.id })
 	flow.settle()
+	check("its player is asked where the rest goes", phase.current().key == "spill", phase.current().key)
+	check("and the base is not hit yet", base.stats.integrity == 20, tostring(base.stats.integrity))
+	use(ram, "spill_free", { base.id })
+	flow.settle()
 	check("the leader's armor ate one and four went past it", base.stats.integrity == 16,
 		tostring(base.stats.integrity))
 end
@@ -302,6 +306,92 @@ function M.test_codex_overpower_stops_at_the_army(check)
 	use(ram, "strike_free", { prey.id })
 	flow.settle()
 	check("the base is untouched", base.stats.integrity == 20, tostring(base.stats.integrity))
+end
+
+-- "Something else this could attack" obeys the rules of attacking, so while
+-- another patroller could be attacked the excess has to go there. It meets that
+-- patroller's armor, and stops: excess never spills twice.
+function M.test_codex_overpower_goes_through_the_patrol(check)
+	start("pick_red", "pick_green")
+	local ram   = summon("crashbarrow", "army")   -- 6/2, overpower
+	local lead  = post("mad_man", "enemy", 1)     -- 1/1, and the leader's armor
+	local elite = post("iron_man", "enemy", 2)    -- 3/4
+	elite.stats.armor = 1
+	local base  = in_zone("enemy.base")
+
+	use(ram, "strike_lead", { lead.id })
+	flow.settle()
+	check("and the turn cannot end around it", not flow.can_activate(seat("end_turn").id))
+	check("the base is not on offer", not offers(ram, "spill_free"))
+	check("the other patroller is", offers(ram, "spill_patrol"))
+	use(ram, "spill_patrol", { elite.id })
+	flow.settle()
+	check("four went over, and its armor ate one", elite.stats.hp == 1, tostring(elite.stats.hp))
+	check("and none of it went further", base.stats.integrity == 20, tostring(base.stats.integrity))
+	check("the turn carries on", phase.current().key == "main" and phase.depth() == 1,
+		phase.current().key .. " " .. phase.depth())
+end
+
+-- With the patrol gone, anything with HP is fair: here a hero, who does not hit
+-- back, because being hit by the excess is not being attacked.
+function M.test_codex_overpower_may_pick_a_hero(check)
+	start("pick_red", "pick_green")
+	local ram  = summon("crashbarrow", "army")
+	local lead = post("mad_man", "enemy", 1)
+	local hero = summon("zane", "enemy.army")
+	local base = in_zone("enemy.base")
+
+	use(ram, "strike_lead", { lead.id })
+	flow.settle()
+	local hp = ram.stats.hp
+	use(ram, "spill_free", { hero.id })
+	flow.settle()
+	check("the four killed the hero", entity.get(hero.id).zone_id ~= zones.find_id("army", "enemy"))
+	check("and did not strike back", ram.stats.hp == hp, hp .. "->" .. ram.stats.hp)
+	check("the base was spared", base.stats.integrity == 20, tostring(base.stats.integrity))
+end
+
+-- A patroller killed by the excess is killed by the attacker, so "whenever this
+-- kills a patroller" is heard twice.
+function M.test_codex_a_spilled_kill_is_a_kill(check)
+	start("pick_red", "pick_green")
+	local taxman = summon("gunpoint_taxman", "army")   -- 3/3
+	taxman.stats.rampage = 1
+	check("it overpowers for the turn", tags.entity_has(entity.get(taxman.id), "rampaging"))
+	local lead = post("mad_man", "enemy", 1)
+	local next_in = post("wisp", "enemy", 2)            -- 0/1
+	seat("north").stats.gold = 5
+	local gold = seat("south").stats.gold
+
+	use(taxman, "strike_lead", { lead.id })
+	flow.settle()
+	use(taxman, "spill_patrol", { next_in.id })
+	flow.settle()
+	check("both patrollers died", count_in("enemy.patrol") == 0, tostring(count_in("enemy.patrol")))
+	check("and each paid a gold", seat("south").stats.gold == gold + 2 and seat("north").stats.gold == 3,
+		seat("south").stats.gold .. " " .. seat("north").stats.gold)
+end
+
+-- Two instances of overpower are one: a mimic copying it while it rampages asks
+-- once, and the one answer settles it.
+function M.test_codex_overpower_does_not_stack(check)
+	start("pick_green", "pick_green")
+	local mimic = summon("wandering_mimic", "mine.army")   -- 4/4
+	mimic.stats.rampage = 1
+	summon("dothram_horselord", "enemy.army")
+	check("it wears both", tags.entity_has(entity.get(mimic.id), "rampaging")
+		and tags.entity_has(entity.get(mimic.id), "mimic_over"))
+	local weak = post("wisp", "enemy", 1)
+	weak.stats.guard = 0
+	local base = in_zone("enemy.base")
+
+	use(mimic, "strike_lead", { weak.id })
+	flow.settle()
+	check("one question", phase.depth() == 2, tostring(phase.depth()))
+	use(mimic, "spill_free", { base.id })
+	flow.settle()
+	check("one answer", base.stats.integrity == 17 and phase.depth() == 1,
+		base.stats.integrity .. " " .. phase.depth())
 end
 
 -- Deathtouch kills whatever it scratches, which is a rule about the *victim*
@@ -926,6 +1016,10 @@ function M.test_codex_a_witness_answers_a_death(check)
 	local mybase = entity.get(entity.get(zones.find_id("base", "mine")).cards[1])
 
 	use(ox, "strike_lead", { prey.id })
+	flow.settle()
+	-- The octopus overpowers, so its excess is part of the same combat damage and
+	-- the death is answered once that has landed too.
+	use(ox, "spill_free", { entity.get(entity.get(zones.find_id("base", "enemy")).cards[1]).id })
 	flow.settle()
 	check("the cub died", #entity.get(zones.find_id("patrol", "enemy")).cards == 0,
 		tostring(#entity.get(zones.find_id("patrol", "enemy")).cards))
@@ -1761,6 +1855,8 @@ function M.test_codex_a_keyword_can_be_lent(check)
 	local base = base_of("enemy").stats.integrity
 	use(runner, "strike_lead", { weak.id })
 	flow.settle()
+	use(runner, "spill_free", { base_of("enemy").id })
+	flow.settle()
 	check("and it overpowers", base_of("enemy").stats.integrity < base,
 		base .. "->" .. base_of("enemy").stats.integrity)
 end
@@ -1808,6 +1904,8 @@ function M.test_codex_a_keyword_with_no_number_is_copied_too(check)
 	weak.stats.guard = 0
 	local base = base_of("enemy").stats.integrity
 	use(mimic, "strike_lead", { weak.id })
+	flow.settle()
+	use(mimic, "spill_free", { base_of("enemy").id })
 	flow.settle()
 	check("so the excess reaches the base", base_of("enemy").stats.integrity < base,
 		base .. "->" .. base_of("enemy").stats.integrity)
@@ -1938,6 +2036,8 @@ function M.test_codex_overpower_can_be_lent_for_a_turn(check)
 	weak.stats.guard = 0
 	local base = base_of("enemy").stats.integrity
 	use(cub, "strike_lead", { weak.id })
+	flow.settle()
+	use(cub, "spill_free", { base_of("enemy").id })
 	flow.settle()
 	check("so the excess reaches the base", base_of("enemy").stats.integrity < base,
 		base .. "->" .. base_of("enemy").stats.integrity)
