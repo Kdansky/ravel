@@ -2688,4 +2688,27 @@ function M.test_codex_reteller_of_truths(check)
 	check("but the third stays dead", third.zone_id == zones.find_id("discard", "mine"))
 end
 
+-- "You may play tech I or II Blood units for free" and "Growth spells for free": an aura on the card that says
+-- it, watching what playing a card costs, so nothing the units or spells print has to know.
+function M.test_codex_a_card_that_costs_nothing(check)
+	start("pick_red", "pick_green")
+	local hand = zones.find_id("hand", "mine")
+	local bomber = require("cards").create("crash_bomber", hand)
+	local commander = require("cards").create("pirategang_commander", hand)
+	local growth = require("cards").create("dinosize", hand)
+	seat("south").stats.gold = 0
+	local function free(c) return #flow.play_payments(c.id) > 0 end
+	check("with no gold a Blood unit is out of reach", not free(bomber))
+
+	summon("pirategang_commander", "mine.army")
+	check("with the Commander standing a tech I Blood unit is free", free(bomber))
+	check("but a tech III one is not", not free(commander))
+	check("and a Growth spell is not", not free(growth))
+
+	summon("guargum", "mine.army")
+	check("Guargum makes a Growth spell free", free(growth))
+	seat("south").stats.gold = 2
+	check("and free spends nothing even with gold to hand", #flow.play_payments(bomber.id)[1] == 0)
+end
+
 return M

@@ -4890,7 +4890,8 @@ The fields:
   "needs": { "req": ["tagged:witch@source >= 1"] } }
 ```
 
-- **`by`** — how much, in the ordinary amount grammar.
+- **`by`** — how much: a number, a subject, or arithmetic over them in the
+  grammar a compute's `value` uses — `"0 - price@target"` is *its whole price*.
 - **`instead`** — an action list that happens in the change's place. One of `by`
   and `instead`, never both: a change that is replaced never lands, so there is
   no number left for a shift to be about.
@@ -5166,6 +5167,21 @@ case: resist 1 for as long as something stands on the fifth patrol square.
 "tags": { "at_lookout": { "adjusts": [{ "key": "resist", "verb": "cast",
   "stat": "gold", "covers": "self", "by": 1, "needs": { "req": ["any@enemy.self"] } }] } }
 ```
+
+**What a card costs to play.** `"verb": "play"` watches the price of playing a
+card, and it is the one verb nothing declares: playing is the format's own
+moment, like `play` is its own block. The card being paid for is `@target`:
+
+```json
+"tags": { "guargum": { "adjusts": [
+  { "key": "free_growth", "verb": "play", "stat": "gold", "covers": "mine.hand", "by": "0 - price@target",
+    "needs": { "req": ["tagged:growth@target", "tagged:spell@target"] } }] } }
+```
+
+Unlike resist it is about the card and not its aim, so it is asked before
+anything is chosen — the free spell in hand is already playable. A price never
+falls below free. A game may not declare a verb called `play`, and an `instead`
+on it is refused: a price is not a change.
 
 ### Keywords: a tag that means something to the player
 

@@ -343,6 +343,17 @@ replacement be worth what it replaced. Bound inside this hook and nowhere else; 
 
 Resist is the same word as armour, pointed at a cost rather than at damage.
 
+### You may play Growth spells for free.
+
+```json
+"tags": { "guargum": { "adjusts": [
+  { "key": "free_growth", "verb": "play", "stat": "gold", "covers": "mine.hand", "by": "0 - price@target",
+    "needs": { "req": ["tagged:growth@target", "tagged:spell@target"] } }] } }
+```
+
+`play` is the format's own moment, so nothing declares it; the card being paid for is `@target`. A
+discount is `"by": -1`, and no price falls below free.
+
 ### Heal 2.
 
 ```json

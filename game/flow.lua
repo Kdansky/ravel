@@ -138,7 +138,7 @@ local function pickable(c)
 	if c.minted then
 		local def = cards.def(c)
 		if not def then return true end
-		local ctx = predicate.bind(cards.behaviour(c, "compute"), { card_id = c.id })
+		local ctx = predicate.bind(cards.behaviour(c, "compute"), { card_id = c.id, played = c.id })
 		return M.can_afford(def.cost, ctx) and predicate.meets_all(def.needs, ctx)
 	end
 	if not c.borrowed_from then return true end
@@ -840,7 +840,7 @@ local function gates(card_id)
 	-- Bound once and read by both: a card whose cost or gate is worked out from
 	-- the board says the arithmetic once and names it, and the name has to mean
 	-- the same number in the question and in the deed.
-	local ctx = predicate.bind(cards.behaviour(c, "compute"), { card_id = card_id })
+	local ctx = predicate.bind(cards.behaviour(c, "compute"), { card_id = card_id, played = card_id })
 	-- An imaginary card is not the card, it is the card happening again, and a
 	-- copy is free by definition — nobody paid for it twice at the table.
 	if not c.imaginary and not M.can_afford(def.cost, ctx) then return false end
@@ -1004,7 +1004,7 @@ function M.play_card(card_id, targets, payment)
 	-- swaps the targets for the asker two lines up and is not one.
 	local aimed = (not overlay) and def.target and predicate.standing(targets) or nil
 	local ctx = predicate.bind(cards.behaviour(c, "compute"),
-		{ card_id = card_id, targets = targets or {}, aimed = aimed,
+		{ card_id = card_id, played = card_id, targets = targets or {}, aimed = aimed,
 			verb = def.target and def.target.verb })
 	-- A cost the targets pay could not be judged before they were chosen.
 	if charged and not M.can_afford(def.cost, ctx) then return false end

@@ -138,7 +138,7 @@ worth trying the next time Codex is opened: **Vandy**, whose price is a discard,
 and **Feral Strike** and **Temporal Distortion**, which each want the pick to
 then aim somewhere. The other two are not about ordering at all —
 **Jurisdiction** wants the pick to pay a price the *picked card* names, and
-**Cinderblast Dragon** wants it to cost nothing, which is the cost-adjust gap
+**Cinderblast Dragon** wants it to cost nothing, which is the section on it
 below.
 
 The sixth, **Rambasa Twin**, is the only one the box already answered: going back
@@ -157,26 +157,14 @@ an offer that belongs to the seat that asked, and there is exactly one `options`
 zone and one overlay by design, so this is a question about that design rather
 than a line to change.
 
-## Nothing can say "this card costs nothing"
+## Cinderblast Dragon and Jurisdiction
 
-Four cards want it and none of them is an aim, so `adjusts` cannot reach any of
-them — it is keyed on a verb and a chosen target, and a unit played out of a hand
-has neither. **Guargum, Eternal Sentinel**: *"Resist 2, obliterate 4. You may
-play Growth spells for free and without having a Growth hero."* **Pirate-Gang
-Commander**: *"Arrives: summon three 2/2 red Pirate tokens. Your units have 'Dies:
-deal 1 damage to each opposing base' and you may play tech I or II Blood units
-for free."* **Cinderblast Dragon**: *"Flying, resist 2. Arrives or attacks: you
-may play a non-ultimate Fire spell from your hand or codex for free."* These
-three want a word on a tag that shifts what a *class of card* costs its owner,
-the way `pays_for` says one pool settles another. **Cinderblast Dragon may be
-reachable another way now**: a card put into the `todo` zone is played free by
-construction, so *"play a non-ultimate Fire spell from your hand or codex for
-free"* could be a fetch that mints rather than a cost that is adjusted. Worth
-trying before writing the word. The same trick is what **Jurisdiction** wants
-from the other end — a pick that then pays the price the picked card names is an
-ordinary play, if the pick is handed over to be played rather than resolved. Cost adjusts can subtract now
-(`resisted` is signed and `plan` clamps at free), which is the right shape and
-reaches none of them.
+*"Arrives or attacks: you may play a non-ultimate Fire spell from your hand or codex for free."* A cost
+aura (`"verb": "play"`) cannot say "this one play"; a card put into the `todo` zone is played free by
+construction, so this is a fetch that mints rather than a discount. The same trick is what
+**Jurisdiction** wants from the other end — a pick that then pays the price the picked card names is an
+ordinary play, if the pick is handed over to be played rather than resolved. Guargum still plays Growth
+spells *without a Growth hero* only on paper: the spells' own `needs` ask for the hero.
 
 ## Sparkshot cannot be lent
 

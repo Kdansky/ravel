@@ -1872,6 +1872,14 @@
     }
   },
   "tags": {
+    "guargum": {
+      "adjusts": [{ "key": "free_growth", "verb": "play", "stat": "gold", "covers": "mine.hand", "by": "0 - price@target",
+        "needs": { "req": ["tagged:growth@target", "tagged:spell@target"] } }]
+    },
+    "gang": {
+      "adjusts": [{ "key": "free_blood", "verb": "play", "stat": "gold", "covers": "mine.hand", "by": "0 - price@target",
+        "needs": { "req": ["tagged:blood@target", "tagged:unit@target", "tech_level@target >= 1", "tech_level@target <= 2"] } }]
+    },
     "unit": {
       "zone": "army",
       "leaves": {
@@ -20237,7 +20245,7 @@
         "generate_art"
       ],
       "asset": "pirategang_commander",
-      "tooltip": "Arrives: summon three 2/2 red Pirate tokens. Your units have \"Dies: deal 1 damage to each opposing base\". NOT MODELLED: playing tech I or II Blood units for free, since a cost has no place to say it is waived.",
+      "tooltip": "Arrives: summon three 2/2 red Pirate tokens. Your units have \"Dies: deal 1 damage to each opposing base\".",
       "card_stats": {
         "price": 6,
         "atk": 6,
@@ -22488,7 +22496,7 @@
         "generate_art"
       ],
       "asset": "guargum",
-      "tooltip": "Legendary: a second copy stays in hand while the first stands. Resist 2, obliterate 4. You may play Growth spells for free and without having a Growth hero.  NOT MODELLED: the free spells.",
+      "tooltip": "Legendary: a second copy stays in hand while the first stands. Resist 2, obliterate 4. You may play Growth spells for free and without having a Growth hero.  NOT MODELLED: playing them without a Growth hero.",
       "card_stats": {
         "price": 10,
         "atk": 12,

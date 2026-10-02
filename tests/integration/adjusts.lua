@@ -24,7 +24,8 @@ local GAME = [==[{
   "stats": [
     { "key": "hp", "on": ["unit"], "start": 10, "min": 0, "max": 10 },
     { "key": "altitude", "on": ["plane"], "start": 9, "min": 0, "max": 9 },
-    { "key": "tally", "on": ["unit"], "start": 0, "min": 0, "max": 99 }
+    { "key": "tally", "on": ["unit"], "start": 0, "min": 0, "max": 99 },
+    { "key": "gold", "min": 0 }
   ],
   "verbs": [
     { "key": "damage", "does": "stat_damage", "tooltip": "Damage — armour stops some of it." },
@@ -59,6 +60,10 @@ local GAME = [==[{
       "adjusts": [{ "key": "recoil", "verb": "damage", "stat": "hp", "covers": "self",
         "instead": ["mend:hp@target:1", "stat_gain:tally@target:1"] }]
     },
+    "patron": {
+      "adjusts": [{ "key": "patronage", "verb": "play", "stat": "gold", "covers": "hand", "by": -2,
+        "needs": { "req": ["tagged:hymn@target"] } }]
+    },
     "rebounding": {
       "adjusts": [{ "key": "rebound", "verb": "mend", "stat": "hp", "covers": "self",
         "instead": ["damage:hp@target:1"] }]
@@ -72,7 +77,7 @@ local GAME = [==[{
     { "key": "act", "type": "player_input", "zone": "hand", "next": [{ "then": "act" }] }
   ],
   "cards": [
-    { "key": "one", "text": "One" },
+    { "key": "one", "text": "One", "card_stats": { "gold": 1 } },
     { "key": "grunt", "text": "Grunt", "tags": ["unit"] },
     { "key": "knight", "text": "Knight", "tags": ["unit", "armoured"] },
     { "key": "saint", "text": "Saint", "tags": ["unit", "armoured", "blessed"] },
@@ -87,6 +92,11 @@ local GAME = [==[{
       "play": { "target": { "type": "card", "tags": ["unit"], "count": 1 }, "action": ["damage:hp@target:3"] } },
     { "key": "venom", "text": "Venom",
       "play": { "target": { "type": "card", "tags": ["unit"], "count": 1 }, "action": ["poison:hp@target:3"] } },
+    { "key": "patron", "text": "Patron", "tags": ["unit", "patron"] },
+    { "key": "hymn", "text": "Hymn", "tags": ["hymn"],
+      "play": { "cost": { "gold": 3 }, "action": ["stat_gain:tally@each.unit:1"] } },
+    { "key": "ballad", "text": "Ballad",
+      "play": { "cost": { "gold": 3 }, "action": ["stat_gain:tally@each.unit:1"] } },
     { "key": "salve", "text": "Salve",
       "play": { "target": { "type": "card", "tags": ["unit"], "count": 1 }, "action": ["mend:hp@target:1"] } }
   ],
@@ -97,7 +107,8 @@ local GAME = [==[{
       { "card": "plane", "zone": "field" }, { "card": "witch", "zone": "field" },
       { "card": "cursed", "zone": "field" },
       { "card": "sword", "zone": "hand" }, { "card": "venom", "zone": "hand" },
-      { "card": "salve", "zone": "hand" }
+      { "card": "salve", "zone": "hand" }, { "card": "hymn", "zone": "hand" },
+      { "card": "ballad", "zone": "hand" }
     ]
   }
 }]==]
@@ -299,5 +310,34 @@ function M.test_adjusts_instead_does_not_go_round_for_ever(check)
 	end)
 end
 
+
+-- **What a card costs to play, because of what it is.** "play" is the format's own
+-- moment, so an aura watches it without a game declaring anything, and it asks
+-- about the card being paid for — before any target, so the card in hand already
+-- reads as affordable.
+function M.test_adjusts_play_changes_what_a_card_costs(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		check("a hymn at full price is out of reach", not flow.can_play(find("hymn").id))
+		require("cards").create("patron", zones.find_id("field"))
+		check("with a patron standing it is in reach", flow.can_play(find("hymn").id))
+		check("and a ballad, which the patron does not name, is not", not flow.can_play(find("ballad").id))
+		flow.play_card(find("hymn").id, {})
+		check("the hymn was paid for at the lower price", find("one").stats.gold == 0,
+			tostring(find("one").stats.gold))
+		check("and it played", find("grunt").stats.tally == 1, tostring(find("grunt").stats.tally))
+	end)
+end
+
+-- A discount larger than the price is a price of nothing, never a card that pays you.
+function M.test_adjusts_play_never_falls_below_free(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		for _ = 1, 3 do require("cards").create("patron", zones.find_id("field")) end
+		flow.play_card(find("hymn").id, {})
+		check("three patrons make the hymn free, and no richer", find("one").stats.gold == 1,
+			tostring(find("one").stats.gold))
+	end)
+end
 
 return M

@@ -966,6 +966,14 @@ local CASES = {
 		function(g) g.zone_defs.board.grave = "nowhere" end },
 	{ "a prompt turned inside out", "prompt: pos is",
 		function(g) g.prompt = { pos = { 0.5, 0.5, 0.2, 0.2 } } end },
+	{ "a card's price replaced rather than changed", 'watches "play", which is a price and not a change',
+		function(g) g.tag_defs.keepsake.adjusts = { { key = "a", verb = "play", stat = "hp", covers = "self",
+			instead = { "end_phase" } } } end },
+	{ "a game's verb called play", "is the format's own moment",
+		function(g) g.verb_defs.play = { key = "play", does = "stat_damage" }; g.verb_list = { "play" } end },
+	{ "an aura's shift that is half a sum", "by: the expression stops in the middle",
+		function(g) g.tag_defs.keepsake.adjusts = { { key = "a", verb = "play", stat = "hp", covers = "self",
+			by = "0 -" } } end },
 }
 
 -- The verb check runs last for a reason: what a game emits is only known once

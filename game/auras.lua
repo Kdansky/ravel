@@ -84,7 +84,7 @@ function M.shift(card_id, verb, stat, source_id, size)
         -- An aura that answers with an `instead` is not saying a size, and has
         -- nothing to add to a total it was never about.
         if ad.by ~= nil then
-                    n = n + (tonumber(ad.by) or predicate.total(tostring(ad.by), sub))
+            n = n + (tonumber(ad.by) or predicate.value(tostring(ad.by), sub))
         end
     end)
     return n

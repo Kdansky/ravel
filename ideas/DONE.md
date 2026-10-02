@@ -1631,3 +1631,17 @@ Sirlin's rulings, all in the game file, with no engine word.
   and mimics asks once. Before this change it hit the base twice.
 - **A death announced in the walk waits for the pick**, because the excess is part of the same
   combat damage.
+
+# A card that costs nothing · shipped
+
+`"verb": "play"` on an `adjusts` watches what playing a card costs, with the card being paid for as
+`@target`. `costs.resisted` asks it through `ctx.played`, which every play sets: `can_play`, `play_card`,
+an offer's minted answer and `play_payments`. Guargum and Pirate-Gang Commander are one aura each.
+
+- **Why not a declared verb:** `play` and `cost` are already the format's own words. The declared-verb rule
+  keeps bookkeeping out of an aura's reach, and a price on a `play` block is never bookkeeping. A game's verb
+  may not be called `play`.
+- **Asked before targets**, unlike resist: it is about the card, not its aim, so a free card in hand is
+  playable. The floor at free was already there.
+- **`by` takes arithmetic now**, the grammar a compute's `value` uses, so free is `"0 - price@target"`.
+  That is the printed price; a card whose price is a compute would only lose its printed part.

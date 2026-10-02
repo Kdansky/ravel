@@ -60,11 +60,16 @@ end
 -- writes no needs at all. Nothing is charged before targeting: `can_play` and
 -- the ability chooser judge affordability with no targets, so a card in hand
 -- quotes its printed price and learns the surcharge once you pick.
+--
+-- **And what a card costs to play, because of what it is.** "play" is the
+-- format's own moment, never a game's verb, so an aura watching it is asked about
+-- the card being paid for — *your Growth spells cost nothing*. Asked before any
+-- target is chosen, so a card in hand already quotes the price it will pay.
 local function resisted(stat, ctx)
-	if not (ctx and ctx.targets) then return 0 end
-	local more = 0
+	if not ctx then return 0 end
+	local more = ctx.played and auras.shift(ctx.played, "play", stat, ctx.played) or 0
 	-- Every chosen target is asked, so aiming at two resisting things costs two.
-	for _, aimed in ipairs(ctx.targets) do
+	for _, aimed in ipairs(ctx.targets or {}) do
 		more = more + auras.shift(aimed, ctx.verb, stat, ctx.card_id)
 	end
 	-- Signed, and the clamp belongs to the caller. An aura that made a cost
@@ -389,7 +394,7 @@ function M.play_payments(card_id, targets)
 	-- Through behaviour, like play_card's own: a zone may grant the compute the
 	-- price is worked out with.
 	return plans(def.cost, predicate.bind(cards.behaviour(c, "compute"),
-		{ card_id = card_id, targets = targets or {}, verb = def.target and def.target.verb }))
+		{ card_id = card_id, played = card_id, targets = targets or {}, verb = def.target and def.target.verb }))
 end
 
 -- The same for an ability or a reaction, whose rule the caller already holds.

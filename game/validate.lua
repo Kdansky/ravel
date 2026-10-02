@@ -3573,6 +3573,13 @@ function M.check(G)
 				-- nothing can reach into.
 				if ad.verb == nil then
 					warn('%s: needs a "verb" saying what it watches', where)
+				elseif ad.verb == "play" then
+					-- The format's own moment, so nothing declares it: what an aura
+					-- says about playing a card is what it costs, never what happens instead.
+					if ad.instead ~= nil then
+						warn('%s: watches "play", which is a price and not a change — there is nothing for an '
+							.. '"instead" to happen in place of. What it costs to play a card is "by"', where)
+					end
 				elseif actions.spec(ad.verb) and not G.verb_defs[ad.verb] then
 					warn("%s: watches '%s', which is the engine's own verb and not the game's. Declare the "
 						.. 'moment under "verbs" and watch that, so bookkeeping written with the same '
@@ -3613,7 +3620,14 @@ function M.check(G)
 					warn('%s: says both "by" and "instead" — a change that is replaced never lands, '
 						.. "so there is no number left for a shift to be about", where)
 				elseif ad.by ~= nil and tonumber(ad.by) == nil then
-					subject_ok(where .. " by", tostring(ad.by))
+					local v, err = predicate.parse_value(tostring(ad.by))
+					if not v then
+						warn("%s by: %s", where, err)
+					else
+						for _, side in ipairs(v.terms) do
+							if tonumber(side) == nil then subject_ok(where .. " by", side) end
+						end
+					end
 				end
 				check_list(where .. " instead", ad.instead)
 				bound.amount = nil
@@ -3659,7 +3673,10 @@ function M.check(G)
 		else
 			check_fields(where, vd, VERB_FIELDS)
 		end
-		if actions.spec(key) then
+		if key == "play" then
+			warn('%s: "play" is the format\'s own moment — an aura watching it changes what a card costs '
+				.. "to play — so a game's verb needs a name of its own", where)
+		elseif actions.spec(key) then
 			warn("%s: the engine already has an action by that name — a game's word for a moment has "
 				.. "to be its own, or which one an action meant would be a lookup", where)
 		elseif vd.does == nil and vd.action == nil then
