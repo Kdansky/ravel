@@ -3,7 +3,7 @@
 *From building Spellstorm, whose `play_1` and `play_2` are the same phase
 written twice, and from the reveal question in [16](16-the-player-at-this-screen.md).*
 
-**The phase half shipped as `type: "turn"`. The `enemy` half shipped as `opponent`, with the zone scopes left open.**
+**The phase half shipped as `type: "turn"`. The `enemy` half shipped as `opponent`.**
 Spellstorm is a two-player game and stays one — what this bought is that its
 phases no longer say so.
 
@@ -52,12 +52,11 @@ as a name content may not claim.
 Puzzle Strike, Codex and Arnak, all of them two-seat games where the two words
 agree today. Each one lost a word as well as gaining a meaning.
 
-**The open half is the zone scopes** — `@enemy.hand`, `@enemy.patrol`,
-`@enemy.taken`, 40 of them. `zones.lua` picks the first matching seat there too,
-so the trap is the same shape, but a zone scope is a place *and* a filter and
-the two readings are genuinely different per site: `count:king@enemy.taken` may
-well want the pool. Migrating them blind would be the same silent widening in
-reverse, so each wants looking at.
+The zone scopes split cleanly once looked at: the ~30 that *read* a pool
+(`count:weak@enemy.patrol`, `tagged:king@enemy.taken`) mean every opponent and
+stay `enemy`; the 11 Codex lines that *damage* `@enemy.base` were the trap and
+now say `@base.owned_by.opponent` — no new word. Three LoR `@enemy.player`
+writes the 34 missed went too.
 
 Still missing, and none of it blocking any game in the corpus:
 

@@ -2260,6 +2260,11 @@ and the default `any` quantifier lands on whichever of them the file declared
 **first** — silently, with nothing in the file changed, and the third player
 never touched.
 
+The same trap applies to something the opponent *owns*. `stat_damage:integrity@enemy.base:1` hits
+one base out of the pool, so write `@base.owned_by.opponent`: the bases whose owner is the other seat.
+A read over a pool — `count:`, `tagged:`, `sum:`, `none@` — wants `enemy` and stays `enemy`, since
+asking about every opponent is what it means.
+
 `@opponent` exists only in a game with exactly two seats. Anywhere else the
 checker says so, and at run time it names nobody rather than guessing which
 opponent you meant. It is a *subject* word: a **target** asking the player to

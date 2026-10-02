@@ -542,7 +542,7 @@
       "play": {
         "phases": ["play", "declare_attack", "declare_block", "combat_response"],
         "cost": { "mana": 0 },
-        "action": ["damage:nexus@enemy.player:1"],
+        "action": ["damage:nexus@opponent:1"],
         "spent": "mine.discard"
       }
     },
@@ -732,7 +732,7 @@
           "tags": ["unit"],
           "zones": ["in_play"]
         },
-        "action": ["damage:health@target:2", "damage:nexus@enemy.player:1", "destroy:dead", "end_phase"],
+        "action": ["damage:health@target:2", "damage:nexus@opponent:1", "destroy:dead", "end_phase"],
         "spent": "mine.discard"
       }
     },
@@ -863,7 +863,7 @@
       "play": {
         "phases": ["play"],
         "cost": { "mana": 6 },
-        "action": ["damage:nexus@enemy.player:4", "end_phase"],
+        "action": ["damage:nexus@opponent:4", "end_phase"],
         "spent": "mine.discard"
       }
     },

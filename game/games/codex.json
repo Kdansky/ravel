@@ -1877,7 +1877,7 @@
           "stat_gain:blood@each.anyone.ongoing.bloodburn:1",
           "scav? stat_gain:gold@mine.player:1",
           "tech? draw_from:mine.deck:mine.hand:1",
-          "gang? stat_damage:integrity@enemy.base:1",
+          "gang? stat_damage:integrity@base.owned_by.opponent:1",
           "insured? stat_gain:gold@mine.player:sum:price@self",
           "insured? draw_from:mine.deck:mine.hand:1",
           "retold? stat_gain:retold@mine.player:1",
@@ -2519,7 +2519,7 @@
             ]
           },
           "action": [
-            "stat_damage:integrity@enemy.base:sum:spill@across"
+            "stat_damage:integrity@base.owned_by.opponent:sum:spill@across"
           ]
         }
       ]
@@ -2664,7 +2664,7 @@
             ]
           },
           "action": [
-            "stat_damage:integrity@enemy.base:sum:spill@across"
+            "stat_damage:integrity@base.owned_by.opponent:sum:spill@across"
           ]
         }
       ]
@@ -2732,7 +2732,7 @@
             ]
           },
           "action": [
-            "stat_damage:integrity@enemy.base:sum:spill@across"
+            "stat_damage:integrity@base.owned_by.opponent:sum:spill@across"
           ]
         }
       ]
@@ -2752,7 +2752,7 @@
             ]
           },
           "action": [
-            "stat_damage:integrity@enemy.base:sum:spill@across"
+            "stat_damage:integrity@base.owned_by.opponent:sum:spill@across"
           ]
         }
       ]
@@ -7461,7 +7461,7 @@
       ],
       "asset": "drakk",
       "tooltip": "War Drummer. Levels 1-3 1/3: Dies — deal 1 damage to each opponent's base. Levels 4-5 2/3: your units get Frenzy 1. Level 6 3/4: the first unit that arrives from your hand each turn gets haste.",
-      "leaves": { "into": "discard", "needs": { "req": ["level@self <= 3"] }, "action": ["stat_damage:integrity@enemy.base:1"] },
+      "leaves": { "into": "discard", "needs": { "req": ["level@self <= 3"] }, "action": ["stat_damage:integrity@base.owned_by.opponent:1"] },
       "card_stats": {
         "price": 2,
         "atk": 1,
@@ -9462,7 +9462,7 @@
             ]
           },
           "action": [
-            "stat_damage:integrity@enemy.base:sum:atk@self"
+            "stat_damage:integrity@base.owned_by.opponent:sum:atk@self"
           ]
         }
       ]
@@ -13982,7 +13982,7 @@
           "text": "Plague Lord",
           "action": [
             "harm:integrity@mine.base:sum:minus@mine.fighter",
-            "harm:integrity@enemy.base:sum:minus@enemy.fighter"
+            "harm:integrity@base.owned_by.opponent:sum:minus@enemy.fighter"
           ]
         }
       ]
@@ -19752,7 +19752,7 @@
           "theirs": "their_turn@self"
         },
         "action": [
-          "theirs? stat_damage:integrity@enemy.base:1",
+          "theirs? stat_damage:integrity@base.owned_by.opponent:1",
           "!theirs? show:enemy.bombable:optional"
         ]
       },
@@ -19833,7 +19833,7 @@
           "forced": "mandatory",
           "in": "board",
           "action": [
-            "stat_damage:integrity@enemy.base:count:player@mine.owner_of",
+            "stat_damage:integrity@base.owned_by.opponent:count:player@mine.owner_of",
             "stat_damage:integrity@mine.base:count:player@enemy.owner_of"
           ]
         }
@@ -20355,7 +20355,7 @@
             ]
           },
           "action": [
-            "stat_damage:integrity@enemy.base:3"
+            "stat_damage:integrity@base.owned_by.opponent:3"
           ]
         }
       ]
