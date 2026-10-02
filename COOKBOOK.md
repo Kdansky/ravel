@@ -421,6 +421,27 @@ verb's: fireproofing watches `burn` and adjusts the `stat_damage` inside it. A d
 written in the body keeps its own name — `["damage:hp@param1:param2"]` is burn that armour
 *does* stop.
 
+### Swift strike: this deals its combat damage first, and what it kills does not hit back.
+
+```json
+"computed_tags": { "strikes_first": { "any_of": ["swift_strike", "swift_lent"] } },
+"tags": { "in_combat": { "abilities": [
+  { "key": "first", "phases": [], "needs": { "req": ["tagged:strikes_first@self"] },
+    "action": ["stat_gain:incoming@across:sum:power@self"] },
+  { "key": "settle", "phases": [], "action": ["stat_set:incoming@self:0"] },
+  { "key": "aim", "phases": [], "needs": { "req": ["not_tagged:strikes_first@self", "left@self >= 1"] },
+    "action": ["stat_gain:incoming@across:sum:power@self"] }] } },
+"action": ["activate_zone:duel:by_column:first", "activate_zone:duel:by_column:land",
+           "activate_zone:duel:by_column:tally", "activate_zone:duel:by_column:settle",
+           "activate_zone:duel:by_column:aim", "activate_zone:duel:by_column:land",
+           "activate_zone:duel:by_column:tally"]
+```
+
+A fight walked in steps takes two exchanges, and the second is the old one with two more
+conditions. Deaths wait until the game comes to rest, so a unit killed by the swift blow is still
+standing when the rest strike: the gate is the tally of what is left, never whether it has moved.
+`land` asks `incoming@self >= 1`, so walking it twice repeats nothing. Codex is the whole of it.
+
 ---
 
 ## Counters on a card
@@ -653,6 +674,21 @@ Bare `move_to` sends the card to whatever its own tag names as its `zone` — "w
 Trap: **there is no owner-relative destination.** `mine.hand` is the *acting seat's* hand, not
 the target's owner's, so a bounce names the side it works on and the target spec pins the same
 `owner`. A card that may bounce either side is two rules.
+
+A bounce needs nothing written about where the unit stood. Leaving play reprints the card, so its
+post, damage and runes go with it.
+
+### Move their unit off its post and into their army.
+
+```json
+"verbs": [{ "key": "sideline", "action": ["leave_patrol:param1", "move:param1:param2"] }],
+"action": ["sideline:target:enemy.army"]
+```
+
+A move between two boards is not leaving play, so nothing resets, and what the post gave has to
+be taken back by hand: Codex's `leave_patrol` zeroes `slot` and `guard`. The destination is an
+argument for the same reason as the bounce's: *"sideline every patroller"* is
+`sideline:each.mine.patrol:mine.army` and then the same line for `enemy`.
 
 ### Discard the target.
 
@@ -1483,6 +1519,20 @@ and the blocks after it do not run.
 
 `stay` refuses the departure: the card keeps its zone, its square and every number on it.
 
+### The first two of your Illusions to die each turn return to your hand.
+
+```json
+"tags": { "unit": { "leaves": { "into": "discard",
+  "needs": { "scav": "slot@self == 3",
+             "retold": ["tagged:illusion@self", "tagged:reteller@mine.unit", "retold@mine.player < 2"] },
+  "action": ["emit:died", "scav? stat_gain:gold@mine.player:1",
+             "retold? stat_gain:retold@mine.player:1", "retold? move_to:mine.hand"] } } }
+```
+
+This one really dies and then comes back, so its death still pays out. It cannot be the Illusion's
+own block, because a block that moves the card stops the ones after it. It is the last line of the
+block every unit dies through. Zero `retold` at the start of every turn, both seats.
+
 ### When you discard this from your hand, gain 1 power.
 
 ```json
@@ -2274,10 +2324,9 @@ arrives. A one-off look for one card is still `effect:<name>` in its actions, on
 Effects with **no spelling yet**, so nobody re-derives one. All but the last have live customers
 in `game/games/codex.json` and are worked through in `ideas/37-codex.md`:
 
-- **Swift strike** — a blow struck before the exchange.
-- **A death replaced by something else** — a card that returns, or leaves a token, instead of
-  dying. Hand-written as a `rules_death` column wherever it is needed.
-- **Sideline** — moving a unit out of the patrol zone, written inline three times already.
+- **Once a turn, and at random among several** — Second Chances returns the first unit to leave
+  play each turn, chosen at random when several leave at once. Deaths are settled one at a time,
+  so "first" is the order the sweep reaches them and nothing is random.
 - **A buff measured by a number the card carries** — `"atk": "time@self"`. 3 cards; a counter's
   fixed multiplier is the near miss.
 - **An aim narrowed after it is made** — a flagbearer that redirects what was already pointed

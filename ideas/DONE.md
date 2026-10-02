@@ -1566,6 +1566,27 @@ nothing writes nothing. `becomes`, the tag-transition hook built first, is gone.
   late `destroy:dead` is what lets a traded Overwhelm attacker still spill;
   Spellstorm has no deaths.
 
+# Codex: swift strike, sideline, bounce · shipped
+
+All three in the game file, with no engine word.
+
+- **Swift strike is a first exchange.** `first` aims for `strikes_first` only, then
+  armor, land, venom and tally run, and `settle` zeroes the per-blow numbers. Then
+  `aim` runs for everyone else still standing (`left@self >= 1`). Deaths wait for
+  rest, so the gate is the tally and never a move. `land` asks `incoming >= 1`, so
+  its second pass cannot overwrite the first one's `spill`. `strikes_first` is
+  `any_of` printed, lent (a `swift` counter, as `pierce`), the Headmistress's, and
+  Blademaster's. Blademaster stopped being scaffolding.
+- **Sideline is a verb**, `leave_patrol` and a move. The army is an argument because
+  no destination is owner-relative. Oathkeeper sidelines both sides, as printed.
+- **A bounce needs nothing about the post.** Leaving play reprints the card, so the
+  `leave_patrol` before seven moves to hand or command was dead weight.
+- **Reteller's Illusions die and then come home**, as the last gate of the `unit`
+  tag's `leaves`. It cannot be the Illusion's own block, because a block that moves
+  the card stops the ones after it, and the ruling says the death pays out.
+- **Trap:** only the tokens carried `ninja`, so *"your Ninjas fly"* reached none of
+  the eight printed Ninjas.
+
 # Bugs found on the way, and what they bought
 
 Recorded because each was invisible to a green test suite, and the fix in each

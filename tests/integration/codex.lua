@@ -635,8 +635,8 @@ function M.test_codex_shape(check)
 				type(def.tooltip) == "string" and def.tooltip:find("SCAFFOLD", 1, true) ~= nil)
 		end
 	end
-	check("two hundred and seventy-six printed cards are played", live == 276, tostring(live))
-	check("and thirty-four more are only printed", held == 34, tostring(held))
+	check("two hundred and seventy-seven printed cards are played", live == 277, tostring(live))
+	check("and thirty-three more are only printed", held == 33, tostring(held))
 end
 
 -- The hero waits in a zone that is not in play, which is what lets "do I have a
@@ -2497,6 +2497,95 @@ function M.test_codex_a_sacrificed_scavenger_pays_its_post(check)
 	flow.settle()
 	check("it died into the discard", entity.get(scav.id).zone_id == zones.find_id("discard", "mine"))
 	check("and the post paid its gold", seat("south").stats.gold == gold + 1, tostring(seat("south").stats.gold))
+end
+
+-- Swift strike is a first exchange in the walk: only swift strikers aim, their blows land and are tallied, and
+-- the rest strike after only if they still stand. Deaths wait for rest, so the gate is the tally and not a move.
+function M.test_codex_swift_strike(check)
+	start("pick_red", "pick_green")
+	local ninja = summon("glorious_ninja", "mine.army")      -- 4/3, swift
+	local cub = post("tiger_cub", "enemy", 3)                -- 2/2
+	use(ninja, "strike_patrol", { cub.id })
+	flow.settle()
+	check("the cub died before it could hit back", read(ninja, "hp") == 3, tostring(read(ninja, "hp")))
+	check("and it is dead", entity.get(cub.id).zone_id ~= zones.find_id("patrol", "enemy"))
+
+	local slow = summon("glorious_ninja", "mine.army")
+	use(slow, "strike_patrol", { post("whitestar_grappler", "enemy", 3).id })   -- 3/5
+	flow.settle()
+	check("one that survives the swift blow still strikes back",
+		entity.get(slow.id).zone_id == zones.find_id("discard", "mine"))
+
+	local a = summon("glorious_ninja", "mine.army")
+	local b = post("glorious_ninja", "enemy", 3)
+	use(a, "strike_patrol", { b.id })
+	flow.settle()
+	check("two swift strikers trade blows at once", entity.get(a.id).zone_id == zones.find_id("discard", "mine")
+		and entity.get(b.id).zone_id == zones.find_id("discard", "enemy"))
+end
+
+-- The ways to come by it: printed, lent until the next upkeep, and the Headmistress's, which reaches every
+-- printed Ninja and not only her tokens.
+function M.test_codex_swift_strike_granted(check)
+	start("pick_red", "pick_green")
+	local man = summon("mad_man", "mine.army")
+	check("a plain unit does not strike first", not tags.entity_has(entity.get(man.id), "strikes_first"))
+	man.stats.swift = 2
+	check("lent, it does", tags.entity_has(entity.get(man.id), "strikes_first"))
+
+	local fox = summon("fox_primus", "mine.army")
+	check("a Ninja alone neither flies nor strikes first", not tags.entity_has(entity.get(fox.id), "strikes_first"))
+	summon("jade_fox_dens_headmistress", "mine.army")
+	check("with the Headmistress it does both", tags.entity_has(entity.get(fox.id), "strikes_first")
+		and read(fox, "alt") >= 1)
+
+	local set = summon("setsuki", "mine.army")
+	set.stats.level, set.stats.atk = 4, 2
+	local cub = post("tiger_cub", "enemy", 3)
+	use(set, "strike_patrol", { cub.id })
+	flow.settle()
+	check("Setsuki at level 4 strikes first in her attack", read(set, "life") == 3, tostring(read(set, "life")))
+end
+
+-- Sidelining is a move between two boards, so nothing resets and the post has to be given up by hand; a
+-- bounce leaves play, and the reprint on the way out takes the post with everything else.
+function M.test_codex_sideline_and_bounce(check)
+	start("pick_red", "pick_green")
+	local oath = summon("oathkeeper_of_kor_mountain", "mine.army")
+	local mine = post("mad_man", "mine", 1)
+	local theirs = post("tiger_cub", "enemy", 3)
+	seat("south").stats.gold = 5
+	use(oath, "oath")
+	flow.settle()
+	check("the oath sidelines my patroller", mine.zone_id == zones.find_id("army", "mine"))
+	check("and theirs", theirs.zone_id == zones.find_id("army", "enemy"))
+	check("each gives up its post", mine.stats.slot == 0 and mine.stats.guard == 0 and theirs.stats.slot == 0)
+
+	local back = post("mad_man", "enemy", 3)
+	actions.execute("move:target:enemy.hand", { card_id = oath.id, targets = { back.id } })
+	check("a bounced patroller keeps no post", back.stats.slot == 0, tostring(back.stats.slot))
+end
+
+-- Reteller's Illusions really die and then go home, so the unit's own death lines run first and the return is
+-- the last of them. Twice a turn, counted per player.
+function M.test_codex_reteller_of_truths(check)
+	start("pick_blue", "pick_green")
+	summon("reteller_of_truths", "mine.army")
+	local scav = post("spectral_hound", "mine", 3)
+	local gold = seat("south").stats.gold
+	scav.stats.hp = 0
+	flow.settle()
+	check("the first Illusion went back to hand", scav.zone_id == zones.find_id("hand", "mine"))
+	check("and its post paid all the same", seat("south").stats.gold == gold + 1, tostring(seat("south").stats.gold))
+
+	local second = summon("spectral_aven", "mine.army")
+	second.stats.hp = 0
+	flow.settle()
+	local third = summon("spectral_tiger", "mine.army")
+	third.stats.hp = 0
+	flow.settle()
+	check("so did the second", second.zone_id == zones.find_id("hand", "mine"))
+	check("but the third stays dead", third.zone_id == zones.find_id("discard", "mine"))
 end
 
 return M

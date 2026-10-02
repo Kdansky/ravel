@@ -23,23 +23,14 @@ the top of it is not what that survey guessed.
   unit (even a forecasted one)"*, which asks about a card that is deliberately
   nowhere.
 
-- **Sideline — 15 cards, 8 new.** Move a unit out of the patrol zone. Written
-  inline three times in blue already (`stat_set:slot@x:0`, `stat_set:guard@x:0`,
-  `move:x:…army`); a name for it would stop the fourth being written wrong.
-
-- **Return to hand — 12 cards, 8 new.** A bounce, and half the time a death
-  replacement. With Brave Knight, Justice Juggernaut's Two Lives, Reteller of
-  Truths and purple's Indestructible, *replacing* a death is now five cards and
-  wants generalising rather than another rules column each.
-
-- **Swift strike — 6 cards, 4 new.** A blow struck before the exchange rather
-  than in it. Ferocity and The Art of War already say so on the card.
-
-The four steps written 7 times here were not sideline but **disable** —
-exhausted, not readying, off its post — and are the verb `disable` now, with
-`leave_patrol` (the slot and guard back to 0) the half every sideline, bounce and
-steal shares. Sideline itself is `leave_patrol` and a move to the army, still
-written inline.
+- **Second Chances** — *"Whenever one of your non-token units leaves play from
+  something other than combat damage, return it to play. Once-per-turn. (Choose
+  randomly if multiples leave at once.)"* The rest of it fits: a counter like
+  Reteller's `retold` and a gate at the end of the `unit` tag's `leaves`, with
+  `not_tagged:slain` for the combat damage, plus `reset:self` and the deploy lines,
+  because a move onto another board is no reprint. The random choice is what cannot
+  be said, since deaths are settled one at a time in the sweep's order. Purple is
+  scaffolding, so it waits.
 
 ## Blue's gaps, grouped
 
@@ -93,12 +84,10 @@ card, in its own tooltip.
   (a pick out of an offer cannot then pay a price the picked card names),
   **Eyes of the Chancellor** (hands revealed), **Bigby's stash** (nothing may be
   held back through the draw), **Traffic Director** (unstoppable against one
-  kind of target only), **Drill Sergeant** (spending a rune to move it), **The
-  Art of War** and **Ferocity** both want swift strike.
+  kind of target only), **Drill Sergeant** (spending a rune to move it).
 
 - **Modelled with a stated simplification:** **Insurance Agent** insures only
-  your own units, because a rune does not remember who put it there; **Brave
-  Knight** returns to hand from any death rather than only from combat damage;
+  your own units, because a rune does not remember who put it there;
   **Community Service** and **Lawful Search** look at a hand but not at the
   choice of a discard pile instead.
 

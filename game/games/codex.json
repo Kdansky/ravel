@@ -49,6 +49,14 @@
         "stat_set:disabled@param1:1",
         "leave_patrol:param1"
       ]
+    },
+    {
+      "key": "sideline",
+      "tooltip": "Sideline a unit: it leaves its post for an army, the second argument, since nothing reads the army of whoever owns the unit.",
+      "action": [
+        "leave_patrol:param1",
+        "move:param1:param2"
+      ]
     }
   ],
   "stats": [
@@ -509,6 +517,16 @@
       "display": "offscreen"
     },
     {
+      "key": "retold",
+      "min": 0,
+      "max": 2,
+      "on": [
+        "player"
+      ],
+      "start": 0,
+      "display": "offscreen"
+    },
+    {
       "key": "spells",
       "min": 0,
       "max": 9,
@@ -800,6 +818,16 @@
     },
     {
       "key": "trained",
+      "min": 0,
+      "max": 2,
+      "on": [
+        "fighter"
+      ],
+      "start": 0,
+      "display": "offscreen"
+    },
+    {
+      "key": "swift",
       "min": 0,
       "max": 2,
       "on": [
@@ -1488,7 +1516,29 @@
         ]
       }
     },
-    "ninja_air": {
+    "swift_lent": {
+      "needs": {
+        "req": [
+          "swift@self >= 1"
+        ]
+      }
+    },
+    "blade_swift": {
+      "needs": {
+        "req": [
+          "tagged:blademaster@mine.unit"
+        ]
+      }
+    },
+    "strikes_first": {
+      "any_of": [
+        "swift_strike",
+        "swift_lent",
+        "fox_ninja",
+        "blade_swift"
+      ]
+    },
+    "fox_ninja": {
       "needs": {
         "req": [
           "tagged:ninja@self",
@@ -1819,7 +1869,9 @@
       "leaves": {
         "into": "discard",
         "needs": { "scav": "slot@self == 3", "tech": "slot@self == 4", "gang": "any@mine.gang",
-                   "insured": "insured@self >= 1" },
+                   "insured": "insured@self >= 1",
+                   "retold": ["tagged:illusion@self", "not_tagged:token@self", "tagged:reteller@mine.unit",
+                              "retold@mine.player < 2"] },
         "action": [
           "emit:died",
           "stat_gain:blood@each.anyone.ongoing.bloodburn:1",
@@ -1827,7 +1879,9 @@
           "tech? draw_from:mine.deck:mine.hand:1",
           "gang? stat_damage:integrity@enemy.base:1",
           "insured? stat_gain:gold@mine.player:sum:price@self",
-          "insured? draw_from:mine.deck:mine.hand:1"
+          "insured? draw_from:mine.deck:mine.hand:1",
+          "retold? stat_gain:retold@mine.player:1",
+          "retold? move_to:mine.hand"
         ]
       }
     },
@@ -2022,6 +2076,12 @@
             "activate_zone:duel:by_column:clear",
             "activate_zone:duel:by_column:rage",
             "activate_zone:duel:by_column:attacks",
+            "activate_zone:duel:by_column:first",
+            "activate_zone:duel:by_column:armor",
+            "activate_zone:duel:by_column:land",
+            "activate_zone:duel:by_column:venom",
+            "activate_zone:duel:by_column:tally",
+            "activate_zone:duel:by_column:settle",
             "activate_zone:duel:by_column:aim",
             "activate_zone:duel:by_column:sting",
             "activate_zone:duel:by_column:armor",
@@ -2089,6 +2149,12 @@
             "activate_zone:duel:by_column:clear",
             "activate_zone:duel:by_column:rage",
             "activate_zone:duel:by_column:attacks",
+            "activate_zone:duel:by_column:first",
+            "activate_zone:duel:by_column:armor",
+            "activate_zone:duel:by_column:land",
+            "activate_zone:duel:by_column:venom",
+            "activate_zone:duel:by_column:tally",
+            "activate_zone:duel:by_column:settle",
             "activate_zone:duel:by_column:aim",
             "activate_zone:duel:by_column:sting",
             "activate_zone:duel:by_column:armor",
@@ -2157,6 +2223,12 @@
             "activate_zone:duel:by_column:clear",
             "activate_zone:duel:by_column:rage",
             "activate_zone:duel:by_column:attacks",
+            "activate_zone:duel:by_column:first",
+            "activate_zone:duel:by_column:armor",
+            "activate_zone:duel:by_column:land",
+            "activate_zone:duel:by_column:venom",
+            "activate_zone:duel:by_column:tally",
+            "activate_zone:duel:by_column:settle",
             "activate_zone:duel:by_column:aim",
             "activate_zone:duel:by_column:sting",
             "activate_zone:duel:by_column:armor",
@@ -2264,6 +2336,7 @@
             "stat_damage:pierce@self:1",
             "stat_damage:trained@self:1",
             "stat_damage:warring@self:1",
+            "stat_damage:swift@self:1",
             "stat_damage:hp@self:sum:bleeds@self",
             "stat_damage:life@self:sum:bleeds@self",
             "stat_set:bleeds@self:0"
@@ -2299,6 +2372,38 @@
           ]
         },
         {
+          "key": "first",
+          "phases": [],
+          "text": "Swift strike",
+          "compute": [
+            "lr_them",
+            "lr_block"
+          ],
+          "needs": {
+            "req": [
+              "tagged:strikes_first@self",
+              "sum:alt@across <= sum:aa@self",
+              "lr_block <= 0"
+            ]
+          },
+          "action": [
+            "stat_gain:incoming@across:sum:power@self",
+            "stat_gain:raw@across:sum:power@self",
+            "stat_gain:back@across:sum:power@self"
+          ]
+        },
+        {
+          "key": "settle",
+          "phases": [],
+          "text": "Swift blows landed",
+          "tooltip": "The swift blows are counted and dealt; whoever they killed stays to be swept away with the rest, and does not strike back.",
+          "action": [
+            "stat_set:incoming@self:0",
+            "stat_set:raw@self:0",
+            "stat_set:back@self:0"
+          ]
+        },
+        {
           "key": "aim",
           "phases": [],
           "text": "Strike",
@@ -2308,6 +2413,8 @@
           ],
           "needs": {
             "req": [
+              "not_tagged:strikes_first@self",
+              "left@self >= 1",
               "sum:alt@across <= sum:aa@self",
               "lr_block <= 0"
             ]
@@ -2356,6 +2463,11 @@
           "key": "land",
           "phases": [],
           "text": "Damage",
+          "needs": {
+            "req": [
+              "incoming@self >= 1"
+            ]
+          },
           "action": [
             "stat_set:spill@self:sum:incoming@self",
             "stat_damage:spill@self:sum:hp@self",
@@ -2792,12 +2904,18 @@
       },
       "tooltip": "Hero's Monument: +1/+1."
     },
-    "ninja_air": {
+    "fox_ninja": {
       "buffs": {
         "alt": 1,
         "aa": 1
       },
-      "tooltip": "The Headmistress stands: flying."
+      "tooltip": "The Headmistress stands: flying and swift strike."
+    },
+    "swift_lent": {
+      "tooltip": "Swift strike until its owner's next upkeep, or for this turn."
+    },
+    "blade_swift": {
+      "tooltip": "The Blademaster stands: swift strike."
     },
     "mythed": {
       "buffs": {
@@ -3506,6 +3624,8 @@
         "stat_set:ready_since@each.mine.fighter:1",
         "stat_set:spotted@opponent:0",
         "stat_set:spells@mine.player:0",
+        "stat_set:retold@mine.player:0",
+        "stat_set:retold@opponent:0",
         "stat_set:rush@mine.player:0",
         "stat_set:hired@mine.player:1",
         "stat_set:teched@mine.player:2",
@@ -9506,7 +9626,7 @@
         "generate_art"
       ],
       "asset": "the_art_of_war",
-      "tooltip": "Ultimate spell. Your Peace hero is unstoppable, has swift strike and gets +2 ATK / +2 armor until your next upkeep. NOT MODELLED: swift strike, which wants a blow struck before the exchange rather than in it.",
+      "tooltip": "Ultimate spell. Your Peace hero is unstoppable, has swift strike and gets +2 ATK / +2 armor until your next upkeep.",
       "card_stats": {
         "price": 3
       },
@@ -9525,7 +9645,8 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "stat_set:warring@each.mine.h_peace:2"
+          "stat_set:warring@each.mine.h_peace:2",
+        "stat_set:swift@each.mine.h_peace:2"
         ],
         "spent": "mine.discard"
       }
@@ -9667,10 +9788,11 @@
         "fighter",
         "tide",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "reteller"
       ],
       "asset": "reteller_of_truths",
-      "tooltip": "Illusion. The first two of your non-token Illusions to die each turn go back to their owner's hand. NOT MODELLED: the returning, which is a death replacement counted twice a turn.",
+      "tooltip": "Illusion. The first two of your non-token Illusions to die each turn, this one included, go back to their owner's hand — after they have died, so a post still pays for them.",
       "card_stats": {
         "price": 2,
         "atk": 3,
@@ -10029,8 +10151,7 @@
             ]
           },
           "action": [
-            "leave_patrol:target",
-            "move:target:enemy.army"
+            "sideline:target:enemy.army"
           ]
         },
         {
@@ -10814,18 +10935,18 @@
       "text": "Blademaster",
       "tags": [
         "deck_card",
-        "scaffold",
         "neutral",
         "finesse",
         "tech3",
         "unit",
         "fighter",
+        "blademaster",
         "bone",
         "fighter_face",
         "generate_art"
       ],
       "asset": "blademaster",
-      "tooltip": "Unit — Virtuoso. Your units and heroes have swift strike. (They deal combat damage before units and heroes without swift strike.) It'll be over before you know it started.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Unit — Virtuoso. Your units and heroes have swift strike. (They deal combat damage before units and heroes without swift strike.) It'll be over before you know it started.",
       "card_stats": {
         "price": 6,
         "atk": 7,
@@ -11607,7 +11728,6 @@
             "zones": ["fielded"]
           },
           "action": [
-            "leave_patrol:target",
             "move:target:enemy.hand"
           ]
         }
@@ -11683,8 +11803,7 @@
           ]
         },
         "action": [
-          "leave_patrol:target",
-          "move:target:enemy.army",
+          "sideline:target:enemy.army",
           "move_to:mine.ongoing",
           "attach_to_target"
         ]
@@ -11762,6 +11881,7 @@
         "tech2",
         "unit",
         "fighter",
+        "ninja",
         "chalk",
         "fighter_face",
         "generate_art"
@@ -11867,7 +11987,6 @@
           ]
         },
         "action": [
-          "leave_patrol:target",
           "move:target:enemy.hand"
         ]
       }
@@ -11881,6 +12000,7 @@
         "tech0",
         "unit",
         "fighter",
+        "ninja",
         "chalk",
         "fighter_face",
         "generate_art"
@@ -11905,6 +12025,7 @@
         "tech0",
         "unit",
         "fighter",
+        "ninja",
         "chalk",
         "fighter_face",
         "generate_art",
@@ -12148,12 +12269,14 @@
         "tech2",
         "unit",
         "fighter",
+        "swift_strike",
+        "ninja",
         "chalk",
         "fighter_face",
         "generate_art"
       ],
       "asset": "glorious_ninja",
-      "tooltip": "Haste.  NOT MODELLED: swift strike, which wants a blow struck before the exchange rather than in it.",
+      "tooltip": "Haste, swift strike.",
       "card_stats": {
         "price": 5,
         "atk": 4,
@@ -12261,8 +12384,7 @@
           ]
         },
         "action": [
-          "leave_patrol:target",
-          "move:target:enemy.army"
+          "sideline:target:enemy.army"
         ]
       }
     },
@@ -12712,6 +12834,7 @@
         "tech1",
         "unit",
         "fighter",
+        "ninja",
         "chalk",
         "fighter_face",
         "generate_art"
@@ -12763,6 +12886,7 @@
         "tech3",
         "unit",
         "fighter",
+        "ninja",
         "legendary",
         "chalk",
         "fighter_face",
@@ -12770,7 +12894,7 @@
         "headmistress"
       ],
       "asset": "jade_fox_dens_headmistress",
-      "tooltip": "Arrives: summon four 1/1 white Ninja tokens. Your Ninjas fly.  NOT MODELLED: swift strike for them.",
+      "tooltip": "Arrives: summon four 1/1 white Ninja tokens. Your Ninjas have flying and swift strike, and she is a Ninja herself.",
       "card_stats": {
         "price": 8,
         "atk": 4,
@@ -13074,6 +13198,7 @@
         "tech2",
         "unit",
         "fighter",
+        "ninja",
         "chalk",
         "fighter_face",
         "generate_art"
@@ -13486,6 +13611,7 @@
         "tech3",
         "unit",
         "fighter",
+        "swift_strike",
         "legendary",
         "chalk",
         "fighter_face",
@@ -13493,7 +13619,7 @@
         "resist_2"
       ],
       "asset": "oathkeeper_of_kor_mountain",
-      "tooltip": "Resist 2. 2 gold: sideline every patrolling unit.  NOT MODELLED: the oath, which binds what its own player may do for as long as it stands; and swift strike.",
+      "tooltip": "Swift strike, resist 2. 2 gold: sideline every patrolling unit, both sides.  NOT MODELLED: the oath, which binds what its own player may do for as long as it stands.",
       "card_stats": {
         "price": 7,
         "atk": 7,
@@ -13513,9 +13639,8 @@
             "gold@mine.player": 2
           },
           "action": [
-            "stat_set:slot@each.enemy.patrol:0",
-            "stat_set:guard@each.enemy.patrol:0",
-            "move:enemy.patrol:enemy.army"
+            "sideline:each.mine.patrol:mine.army",
+            "sideline:each.enemy.patrol:enemy.army"
           ]
         }
       ]
@@ -13702,7 +13827,6 @@
           "zones": ["fielded"]
         },
         "action": [
-          "leave_patrol:target",
           "move:target:enemy.command"
         ]
       }
@@ -14424,8 +14548,6 @@
         },
         "spent": "mine.discard",
         "action": [
-          "stat_set:slot@each.anyone.rewound:0",
-          "stat_set:guard@each.anyone.rewound:0",
           "move:mine.rewound:mine.hand",
           "move:enemy.rewound:enemy.hand"
         ]
@@ -15013,6 +15135,7 @@
         "tech0",
         "unit",
         "fighter",
+        "ninja",
         "chalk",
         "fighter_face",
         "generate_art"
@@ -15069,7 +15192,6 @@
           "zones": ["fielded"]
         },
         "action": [
-          "leave_patrol:target",
           "move:target:enemy.command",
           "stat_gain:plus@each.mine.unit:0"
         ]
@@ -15383,7 +15505,6 @@
         },
         "action": [
           "deploy",
-          "leave_patrol:target",
           "move:target:enemy.hand"
         ],
         "target": {
@@ -15479,7 +15600,6 @@
           "zones": ["fielded"]
         },
         "action": [
-          "leave_patrol:target",
           "move:target:mine.hand"
         ]
       }
@@ -15712,8 +15832,7 @@
           ]
         },
         "action": [
-          "leave_patrol:target",
-          "move:target:enemy.army"
+          "sideline:target:enemy.army"
         ]
       }
     },
@@ -16115,7 +16234,6 @@
           "zones": ["fielded"]
         },
         "action": [
-          "leave_patrol:target",
           "move:target:enemy.hand"
         ]
       }
@@ -16541,8 +16659,7 @@
           },
           "action": [
             "harm:hp@target:4",
-            "leave_patrol:target",
-            "move:target:enemy.army"
+            "sideline:target:enemy.army"
           ]
         }
       ]
@@ -17682,7 +17799,7 @@
         "slippery"
       ],
       "asset": "star:6:ash",
-      "tooltip": "Fox Ninja. Levels 1-3 1/3: costs an extra gold to be attacked while she is off patrol. Levels 4-5 2/3. Level 6 3/4: draw two at your upkeep. NOT MODELLED: her level 4 swift strike.",
+      "tooltip": "Fox Ninja. Levels 1-3 1/3: costs an extra gold to be attacked while she is off patrol. Levels 4-5 2/3: swift strike in any turn she attacks. Level 6 3/4: draw two at your upkeep.",
       "card_stats": {
         "price": 2,
         "atk": 1,
@@ -17810,6 +17927,21 @@
             "stat_gain:level@self:1",
             "stat_set:atk@self:3",
             "stat_set:life@self:4"
+          ]
+        },
+        {
+          "key": "attacks",
+          "phases": [],
+          "text": "Setsuki Hiruki",
+          "needs": {
+            "req": [
+              "attacking@self >= 1",
+              "level@self >= 4",
+              "level@self <= 5"
+            ]
+          },
+          "action": [
+            "stat_set:swift@self:1"
           ]
         },
         {
@@ -19117,8 +19249,7 @@
             ]
           },
           "action": [
-            "move:target:enemy.army",
-            "leave_patrol:target"
+            "sideline:target:enemy.army"
           ]
         }
       ]
@@ -21750,7 +21881,7 @@
         "generate_art"
       ],
       "asset": "ferocity",
-      "tooltip": "Your units get armor piercing until your next upkeep. NOT MODELLED: swift strike, which wants a blow struck before the exchange rather than in it.",
+      "tooltip": "Your units get armor piercing and swift strike until your next upkeep.",
       "card_stats": {
         "price": 2
       },
@@ -21768,7 +21899,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "stat_set:pierce@each.mine.unit:2"
+          "stat_set:pierce@each.mine.unit:2", "stat_set:swift@each.mine.unit:2"
         ],
         "spent": "mine.discard"
       }
