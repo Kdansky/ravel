@@ -1862,8 +1862,41 @@ refused when the discard is empty, so the player is never offered a branch with 
 
 **A branch may ask a question of its own.** The second offer belongs to the *entry*, so the
 entry's `chosen` answers it — the asker is the card standing in the offer, not the card that
-dealt it. One caveat: nothing may follow that question inside the same branch, because an action
-list has no cursor. Write *"resolve it, then bury it"* as the move and then the resolve.
+dealt it. What is written after the question waits for its answer.
+
+### Discard a card: fetch a Demonology spell from your codex.
+
+```json
+"abilities": [{ "key": "fetch", "cost": { "gold@mine.player": 1, "exhaust": 1 },
+                "needs": { "req": ["any@mine.hand"] },
+                "action": ["show:mine.hand", "activate_zone:rules_ask:by_column:fetch_demonology"] }],
+"chosen": { "action": ["move:target:mine.discard"] }
+```
+
+```json
+{ "key": "r_fetch_demonology", "tags": ["immutable"],
+  "abilities": [{ "key": "fetch_demonology", "phases": [], "action": ["show:mine.codex"] }],
+  "chosen": { "needs": { "where": ["tagged:spell@target", "tagged:demonology@target"] },
+              "action": ["take:target:mine.hand:1"] } }
+```
+
+**Two questions with different answers need two askers.** A card has one `chosen`, so the second
+question is asked by a rules card lying in an offscreen zone, and `show:` records whoever ran it.
+The fetch waits for the discard. A price paid in cards is a question with no way out, so the
+`needs` makes sure there is a card to pay with before the ability is offered.
+
+### Return a unit; bring out one of the same tech, costing no more.
+
+```json
+"action": ["stat_set:swap_tech@self:sum:tech_level@target", "stat_set:swap_price@self:sum:price@target",
+           "move:target:mine.hand", "show:mine.codex:optional"],
+"chosen": { "needs": { "where": ["tagged:unit@target", "tech_level@target == swap_tech@self",
+                                 "price@target <= swap_price@self"] },
+            "action": ["take:target:mine.army:1"] }
+```
+
+In `chosen`, `@target` is the pick and no longer the unit the spell aimed at, so the spell writes
+down what it measured first. The spell is still `@self` in `chosen`, since it asked the question.
 
 ### Put a marker on one of these eight spaces, and it stays there.
 
@@ -2409,7 +2442,7 @@ arrives. A one-off look for one card is still `effect:<name>` in its actions, on
 
 ## Known gaps
 
-Effects with **no spelling yet**, so nobody re-derives one. All but the last have live customers
+Effects with **no spelling yet**, so nobody re-derives one. All have live customers
 in `game/games/codex.json` and are worked through in `ideas/37-codex.md`:
 
 - **Once a turn, and at random among several** — Second Chances returns the first unit to leave
@@ -2419,4 +2452,3 @@ in `game/games/codex.json` and are worked through in `ideas/37-codex.md`:
   fixed multiplier is the near miss.
 - **An aim narrowed after it is made** — a flagbearer that redirects what was already pointed
   somewhere else. 3 cards.
-- **"This costs nothing"** — a cost of zero is not the same as no cost. 4 cards.

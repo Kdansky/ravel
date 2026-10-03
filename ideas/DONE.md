@@ -1698,3 +1698,19 @@ once a turn. Not a restock word but the moment: `runs_out: { needs, action }` on
 - **`refill_from` is retired** with a message that writes the replacement. Ten sites in four games;
   Puzzle Strike's bag was never tagged `shuffle` and `restock` shuffled anyway, so every one shuffles
   explicitly. The depth guard is `receive`'s, shared.
+
+# Codex: fetching, and Obliterate that runs · shipped
+
+- **Vandy, Feral Strike, Temporal Distortion** needed no new words. A pick may ask a second question
+  and carry on. A second question with a *different* answer is asked by a rules card in the offscreen
+  `rules_ask` zone, run with `activate_zone:rules_ask:by_column:<key>`, because a card has one `chosen`.
+  Feral Strike's choose-one is an offer of three, and its boost is the third card, which costs 4.
+  Temporal Distortion writes the tech level and price onto itself before the unit leaves, because
+  `@target` in `chosen` is the pick.
+- **Obliterate never ran in a fight.** The attack walk runs abilities keyed by step (`attacks`), and
+  the five cards keyed theirs `obliterate`. Two of them also kept a first draft keyed `attacks` that
+  took the first N units of the army. Its unit test called the action directly and never went
+  through the walk, which is how it went unnoticed. Now it is one `attacks` ability over
+  `lowest:tech_level.enemy.fielded.unit:N`.
+- **"Units" is `fielded.unit`, not `army`.** `army` holds heroes, and a hero is tech 0, so it sorted
+  first. It also leaves the patrol out. Death Rites and Blackhand Dozer had the same fault.

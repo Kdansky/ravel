@@ -876,7 +876,9 @@
       ],
       "start": 0,
       "display": "offscreen"
-    }
+    },
+    { "key": "swap_tech", "min": 0, "max": 3, "display": "offscreen" },
+    { "key": "swap_price", "min": 0, "max": 20, "display": "offscreen" }
   ],
   "computed_tags": {
     "on_table": { "needs": { "req": ["in_play@self"] } },
@@ -3721,6 +3723,13 @@
           0.195
         ]
       ]
+    },
+    {
+      "key": "rules_ask",
+      "layout": "stack",
+      "visibility": "secret",
+      "display": "offscreen",
+      "tooltip": "Questions a card asks second. A card has one chosen, so a second question with a different answer belongs to a card of its own."
     }
   ],
   "players": [
@@ -4020,7 +4029,10 @@
       {
         "card": "r_time",
         "zone": "rules_upkeep"
-      }
+      },
+      { "card": "r_fetch_units", "zone": "rules_ask" },
+      { "card": "r_deploy_units", "zone": "rules_ask" },
+      { "card": "r_fetch_demonology", "zone": "rules_ask" }
     ]
   },
   "assets": {
@@ -9148,7 +9160,7 @@
       },
       "abilities": [
         {
-          "key": "obliterate",
+          "key": "attacks",
           "phases": [],
           "text": "Obliterate 4",
           "needs": {
@@ -9157,8 +9169,7 @@
             ]
           },
           "action": [
-            "destroy:lowest:tech_level.enemy.army:4",
-            "destroy:lowest:tech_level.enemy.patrol:4"
+            "destroy:lowest:tech_level.enemy.fielded.unit:4"
           ]
         }
       ]
@@ -11072,7 +11083,7 @@
       },
       "leaves": {
         "action": [
-          "destroy:lowest:tech_level.mine.army:1"
+          "destroy:lowest:tech_level.mine.fielded.unit:1"
         ]
       }
     },
@@ -11616,7 +11627,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "destroy:lowest:tech_level.enemy.army:1"
+          "destroy:lowest:tech_level.enemy.fielded.unit:1"
         ],
         "spent": "mine.discard"
       }
@@ -15747,9 +15758,11 @@
         "generate_art"
       ],
       "asset": "temporal_distortion",
-      "tooltip": "Return one of your tech I or II units to your hand.  NOT MODELLED: putting another of the same tech level into play from your codex, which is a second aim.",
+      "tooltip": "Return a tech I or II unit of yours to its owner's hand. If you do, you may put a unit of the same tech level and the same cost or less from your codex into play, even without the tech for it.",
       "card_stats": {
-        "price": 2
+        "price": 2,
+        "swap_tech": 0,
+        "swap_price": 0
       },
       "play": {
         "phases": [
@@ -15780,8 +15793,15 @@
           "zones": ["fielded"]
         },
         "action": [
-          "move:target:mine.hand"
+          "stat_set:swap_tech@self:sum:tech_level@target",
+          "stat_set:swap_price@self:sum:price@target",
+          "move:target:mine.hand",
+          "show:mine.codex:optional"
         ]
+      },
+      "chosen": {
+        "needs": { "where": ["tagged:unit@target", "tech_level@target == swap_tech@self", "price@target <= swap_price@self"] },
+        "action": ["take:target:mine.army:1"]
       }
     },
     {
@@ -15888,7 +15908,7 @@
       },
       "abilities": [
         {
-          "key": "obliterate",
+          "key": "attacks",
           "phases": [],
           "text": "Obliterate 2",
           "needs": {
@@ -15897,8 +15917,7 @@
             ]
           },
           "action": [
-            "destroy:lowest:tech_level.enemy.army:2",
-            "destroy:lowest:tech_level.enemy.patrol:2"
+            "destroy:lowest:tech_level.enemy.fielded.unit:2"
           ]
         }
       ]
@@ -17085,7 +17104,7 @@
       },
       "abilities": [
         {
-          "key": "obliterate",
+          "key": "attacks",
           "phases": [],
           "text": "Obliterate 4",
           "needs": {
@@ -17094,8 +17113,7 @@
             ]
           },
           "action": [
-            "destroy:lowest:tech_level.enemy.army:4",
-            "destroy:lowest:tech_level.enemy.patrol:4"
+            "destroy:lowest:tech_level.enemy.fielded.unit:4"
           ]
         }
       ]
@@ -17198,7 +17216,7 @@
         "hero_face"
       ],
       "asset": "star:5:indigo",
-      "tooltip": "Demon Queen. Levels 1-2 2/3 with sparkshot. Levels 3-4 3/4 with resist 1. Level 5 4/5. NOT MODELLED: fetching a Demonology spell out of the codex, which is a search with a discard as its price; and the max-level gift, which lends +2/+2 to two units and takes them both at your next upkeep.",
+      "tooltip": "Demon Queen. Levels 1-2 2/3 with sparkshot. Levels 3-4 3/4 with resist 1, and 1 gold, exhaust and a discard fetch a Demonology spell from your codex. Level 5 4/5. NOT MODELLED: the max-level gift, which lends +2/+2 to two units and takes them both at your next upkeep.",
       "card_stats": {
         "price": 2,
         "atk": 2,
@@ -17308,8 +17326,17 @@
             "stat_set:atk@self:4",
             "stat_set:life@self:5"
           ]
+        },
+        {
+          "key": "fetch",
+          "text": "Discard a card: fetch a Demonology spell",
+          "phases": ["main"],
+          "cost": { "gold@mine.player": 1, "exhaust": 1 },
+          "needs": { "req": ["not_self@mine.command", "level@self >= 3", "any@mine.hand"] },
+          "action": ["show:mine.hand", "activate_zone:rules_ask:by_column:fetch_demonology"]
         }
-      ]
+      ],
+      "chosen": { "action": ["move:target:mine.discard"] }
     },
     {
       "key": "orpal",
@@ -19733,7 +19760,7 @@
       },
       "abilities": [
         {
-          "key": "obliterate",
+          "key": "attacks",
           "phases": [],
           "text": "Obliterate 2",
           "needs": {
@@ -19742,21 +19769,7 @@
             ]
           },
           "action": [
-            "destroy:lowest:tech_level.enemy.army:2",
-            "destroy:lowest:tech_level.enemy.patrol:2"
-          ]
-        },
-        {
-          "key": "attacks",
-          "phases": [],
-          "text": "Obliterate",
-          "needs": {
-            "req": [
-              "attacking@self >= 1"
-            ]
-          },
-          "action": [
-            "destroy:enemy.army.unit:2"
+            "destroy:lowest:tech_level.enemy.fielded.unit:2"
           ]
         }
       ]
@@ -22180,7 +22193,7 @@
         "generate_art"
       ],
       "asset": "feral_strike",
-      "tooltip": "Ultimate spell. Put up to two units from your hand into play, if you have tech buildings of the same tech level as them. NOT MODELLED: the other half — \"fetch up to two units from your codex, reveal them, then put them in your hand\" — and with it the Boost 4 that takes both, because a pick out of an offer cannot then aim at anything and each half aims somewhere else.",
+      "tooltip": "Ultimate spell. Boost 4. Choose one: fetch up to two units from your codex, reveal them, then put them in your hand; or put up to two units from your hand into play if you have tech buildings of the same tech level as them. If you boosted, choose both.",
       "card_stats": {
         "price": 4
       },
@@ -22192,31 +22205,12 @@
           "req": [
             "tagged:h_feral@mine.hero",
             "max:ripe@mine.h_feral >= 5"
-          ],
-          "where": [
-            "tagged:buildable@target"
           ]
         },
         "cost": {
           "gold@mine.player": "price@self"
         },
-        "target": {
-          "verb": "cast",
-          "type": "card",
-          "min": 0,
-          "max": 2,
-          "owner": "mine",
-          "tags": [
-            "unit"
-          ],
-          "zones": [
-            "hand"
-          ]
-        },
-        "action": [
-          "move:target:mine.army",
-          "stat_set:ready_since@each.target:count:hasty@each.target"
-        ],
+        "action": ["options:fs_fetch,fs_deploy,fs_both"],
         "spent": "mine.discard"
       }
     },
@@ -22562,7 +22556,7 @@
       },
       "abilities": [
         {
-          "key": "obliterate",
+          "key": "attacks",
           "phases": [],
           "text": "Obliterate 4",
           "needs": {
@@ -22571,21 +22565,7 @@
             ]
           },
           "action": [
-            "destroy:lowest:tech_level.enemy.army:4",
-            "destroy:lowest:tech_level.enemy.patrol:4"
-          ]
-        },
-        {
-          "key": "attacks",
-          "phases": [],
-          "text": "Obliterate",
-          "needs": {
-            "req": [
-              "attacking@self >= 1"
-            ]
-          },
-          "action": [
-            "destroy:enemy.army.unit:4"
+            "destroy:lowest:tech_level.enemy.fielded.unit:4"
           ]
         }
       ]
@@ -23141,6 +23121,57 @@
           "create:mine.specs:spec_past:1",
           "create:mine.specs:spec_present:1"
         ]
+      }
+    },
+    {
+      "key": "r_fetch_units",
+      "text": "Fetch up to two units",
+      "tags": ["immutable"],
+      "tooltip": "Feral Strike's first half: fetch up to two units from your codex, reveal them, then put them in your hand.",
+      "abilities": [{ "key": "fetch_units", "phases": [], "action": ["show:mine.codex:optional", "show:mine.codex:optional"] }],
+      "chosen": { "needs": { "where": ["tagged:unit@target"] }, "action": ["take:target:mine.hand:1"] }
+    },
+    {
+      "key": "r_deploy_units",
+      "text": "Put up to two units into play",
+      "tags": ["immutable"],
+      "tooltip": "Feral Strike's second half: put up to two units from your hand into play, if you have tech buildings of the same tech level as them.",
+      "abilities": [{ "key": "deploy_units", "phases": [], "action": ["show:mine.hand:optional", "show:mine.hand:optional"] }],
+      "chosen": {
+        "needs": { "where": ["tagged:unit@target", "tagged:buildable@target"] },
+        "action": ["move:target:mine.army", "stat_set:ready_since@target:count:hasty@target"]
+      }
+    },
+    {
+      "key": "r_fetch_demonology",
+      "text": "Fetch a Demonology spell",
+      "tags": ["immutable"],
+      "tooltip": "Vandy Anadrose's level 3 ability, once the discard is paid: fetch a Demonology spell from your codex, reveal it, then put it in your hand.",
+      "abilities": [{ "key": "fetch_demonology", "phases": [], "action": ["show:mine.codex"] }],
+      "chosen": { "needs": { "where": ["tagged:spell@target", "tagged:demonology@target"] }, "action": ["take:target:mine.hand:1"] }
+    },
+    {
+      "key": "fs_fetch",
+      "text": "Fetch two units",
+      "tags": ["immutable"],
+      "tooltip": "Fetch up to two units from your codex, reveal them, then put them in your hand.",
+      "play": { "action": ["activate_zone:rules_ask:by_column:fetch_units"] }
+    },
+    {
+      "key": "fs_deploy",
+      "text": "Put two into play",
+      "tags": ["immutable"],
+      "tooltip": "Put up to two units from your hand into play, if you have tech buildings of the same tech level as them.",
+      "play": { "action": ["activate_zone:rules_ask:by_column:deploy_units"] }
+    },
+    {
+      "key": "fs_both",
+      "text": "Boost 4: both",
+      "tags": ["immutable"],
+      "tooltip": "Pay 4 more: fetch up to two units from your codex, then put up to two units from your hand into play.",
+      "play": {
+        "cost": { "gold@mine.player": 4 },
+        "action": ["activate_zone:rules_ask:by_column:fetch_units", "activate_zone:rules_ask:by_column:deploy_units"]
       }
     }
   ]

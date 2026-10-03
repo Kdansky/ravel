@@ -2227,22 +2227,20 @@ function M.test_codex_a_tier_gate_is_a_union(check)
 	local cub   = require("cards").create("tiger_cub", zones.find_id("hand", "mine"))
 	local tiger = require("cards").create("stalking_tiger", zones.find_id("hand", "mine"))
 	local blow  = require("cards").create("feral_strike", zones.find_id("hand", "mine"))
-	local spec  = require("cards").def(entity.get(blow.id)).target
-	local function pool()
-		local seen = {}
-		for _, id in ipairs(targeting.candidates(blow.id, spec)) do
-			seen[entity.get(id).def_key] = true
-		end
-		return seen
-	end
-
-	check("a tech 0 unit needs no building", pool().tiger_cub == true)
-	check("a tech 2 one does", pool().stalking_tiger == nil)
+	flow.play_card(blow.id, {})
+	flow.settle()
+	flow.play_card(in_zone("options", "fs_deploy").id, {})
+	flow.settle()
+	check("the hand is offered", in_zone("options", "tiger_cub") ~= nil)
+	check("a tech 0 unit needs no building", flow.can_play(cub.id))
+	check("a tech 2 one does", not flow.can_play(tiger.id))
 	require("cards").create("tech_1", zones.find_id("tech", "mine"))
 	tech_2("feral")
-	check("and is offered once it stands", pool().stalking_tiger == true)
+	check("and may be taken once it stands", flow.can_play(tiger.id))
 
-	flow.play_card(blow.id, { cub.id, tiger.id })
+	flow.play_card(cub.id, {})
+	flow.settle()
+	flow.play_card(tiger.id, {})
 	flow.settle()
 	check("both walked onto the table", in_zone("mine.army", "tiger_cub") ~= nil
 		and in_zone("mine.army", "stalking_tiger") ~= nil)
@@ -2833,6 +2831,142 @@ function M.test_codex_jandra_takes_the_rest_with_her(check)
 	again.stats.hp = 0
 	flow.settle()
 	check("dying any other way takes nobody", entity.get(pup.id).zone_id == zones.find_id("army", "mine"))
+end
+
+-- Obliterate is what the attack walk's `attacks` step finds on the attacker. Keyed anything else it
+-- never ran, and two cards still carried a first draft that took the first units of the army alone.
+-- The pool is every unit they field — army and patrol together, heroes not among them.
+function M.test_codex_obliterate_in_a_real_attack(check)
+	start("pick_red", "pick_green")
+	local gryphon = summon("lawbringer_gryphon", "mine.army")
+	local hero = in_zone("enemy.command", "midori")
+	zones.move_card(hero.id, zones.find_id("army", "north"))
+	local cub = summon("tiger_cub", "enemy.army")
+	local horse = summon("centaur", "enemy.army")
+	local tiger = summon("stalking_tiger", "enemy.army")
+	local base = in_zone("enemy.base")
+	local before = base.stats.integrity
+	check("the gryphon may attack the base", use(gryphon, "strike_free", { base.id }))
+	flow.settle()
+	local function alive(c) local z = entity.get(c.id).zone_id; return z == zones.find_id("army", "north") or z == zones.find_id("patrol", "north") end
+	check("every unit went, the tiger with them", not alive(cub) and not alive(horse) and not alive(tiger))
+	check("the hero is not a unit and stands", alive(hero))
+	check("and the blow still landed", base.stats.integrity < before, base.stats.integrity .. " vs " .. before)
+end
+
+-- Obliterate 2 takes two, lowest first, from both rows.
+function M.test_codex_obliterate_takes_two_from_both_rows(check)
+	start("pick_red", "pick_green")
+	local gun = summon("pirate_gunship", "mine.army")
+	local cub = summon("tiger_cub", "enemy.army")
+	local tiger = summon("stalking_tiger", "enemy.army")
+	local horse = post("centaur", "enemy", 3)
+	check("the gunship may strike a patroller", use(gun, "strike_patrol", { post("stalking_tiger", "enemy", 4).id }))
+	flow.settle()
+	local function alive(c) local z = entity.get(c.id).zone_id; return z == zones.find_id("army", "north") or z == zones.find_id("patrol", "north") end
+	check("the cub and the patrolling centaur went", not alive(cub) and not alive(horse))
+	check("the tech II tiger stands", alive(tiger))
+end
+
+-- "One of their lowest tech units" is a unit, wherever it stands: a hero is tech 0 and would sort first.
+function M.test_codex_death_rites_takes_a_unit_not_a_hero(check)
+	start("pick_black", "pick_green")
+	take_the_field("garth")
+	local hero = in_zone("enemy.command", "midori")
+	zones.move_card(hero.id, zones.find_id("army", "north"))
+	local horse = post("centaur", "enemy", 3)
+	local tiger = summon("stalking_tiger", "enemy.army")
+	check("Death Rites plays", flow.play_card(require("cards").create("death_rites", zones.find_id("hand", "mine")).id, {}))
+	flow.settle()
+	check("the patrolling centaur went", entity.get(horse.id).zone_id ~= zones.find_id("patrol", "north"))
+	check("the hero stands", entity.get(hero.id).zone_id == zones.find_id("army", "north"))
+	check("and so does the tiger", entity.get(tiger.id).zone_id == zones.find_id("army", "north"))
+end
+
+-- Temporal Distortion asks twice: the unit it sends home is the aim, and the one it brings out is a pick
+-- out of the codex measured against it. The measure is written onto the spell before the unit leaves,
+-- because once it is in hand it is not the target of anything that comes after.
+function M.test_codex_temporal_distortion_swaps_a_unit(check)
+	start("pick_purple", "pick_green")
+	take_the_field("maxg")
+	local sentry = summon("sentry", "mine.army")
+	local spell = require("cards").create("temporal_distortion", zones.find_id("hand", "mine"))
+	check("it plays at a tech I unit", flow.play_card(spell.id, { sentry.id }))
+	flow.settle()
+	check("the sentry went home", entity.get(sentry.id).zone_id == zones.find_id("hand", "mine"))
+	local seer, argonaut = in_zone("options", "seer"), in_zone("options", "argonaut")
+	check("the codex is offered", seer ~= nil and argonaut ~= nil)
+	check("a cheaper tech I unit may come out", seer and flow.can_play(seer.id))
+	check("a dearer one may not", argonaut and not flow.can_play(argonaut.id))
+	check("and the question may be declined", zones.find("options").dismissable == true)
+	flow.play_card(seer.id, {})
+	flow.settle()
+	check("the seer is in play", in_zone("mine.army", "seer") ~= nil)
+end
+
+-- Feral Strike boosted is both halves, the fetch first: the hand offered second is read when it is asked,
+-- so a unit just fetched may be put straight into play.
+function M.test_codex_feral_strike_boosted_fetches_then_deploys(check)
+	start("pick_green", "pick_green")
+	take_the_field("calamandra")
+	in_zone("mine.army", "calamandra").stats.ripe = 5
+	require("cards").create("tech_1", zones.find_id("tech", "mine"))
+	seat("south").stats.gold = 20
+	local blow = require("cards").create("feral_strike", zones.find_id("hand", "mine"))
+	flow.play_card(blow.id, {})
+	flow.settle()
+	check("three answers are offered", count_in("options") == 3, tostring(count_in("options")))
+	flow.play_card(in_zone("options", "fs_both").id, {})
+	flow.settle()
+	check("the boost cost four more", seat("south").stats.gold == 20 - 4 - 4, tostring(seat("south").stats.gold))
+
+	local pick
+	for _, id in ipairs(zones.find("options").cards) do
+		local c = entity.get(id)
+		if read(c, "tech_level") == 1 and tags.entity_has(c, "unit") then pick = c; break end
+	end
+	check("the codex is offered with a tech I unit in it", pick ~= nil)
+	local key = pick.def_key
+	flow.play_card(pick.id, {})
+	flow.settle()
+	check("it came to hand", in_zone("mine.hand", key) ~= nil)
+	check("and a second fetch is asked", zones.find("options").dismissable == true)
+	flow.dismiss_offer()
+	flow.settle()
+
+	local fetched = in_zone("options", key)
+	check("then the hand is offered, the fetched unit in it", fetched ~= nil)
+	flow.play_card(fetched.id, {})
+	flow.settle()
+	check("and it went into play", in_zone("mine.army", key) ~= nil)
+end
+
+-- Vandy at level 3: a discard is the price and the fetch is a second question, asked by a rules card
+-- because a card has one chosen and these two picks mean different things.
+function M.test_codex_vandy_discards_to_fetch(check)
+	start("pick_black", "pick_green")
+	take_the_field("vandy")
+	local vandy = in_zone("mine.army", "vandy")
+	check("at level 1 she cannot fetch", not offers(vandy, "fetch"))
+	vandy.stats.level = 3
+	check("at level 3 she can", use(vandy, "fetch"))
+	flow.settle()
+	local junk = in_zone("options")
+	check("the hand is asked first", junk ~= nil and zones.find("options").dismissable ~= true)
+	flow.play_card(junk.id, {})
+	flow.settle()
+	check("the discard is paid", in_zone("mine.discard", junk.def_key) ~= nil)
+	local pact = in_zone("options", "dark_pact")
+	check("then the codex, with a Demonology spell to take", pact and flow.can_play(pact.id))
+	local other
+	for _, id in ipairs(zones.find("options").cards) do
+		if not tags.entity_has(entity.get(id), "demonology") then other = entity.get(id) end
+	end
+	check("and nothing else", other == nil or not flow.can_play(other.id))
+	flow.play_card(pact.id, {})
+	flow.settle()
+	check("it is in hand", in_zone("mine.hand", "dark_pact") ~= nil)
+	check("and she is spent", spent(vandy.id))
 end
 
 return M

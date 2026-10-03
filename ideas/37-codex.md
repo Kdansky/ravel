@@ -37,18 +37,13 @@ card, in its own tooltip.
   - **Dreamscape** and **Hallucination** — *"All tech 0, I and II units are
     Illusions"* and *"Up to two tech 0, I or II units are Illusions this turn"*.
     Handing a tag out, which nothing does; the dying they would hand out is in.
-  - **Guardian of the Gates** and **Spectral Flagbearer**'s compulsion, both of
-    which the word now reaches and neither of which is written yet.
+  - **Spectral Flagbearer**'s compulsion — an aim narrowed after it is made, which is a word
+    nothing has yet (COOKBOOK, *Known gaps*).
 
 - **A card cannot become another card and come back.** `transform` destroys and
   creates, keeping no memory of what it replaced. **Manufactured Truth** and
   both of **Sirus Quince**'s copying levels want it, and so does Green's
   **Polymorph: Squirrel** and **Fairie Dragon**. Five cards across two colours.
-
-- **Obliterate still takes the first units rather than the lowest tech ones.**
-  **Lawbringer Gryphon** is the third customer, after Pirate Gunship and
-  Guargum. `QUANTS` is `any / each / random / others`; a phase's `order` already
-  spells `highest:<stat>`.
 
 - Single-customer, listed so they are not rediscovered: **Jail** (nothing can
   redirect somebody else's *play* — a destination, not an aim, so the stack
@@ -99,26 +94,13 @@ shipped; their costs, 1 and 2 gold, are not in the rulebook and were not checked
   is only ever in command or in play. Belongs with
   [17](17-conditions-as-expressions.md)'s readability row (README 70).
 
-## Six ways into the codex, and five of them are one missing word
+## Fetching out of the codex
 
-The codex is a `supply` now, so `show:mine.codex` answered by
-`take:target:<zone>:1` is the whole of fetching, and three cards do it — Warp
-Gate Disciple, Circle of Life, Calamandra's tiger. Five more all failed at one
-joint: a pick out of an offer resolved and stopped, so nothing could follow it.
-
-**That joint is open.** An action list waits for the question it asked, and a
-`chosen` block is an action list — so a pick may now ask a second question and
-carry on afterwards (`tests/integration/offer_queue.lua`, *a pick may ask and
-then carry on*). Three of the five are a matter of writing the card now, and
-worth trying the next time Codex is opened: **Vandy**, whose price is a discard,
-and **Feral Strike** and **Temporal Distortion**, which each want the pick to
-then aim somewhere. The other two are not about ordering at all —
-**Jurisdiction** wants the pick to pay a price the *picked card* names, and
-**Cinderblast Dragon** wants it to cost nothing, which is the section on it
-below.
-
-The sixth, **Rambasa Twin**, is the only one the box already answered: going back
-to the codex is `purge:self`, and what is still missing there is the death
+The codex is a `supply`, so `show:mine.codex` answered by `take:target:<zone>:1` is the whole of
+fetching. A pick may ask a second question and carry on, so Vandy, Feral Strike and Temporal Distortion
+are written. Two remain, and they are not about ordering: **Jurisdiction** wants the pick to pay a price
+the *picked card* names, and **Cinderblast Dragon** wants it to cost nothing (see the section on them
+below). **Rambasa Twin** goes back to the codex with `purge:self`; what it still lacks is the death
 replacement it shares with four other cards.
 
 ## The tech offer is public, and the rulebook makes the hidden pick a rule
