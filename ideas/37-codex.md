@@ -34,17 +34,6 @@ card, in its own tooltip.
   `receive`'s `when` and `action` say on the tag. What is left wants its own
   word each:
 
-  - **Macciatus** — *"Your Illusions get +1/+1 and no longer die when a spell or
-    ability aims at them."* The **dying** half is writable now: `receive`'s
-    `when` and `action` run as the aimed-at card's own owner, so `mine` inside
-    them is the Illusion's controller and the exception can be a condition on
-    the keyword. It wanted no word — `zones.as_seat` already held the seat over
-    a call, and `give_priority` would have been wrong for it, being game state
-    that drops undo.
-
-    The **+1/+1** half is still stuck, and on the wider question: a `buffs` or
-    `adjusts` block is asked ambiently, about a card, at no moment and with
-    nobody acting, so there is no seat to hold. See README §67.
   - **Dreamscape** and **Hallucination** — *"All tech 0, I and II units are
     Illusions"* and *"Up to two tech 0, I or II units are Illusions this turn"*.
     Handing a tag out, which nothing does; the dying they would hand out is in.
@@ -60,11 +49,6 @@ card, in its own tooltip.
   **Lawbringer Gryphon** is the third customer, after Pirate Gunship and
   Guargum. `QUANTS` is `any / each / random / others`; a phase's `order` already
   spells `highest:<stat>`.
-
-- **Jandra, the Negator** is writable now: *"spells and abilities aimed at your
-  other cards hit Jandra instead"* is a mandatory reaction whose `where` reads
-  the aim through `@target` and whose action is `redirect:answered:self`. Both
-  halves shipped with the stack words; what is left is writing the card.
 
 - Single-customer, listed so they are not rediscovered: **Jail** (nothing can
   redirect somebody else's *play* — a destination, not an aim, so the stack

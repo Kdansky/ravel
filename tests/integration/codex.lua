@@ -2788,4 +2788,51 @@ function M.test_codex_reshuffles_once_a_turn(check)
 	check("a new turn may again", #hand.cards == held + 2, #hand.cards)
 end
 
+-- Macciatus speaks for his own side's Illusions and nobody else's: "mine" in the
+-- tag is asked as the Illusion wearing it, so whose turn it is does not enter.
+function M.test_codex_macciatus_whispers_to_his_own(check)
+	start("pick_red", "pick_green")
+	local hero = in_zone("command", "jaina")
+	use(hero, "summon")
+	flow.settle()
+	seat("south").stats.gold = 9
+
+	summon("macciatus", "mine.army")
+	local aven = summon("spectral_aven", "enemy.army")
+	check("an enemy Illusion is not his", read(aven, "hp") == 2, tostring(read(aven, "hp")))
+	flow.play_card(require("cards").create("fire_dart", zones.find_id("hand", "mine")).id, { aven.id })
+	flow.settle()
+	check("and still dies of the aim", entity.get(aven.id).zone_id ~= zones.find_id("army", "enemy"))
+
+	summon("macciatus", "enemy.army")
+	local tiger = summon("spectral_tiger", "enemy.army")
+	check("their Macciatus gives their tiger +1/+1", read(tiger, "hp") == 6 and read(tiger, "atk") == 6,
+		read(tiger, "atk") .. "/" .. read(tiger, "hp"))
+	flow.play_card(require("cards").create("fire_dart", zones.find_id("hand", "mine")).id, { tiger.id })
+	flow.settle()
+	check("and being aimed at no longer kills it", entity.get(tiger.id).zone_id == zones.find_id("army", "enemy"))
+	check("though the dart still lands", read(tiger, "hp") == 3, tostring(read(tiger, "hp")))
+end
+
+-- Jandra dies of a fight and takes every unit of yours that is not a Demon with her.
+function M.test_codex_jandra_takes_the_rest_with_her(check)
+	start("pick_blue", "pick_green")
+	local jandra = summon("jandra_the_negator", "mine.army")
+	local cub = summon("tiger_cub", "mine.army")
+	local demon = summon("black_demon", "mine.army")
+	local theirs = summon("tiger_cub", "enemy.army")
+	use(jandra, "strike_patrol", { post("crashbarrow", "enemy", 3).id })
+	flow.settle()
+	check("Jandra died of the fight", in_zone("discard", "jandra_the_negator") ~= nil)
+	check("and took the cub", entity.get(cub.id).zone_id ~= zones.find_id("army", "mine"))
+	check("but not the Demon", entity.get(demon.id).zone_id == zones.find_id("army", "mine"))
+	check("nor anything of theirs", entity.get(theirs.id).zone_id == zones.find_id("army", "enemy"))
+
+	local again = summon("jandra_the_negator", "mine.army")
+	local pup = summon("tiger_cub", "mine.army")
+	again.stats.hp = 0
+	flow.settle()
+	check("dying any other way takes nobody", entity.get(pup.id).zone_id == zones.find_id("army", "mine"))
+end
+
 return M

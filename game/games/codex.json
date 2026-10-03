@@ -1476,6 +1476,8 @@
         ]
       }
     },
+    "whispered": { "needs": { "req": ["tagged:illusion@self", "tagged:whisperer@mine.unit"] } },
+    "negated": { "needs": { "req": ["in_play@self", "tagged:unit@self", "not_tagged:demon@self"] } },
     "bonelorded": {
       "needs": {
         "req": [
@@ -2788,7 +2790,7 @@
         }
       }
     },
-    "illusion": { "receive": { "when": ["verb:cast"], "action": ["destroy:self"] } },
+    "illusion": { "receive": { "when": ["verb:cast", "not_tagged:whispered@self"], "action": ["destroy:self"] } },
     "mimic_ward": {
       "tooltip": "Untargetable, copied from somebody else who has it.",
       "receive": {
@@ -3023,6 +3025,7 @@
       },
       "tooltip": "An Abomination is on the table: -1/-1."
     },
+    "whispered": { "buffs": { "atk": 1, "hp": 1 }, "tooltip": "Macciatus stands: +1/+1, and being aimed at no longer kills it." },
     "bonelorded": {
       "buffs": {
         "atk": 1,
@@ -9933,7 +9936,7 @@
         "generate_art"
       ],
       "asset": "macciatus",
-      "tooltip": "Legendary. Your Illusions get +1/+1 and no longer die when a spell or ability aims at them. NOT MODELLED: both halves. The protection wants an owner scope anchored on the Illusion \u2014 \"mine\" is read against whoever is up, not against the card being asked about.",
+      "tooltip": "Legendary. Your Illusion units get +1/+1 and no longer die when a spell or ability aims at them.",
       "card_stats": {
         "price": 2,
         "atk": 3,
@@ -13105,11 +13108,14 @@
         "fighter",
         "legendary",
         "pitch",
+        "demon",
+        "overpower",
         "fighter_face",
         "generate_art"
       ],
       "asset": "jandra_the_negator",
-      "tooltip": "Overpower. NOT MODELLED: that spells and abilities aimed at your other cards hit Jandra instead, which is an aim redirected after it is made.",
+      "tooltip": "Legendary Demon. Overpower. Dies from combat damage: destroy all your units except Demons.",
+      "leaves": { "into": "discard", "needs": { "req": ["tagged:slain@self"] }, "action": ["destroy:each.mine.negated"] },
       "card_stats": {
         "price": 3,
         "atk": 3,
