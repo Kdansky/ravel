@@ -669,7 +669,7 @@
       "visibility": "secret",
       "copies": "per_seat",
       "tags": ["shuffle"],
-      "refill_from": "discard",
+      "runs_out": { "action": ["move:mine.discard:mine.deck", "shuffle:mine.deck"] },
       "tooltip": "Your draw deck. When you need a card and it is empty, your discard is shuffled into it.",
       "pos": [[0.74, 0.795, 0.855, 0.995], [0.74, 0.005, 0.855, 0.205]]
     },
@@ -727,7 +727,7 @@
       "layout": "stack",
       "visibility": "secret",
       "tags": ["shuffle"],
-      "refill_from": "void",
+      "runs_out": { "action": ["move:void:spellstorm_deck", "shuffle:spellstorm_deck"] },
       "grave": "void",
       "tooltip": "The *Spellstorm Deck*. When it runs out, the *VOID* is shuffled to become the new one.",
       "pos": [0.62, 0.215, 0.74, 0.4],
@@ -801,7 +801,7 @@
       "layout": "stack",
       "visibility": "secret",
       "tags": ["shuffle"],
-      "refill_from": "weather_main",
+      "runs_out": { "action": ["move:weather_main:weather_calm", "shuffle:weather_calm"] },
       "tooltip": "The eight Calm Before the Storm cards sit on top of the *Weather Deck*, so the first battles are gentle. When they run out the sixteen standard cards are shuffled in.",
       "pos": [0.005, 0.53, 0.098, 0.675],
       "contents": [
@@ -951,7 +951,7 @@
       "visibility": "secret",
       "display": "offscreen",
       "tags": ["shuffle"],
-      "refill_from": "potion_discard",
+      "runs_out": { "action": ["move:potion_discard:potion_deck", "shuffle:potion_deck"] },
       "contents": [
         "pot_haste",
         "pot_purple",

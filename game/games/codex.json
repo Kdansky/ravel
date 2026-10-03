@@ -525,6 +525,16 @@
       "display": "offscreen"
     },
     {
+      "key": "reshuffled",
+      "min": 0,
+      "max": 1,
+      "on": [
+        "player"
+      ],
+      "start": 0,
+      "display": "offscreen"
+    },
+    {
       "key": "retold",
       "min": 0,
       "max": 2,
@@ -3485,7 +3495,10 @@
       "layout": "stack",
       "visibility": "secret",
       "copies": "per_seat",
-      "refill_from": "discard",
+      "runs_out": {
+        "needs": { "req": ["reshuffled@mine.player == 0"] },
+        "action": ["stat_gain:reshuffled@mine.player:1", "move:mine.discard:mine.deck", "shuffle:mine.deck"]
+      },
       "pos": [
         [
           0.045,
@@ -3500,7 +3513,7 @@
           0.195
         ]
       ],
-      "tooltip": "Your draw pile. Run it out and your discard is shuffled back in."
+      "tooltip": "Your draw pile. Run it out and your discard is shuffled back in — once a turn; a second time, you draw nothing."
     },
     {
       "key": "seat_box",
@@ -3774,6 +3787,7 @@
         "stat_set:spotted@opponent:0",
         "stat_set:spells@mine.player:0",
         "stat_set:retold@mine.player:0",
+        "stat_set:reshuffled@mine.player:0",
         "stat_set:retold@opponent:0",
         "stat_set:rush@mine.player:0",
         "stat_set:hired@mine.player:1",

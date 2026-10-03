@@ -109,6 +109,8 @@ M.MOMENTS = {
 	-- -- and this fires only when a card comes *into play*, which is what an
 	-- arrival trigger means. One word each rather than a mode on one word.
 	arrives   = { needs = "arrives_needs", action = "on_arrives" },
+	-- Somebody drew from this pile and found it empty. The zone is @self.
+	runs_out  = { needs = "runs_out_needs", action = "on_runs_out" },
 	round     = { action = "on_round" },
 	chosen    = { where = "chosen_where", action = "on_chosen" },
 	-- A card on its way out, which is the moment a card game keeps most of its
@@ -193,7 +195,7 @@ local TAG = rec(with_moments({
 }))
 
 local ZONE = rec(with_moments({
-	key = STR, label = STR, tooltip = STR, asset = STR, grave = STR, refill_from = STR,
+	key = STR, label = STR, tooltip = STR, asset = STR, grave = STR,
 	-- A rectangle, a rectangle per seat, or the key of the zone whose rect it shares.
 	pos = either(RECT, list(RECT, { 1, math.huge }), STR),
 	layout = STR, visibility = STR, reach = STR, use = STR, status = STR, display = STR, copies = STR,

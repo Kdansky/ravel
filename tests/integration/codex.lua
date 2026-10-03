@@ -2770,4 +2770,22 @@ function M.test_codex_a_card_that_costs_nothing(check)
 	check("and free spends nothing even with gold to hand", #flow.play_payments(bomber.id)[1] == 0)
 end
 
+-- The rulebook's one reshuffle a turn: a draw that would need a second finds the
+-- deck empty and draws nothing. The count resets when the next main phase begins.
+function M.test_codex_reshuffles_once_a_turn(check)
+	start("pick_red", "pick_green")
+	local deck, discard, hand = zones.find("deck"), zones.find("discard"), zones.find("hand")
+	for _, id in ipairs({ unpack(deck.cards) }) do zones.move_card(id, discard.id) end
+	local held = #hand.cards
+	actions.execute("draw_from:mine.deck:mine.hand:1", {})
+	check("the first empty draw reshuffles", #hand.cards == held + 1, #hand.cards)
+	for _, id in ipairs({ unpack(deck.cards) }) do zones.move_card(id, discard.id) end
+	actions.execute("draw_from:mine.deck:mine.hand:1", {})
+	check("the second draws nothing", #hand.cards == held + 1, #hand.cards)
+	check("and leaves the discard where it is", #discard.cards > 0, #discard.cards)
+	actions.execute("stat_set:reshuffled@mine.player:0", {})
+	actions.execute("draw_from:mine.deck:mine.hand:1", {})
+	check("a new turn may again", #hand.cards == held + 2, #hand.cards)
+end
+
 return M

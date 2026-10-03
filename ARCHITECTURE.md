@@ -453,7 +453,7 @@ the word at a real game rather than a fixture:
   responder list opened windows for shields nobody owned.
 - **Nothing is drawn out of one.** Taking from a supply would move the card
   standing for the whole stock, so the validator refuses `draw_from`, and
-  `reach`/`refill_from` besides: a stock has no order to have a top or to run
+  `reach`/`runs_out` besides: a stock has no order to have a top or to run
   out in. `take` is the way out: `zones.take` makes the arrival at the
   destination and lowers the shelf, which is `zones.add` read backwards. Its
   first argument is the one scope in the grammar that names the *source* —

@@ -974,6 +974,9 @@ local CASES = {
 	{ "an aura's shift that is half a sum", "by: the expression stops in the middle",
 		function(g) g.tag_defs.keepsake.adjusts = { { key = "a", verb = "play", stat = "hp", covers = "self",
 			by = "0 -" } } end },
+	-- a pile's empty draw
+	{ "a zone still saying refill_from", "refill_from is gone",
+		function(g) g.zone_defs.board.refill_from = "board" end },
 }
 
 -- The verb check runs last for a reason: what a game emits is only known once
@@ -1278,7 +1281,7 @@ function M.test_validator_holds_a_supply_to_its_promise(check)
 		"title": "Supply promise",
 		"zones": [
 			{ "key": "shop", "layout": "grid", "grid": [2, 1], "status": "supply",
-			  "reach": "top", "refill_from": "bin", "contents": ["gem:9"] },
+			  "reach": "top", "runs_out": { "action": ["move:bin:shop"] }, "contents": ["gem:9"] },
 			{ "key": "bin", "layout": "stack" },
 			{ "key": "hand", "layout": "row" }],
 		"phases": [{ "key": "turn", "type": "player_input" }],
@@ -1294,8 +1297,8 @@ function M.test_validator_holds_a_supply_to_its_promise(check)
 	local said = table.concat(validate.check(G), "; ")
 	check("reach is refused: a stock has no top",
 		said:find("a stock has no order and no top", 1, true), said)
-	check("refill_from is refused: there is no moment to refill at",
-		said:find("no moment to refill at", 1, true), said)
+	check("runs_out is refused: nothing ever draws it empty",
+		said:find("nothing ever draws it empty", 1, true), said)
 	check("and drawing out of one is refused, with the way to write it instead",
 		said:find("standing for the whole stock", 1, true), said)
 	-- move says its source as a scope rather than a zone, so the same mistake

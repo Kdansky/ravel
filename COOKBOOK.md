@@ -590,11 +590,38 @@ read. Without it every comparison is a chain of `tagged:` questions.
 ### When the draw pile runs out, shuffle the discard back in.
 
 ```json
-"zones": [{ "key": "deck", "layout": "stack", "visibility": "secret", "refill_from": "discard" }]
+"zones": [{ "key": "deck", "layout": "stack", "visibility": "secret", "copies": "per_seat",
+            "runs_out": { "action": ["move:mine.discard:mine.deck", "shuffle:mine.deck"] } }]
 ```
 
 Asked for on demand — mid-draw, mid-card, wherever it actually runs out — not fired when the
-pile empties. A rule that clears the pile on purpose is left alone.
+pile empties. A rule that clears the pile on purpose is left alone. The zone is `@self`, so `mine`
+is the deck's owner, whoever is drawing.
+
+### Reshuffle once a turn; a second time, draw nothing.
+
+```json
+"runs_out": { "needs": { "req": ["reshuffled@mine.player == 0"] },
+              "action": ["stat_gain:reshuffled@mine.player:1", "move:mine.discard:mine.deck", "shuffle:mine.deck"] }
+```
+
+Reset `reshuffled` where the turn begins. A refused `needs` leaves the pile empty, and the draw
+comes up short.
+
+### Draw from an empty deck and you lose.
+
+```json
+"zones": [{ "key": "deck", "runs_out": { "action": ["stat_gain:decked@mine.player:1"] } }],
+"end_conditions": [{ "when": "decked@anyone.player >= 1", "then": ["reveal:game_over"] }]
+```
+
+### Each card you cannot draw deals you fatigue, one more each time.
+
+```json
+"runs_out": { "action": ["stat_gain:fatigue@mine.player:1", "stat_damage:health@mine.player:sum:fatigue@mine.player"] }
+```
+
+Every card of a `draw_from:…:3` asks on its own, so three missing cards are three blows.
 
 ### Shuffle your deck.
 

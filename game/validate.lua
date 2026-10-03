@@ -168,6 +168,7 @@ local RECEIVE_FIELDS   = { needs = true, when = true, action = true, whose = tru
 -- Arrival has one gate, because there is nothing for a second one to tell apart.
 local ARRIVES_FIELDS   = { needs = true, action = true }
 local ROUND_FIELDS     = { action = true }
+local RUNS_OUT_FIELDS  = { needs = true, action = true }
 -- What a card does when somebody picks out of the offer it opened with `show:`.
 -- The pick is the target; the card that asked is the one acting.
 local CHOSEN_FIELDS    = { needs = true, where = true, action = true }
@@ -179,7 +180,7 @@ local ZONE_FIELDS = {
 	-- the seven, and the two parameters a layout value makes legal
 	layout = true, visibility = true, reach = true, use = true, status = true,
 	display = true, copies = true, grid = true, row = true,
-	contents = true, tooltip = true, tags = true, tags_set = true, refill_from = true,
+	contents = true, tooltip = true, tags = true, tags_set = true,
 	-- where a card dying here goes, whatever kind of card it is
 	grave = true,
 	-- what clicking it does, written as the list a card writes
@@ -188,6 +189,8 @@ local ZONE_FIELDS = {
 	-- what happens when a card comes into play here, as opposed to merely lands
 	arrives = true, arrives_needs = true, on_arrives = true,
 	asset = true,
+	-- what a draw from it does when it is empty
+	runs_out = true, runs_out_needs = true, on_runs_out = true,
 }
 local PHASE_FIELDS = {
 	key = true, label = true, type = true, actions = true, deck = true,
@@ -253,7 +256,7 @@ local TAG_FIELDS      = { zone = true, grave = true, tooltip = true, play = true
 -- does not drown it out.
 local RETIRED       = { activate = true, ends_after = true, zone_empty = true,
 	stat = true, less_than = true, less_than_stat = true, less_than_max = true,
-	at_least = true, equals = true, all_of = true, becomes = true }
+	at_least = true, equals = true, all_of = true, becomes = true, refill_from = true }
 
 local VERB_FIELDS   = { key = true, does = true, action = true, needs = true, tooltip = true, effect = true }
 local ADJUST_FIELDS = { key = true, verb = true, stat = true, covers = true, needs = true, by = true,
@@ -378,6 +381,7 @@ M.FIELDS = {
 	leaves        = LEAVES_FIELDS,
 	verbs         = VERB_FIELDS,
 	adjusts       = ADJUST_FIELDS,
+	runs_out      = RUNS_OUT_FIELDS,
 }
 
 -- The shapes above, reachable for the same reason M.FIELDS is: a set nobody can
@@ -394,7 +398,7 @@ M.DERIVED = { tags_set = true, injected = true, move_rules = true, style = true,
 	compute = true,
 	requires = true, on_pass = true, on_fail = true, accepts = true,
 	on_receive = true, on_receive_needs = true, on_arrives = true, arrives_needs = true, receive_whose = true,
-	on_round = true, on_chosen = true, chosen_where = true,
+	on_round = true, on_chosen = true, chosen_where = true, on_runs_out = true, runs_out_needs = true,
 	on_leaves = true, leaves_into = true, leaves_from = true, leaves_needs = true, leaves_list = true,
 	zone_list = true, auto_play = true, to_slot = true }
 
@@ -3058,6 +3062,12 @@ function M.check(G)
 		-- with the zone -- so a condition here is about the newcomer.
 		check_conditions(where .. " arrives needs", def.arrives_needs)
 		check_list(where .. " arrives action", def.on_arrives)
+		check_conditions(where .. " runs_out needs", def.runs_out_needs)
+		check_list(where .. " runs_out action", def.on_runs_out)
+		if def.refill_from ~= nil then
+			warn('%s: refill_from is gone — write "runs_out": { "action": ["move:mine.%s:mine.%s", "shuffle:mine.%s"] }',
+				where, tostring(def.refill_from), tostring(def.key), tostring(def.key))
+		end
 		if def.on_arrives and def.status ~= "board" then
 			warn('%s: says "arrives", but its status is %s — a card can only come into play in a '
 				.. 'zone that *is* play, so nothing would ever fire it. "receive" is the word for '
@@ -3076,9 +3086,9 @@ function M.check(G)
 				warn('%s: is a supply and also says reach "%s" — a stock has no order and no top, '
 					.. "since every card of a kind in it is the same card", where, tostring(def.reach))
 			end
-			if def.refill_from ~= nil then
-				warn("%s: is a supply and refills from '%s' — a stock does not run out in an order, "
-					.. "so there is no moment to refill at", where, tostring(def.refill_from))
+			if def.on_runs_out ~= nil then
+				warn("%s: is a supply and says runs_out — a stock does not run out in an order, "
+					.. "so nothing ever draws it empty", where)
 			end
 		end
 		if def.applies ~= nil then

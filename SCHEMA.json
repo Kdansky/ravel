@@ -284,7 +284,7 @@
         "starting cards, each key or key:count"
       ],
       "grave": "where a card dying in this zone goes, whatever kind of card it is. Asked after the card and its tags and before the seat's own grave — a duel or an arena that sweeps its dead somewhere particular says so here, once, instead of on every card that might fall there.",
-      "refill_from": "the key of the zone this one is rebuilt from the moment its last card leaves — a deckbuilder's draw pile naming its discard. Everything there moves in and the pile is shuffled. Per-seat zones take the same seat's copy, so one line serves every player. Asked for rather than fired on emptying: the pile refills when something tries to draw from it and finds it empty, which is when a player would pick the discard up and shake it — so the loop closes wherever it runs out, mid-draw, mid-action, inside a card that draws four. A rule that empties the pile on purpose is left alone.",
+      "runs_out": "what a draw from this pile does when it finds it empty. Takes { needs, action }, asked with the **zone** as @self, so \"mine\" is the pile's owner — a card that makes the opponent draw runs out their deck. A deckbuilder's loop is [\"move:mine.discard:mine.deck\", \"shuffle:mine.deck\"]; decking out, fatigue and a capped reshuffle are other lists. Asked for rather than fired on emptying: a rule that clears the pile on purpose is left alone. After it runs the draw is tried once more and comes up short if the pile is still empty; a refused needs leaves it empty. Each card of a draw_from asks separately.",
       "applies": [
         "tags this zone hands to whatever lies in it, behaviour included. This is how a pile grants an ability no card knows about."
       ],

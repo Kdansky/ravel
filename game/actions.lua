@@ -445,9 +445,8 @@ HANDLERS["draw_from"] = function(p, ctx)
 	local to_id   = destination(p[3] or "hand", ctx)
 	if not from_id or not to_id then return end
 	local n, where = count_and_pos(p, 4, 1, ctx)
-	for _ = 1, n do
-		if not zones.move_top(from_id, to_id, where) then break end
-	end
+	-- Not stopped at the first empty draw: each one asks the pile's runs_out, so fatigue counts every card.
+	for _ = 1, n do zones.move_top(from_id, to_id, where) end
 end
 
 -- The only board, when there is exactly one — the fallback destination for

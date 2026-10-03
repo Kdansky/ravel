@@ -809,7 +809,7 @@ def zones():
         # bag or your discard pile": a scope names one place, and the one that
         # names all of them would reach the table and what you have standing.
         {"key": "bag", "label": "Bag", "layout": "stack", "visibility": "secret", "copies": "per_seat",
-         "pos": rects["bag"], "refill_from": "discard", "applies": ["in_bag"],
+         "pos": rects["bag"], "runs_out": {"action": ["move:mine.discard:mine.bag", "shuffle:mine.bag"]}, "applies": ["in_bag"],
          "tooltip": "Your draw pile. The moment it runs out your discard goes back in and is shaken \u2014 mid-draw, mid-chip, wherever it happens."},
         {"key": "discard", "label": "Discard", "layout": "stack", "status": "grave", "copies": "per_seat",
          "applies": ["in_discard"], "pos": rects["discard"]},

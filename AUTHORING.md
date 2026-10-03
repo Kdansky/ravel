@@ -393,8 +393,8 @@ first to ten:
   "players": [{ "card": "north" }, { "card": "south" }],
   "zones": [
     { "key": "deck", "layout": "stack", "visibility": "secret", "tags": ["shuffle"],
-      "pos": [0.05, 0.35, 0.2, 0.65], "refill_from": "discard",
-      "contents": ["coin:12", "gem:8"] },
+      "pos": [0.05, 0.35, 0.2, 0.65], "contents": ["coin:12", "gem:8"],
+      "runs_out": { "action": ["move:discard:deck", "shuffle:deck"] } },
     { "key": "discard", "layout": "stack", "pos": [0.8, 0.35, 0.95, 0.65] },
     { "key": "hand", "layout": "row", "copies": "per_seat", "visibility": "owner",
       "pos": [[0.25, 0.7, 0.75, 0.95], [0.25, 0.05, 0.75, 0.3]] },
@@ -435,9 +435,9 @@ Five decisions, and everything else follows from them:
   `turn` says nothing about the seat, so the phase's own word answers. Saying
   `"seat": "same"` on that route is the other game entirely: a turn that carries
   on until the player is done with it.
-- **`refill_from` closes the loop.** The deck rebuilds from the discard when
-  somebody draws and finds it empty — not when it empties, which is a different
-  moment and the wrong one.
+- **`runs_out` closes the loop.** It fires when somebody draws from the deck
+  and finds it empty — not when it empties, which is a different moment and the
+  wrong one — and what it does is an ordinary action list.
 - **`max:` in the end condition is load-bearing.** Drop it and the game ends at
   five points each. See *Somebody has reached ten* below.
 - **Each seat gets its own `setup.place` entry, not a shared `per_seat` zone.**
@@ -467,11 +467,19 @@ including the loop back into the same phase:
 A counter that must reset *once a turn* and not on the way round goes in
 `on_enter` instead. → *A phase that leads back to itself*
 
-**A deck that never runs out.** The draw pile names the pile it is rebuilt from:
+**A deck that never runs out.** The draw pile says what a draw from it does when
+it is empty:
 
 ```json
-{ "key": "deck", "layout": "stack", "visibility": "secret", "refill_from": "discard" }
+{ "key": "deck", "layout": "stack", "visibility": "secret", "copies": "per_seat",
+  "runs_out": { "action": ["move:mine.discard:mine.deck", "shuffle:mine.deck"] } }
 ```
+
+The zone is the rule's `@self`, so `mine` is the deck's owner — a card that makes
+the opponent draw runs out *their* deck. The same block is decking out (`"action":
+["stat_gain:decked@mine.player:1"]` and an end condition reading it), fatigue, or
+Codex's one reshuffle a turn: a `needs` that refuses leaves the pile empty and the
+draw comes up short.
 
 **Where a played card ends up.** Once, on the play block, rather than a
 `move_to` at the end of every action list it has:
@@ -993,7 +1001,7 @@ as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 | `tooltip` | Prose shown when the zone is hovered. A deck answers for itself — there are no cards in it to ask, only a deck |
 | `abilities` | The zone's **own** abilities, in a card's words: `cost`, `phases`, `needs`, `action`. This is how a deck is drawn from — the box answers, rather than the card on top of it becoming clickable. Gated like a card's: the phase it works in, what it costs, and whose zone it is. Two of them opens the same chooser a card's two do. No `target` and no `moves` — there is no arrow to draw from a deck. Not to be confused with `applies`, which hands an ability to the cards *lying* there |
 | `grave` | Where a card **standing here** dies to, when it is not the grave a game declares once with `status`. Third of the five places `destroy:` asks, so a card's own `grave` and its tags still win — this is for a place whose deaths are its own business, and a zone naming itself is how "whatever dies here is already where it goes" is said |
-| `refill_from` | The zone this one is rebuilt from when something tries to draw from it and finds it empty — a deckbuilder's draw pile naming its discard. Everything there moves in and the pile is shuffled; a per-seat zone takes the same seat's copy, so one line serves every player. **Asked for, not fired on emptying**: a rule that clears the pile on purpose is left alone, and the loop closes wherever it actually runs out — mid-draw, mid-action, inside a card that draws four, which is exactly where a phase loop cannot reach |
+| `runs_out` | What a draw from this pile does when it finds it empty: `needs` (a gate) and `action`, with the zone as `@self` and `mine` its owner. A deckbuilder's loop is `["move:mine.discard:mine.deck", "shuffle:mine.deck"]`; decking out, fatigue and a capped reshuffle are other lists. **Asked for, not fired on emptying**: a rule that clears the pile on purpose is left alone. After it runs the draw is tried once more, and comes up short if the pile is still empty. Every draw of a `draw_from:…:n` asks separately, so fatigue counts each card |
 | `applies` | Tags this zone hands to whatever sits in it, behaviour included (see *Tags as mixins*) |
 | `arrives` | What this zone does when a card comes **into play** here, as opposed to merely landing — the counterpart to a card's `leaves`, keeping the same rule at the other end. `leaves` fires on the way *out of play* and a unit walking between two board zones fires nothing; this fires on the way *in*, and a unit walking back fires nothing either. Codex's combat is a move out to the duel zone and home again, so an arrival trigger that answered that would fire on every attack. A card lent to a question comes home having arrived nowhere, because the zone it counts as coming from is the one it was **borrowed from** — the same substitution `leaves` makes. A created token arrives too, where `receive` is not fired by a create and never was. Takes `{ needs, action }`, asked with the **arriving card** as `@self`: `receive` is the place doing something about what landed in it, and this is a card's arrival being announced, which is what lets `emit` name the newcomer and `others` leave it out of a pool. Only meaningful on a `status: "board"` zone, and the validator says so |
 | `receive` | What this zone does about an arrival. `needs`: whether a card being played may be sent **here** — the zone answers for itself, as a card does. `action`: what happens when one lands, with the zone as `@self` and the newcomer as `@target` (a discard pile anybody may take from says `set_owner:target:none` here, once, rather than every card that might be thrown into it saying it) |
@@ -2119,7 +2127,7 @@ measures nothing.
 The shelf card never moves. `stock@self` running out is what makes a sold-out
 stack refuse, with no rule written for it. Drawing *from* a supply is refused by
 the validator, since it would move the one card standing for the whole stock —
-and so are `reach` and `refill_from`, because a stock has no order to have a top
+and so are `reach` and `runs_out`, because a stock has no order to have a top
 or to run out in. Filling a supply raises the number instead of minting a card,
 so `contents`, `create:` and a rule returning something to the box all land right
 without knowing.

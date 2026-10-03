@@ -450,7 +450,7 @@
       "visibility": "secret",
       "copies": "per_seat",
       "pos": [[0.656, 0.83, 0.724, 0.995], [0.656, 0.005, 0.724, 0.17]],
-      "refill_from": "discard",
+      "runs_out": { "action": ["move:mine.discard:mine.bag", "shuffle:mine.bag"] },
       "applies": ["in_bag"],
       "tooltip": "Your draw pile. The moment it runs out your discard goes back in and is shaken — mid-draw, mid-chip, wherever it happens."
     },

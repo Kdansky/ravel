@@ -1683,3 +1683,18 @@ each one a past wrong-seat bug. `on_round`, a zone's `receive` and `arrives` nev
   take the asker's owner, so Troublesome Rhetoric's benefit is `mine` and Pick Your Poison's cost
   `enemy`; `any@mine.self` as "is it my turn" (Ghost Stories' plaques, Bloodrage Ogre — now
   `my_turn@self`); Codex stealth's `accepts` (`detector@enemy.addon`); Sparkshot (`@opponent`).
+
+# `runs_out`: a draw from an empty pile · shipped
+
+`refill_from` named a pile to shuffle in, and no game could say *whether* it may — Codex reshuffles
+once a turn. Not a restock word but the moment: `runs_out: { needs, action }` on the zone, fired by
+`zones.move_top` when the pile is empty, then the draw tried once more.
+
+- **The remedy is an ordinary list.** `move:mine.discard:mine.deck` and `shuffle:` already existed,
+  so the same block is a deckbuilder's loop, Codex's capped reshuffle, decking out and fatigue.
+- **The zone is @self**, so `mine` is the pile's owner — free once a rule runs as its owner.
+- **Each card of a `draw_from:…:n` asks**, rather than stopping at the first empty draw: fatigue is
+  per card. Without a block the extra tries are no-ops.
+- **`refill_from` is retired** with a message that writes the replacement. Ten sites in four games;
+  Puzzle Strike's bag was never tagged `shuffle` and `restock` shuffled anyway, so every one shuffles
+  explicitly. The depth guard is `receive`'s, shared.
