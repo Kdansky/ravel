@@ -15,14 +15,6 @@ the top of it is not what that survey guessed.
 
 ## What the whole box wants
 
-- **Forecast — 7 cards, the whole of purple's Future spec.** *"Starts off in the
-  future, not in play. Put three time runes on this and remove one each upkeep.
-  When you remove the last, it arrives."* A zone that is not in play, a counter
-  ticking at the upkeep, and an arrival when it empties — most of which the file
-  can already say. What it cannot say is Hardened Mox's *"when you have a tech II
-  unit (even a forecasted one)"*, which asks about a card that is deliberately
-  nowhere.
-
 - **Second Chances** — *"Whenever one of your non-token units leaves play from
   something other than combat damage, return it to play. Once-per-turn. (Choose
   randomly if multiples leave at once.)"* The rest of it fits: a counter like

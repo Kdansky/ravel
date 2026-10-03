@@ -1321,6 +1321,65 @@ function M.test_codex_fading_leaves_when_its_clock_runs_out(check)
 	check("the third takes it", in_zone("army", "fading_argonaut") == nil)
 end
 
+-- Reaver's damage is "once here", and `soon` hands out abilities now that Omegacron's hurry is
+-- used from there.
+function M.test_codex_a_forecast_reaver_cannot_shoot_yet(check)
+	start("pick_purple", "pick_green")
+	seat("south").stats.gold = 9
+	local reaver = summon("reaver", "soon")
+	reaver.stats.time, reaver.stats.ready_since = 2, 0
+	summon("plasmodium", "enemy.army")
+	check("forecast, it has nothing to use", #flow.usable_abilities(reaver.id) == 0)
+end
+
+-- Indestructible is a `leaves` that stays, written on a tag that sits ahead of `unit` in the card's
+-- list: the unit's own block announces a death and pays out, and a death that did not happen must
+-- not reach it.
+function M.test_codex_indestructible_exhausts_instead_of_dying(check)
+	start("pick_purple", "pick_green")
+	local imm = summon("immortal", "army")
+	actions.run({ "stat_damage:hp@each.mine.army:9" }, {})
+	flow.settle()
+	check("it is still standing", entity.get(imm.id).zone_id == zones.find_id("army", "mine"))
+	check("with every point of damage gone", read(imm, "hp") == 5, tostring(read(imm, "hp")))
+	check("and spent for it", spent(imm.id))
+	check("nothing went to the discard", count_in("discard") == 0, tostring(count_in("discard")))
+end
+
+-- "You can't sacrifice it": the pool is every unit that is not indestructible, so Omegacron has
+-- nothing to give until something else stands beside the Immortal.
+function M.test_codex_indestructible_cannot_be_sacrificed(check)
+	start("pick_purple", "pick_green")
+	summon("immortal", "army")
+	local omega = summon("omegacron", "soon")
+	omega.stats.time = 6
+	check("the Immortal is no offering", not offers(omega, "hurry"))
+	summon("plasmodium", "army")
+	check("a plain unit is", offers(omega, "hurry"))
+end
+
+-- Hardened Mox goes the moment its owner has a tech II unit, in play or forecast — asked both ways
+-- round, since either card can be the one that arrives second.
+function M.test_codex_hardened_mox_is_trashed_by_a_tech_2_unit(check)
+	start("pick_purple", "pick_green")
+	local mox = summon("hardened_mox", "army")
+	flow.settle()
+	summon("immortal", "enemy.army")
+	actions.run({ "create:mine.hand:omegacron:1" }, {})
+	flow.settle()
+	check("theirs, or one in my hand, does not count", entity.get(mox.id).zone_id ~= nil)
+
+	zones.move_card(in_zone("hand", "omegacron").id, zones.find_id("soon", "mine"))
+	flow.settle()
+	check("a forecast one does", entity.get(mox.id) == nil or entity.get(mox.id).zone_id == nil)
+
+	actions.run({ "create:mine.hand:hardened_mox:1" }, {})
+	mox = in_zone("hand", "hardened_mox")
+	zones.move_card(mox.id, zones.find_id("army", "mine"))
+	flow.settle()
+	check("and a Mox arriving after it goes at once", entity.get(mox.id) == nil or entity.get(mox.id).zone_id == nil)
+end
+
 -- White leans on words the file gained this week rather than on new ones of its
 -- own: a rune put on by an exhausting ability, a disable written into a spell,
 -- and a ward lent by a unit standing on the table.

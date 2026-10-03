@@ -1645,3 +1645,21 @@ an offer's minted answer and `play_payments`. Guargum and Pirate-Gang Commander 
   playable. The floor at free was already there.
 - **`by` takes arithmetic now**, the grammar a compute's `value` uses, so free is `"0 - price@target"`.
   That is the printed price; a card whose price is a compute would only lose its printed part.
+
+# Codex: Indestructible and Hardened Mox · shipped
+
+Forecast had shipped already (`311c678`). The plan still listed it, because Hardened Mox could not be
+written. All of it is in the game file, with no engine word.
+
+- **Indestructible is a tag with a `leaves` that stays**: exhaust, heal, drop attachments. Gargoyle,
+  Immortal and Hardened Mox carry it, written **ahead of `unit`**: blocks run in tag order, and
+  `unit`'s block announces the death.
+- **"You can't sacrifice it" is the pool, not the death.** `stay` would have kept the card and still
+  taken the payment, so both `sacrifice:unit` costs became `sacrifice:expendable`.
+- **The future is a place now.** "Even a forecasted one" was written as a card that is nowhere. `soon`
+  is a zone, so `applies: ["foreseen"]` and a union with `in_play@self` say *in play or forecast*.
+  Trashing has two triggers, because either card can come second: the Mox reacts to `arrived`, and
+  `soon`'s `receive` handles the forecast case.
+- **`soon` never offered abilities, so Omegacron's hurry never worked.** It has `use: "abilities"`
+  now. Patrol and Reaver's shot are gated `in_play@self`; the strikes were already gated by
+  `ready_since`, which a forecast card does not get until it arrives.

@@ -1530,6 +1530,38 @@ and the blocks after it do not run.
 
 `stay` refuses the departure: the card keeps its zone, its square and every number on it.
 
+### Indestructible: if this would die, exhaust it and heal it instead. It can't be sacrificed.
+
+```json
+"tags": { "indestructible": { "leaves": { "into": "discard",
+            "action": ["exhaust:self", "stat_gain:hp@self:99", "destroy:attached_to.self", "stay"] } } },
+"computed_tags": { "expendable": { "needs": { "req": ["tagged:unit@self", "not_tagged:indestructible@self"] } } },
+"cost": { "sacrifice:expendable": 1 }
+```
+
+Write the tag **ahead of** `unit` in the card's list. Blocks run in that order, and the unit's own
+`leaves` announces a death and pays for it — a death that did not happen must not get there. A
+sacrifice is a death too, so the pool has to leave the card out; `stay` alone would take the
+payment and keep the unit.
+
+### When you have a tech II unit — even a forecast one — trash this.
+
+```json
+"zones": [{ "key": "soon", "applies": ["foreseen"],
+            "receive": { "when": ["tagged:outdates_mox@target"], "action": ["purge:mine.mox"] } }],
+"computed_tags": {
+  "on_table": { "needs": { "req": ["in_play@self"] } },
+  "had": { "any_of": ["on_table", "foreseen"] },
+  "outdates_mox": { "needs": { "req": ["tagged:unit@self", "tagged:tech2@self", "tagged:had@self"] } } },
+"reactions": [{ "to": "arrived", "whose": "mine", "forced": "mandatory", "in": "board",
+                "needs": { "req": ["tagged:outdates_mox@mine.everywhere"] }, "action": ["purge:self"] }]
+```
+
+Two moments, because either card may be second: the Mox hears every arrival on its side,
+its own included, and the future announces nothing, so the zone a forecast card lands in does
+the trashing. `@everywhere` because a forecast card is not in play; the union keeps out the one
+in the hand.
+
 ### The first two of your Illusions to die each turn return to your hand.
 
 ```json

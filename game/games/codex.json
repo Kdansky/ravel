@@ -869,6 +869,10 @@
     }
   ],
   "computed_tags": {
+    "on_table": { "needs": { "req": ["in_play@self"] } },
+    "had": { "any_of": ["on_table", "foreseen"] },
+    "outdates_mox": { "needs": { "req": ["tagged:unit@self", "tagged:tech2@self", "tagged:had@self"] } },
+    "expendable": { "needs": { "req": ["tagged:unit@self", "not_tagged:indestructible@self"] } },
     "dead": {
       "needs": {
         "req": [
@@ -1872,6 +1876,9 @@
     }
   },
   "tags": {
+    "indestructible": {
+      "leaves": { "into": "discard", "action": ["exhaust:self", "stat_gain:hp@self:99", "destroy:attached_to.self", "stay"] }
+    },
     "guargum": {
       "adjusts": [{ "key": "free_growth", "verb": "play", "stat": "gold", "covers": "mine.hand", "by": "0 - price@target",
         "needs": { "req": ["tagged:growth@target", "tagged:spell@target"] } }]
@@ -2272,6 +2279,7 @@
           "tooltip": "Take a post. Left to right: squad leader, elite, scavenger, technician, lookout. Attacking gives the post up, so a patroller cannot do both.",
           "needs": {
             "req": [
+              "in_play@self",
               "not_tagged:cant_patrol@self"
             ]
           },
@@ -3232,6 +3240,9 @@
       "layout": "row",
       "copies": "per_seat",
       "visibility": "public",
+      "use": "abilities",
+      "applies": ["foreseen"],
+      "receive": { "when": ["tagged:outdates_mox@target"], "action": ["purge:mine.mox"] },
       "pos": [
         [
           0.625,
@@ -11690,7 +11701,7 @@
         },
         "cost": {
           "gold@mine.player": "price@self",
-          "sacrifice:unit": 1
+          "sacrifice:expendable": 1
         },
         "spent": "mine.discard",
         "target": {
@@ -12307,17 +12318,17 @@
         "black",
         "demonology",
         "tech1",
+        "indestructible",
         "unit",
         "fighter",
         "pitch",
         "fighter_face",
         "generate_art",
         "cant_attack",
-        "cant_patrol",
-        "stony"
+        "cant_patrol"
       ],
       "asset": "gargoyle",
-      "tooltip": "Can't attack or patrol. Indestructible: the first death exhausts it and heals it instead.  NOT MODELLED: the ability that trades the word away for a turn of flying and +3 attack.",
+      "tooltip": "Can't attack or patrol. Indestructible: if this would die, exhaust it and remove all damage and attachments from it instead. You can't sacrifice it.  NOT MODELLED: the ability that trades the word away for a turn of flying and +3 attack.",
       "card_stats": {
         "price": 3,
         "atk": 0,
@@ -12611,14 +12622,18 @@
         "deck_card",
         "purple",
         "tech0",
+        "indestructible",
         "unit",
         "fighter",
         "aether",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "mox"
       ],
       "asset": "hardened_mox",
-      "tooltip": "Indestructible.  NOT MODELLED: both halves — the death replacement, and that a tech II unit of yours trashes it, which asks about a card that may be forecast and so nowhere.",
+      "tooltip": "Indestructible: if this would die, exhaust it and remove all damage and attachments from it instead. You can't sacrifice it. When you have a tech II unit (even a forecasted one), trash Hardened Mox.",
+      "reactions": [{ "to": "arrived", "whose": "mine", "forced": "mandatory", "in": "board",
+                      "needs": { "req": ["tagged:outdates_mox@mine.everywhere"] }, "action": ["purge:self"] }],
       "card_stats": {
         "price": 3,
         "atk": 1,
@@ -12931,6 +12946,7 @@
         "purple",
         "present",
         "tech2",
+        "indestructible",
         "unit",
         "fighter",
         "aether",
@@ -12938,7 +12954,7 @@
         "generate_art"
       ],
       "asset": "immortal",
-      "tooltip": "A 5/5 for six.  NOT MODELLED: Indestructible, which is a death replacement.",
+      "tooltip": "Indestructible: if this would die, exhaust it and remove all damage and attachments from it instead. You can't sacrifice it.",
       "card_stats": {
         "price": 6,
         "atk": 5,
@@ -13915,7 +13931,7 @@
             "main"
           ],
           "cost": {
-            "sacrifice:unit": 1
+            "sacrifice:expendable": 1
           },
           "needs": {
             "req": [
@@ -14459,6 +14475,7 @@
             "gold@mine.player": 1,
             "exhaust": 1
           },
+          "needs": { "req": ["in_play@self"] },
           "target": {
             "verb": "cast",
             "type": "card",
