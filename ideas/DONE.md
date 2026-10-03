@@ -1663,3 +1663,23 @@ written. All of it is in the game file, with no engine word.
 - **`soon` never offered abilities, so Omegacron's hurry never worked.** It has `use: "abilities"`
   now. Patrol and Reaver's shot are gated `in_play@self`; the strikes were already gated by
   `ready_since`, which a forecast card does not get until it arrives.
+
+# "mine" is whoever owns the rule · shipped
+
+`mine` was the active seat, and the owner only where somebody had put a lens on by hand — nine sites,
+each one a past wrong-seat bug. `on_round`, a zone's `receive` and `arrives` never got one.
+
+- **One site decides.** `actions.run` and `predicate.meets_all` hold the lens as `ctx.seat`, else
+  the seat of `ctx.card_id` (card owner, zone seat). An unowned rule (a phase, a shared rules card)
+  keeps the active seat. The hand-placed lenses are gone; `each_seat` says its seat as `ctx.seat`.
+- **The trap: `active_seat` meant two things.** "Whose `mine`" and "who acts". With the lens held
+  across a whole list, `set_priority` could no longer move `mine`, and must not — but an offer still
+  has to go to whoever holds priority. `zones.acting_seat()` is the second meaning, lens-blind; offers
+  and parked tails record it.
+- **A copy runs as the copier**: `copy:…:activate` passes `ctx.seat`, as a copied play is an
+  imaginary chip in the copier's hands.
+- **Content that leaned on the old reading**, all rewritten: "after `set_priority`, `mine` is theirs"
+  (Two Truths, Knockdown, Shadowswarm, Spellstorm's dry piles — now `enemy`); option tokens, which
+  take the asker's owner, so Troublesome Rhetoric's benefit is `mine` and Pick Your Poison's cost
+  `enemy`; `any@mine.self` as "is it my turn" (Ghost Stories' plaques, Bloodrage Ogre — now
+  `my_turn@self`); Codex stealth's `accepts` (`detector@enemy.addon`); Sparkshot (`@opponent`).

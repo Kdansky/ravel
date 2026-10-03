@@ -1171,10 +1171,10 @@ def puzzle_cards():
         {"key": "iron_defense", **shape("iron_defense", "brown"),
          "play": act(["take:bank.crash_gem:mine.gem_pile:1"])},
         # Their discard, chosen by them: priority crosses the table while the
-        # offer is up, so "mine.hand" in here is the opponent's own hand.
+        # offer is up, and the chip is still ours, so theirs is "enemy.hand".
         {"key": "knockdown", **shape("knockdown", "red"),
          "play": act(["stat_gain:act_purple@mine.player:1",
-                      "set_priority:enemy.player", "show:mine.hand"]),
+                      "set_priority:enemy.player", "show:enemy.hand"]),
          "chosen": {"action": ["destroy:target", "clear_priority"]}},
         {"key": "master_puzzler", **shape("master_puzzler", "brown"),
          # "Non-gem, non-Puzzle in the bank" is the three purples and Wound, and
@@ -1668,15 +1668,15 @@ def character_chips():
         # Quince
         {"key": "two_truths", "text": "Two Truths", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:gold",
-         # Their pick out of your own pile, so priority crosses and every scope
-         # in here is read from their seat: "enemy" is the chip's owner.
+         # Their pick out of your own pile, so priority crosses — but every
+         # scope here is still read as the chip's owner.
          # The `needs` is not flavour — an offer with nothing in it never opens,
          # and priority handed across an offer that never opens never comes home.
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "needs": {"req": ["tagged:chip@mine.discard"]},
-                  "action": ["set_priority:enemy.player", "show:enemy.discard"],
+                  "action": ["set_priority:enemy.player", "show:mine.discard"],
                   "spent": "mine.table"},
-         "chosen": {"action": ["move:target:enemy.hand", "clear_priority"]}},
+         "chosen": {"action": ["move:target:mine.hand", "clear_priority"]}},
         {"key": "flagstone_tax", "text": "Flagstone Tax", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:gold",
          "play": ongoing(),
@@ -1793,7 +1793,7 @@ def character_chips():
         {"key": "shadowswarm", "text": "Shadowswarm", "tags": ["chip", "character", "red"],
          "asset": "polygon:7:slate",
          "play": act(["stat_gain:act_brown@mine.player:1", "draw_from:mine.bag:mine.hand:2",
-                      "set_priority:enemy.player", "show:mine.hand"]),
+                      "set_priority:enemy.player", "show:enemy.hand"]),
          "chosen": {"action": ["destroy:target", "clear_priority"]}},
         # Gwen
         {"key": "acrobatics", "text": "Acrobatics", "tags": ["chip", "character", "brown"],
@@ -1963,13 +1963,13 @@ def choice_cards():
         choice("vs_tempo", "An action and a piggy bank", [A, P]),
         choice("vs_money", "Two gem power", ["stat_gain:money@mine.player:2"]),
         choice("vs_chips", "Two chips", ["draw_from:mine.bag:mine.hand:2"]),
-        # Troublesome Rhetoric's two, read by the opponent: priority is theirs
-        # while the offer is up, so the seat that gets the benefit is "enemy"
-        # from in here, and each branch hands priority home.
+        # Troublesome Rhetoric's two, read by the opponent. An option is the
+        # asker's card, so "mine" is the seat that played the chip however
+        # priority stands, and each branch hands priority home.
         choice("tr_tempo", "Give them an action and a chip",
-               ["stat_gain:acts@opponent:1", "draw_from:enemy.bag:enemy.hand:1", "clear_priority"]),
+               ["stat_gain:acts@mine.player:1", "draw_from:mine.bag:mine.hand:1", "clear_priority"]),
         choice("tr_money", "Give them two gem power and a piggy bank",
-               ["stat_gain:money@opponent:2", "stat_gain:piggy@opponent:1", "clear_priority"]),
+               ["stat_gain:money@mine.player:2", "stat_gain:piggy@mine.player:1", "clear_priority"]),
         choice("ct_ab", "An action and a piggy bank", [A, P]),
         choice("ct_am", "An action and a gem power", [A, Mo]),
         choice("ct_ac", "An action and a chip", [A, C]),
@@ -2000,12 +2000,13 @@ def choice_cards():
         choice("nl_trash", "Trash a gem and a wound from your hand",
                ["purge:mine.hand:2"]),
         # Both of Pick Your Poison's branches hand priority back, because the
-        # seat reading them is the one who was given it.
+        # seat reading them is the one who was given it. The option is the
+        # chip's, so the seat paying is "enemy".
         choice("pp_ante", "Ante a 1-gem",
-               ["take:bank.gem_1:mine.gem_pile:1",
+               ["take:bank.gem_1:enemy.gem_pile:1",
                 "clear_priority"]),
         choice("pp_discard", "Discard two chips",
-               ["destroy:mine.hand:2", "clear_priority"]),
+               ["destroy:enemy.hand:2", "clear_priority"]),
     ]
 
 

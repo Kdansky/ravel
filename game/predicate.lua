@@ -62,9 +62,9 @@ local M = {}
 -- is not dead, it is a card.
 --
 -- "my_turn@<scope>" is yes when the seat whose turn it is owns anything there, and "their_turn@" its
--- exact complement. "mine" cannot ask it wherever "mine" means the card's owner rather than whoever
--- is up — a death, an aim answered — and that is exactly where "dies on your turn" is asked. The
--- turn and not priority: answering inside a window is not having the turn.
+-- exact complement. "mine" cannot ask it, since "mine" is the card's owner and not whoever is up —
+-- and "dies on your turn" is exactly that question. The turn and not priority: answering inside a
+-- window is not having the turn.
 --
 -- Its own words rather than a tag, because the tag namespace is the *game's* —
 -- every other word in it is one an author wrote — and readiness is the engine's
@@ -1180,9 +1180,21 @@ end
 -- a map cannot hold one subject twice — "gold >= 3" with "gold <= 8" is a range,
 -- which is an ordinary thing to want. One condition may be written on its own,
 -- as a phase's zone and a card's emits are, since most gates are one sentence.
+-- The seat a rule is asked as: see actions.run. Nil when nothing in the ctx has one, which leaves whoever is up.
+function M.rule_seat(ctx)
+	if not ctx then return nil end
+	return ctx.seat or (ctx.card_id and M.seat_of(entity.get(ctx.card_id)))
+end
+
 function M.meets_all(list, ctx)
 	if type(list) == "string" then return M.holds(list, ctx) end
 	if type(list) ~= "table" then return true end
+	local seat = M.rule_seat(ctx)
+	if seat and seat ~= zones.held_seat() then
+		local ok
+		zones.as_seat(seat, function() ok = M.meets_all(list, ctx) end)
+		return ok
+	end
 	for _, s in ipairs(list) do
 		if not M.holds(s, ctx) then return false end
 	end
@@ -1195,24 +1207,10 @@ end
 -- there, so the dependency runs one way: tags knows nothing above it, and the
 -- one upward call it makes is this named slot.
 --
--- **Read as the card's own side.** Every other condition in the engine is asked
--- at a moment somebody owns — a play, an ability, an answer — so `mine` means
--- the seat that is acting. This one is asked at no moment at all: the renderer
--- drawing a number on the opponent's turn comes through here, and so does every
--- count of the board. Left ambient, `mine` would name whoever happens to be up,
--- which is a card reading *the other player's* buildings for half the game. So
--- the seat is held, as zones.as_seat does for an answer — the difference being
--- that there is nothing here to hold it *around*, so the read is what gets
--- anchored.
---
--- Every subject wants its @self: a bare stat means the seat that is up, and this
--- is asked about a particular card, so the card is the ctx.
+-- Asked about the card, so the card is the ctx — which also makes it read as the
+-- card's own side, as every rule does (meets_all).
 function tags.asks(needs, e)
-	local worn
-	zones.as_seat(M.seat_of(e), function()
-		worn = M.meets_all(needs, { card_id = e.id })
-	end)
-	return worn
+	return M.meets_all(needs, { card_id = e.id })
 end
 
 return M

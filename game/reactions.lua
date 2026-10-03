@@ -12,7 +12,6 @@
 
 local declaration = require("declaration")
 local entity      = require("entity")
-local zones       = require("zones")
 local predicate   = require("predicate")
 
 local M = {}
@@ -95,15 +94,7 @@ function M.matches(reaction, e, subject, strict, aimed)
 	if not placed(e, reaction, strict) then return false end
 	local ctx = { event = subject, card_id = e.id, targets = aimed or {} }
 	if reaction.where and not predicate.meets_all(reaction.where, ctx) then return false end
-	if reaction.needs then
-		local seat = predicate.seat_of(e)
-		local ok = true
-		zones.as_seat(seat, function()
-			if not predicate.meets_all(reaction.needs, ctx) then ok = false end
-		end)
-		if not ok then return false end
-	end
-	return true
+	return predicate.meets_all(reaction.needs, ctx)
 end
 
 -- Every reaction that answers this event, as { seat, card = <id>, index, reaction }.

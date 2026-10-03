@@ -1618,13 +1618,13 @@ def rules_templates():
         # Which one is VOIDed is the holder's choice, and it is a real one: every
         # ICE is the same card, but one in your hand costs a Blast Score and one
         # in your discard costs a draw. So the holder is asked -- and when the
-        # junk was being *given*, the holder is the other player, which is what
-        # `set_priority` is for: from inside that window `mine` is theirs.
-        ask = "show:mine.held.%s" % kind
+        # junk was being *given*, the holder is the other player: `set_priority`
+        # hands them the pick, and the pile asked about is theirs.
+        ask = "show:%s.held." + kind
         rule = tip("When the %s pile is empty, whoever would have been given one VOIDs "
                    "a %s of their choosing from their hand or discard and takes the "
                    "penalty instead." % (kind.upper(), kind.upper()))
-        for way, acts in (("take", take + [ask]), ("give", give + ["set_priority:enemy.player", ask])):
+        for way, acts in (("take", take + [ask % "mine"]), ("give", give + ["set_priority:enemy.player", ask % "enemy"])):
             key = "r_dry_%s_%s" % (way, kind)
             RULES_HOME[key] = "dry_" + way
             out.append(rules_card(

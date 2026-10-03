@@ -60,8 +60,8 @@ local GAME = [==[{
       "play": { "action": ["options:alpha,beta"] },
       "chosen": { "needs": { "where": ["tagged:relic@target"] }, "action": [] } },
     { "key": "interrogate", "text": "Interrogate",
-      "play": { "action": ["set_priority:enemy.player", "show:mine.hand"] },
-      "chosen": { "action": ["move:target:enemy.table", "clear_priority"] } }
+      "play": { "action": ["set_priority:enemy.player", "show:enemy.hand"] },
+      "chosen": { "action": ["move:target:mine.table", "clear_priority"] } }
   ]
 }]==]
 
@@ -179,10 +179,9 @@ end
 -- The other half of "reveal a card", and it needed nothing new: *they* choose.
 --
 -- Two words already in the language do it. set_priority makes the other seat the
--- one who is up without the turn moving, and every scope is relative to whoever
--- is up — so "show:mine.hand" from inside that window is their hand, offered to
--- them, and the pick is theirs. Written down here because it is not obvious from
--- either word on its own, and because a rule that made the wrong seat choose
+-- one who answers without the turn moving, and every scope on the card is still
+-- its owner's — so "show:enemy.hand" is their hand, offered to them, and the pick
+-- is theirs. Written down here because a rule that made the wrong seat choose
 -- would still look like it worked from one side of the screen.
 function M.test_reveal_the_other_seat_may_be_made_to_choose(check)
 	with_game(function(name)

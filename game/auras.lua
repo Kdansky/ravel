@@ -62,7 +62,7 @@ local function watching(card_id, verb, stat, source_id, n, fn)
                 local sub = { card_id = holder, targets = { card_id }, source = source_id,
                     let = n and { amount = n } or nil }
                 if covered and entity.get(holder) and predicate.meets_all(ad.needs, sub) then
-                    fn(ad, sub, seat)
+                    fn(ad, sub)
                 end
             end)
         end
@@ -101,8 +101,8 @@ end
 -- and the side to run it as, which is the holder's for `watching`'s reason.
 function M.instead(card_id, verb, stat, source_id, size)
     local out = {}
-    watching(card_id, verb, stat, source_id, size, function(ad, sub, seat)
-        if ad.instead then out[#out + 1] = { action = ad.instead, ctx = sub, seat = seat } end
+    watching(card_id, verb, stat, source_id, size, function(ad, sub)
+        if ad.instead then out[#out + 1] = { action = ad.instead, ctx = sub } end
     end)
     return out
 end

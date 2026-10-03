@@ -1057,7 +1057,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_red@mine.player": 1 },
-        "action": ["stat_gain:act_purple@mine.player:1", "set_priority:enemy.player", "show:mine.hand"],
+        "action": ["stat_gain:act_purple@mine.player:1", "set_priority:enemy.player", "show:enemy.hand"],
         "spent": "mine.table"
       },
       "chosen": { "action": ["destroy:target", "clear_priority"] },
@@ -2347,10 +2347,10 @@
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
         "needs": { "req": ["tagged:chip@mine.discard"] },
-        "action": ["set_priority:enemy.player", "show:enemy.discard"],
+        "action": ["set_priority:enemy.player", "show:mine.discard"],
         "spent": "mine.table"
       },
-      "chosen": { "action": ["move:target:enemy.hand", "clear_priority"] },
+      "chosen": { "action": ["move:target:mine.hand", "clear_priority"] },
       "tooltip": "Choose two different chips from your discard pile. Then chosen opponent selects one and you put it in your hand. You may play it.\n\nDEV: your whole discard pile is offered rather than two chips out of it, and the pick really is theirs: priority crosses the table while the offer is up. Narrowing it to two would want a choice made before the offer, and playing the chip for free afterwards is not built."
     },
     {
@@ -2648,7 +2648,7 @@
           "stat_gain:act_brown@mine.player:1",
           "draw_from:mine.bag:mine.hand:2",
           "set_priority:enemy.player",
-          "show:mine.hand"
+          "show:enemy.hand"
         ],
         "spent": "mine.table"
       },
@@ -3082,7 +3082,7 @@
       "tags": ["token", "immutable"],
       "asset": "square:slate",
       "play": {
-        "action": ["stat_gain:acts@opponent:1", "draw_from:enemy.bag:enemy.hand:1", "clear_priority"]
+        "action": ["stat_gain:acts@mine.player:1", "draw_from:mine.bag:mine.hand:1", "clear_priority"]
       }
     },
     {
@@ -3091,7 +3091,7 @@
       "tags": ["token", "immutable"],
       "asset": "square:slate",
       "play": {
-        "action": ["stat_gain:money@opponent:2", "stat_gain:piggy@opponent:1", "clear_priority"]
+        "action": ["stat_gain:money@mine.player:2", "stat_gain:piggy@mine.player:1", "clear_priority"]
       }
     },
     {
@@ -3225,14 +3225,14 @@
       "text": "Ante a 1-gem",
       "tags": ["token", "immutable"],
       "asset": "square:slate",
-      "play": { "action": ["take:bank.gem_1:mine.gem_pile:1", "clear_priority"] }
+      "play": { "action": ["take:bank.gem_1:enemy.gem_pile:1", "clear_priority"] }
     },
     {
       "key": "pp_discard",
       "text": "Discard two chips",
       "tags": ["token", "immutable"],
       "asset": "square:slate",
-      "play": { "action": ["destroy:mine.hand:2", "clear_priority"] }
+      "play": { "action": ["destroy:enemy.hand:2", "clear_priority"] }
     },
     {
       "key": "char_argagarg",

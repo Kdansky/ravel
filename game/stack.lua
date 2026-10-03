@@ -41,17 +41,13 @@ local M = {}
 -- Opt-in, so nothing changes for a card that does not say it: declare it and
 -- that is where the card lands, leave it out and the action list is answerable
 -- for its own card as it always was.
--- Run as the card's *owner*, not as whoever is up. A counter resolves while the
--- answering seat holds priority, and "mine.table" written on my chip has to mean
--- my table however it ended — otherwise being countered posts the card to the
--- player who countered it.
+-- Run as the card's owner, as every rule is: a counter resolves while the answering
+-- seat holds priority, and "mine.table" on my chip still means my table.
 local function send_spent(card_id, spent)
 	if not spent then return end
 	local c = card_id and entity.get(card_id)
 	if not c or not c.zone_id then return end
-	zones.as_seat(predicate.seat_of(c), function()
-		actions.execute("move_to:" .. spent, { card_id = card_id })
-	end)
+	actions.run({ "move_to:" .. spent }, { card_id = card_id })
 end
 
 local function stack_zone()

@@ -292,34 +292,18 @@ local function fire_aimed(targets, source, verb)
 		for _, id in ipairs(targets or {}) do
 			local e = entity.get(id)
 			local blocks = e and cards.on_receive(e) or {}
-			-- **Answered as the card's own owner**, which is the half of the aim that is
-			-- about the receiver. "mine" everywhere else means whoever is up, and that is
-			-- right for an imperative; this is not one. Macciatus is "*your* Illusions no
-			-- longer die when a spell aims at them", and asked from the aimer's side it
-			-- answers about the wrong seat. An unowned card gets nil, which is no override.
-			--
 			-- Only "when" and "action". "needs" -- receive's other half, "accepts" -- gates
-			-- whether the aim may be made at all and is honestly about the *aimer*: Codex's
-			-- stealth asks "count:detector@mine.addon", meaning the detector belongs to
-			-- whoever is pointing. It is checked in targeting.lua and never reaches here.
-			--
-			-- The gather stays outside, and needs to: a computed keyword is read as the
-			-- card's own side wherever it is asked (tags.entity_has holds that seat
-			-- itself), so holding it again here would say the same thing twice.
+			-- whether the aim may be made at all, and is checked in targeting.lua.
 			--
 			-- **"whose" gates the whole block**, this half with the other: a ward that
 			-- answers only an opponent's aim must not fire on its owner's either.
 			local aimer = predicate.seat_of(entity.get(source))
-			if #blocks > 0 then
-				zones.as_seat(predicate.seat_of(e), function()
-					for _, block in ipairs(blocks) do
-						local ctx = { card_id = id, targets = { source }, verb = verb }
-						if predicate.answers_whose(block.whose, predicate.seat_of(e), aimer)
-							and predicate.meets_all(block.needs, ctx) then
-							actions.run(block.action, ctx)
-						end
-					end
-				end)
+			for _, block in ipairs(blocks) do
+				local ctx = { card_id = id, targets = { source }, verb = verb }
+				if predicate.answers_whose(block.whose, predicate.seat_of(e), aimer)
+					and predicate.meets_all(block.needs, ctx) then
+					actions.run(block.action, ctx)
+				end
 			end
 		end
 	end)
@@ -1474,7 +1458,7 @@ end
 -- the game comes back to it — in settle, which is where anything "after an
 -- action" belongs, and this is after one.
 --
--- Run as the seat it was asked of, since an offer is answered by whoever is up.
+-- Handed to the seat it was asked of, since an offer is answered by whoever acts.
 -- What is stored is the action itself rather than the cards it would have moved,
 -- the same shape as the tail an `emit:` defers: the board has changed by now and
 -- the question is about the board as it stands.
@@ -1533,7 +1517,7 @@ function M.offer_step()
 		local f = table.remove(z.after, 1)
 		if #z.after == 0 then z.after = nil end
 		if f.seat then stack.give_priority(f.seat) end
-		actions.run(f.action, { card_id = f.card, targets = f.targets or {},
+		actions.run(f.action, { card_id = f.card, targets = f.targets or {}, seat = f.lens,
 			event = f.event, let = f.let, within = f.within, gated = f.gated })
 		return true
 	end
@@ -1542,7 +1526,7 @@ function M.offer_step()
 			local f = table.remove(tz.after, 1)
 			if #tz.after == 0 then tz.after = nil end
 			if f.seat then stack.give_priority(f.seat) end
-			actions.run(f.action, { card_id = f.card, targets = f.targets or {},
+			actions.run(f.action, { card_id = f.card, targets = f.targets or {}, seat = f.lens,
 				event = f.event, let = f.let, within = f.within, gated = f.gated })
 			return true
 		end
@@ -1554,7 +1538,7 @@ function M.offer_step()
 		-- this question and this question is now the one on the table.
 		z.after = ask.after
 		stack.give_priority(ask.seat)
-		actions.run({ ask.action }, { card_id = ask.card, targets = {} })
+		actions.run({ ask.action }, { card_id = ask.card, targets = {}, seat = ask.lens })
 		return true
 	end
 	return false

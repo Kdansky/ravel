@@ -26,21 +26,17 @@ function M.contains(p, x, y)
 	return x >= p.x and x <= p.x + p.w and y >= p.y and y <= p.y + p.h
 end
 
--- Reading the board as somebody else. "Mine" is answered from the turn, which is
--- right for a rule and wrong for a readout: the HUD row says *Your score* on a
--- machine whose player is not the one to move, and shows the opponent's number.
--- Every consumer of "mine" — subjects, zone lookups, ownership — asks
--- active_seat, so one override answers for all of them at once.
+-- Reading the board as somebody else: whose "mine" it is. Every consumer of
+-- "mine" — subjects, zone lookups, ownership — asks active_seat, so one override
+-- answers for all of them at once. actions.run and predicate.meets_all hold it
+-- as the owner of the rule they run; a readout holds it as the watching seat, so
+-- the HUD's *Your score* is yours on the other player's turn.
 --
 -- **Scoped and restored even when the body raises**: the alternative is an engine
 -- that quietly stays somebody else for the rest of the session.
 --
--- Mostly reads, but an action may run inside it where the acting seat is the
--- point rather than an accident -- a spent card going home to its owner's table
--- however its play ended, a card answering an aim as the side that was aimed at.
--- Both are cases where "whoever is up" is the wrong player to be, so the seat has
--- to be said. It is not a handover: priority is game state that drops undo, this
--- is a lens held over one call.
+-- It is not a handover: priority is game state that drops undo, this is a lens
+-- held over one call, and acting_seat does not see it.
 local as_if = nil
 
 function M.as_seat(seat, fn)
@@ -83,7 +79,19 @@ end
 -- turn. Priority is 0 (unset) everywhere but inside a window, so every existing
 -- game reads exactly the turn, as it always did.
 function M.active_seat()
-	if as_if then return as_if end
+	return as_if or M.acting_seat()
+end
+
+-- The seat held by `as_seat`, if any: the side a rule is being run as.
+function M.held_seat()
+	return as_if
+end
+
+-- **Who acts now**, which the lens does not move: whoever an offer goes to and a
+-- parked tail hands back to. `active_seat` is whose "mine" it is, and inside a rule
+-- those come apart — Two Truths hands the pick across the table while every scope
+-- on it still means the chip's owner.
+function M.acting_seat()
 	local seats = declaration.G.seat_list or {}
 	if #seats < 2 then return seats[1] end
 	local sys = M.system_card()
@@ -608,7 +616,6 @@ local function fire_leaves(from, to, card_id)
 	local def = c and declaration.G.card_defs[c.def_key]
 	if not (def and def.leaves_list) then return end
 	local predicate = require("predicate")
-	local seat = predicate.seat_of(c)
 	local zone_was = c.zone_id
 	for _, b in ipairs(def.leaves_list) do
 		-- One block that carried the card off, or kept it, has answered the move, and the rest with it.
@@ -619,13 +626,10 @@ local function fire_leaves(from, to, card_id)
 		else
 			left = from.status == "board" and to.status ~= "board"
 		end
-		-- Asked with the departing card as @self. **As the card's owner**, as a death is:
-		-- nobody whose turn it is chose to be discarded, so "when you discard this, gain 1" pays the
+		-- Asked with the departing card as @self, so as its owner: "when you discard this, gain 1" pays the
 		-- card's own side even when an opponent's spell threw it away. "their_turn@self" asks the turn.
 		local wanted = left and (not b.into or b.into == to.key)
-		if wanted then
-			M.as_seat(seat, function() wanted = predicate.meets_all(b.needs, { card_id = card_id }) end)
-		end
+			and predicate.meets_all(b.needs, { card_id = card_id })
 		if wanted then
 			-- The same depth guard receive keeps, for the same reason: a rule that moves
 			-- the card it just watched leave says so in the log rather than taking the
@@ -639,7 +643,7 @@ local function fire_leaves(from, to, card_id)
 			receiving = receiving + 1
 			local was = M.leaving
 			M.leaving = card_id
-			local ok, err = pcall(M.as_seat, seat, function() M.run_actions(b.action, { card_id = card_id, targets = {} }) end)
+			local ok, err = pcall(M.run_actions, b.action, { card_id = card_id, targets = {} })
 			M.leaving = was
 			receiving = receiving - 1
 			if not ok then error(err, 0) end

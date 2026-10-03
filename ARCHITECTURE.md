@@ -134,7 +134,7 @@ does — and only an unwritten one-holder-per-stat invariant kept them in step.
 resolves a bare key against the active seat, which it derives from the system
 card's `turn` rather than caching — so undo restores whose turn it is along
 with everything else. One seat is the ordinary case and pays for none of this:
-`active_seat` returns on its first line and every owner word names the same
+`acting_seat` returns on its first line and every owner word names the same
 cards.
 
 **Ownership** (`tags.owner_of`) is a card's own `owner` stat first — an index
@@ -335,13 +335,19 @@ A game with a zone tagged `stack` can let one player answer another's action.
 Three ideas carry the whole of it, and a game without that zone pays for none of
 them.
 
-**Priority is not the turn.** `zones.turn_seat()` is whose turn it is;
-`zones.active_seat()` is who may act *right now*, and they differ only inside a
-window. Priority lives in one stat (`priority` on the system card), 0 meaning
-"nobody but the turn" — so every game that has never heard of reactions reads
-exactly the turn, as it always did. Everything downstream — `mine`, costs, the
-plays counter, reachability — already reads `active_seat`, which is why moving
-priority is the entire out-of-turn unlock.
+**Priority is not the turn, and neither is `mine`.** Three seats, three
+functions. `zones.turn_seat()` is whose turn it is. `zones.acting_seat()` is who
+may act *right now* — the turn, or priority inside a window. Priority lives in one
+stat (`priority` on the system card), 0 meaning "nobody but the turn" — so every
+game that has never heard of reactions reads exactly the turn, as it always did.
+`zones.active_seat()` is whose `mine` it is: the acting seat, unless a lens
+(`zones.as_seat`) holds another. `actions.run` and `predicate.meets_all` hold it
+as the owner of the rule they run — `ctx.seat` if a loop said one outright, else
+the seat of `ctx.card_id` (a card's owner, a zone's seat) — so a rule never reads
+"whoever is up" unless nothing owns it. Costs, the plays counter and reachability
+read `active_seat` too, which is why moving priority is the entire out-of-turn
+unlock: outside any rule no lens is held and the two agree. An offer records
+`acting_seat`, since the seat that answers it is the actor, not the asker.
 
 **Nothing on the stack is a game card.** Each entry is an `event` record
 standing for something announced; the card that announced it stays in the hand or

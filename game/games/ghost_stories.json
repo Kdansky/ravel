@@ -1534,7 +1534,7 @@
       "abilities": [
         {
           "key": "overrun",
-          "needs": { "req": ["any@mine.self", "count:ghost@row3 >= 3"] },
+          "needs": { "req": ["my_turn@self", "count:ghost@row3 >= 3"] },
           "action": ["stat_damage:qi@mine.player:1", "stat_set:skip@mine.player:1"]
         },
         {
@@ -1552,7 +1552,7 @@
         },
         {
           "key": "mute",
-          "needs": { "req": ["any@mine.self", "tagged:power_off@row3"] },
+          "needs": { "req": ["my_turn@self", "tagged:power_off@row3"] },
           "action": ["stat_set:powered@mine.player:0"]
         }
       ]
@@ -1566,7 +1566,7 @@
       "abilities": [
         {
           "key": "overrun",
-          "needs": { "req": ["any@mine.self", "count:ghost@col3 >= 3"] },
+          "needs": { "req": ["my_turn@self", "count:ghost@col3 >= 3"] },
           "action": ["stat_damage:qi@mine.player:1", "stat_set:skip@mine.player:1"]
         },
         {
@@ -1584,7 +1584,7 @@
         },
         {
           "key": "mute",
-          "needs": { "req": ["any@mine.self", "tagged:power_off@col3"] },
+          "needs": { "req": ["my_turn@self", "tagged:power_off@col3"] },
           "action": ["stat_set:powered@mine.player:0"]
         }
       ]
@@ -1598,7 +1598,7 @@
       "abilities": [
         {
           "key": "overrun",
-          "needs": { "req": ["any@mine.self", "count:ghost@row3 >= 3"] },
+          "needs": { "req": ["my_turn@self", "count:ghost@row3 >= 3"] },
           "action": ["stat_damage:qi@mine.player:1", "stat_set:skip@mine.player:1"]
         },
         {
@@ -1616,7 +1616,7 @@
         },
         {
           "key": "mute",
-          "needs": { "req": ["any@mine.self", "tagged:power_off@row3"] },
+          "needs": { "req": ["my_turn@self", "tagged:power_off@row3"] },
           "action": ["stat_set:powered@mine.player:0"]
         }
       ]
@@ -1630,7 +1630,7 @@
       "abilities": [
         {
           "key": "overrun",
-          "needs": { "req": ["any@mine.self", "count:ghost@col3 >= 3"] },
+          "needs": { "req": ["my_turn@self", "count:ghost@col3 >= 3"] },
           "action": ["stat_damage:qi@mine.player:1", "stat_set:skip@mine.player:1"]
         },
         {
@@ -1648,7 +1648,7 @@
         },
         {
           "key": "mute",
-          "needs": { "req": ["any@mine.self", "tagged:power_off@col3"] },
+          "needs": { "req": ["my_turn@self", "tagged:power_off@col3"] },
           "action": ["stat_set:powered@mine.player:0"]
         }
       ]

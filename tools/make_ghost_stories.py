@@ -664,14 +664,14 @@ def plaques():
             "tooltip": "The %s board: the three ghost spaces beside this plaque. Ask the "
                        "Night Watchman here to send this board's haunting figures home." % colour,
             "abilities": [
-                {"key": "overrun", "needs": {"req": ["any@mine.self", "count:ghost@%s >= 3" % pat]},
+                {"key": "overrun", "needs": {"req": ["my_turn@self", "count:ghost@%s >= 3" % pat]},
                  "action": ["stat_damage:qi@mine.player:1", "stat_set:skip@mine.player:1"]},
                 {"key": "watch", "phases": ["yang_act"],
                  "needs": {"req": ["tagged:taoist@mine.attached_to.watchman",
                            "haunted@watchman == 0"] + MAY_ASK},
                  "action": ["stat_set:haunt@each.%s:0" % pat,
                             "spend_action:asked"]},
-                {"key": "mute", "needs": {"req": ["any@mine.self", "tagged:power_off@%s" % pat]},
+                {"key": "mute", "needs": {"req": ["my_turn@self", "tagged:power_off@%s" % pat]},
                  "action": ["stat_set:powered@mine.player:0"]},
             ],
         })

@@ -238,7 +238,7 @@ local function replaced(e, key, delta, ctx, verb)
 	if #swaps == 0 or instead_depth >= INSTEAD_LIMIT then return false end
 	instead_depth = instead_depth + 1
 	for _, s in ipairs(swaps) do
-		zones.as_seat(s.seat, function() M.run(s.action, s.ctx) end)
+		M.run(s.action, s.ctx)
 	end
 	instead_depth = instead_depth - 1
 	return true
@@ -976,7 +976,7 @@ local function queue_ask(zone_id, p, ctx)
 	local z = entity.get(zone_id)
 	if #z.cards == 0 then return false end
 	z.pending = z.pending or {}
-	z.pending[#z.pending + 1] = { seat = zones.active_seat(),
+	z.pending[#z.pending + 1] = { seat = zones.acting_seat(), lens = ctx and ctx.seat,
 		card = ctx and ctx.card_id or nil, action = table.concat(p, ":") }
 	asked, last_ask = asked + 1, z.pending[#z.pending]
 	return true
@@ -1052,7 +1052,7 @@ HANDLERS["show"] = function(p, ctx)
 	-- it out from under the list still running, and `each_seat:` would then hand
 	-- every remaining question to whoever asked first. Flow applies it once the
 	-- game has come to rest.
-	z.asked_seat  = zones.active_seat()
+	z.asked_seat  = zones.acting_seat()
 	asked, last_ask = asked + 1, z
 	phase.push("options")
 end
@@ -1367,7 +1367,8 @@ HANDLERS["copy"] = function(p, ctx)
 					-- in a later ability so the offer opens after the rest has run.
 					for _, a in ipairs(cards.abilities(e)) do
 						if type(a.action) == "table" then
-							local c = predicate.bind(a.compute, { card_id = id, targets = {} })
+							-- As the copier: the card is theirs to resolve, as a copied play is an imaginary chip in their hands.
+							local c = predicate.bind(a.compute, { card_id = id, targets = {}, seat = zones.active_seat() })
 							-- An ability is run where it stands, so nobody aims it. One that
 							-- waits to be aimed would run at nothing and look like it worked;
 							-- saying so is the difference between a gap and a silence.
@@ -1461,7 +1462,7 @@ end
 
 -- set_active_seat:<scope>  — whoever the scope names becomes the seat whose turn
 -- it is. Every other way of naming a seat was settled before the game started —
--- "mine" and "enemy" are relative to whoever is already up, a seat key is a
+-- "mine" and "enemy" are relative to the rule's owner, a seat key is a
 -- constant — so this is the only one that can be read off what just happened:
 -- the trick winner leads the next trick, the attack token holder acts first.
 --
@@ -1593,9 +1594,9 @@ end
 -- The engine knows how many seats there are and content used to write the
 -- number out: The Crew's deal was four "set_active_seat" lines and four deals,
 -- and a five-player variant meant editing the phase rather than the players
--- list. "mine" is what makes it work — every scope a game already writes is
--- relative to whoever is up, so the loop needs no vocabulary of its own and
--- wraps any action at all.
+-- list. "mine" is what makes it work — the loop says the seat outright
+-- (`ctx.seat`), every scope inside reads it, so the loop needs no vocabulary of
+-- its own and wraps any action at all.
 --
 -- The seat is moved by hand rather than through set_active_seat, and that is the
 -- point: a handover clears the undo history and writes a line in the log, and
@@ -1632,7 +1633,10 @@ HANDLERS["each_seat"] = function(p, ctx)
 		if held > 0 then sys.stats.priority = i end
 		-- And the lens, which outranks both: inside a death or an answered aim "mine" is held to the
 		-- card's owner, and the loop would run that one seat's action once per seat.
-		zones.as_seat(seats[i], function() M.execute(inner, ctx) end)
+		local c = {}
+		for k, v in pairs(ctx or {}) do c[k] = v end
+		c.seat = seats[i]
+		zones.as_seat(seats[i], function() M.execute(inner, c) end)
 	end
 	sys.stats.turn = was
 	if held > 0 then sys.stats.priority = held end
@@ -1920,7 +1924,7 @@ local function park(list, from, ctx)
 	for i = from, #list do rest[#rest + 1] = list[i] end
 	last_ask.after = last_ask.after or {}
 	local a = last_ask.after
-	a[#a + 1] = { action = rest, seat = zones.active_seat(),
+	a[#a + 1] = { action = rest, seat = zones.acting_seat(), lens = ctx and ctx.seat,
 		card = ctx and ctx.card_id or nil, targets = ctx and ctx.targets or nil,
 		event = ctx and ctx.event or nil, let = ctx and ctx.let or nil, within = ctx and ctx.within or nil,
 		gated = ctx and ctx.gated or nil }
@@ -1938,7 +1942,15 @@ local function open(line, ctx)
 	return true
 end
 
+-- **A rule runs as the side that owns it**: the card it is written on, or the zone, and whoever is up only when that
+-- has no seat. "mine" in a rule is never "whoever is up" — an opponent's unit dying on my turn, a pile the other player
+-- was made to draw from. Decided here, once, rather than held by hand round each moment that turned out to need it.
+-- `ctx.seat` is the seat said outright, by a loop that runs one rule as every seat in turn.
 function M.run(list, ctx)
+	local seat = predicate.rule_seat(ctx)
+	if seat and seat ~= zones.held_seat() then
+		return zones.as_seat(seat, function() M.run(list, ctx) end)
+	end
 	for i, line in ipairs(list or {}) do
 		if type(line) == "table" then
 			ctx = ctx or {}

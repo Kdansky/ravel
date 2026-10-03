@@ -2550,8 +2550,8 @@ end
 -- Every ICE is the same card, so *which* one looks immaterial -- and is not:
 -- one in your hand costs a Blast Score and one in your discard costs a draw. So
 -- the holder is asked, and when the junk was being *given*, the holder is the
--- other player. `set_priority` is the whole of that: from inside the window,
--- `mine` is theirs.
+-- other player. `set_priority` hands them the pick, and `enemy.held` is what
+-- they pick from.
 function M.test_spellstorm_a_dry_pile_asks_the_player_it_bites(check)
 	opening(3, "eve", "croh")
 	become("seat_one")

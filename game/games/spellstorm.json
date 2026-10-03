@@ -3663,7 +3663,7 @@
         {
           "key": "dry_give",
           "needs": { "req": ["not_tagged:junk@ash_pile"] },
-          "action": ["stat_damage:power@opponent:2", "set_priority:enemy.player", "show:mine.held.ash"]
+          "action": ["stat_damage:power@opponent:2", "set_priority:enemy.player", "show:enemy.held.ash"]
         }
       ],
       "chosen": { "action": ["move:target:ash_pile"] }
@@ -3693,7 +3693,7 @@
         {
           "key": "dry_give",
           "needs": { "req": ["not_tagged:junk@curse_pile"] },
-          "action": ["hit:health@opponent:1", "set_priority:enemy.player", "show:mine.held.curse"]
+          "action": ["hit:health@opponent:1", "set_priority:enemy.player", "show:enemy.held.curse"]
         }
       ],
       "chosen": { "action": ["move:target:curse_pile"] }
@@ -3723,7 +3723,7 @@
         {
           "key": "dry_give",
           "needs": { "req": ["not_tagged:junk@ice_pile"] },
-          "action": ["destroy:random.enemy.hand:2", "set_priority:enemy.player", "show:mine.held.ice"]
+          "action": ["destroy:random.enemy.hand:2", "set_priority:enemy.player", "show:enemy.held.ice"]
         }
       ],
       "chosen": { "action": ["move:target:ice_pile"] }

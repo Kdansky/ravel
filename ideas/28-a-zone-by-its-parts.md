@@ -152,40 +152,39 @@ stand in: `M.restock` (`zones.lua:280`) tips the pile over one card at a time
 through `move_card`, so the deck's `receive` fires once **per card** rather than
 once per refill, and by the time it fires the pile is no longer empty.
 
-### The candidate word
+### Agreed: `runs_out` (2026-10-03)
 
-The zone says how it restocks, in one block, where the deck already is:
+Not a restock word but the moment: **what happens when somebody draws from an
+empty pile**. Refilling is then an ordinary action, and the same block answers
+decking out (MTG, Runeterra) and fatigue (Hearthstone). `refill_from` is deleted
+rather than kept as a short form — one question, one spelling.
 
 ```json
-"restock": {
-  "from": "discard",
-  "needs": ["reshuffled@mine.player == 0"],
-  "action": ["stat_gain:reshuffled@mine.player:1"]
-}
+"runs_out": { "needs": ["reshuffled@mine.player == 0"],
+              "action": ["stat_gain:reshuffled@mine.player:1", "move:mine.discard:mine.deck", "shuffle:mine.deck"] }
+"runs_out": { "action": ["stat_gain:decked@mine.player:1"] }
 ```
 
-`refill_from: "discard"` stays as the short form of `{ "from": "discard" }` — the
-`normalise_moves` precedent (`declaration.lua:59`), where a bare string is the
-one-field case of the block beside it. A refused `needs` leaves the pile empty
-and `move_top` returns false, which is already what a draw off an empty pile
-does, so nothing downstream learns the word.
+No new verb: `move:<zone>:<zone>` moves a whole pile and `shuffle:` exists. Losing
+goes through an `end_conditions` line reading the stat.
 
-[Assumption: the three-field shape is mine, not dictated. The user asked for
-"marking decks for restocking directly on the deck", and the fields are the ones
-`restock` would have to be told; `needs`/`action` are named after the pair every
-other block in the format uses.]
+Where it lands: `zones.move_top` runs the block when the pile is empty, then tries
+once more; a refused `needs` leaves it empty and the draw returns false, as now.
+Same `{ needs, action }` shape and runner as `receive`, and the **same** depth
+guard — an action that draws from this pile is the circle it exists for. Field
+in `shape.lua`, `validate.lua`'s zone table and a `CASES` entry, appended. Six
+`refill_from` sites in three games move over — through their `make_*.py` where
+the game is generated.
 
-Where it lands: `M.restock` asks `needs` before it moves anything and runs
-`action` after the shuffle; `declaration.lua` normalises the string; the zone
-field table in `validate.lua:178` gains `restock`, checked with `check_conditions`
-and `check_list` exactly as `on_receive` is at `validate.lua:2665`.
+**Whose pile**: `mine` is the pile's owner, not whoever drew — a rule runs as
+the seat of the zone it is written on (DONE: *"mine" is whoever owns the rule*).
+The block's ctx needs the zone as `card_id` for that, as `receive` already passes.
 
-**The risk is the action list, not the gate.** Running actions inside a draw loop
-is what `fire_receive` does (`zones.lua:487`), and a restock whose action draws is
-the same circle its depth guard exists for — so the guard is **shared**, not
-copied.
-
-**The weakness is one customer.** Three games say `refill_from` at six sites;
-Puzzle Strike's bag and Spellstorm's four want no gate at all, and only Codex has
-a rule to write. Ranked on that rather than on difficulty. Needs consent before
-it is built.
+Open:
+- **Per card or per draw.** `draw_from` stops at the first failed `move_top`, so
+  "draw 3" off an empty deck fires once. Fatigue fires three times. [Assumption:
+  the loop keeps calling while `runs_out` ran, and stops when it is refused or
+  absent.]
+- **Fatigue scales.** [Assumption: unchecked whether `hit` takes a stat as its
+  amount.] Not this item's problem if not.
+- `refill_when_empty` is another moment (recreate `contents` on emptying) and stays.

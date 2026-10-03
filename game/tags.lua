@@ -73,9 +73,8 @@ function M.entity_has(e, tag)
         -- one the rest of the file is written in. "hp@self < 1" says it in the
         -- words a needs, a route and an end condition already use.
         --
-        -- Every subject wants its @self: a bare stat means the seat that is up,
-        -- and this is asked about a particular card. The card is the ctx, so
-        -- @self is it.
+        -- Every subject wants its @self: this is asked about a particular card.
+        -- The card is the ctx, so @self is it and `mine` is its owner.
         --
         -- Asked through the seam at the top of this file, not through a require.
         worn = M.asks(cd.needs, e)

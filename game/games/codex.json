@@ -2672,7 +2672,7 @@
           "text": "Sparkshot",
           "needs": {
             "req": [
-              "sparking@mine.player >= 1",
+              "sparking@opponent >= 1",
               "tagged:marked@beside"
             ]
           },
@@ -2817,7 +2817,7 @@
         "whose": "enemy",
         "needs": {
           "req": [
-            "tagged:detector@mine.addon"
+            "tagged:detector@enemy.addon"
           ]
         }
       }
@@ -19119,7 +19119,7 @@
           "text": "Bloodrage Ogre",
           "needs": {
             "req": [
-              "any@mine.self",
+              "my_turn@self",
               "ready_since@self >= 1",
               "fought@self == 0"
             ]

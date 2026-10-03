@@ -430,7 +430,7 @@ Five decisions, and everything else follows from them:
   score a number *on* something — `card_stats` on `north` — rather than a global
   the engine would have to keep a table of.
 - **`copies: "per_seat"` gives one hand each**, and `pos` then takes one rect per
-  seat. `mine.hand` reaches whoever is up, so no rule is written twice.
+  seat. `mine.hand` is the hand of whoever the rule belongs to, so no rule is written twice.
 - **`seat: "next"` hands over and `ends_when: "plays >= 1"` says when.** The route back to
   `turn` says nothing about the seat, so the phase's own word answers. Saying
   `"seat": "same"` on that route is the other game entirely: a turn that carries
@@ -1489,7 +1489,7 @@ disk cache with no network at all.
 | `emits` | What playing or activating this card **announces**, so a reaction may answer it: `{ "play": "cast" }`. Beside the moments rather than inside them, because a tag granting a `play` block grants it whole — written on a tag, one line makes every spell in the game answerable |
 | `play.spent` | Where the card goes once its play is over, **however it ends** — resolved, or countered before it ever ran. Opt-in; without it the action list is answerable for its own card |
 | `challenge` | **Not a moment — a named test.** `needs` is the condition, `pass` and `fail` the action lists it chooses between, and any action list reaches it by running `resolve_challenge`. That is why it sits beside the moments rather than inside one: kingdom's crises are resolved when *played*, and if they fail they stay on the board to be *activated* later — one challenge, asked from two moments. Written inside `play` it would have to be written twice. One block because the three fields only ever work together. **Its condition sees the card asking it** — `@self` is that card and `@target` whatever it was aimed at — which is how chess's pawn asks "did this move end on my eighth rank" |
-| `receive` | `needs`: whether **this** card may be aimed at, or be the destination of the card being played, with itself as `@self` and the aiming card as `@target` (see *Legality between two cards*). `action`: what this card does about the aim that was made, read the same way round — run once per chosen target, after the cost and **before** the aiming card acts, which is what lets *"dies when a spell aims at it"* leave the spell nothing to land on. `when`: which aims the action answers, since `needs` cannot serve — it refuses the aim outright, where an Illusion is targetable by everything and dies only to some of it. Fires only where a player **pointed**, never where a scope named. A zone takes the same block, where the halves are about a card *arriving* rather than an aim. **`when` and `action` read `mine` as the card's own owner**, not as whoever is up — being pointed at is not something the receiver chose to do, so *"your Illusions no longer die when a spell aims at them"* has to be asked from the Illusion's side. `needs` is the exception and keeps the ordinary reading, because it gates whether the aim may be made and is honestly about the aimer: Codex's stealth asks whether **you** have a detector |
+| `receive` | `needs`: whether **this** card may be aimed at, or be the destination of the card being played, with itself as `@self` and the aiming card as `@target` (see *Legality between two cards*). `action`: what this card does about the aim that was made, read the same way round — run once per chosen target, after the cost and **before** the aiming card acts, which is what lets *"dies when a spell aims at it"* leave the spell nothing to land on. `when`: which aims the action answers, since `needs` cannot serve — it refuses the aim outright, where an Illusion is targetable by everything and dies only to some of it. Fires only where a player **pointed**, never where a scope named. A zone takes the same block, where the halves are about a card *arriving* rather than an aim. All three read `mine` as the card's own owner, as every rule does — so *"your Illusions no longer die when a spell aims at them"* is asked from the Illusion's side, and Codex's stealth, which is about the aimer, asks whether the **enemy** has a detector (`tagged:detector@enemy.addon`, with `whose: "enemy"`) |
 | `round` | `action`: run at each round boundary while the card is on a grid and not ruined |
 | `leaves` | `action`: run when this card **leaves**, with `@self` as the departing card. `from` says which departure — leaving play by default, out of a `status: board` zone into one that is not; name a zone and it is leaving that zone, which is how "when you discard this" is said. `into` names the zone it landed in, and is what tells death from exile from bounce (see *`leaves` — a card on its way out*) |
 | `becomes` | Keyed by a tag: `{ "dead": { needs, action } }` runs when this card **starts wearing** that tag, with `@self` as the card — which is "when this dies" in a game whose computed tag says what dying is. Heard when the game comes to rest, while the corpse still stands. Adds to a tag's block rather than replacing it (see *`becomes` — a card starting to wear a tag*) |
@@ -1509,8 +1509,9 @@ disk cache with no network at all.
 ]
 ```
 
-`mine` is what makes it work — every scope you write is already relative to
-whoever is up — so any action at all can be wrapped and no new words are needed.
+`mine` is what makes it work — the loop runs the action as each seat in turn, and
+every scope inside reads that seat — so any action at all can be wrapped and no new
+words are needed.
 The Crew's deal was four `set_active_seat` lines and four draws before this, and
 a five-player variant meant editing the phase rather than the `players` list.
 
@@ -1706,10 +1707,10 @@ which is what `tagged:` is.
 in a discard is not dead, it is a card.
 
 `my_turn@<scope>` is yes when the seat whose turn it is owns anything there, and
-`their_turn@<scope>` its exact complement. It is how a rule asks whose turn it is
-where `mine` means the card's owner rather than whoever is up — inside a `leaves`
-block, or an aim being answered: *"dies on another player's turn"* is
-`their_turn@self`. The turn, not priority: answering inside a window is not having it.
+`their_turn@<scope>` its exact complement. It is how a rule asks whose turn it is,
+since `mine` means the card's owner rather than whoever is up: *"dies on another
+player's turn"* is `their_turn@self`, and *"at the end of your turn"* on a card that
+both sides' end steps walk is `my_turn@self`. The turn, not priority: answering inside a window is not having it.
 
 `saved:<slot>` is the same yes/no shape asked of the machine rather than of any
 card: 1 when that save slot holds a game and 0 when it does not, which is how a
@@ -2233,7 +2234,7 @@ count:beast@anyone.board every seat's beasts, said out loud
 
 | Word | Means |
 |---|---|
-| `mine` | owned by the seat whose turn it is |
+| `mine` | owned by the seat the rule belongs to — see below |
 | `enemy` | owned by any other seat |
 | `anyone` | no filter — identical to writing no owner word, but says so deliberately |
 
@@ -2242,6 +2243,14 @@ A card's owner is **the seat of the zone it sits in**. A card in a shared zone
 pass it over and only `anyone` — or no word at all — reaches it. In a
 one-player game every word names the same cards and `enemy` names none, so
 none of this is visible until a second seat exists.
+
+**A rule runs as its owner.** `mine` is the seat that owns the card or zone the
+rule is written on — on a play, an ability, a death, a reaction, an aim answered,
+an aura, a round's tick — never whoever happens to be up. An opponent's unit dying
+on your turn pays *its* owner. Only a rule nothing owns — a phase's own list, a
+card in a shared zone — falls back to the seat that is up. `set_priority` moves
+who answers, never whose `mine` it is; `each_seat:` is the one thing that runs
+a rule as somebody else, by saying so.
 
 **`@opponent` is the other player**, and it is not an owner word — it is a seat,
 the way `@self` is a card. It takes nothing after it: write `health@opponent`,
@@ -2339,7 +2348,7 @@ without naming a chair:
 ```
 
 *The owner of the card you chose scores a point.* Every other way of naming a
-seat is decided in advance: `mine` and `enemy` are relative to whoever is up,
+seat is decided in advance: `mine` and `enemy` are relative to the rule's owner,
 and a seat key reaches its own card only because the game file tagged that card
 with its own name. Neither can say *whoever owns this particular card*, which is
 what a trick winner, a captured piece and a card played out of somebody's hand
@@ -2347,8 +2356,7 @@ all need.
 
 What follows the prefix is an ordinary scope expression, so quantifiers and
 owner words work inside it. On its own, `@owner_of` is **the acting card's own
-seat** — which a card cannot otherwise name, since `mine` is whoever is up
-rather than whose the card is.
+seat** — the seat `mine` already means, said as a seat rather than an owner word.
 
 ```
 score@owner_of              the seat this card belongs to
@@ -2455,7 +2463,7 @@ that lands must not deal one onto the guardian.
 
 ### `owned_by` — the cards of seats picked by what is true of them
 
-`mine` and `enemy` choose a seat relative to whoever is up, and that is fixed before
+`mine` and `enemy` choose a seat relative to the rule's owner, and that is fixed before
 anything happens. Ghost Stories lets a Taoist spend the tokens of *any Taoist on the
 same tile*, which picks seats by where their figures stand. `owned_by` says it:
 
@@ -2974,8 +2982,8 @@ computed tag: `{ "promoting": { "needs": ["rank@self >= 8"] } }`.
 ### `across` and `beside` — pointing at the other cards
 
 A pattern is the only way to say **"not me, over there"**. No scope means it: a
-zone name includes the card asking, and `mine`/`enemy` answer for the *active
-seat*, not for whoever is speaking. So a rule about the card opposite, or the
+zone name includes the card asking, and `mine`/`enemy` answer for a *seat*, not for
+the card that is speaking. So a rule about the card opposite, or the
 card next along, is a pattern used as a scope.
 
 Two that earn their keep, both one line:
@@ -3587,8 +3595,8 @@ Resolved, or countered before it ever ran: either way the card goes there. An
 MTG sorcery reaches the graveyard both ways and a deck-builder's chip the table
 both ways, and neither the action list nor the card that countered it should be
 the one that remembers. Opt-in — leave it out and the action list is answerable
-for its own card, as before. It is run as the card's **owner**, so `mine` means
-whose card it is and not whoever answered.
+for its own card, as before. It is run as the card's **owner**, as every rule is, so
+`mine` means whose card it is and not whoever answered.
 
 #### A phase announces itself
 
@@ -3911,11 +3919,11 @@ Two things it does not do, both on purpose:
   nothing aims an ability and there is nothing to create — so an ability that
   waits to be pointed at something cannot be copied, and says so rather than
   running at nothing. A `play` is aimed, since it is a card being played.
-- **It does not change whose turn it is.** The imaginary card is the copier's, so
-  its action reads `@self` as itself — but `mine` still means whoever is *up*.
-  Copying an opponent's card gives *you* the benefit, which is what a card that
-  copies wants and a trap for a card that meant to make them do something. For
-  that, see *Making them choose* below.
+- **It does not change whose turn it is.** The imaginary card is the copier's,
+  and a copied ability runs as the copier, so its action reads `@self` as itself
+  and `mine` as *you*. Copying an opponent's card gives you the benefit, which is
+  what a card that copies wants and a trap for a card that meant to make them do
+  something. For that, see *Making them choose* below.
 
 A card that copies itself is a rule that runs away; it is bounded, stops, and
 says so in the log.
@@ -4072,21 +4080,18 @@ it, so a replay and a networked opponent see the same card.
 
 Everything above shows their hand to **you**. The other sentence — *they* reveal
 a card, of their choosing, to you — needs no new verb either. `set_priority`
-makes the other seat the one who is up without the turn moving, and every scope
-is relative to whoever is up, so from inside that window `mine.hand` is theirs:
+makes the other seat the one who answers without the turn moving. It does not
+move `mine`, which is still the card's owner:
 
 ```json
-"play": { "action": ["set_priority:enemy.player", "show:mine.hand"] },
-"chosen": { "action": ["move:target:enemy.table", "clear_priority"] }
+"play": { "action": ["set_priority:enemy.player", "show:enemy.hand"] },
+"chosen": { "action": ["move:target:mine.table", "clear_priority"] }
 ```
 
-Read it as the seat being asked and it says what it means: their hand comes up,
-they pick, the pick goes to the other player's table — `enemy` is *you* now —
-and priority goes home. Nothing about the turn moved, so whatever your card was
-doing carries on afterwards.
-
-The trap is that both readings look right from one side of the screen. Say the
-scope out loud as **the seat who is up**, and check who that is at that line.
+Their hand comes up, they pick, the pick goes to your table, and priority goes
+home. Nothing about the turn moved, so whatever your card was doing carries on
+afterwards. An `options:` card dealt to them is yours too — it takes the asker's
+owner — so a branch they pick that hurts them says `enemy`.
 
 #### `each_seat:` goes round the table from whoever is up
 
@@ -4546,7 +4551,7 @@ Per-card derived tags, written as an ordinary condition about that one card:
                    "dead":     { "needs": { "req": ["hp@self < 1"] } } }
 ```
 
-**Every subject wants its `@self`.** A bare stat means whoever is up, and this is
+**Every subject wants its `@self`.** A bare stat means the seat the card belongs to, and this is
 asked about a particular card — the card is what `@self` names here.
 
 Usable anywhere card tags are (targeting, `count:`, and as a scope — castle reads
