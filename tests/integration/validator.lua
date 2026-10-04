@@ -977,6 +977,11 @@ local CASES = {
 	-- a pile's empty draw
 	{ "a zone still saying refill_from", "refill_from is gone",
 		function(g) g.zone_defs.board.refill_from = "board" end },
+	-- a board dealt from a pile
+	{ "a setup deal from a pile that is not there", "deals from 'tiles', but no zone has that key",
+		function(g) g.setup.place = { { deck = "tiles", zone = "board" } } end },
+	{ "a setup entry naming a card and a deck", "names both a card and a deck",
+		function(g) g.setup.place = { { card = "throne_room", deck = "board", zone = "board" } } end },
 }
 
 -- The verb check runs last for a reason: what a game emits is only known once

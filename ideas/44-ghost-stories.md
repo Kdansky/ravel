@@ -103,10 +103,7 @@ dropped: it needed a verb nothing else performs, a counter stat, and left the Mo
    no Yang phase, and the players carry Power tokens to borrow its power. It is
    [09](09-composition.md)'s seat-count module in its natural habitat, and the
    reason this file ships at four seats.
-5. **The village laid out at random.** Nine tiles into nine squares in a
-  shuffled order; `setup.place` says which card goes where and has no way to
-  say "these nine, in any order". Cheap, and it changes how a game opens.
-6. **The Mantra on a ghost printed in several colours** takes 1 off every
+5. **The Mantra on a ghost printed in several colours** takes 1 off every
     colour, because `mantra@self` is a term in each of the five computes; the
     rulebook has the player pick one colour after the roll. Hope Killer and the
     Nameless only, and the same fix as item 4.

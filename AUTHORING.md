@@ -1152,6 +1152,7 @@ box; `setup` is the page of the manual that arranges it:
 | `owner` | which player this one belongs to. Without it a card belongs to the seat of the zone it sits in, which is enough for per-seat tableaus; a shared board has no such seat, so pieces on one say whose they are here |
 | `zone` | where it goes. Leave it out and its home tag decides, then the only board. A zone with `copies: "per_seat"` gets one copy in **each** seat's — a marker declared once appears on every player's board |
 | `at` | the square, named the way a player would say it: a column letter and a rank counted from the near edge, so `"e1"` is the white king's. Grid zones only; without it the card takes the first free cell |
+| `deck` | in place of `card`: a pile whose cards are dealt out, top first, one per square of `at` — or, without `at`, until the pile or the grid runs out (see *A board laid out at random*) |
 
 `place` is the only thing `setup` holds. **Starting numbers are the seat's, not
 setup's** — `players[].stats` for an injected seat, `card_stats` on the card for
@@ -1163,6 +1164,25 @@ site, so the manual and `SCHEMA.json` are held to it like any other.
 entry naming eight squares. That is what makes the placement list read like the
 diagram in a rulebook instead of a table of cell numbers, and it is why chess
 needs six cards rather than thirty-two.
+
+**A board laid out at random is a shuffled pile dealt onto it.** Ghost Stories'
+nine village tiles go into the middle of the table in any order. The shuffle is
+already a word — a zone tagged `shuffle` with `contents` is shuffled as it is
+filled — so what setup says is only where the pile goes:
+
+```json
+"zones": [{ "key": "tiles", "layout": "stack", "display": "offscreen", "tags": ["shuffle"],
+            "contents": ["t_cemetery", "t_altar", "t_herbalist", "t_sorcerer", "t_temple",
+                         "t_watchman", "t_circle_tile", "t_pavilion", "t_tea_house"] }],
+"setup": { "place": [
+  { "deck": "tiles", "zone": "table", "at": ["b2", "c2", "d2", "b3", "c3", "d3", "b4", "c4", "d4"] }
+] }
+```
+
+`deck` means what it means on a phase: the pile cards are dealt from. Nothing is
+created; the cards already in the pile move. A card dealt this way has no fixed
+square, so a rule about "the centre tile" asks where the card is (`col` and
+`row` in its `card_stats`, read by a computed tag) rather than which card it is.
 
 **The order is the order things are placed**, and it is worth caring about:
 entity IDs are handed out as cards are created, so a seeded game only replays

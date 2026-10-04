@@ -711,12 +711,12 @@ function M.init(filename, seed)
 	-- in creation order, so a seed reproduces a board only if setup builds it the
 	-- same way every time.
 	for _, e in ipairs(G.setup_place or {}) do
-		local def = G.card_defs[e.card]
-		if def then
+		local def = e.card and G.card_defs[e.card]
+		if def or e.deck then
 			-- Into every instance of the zone, which is one for a shared zone
 			-- and one per seat otherwise: a per-seat board wants its marker in
 			-- each seat's copy, not a single one in whoever happens to be first.
-			local zkey = e.zone or cards.home_zone(def) or "board"
+			local zkey = e.zone or (def and cards.home_zone(def)) or "board"
 			-- A seat's own card is the one thing a per-seat zone does not copy:
 			-- it goes in that seat's instance and in no other. Everything else
 			-- is a copy each, which is what a marker every player starts with
@@ -731,13 +731,29 @@ function M.init(filename, seed)
 				into = own
 			end
 			for _, to in ipairs(into) do
+				local owner = e.owner and G.seat_index and G.seat_index[e.owner]
+				-- A deck deals what is already in the box rather than making
+				-- anything: nine village tiles shuffled into nine squares. A
+				-- per-seat zone deals from its own seat's pile.
+				local pile
+				for _, z in ipairs(e.deck and zones.all_with_key(e.deck) or {}) do
+					if not (z.seat and to.seat) or z.seat == to.seat then pile = z; break end
+				end
+				-- Without squares the deal runs until the pile or the grid does. A
+				-- refused card stops it, since the next try would deal the same one.
+				local i = 1
+				while pile and #pile.cards > 0 and (e.at and e.at[i] or not e.at and zones.has_room(to)) do
+					local top = entity.get(pile.cards[#pile.cards])
+					if owner then top.stats.owner = owner end
+					if not zones.move_card(top.id, to.id, e.at and e.at[i]) then break end
+					i = i + 1
+				end
 				-- One entry may name several squares, and then it is several
 				-- pieces: eight pawns are one line naming eight squares.
-				for _, at in ipairs(e.at or NOWHERE) do
+				for _, at in ipairs(def and (e.at or NOWHERE) or {}) do
 					local card = cards.create(def.key, to.id)
 					-- Before it is put down, not after: placing a piece stamps
 					-- its rank, and a rank counts from its owner's own side.
-					local owner = e.owner and G.seat_index and G.seat_index[e.owner]
 					if owner then card.stats.owner = owner end
 					local slot_id = at ~= true and geometry.slot_named(to, at)
 					if slot_id then zones.place_in_slot(card.id, slot_id) else zones.auto_slot(card.id) end

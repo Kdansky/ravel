@@ -2299,6 +2299,17 @@ not usefully ask for it.
 A grid is `status: "board"` without saying so. Cards entering without slot targeting take the
 first free cell; a full board refuses arrivals quietly.
 
+### Lay these tiles out in a random order.
+
+```json
+"zones": [{ "key": "tiles", "layout": "stack", "display": "offscreen", "tags": ["shuffle"],
+            "contents": ["t_altar", "t_temple", "t_tea_house"] }],
+"setup": { "place": [{ "deck": "tiles", "zone": "table", "at": ["b2", "c2", "d2"] }] }
+```
+
+A shuffled pile, dealt top first onto the named squares. Without `at` it fills the grid until
+the pile or the free cells run out.
+
 ---
 
 ## Seats and sides

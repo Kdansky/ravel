@@ -30,8 +30,20 @@ local M = {}
 
 local SEATS = { "south", "west", "north", "east" }
 
+-- The village is dealt at random. Everything below is about the geometry between named tiles, so it lays them out
+-- as the rulebook's diagram does; the deal itself has a test of its own.
+local DIAGRAM = { t_cemetery = "b2", t_altar = "c2", t_herbalist = "d2", t_sorcerer = "b3", t_temple = "c3",
+	t_watchman = "d3", t_circle_tile = "b4", t_pavilion = "c4", t_tea_house = "d4" }
+
 local function start(seed)
 	flow.init("ghost_stories.json", seed or 9)
+	local table_, pile = zones.find("table"), zones.find("tiles")
+	local tiles = {}
+	for _, id in ipairs(table_.cards) do
+		if DIAGRAM[entity.get(id).def_key] then tiles[#tiles + 1] = entity.get(id) end
+	end
+	for _, c in ipairs(tiles) do zones.move_card(c.id, pile.id) end
+	for _, c in ipairs(tiles) do zones.move_card(c.id, table_.id, DIAGRAM[c.def_key]) end
 end
 
 local function seat(key)
@@ -77,6 +89,11 @@ local function slot_at(col, row)
 	end
 end
 
+local function on_table_at(square)
+	local s = entity.get(slot_at(square:byte() - 96, tonumber(square:sub(2))))
+	return s.occupant and entity.get(s.occupant)
+end
+
 -- Put a ghost on a named square without going through a Yin phase, so a test
 -- about haunting is not also a test about the shuffle.
 local function put(def_key, col, row)
@@ -89,7 +106,7 @@ end
 local function take_places()
 	for _ = 1, 4 do
 		local m = monk_of(zones.active_seat())
-		flow.activate(m.id, { on_table("t_temple").id }, ability(m, "station"))
+		flow.activate(m.id, { on_table_at("c3").id }, ability(m, "station"))
 	end
 end
 
@@ -270,6 +287,27 @@ function M.test_ghost_stories_the_taoists_take_the_central_tile_then_south_begin
 	end
 	check("all four Taoists stand on the central tile", standing == 4, tostring(standing))
 	check("and South's turn begins", zones.active_seat() == "south")
+end
+
+function M.test_ghost_stories_the_village_is_dealt_at_random_and_the_taoists_start_in_its_middle(check)
+	local function layout(seed)
+		flow.init("ghost_stories.json", seed)
+		local out = {}
+		for sq in ("b2 c2 d2 b3 c3 d3 b4 c4 d4"):gmatch("%S+") do
+			local c = on_table_at(sq)
+			out[#out + 1] = c and c.def_key or "-"
+		end
+		return table.concat(out, " ")
+	end
+	local a, b = layout(1), layout(2)
+	check("every village square holds a tile", not a:find("-", 1, true) and not b:find("-", 1, true), a)
+	check("the pile is spent", #zones.find("tiles").cards == 0)
+	check("two seeds lay two villages", a ~= b, a)
+	check("and one seed lays the same village twice", layout(2) == b)
+	local centre = on_table_at("c3")
+	take_places()
+	check("the Taoists start on whatever tile was dealt to the middle",
+		monk_of("south").parent_id == centre.id, centre.def_key)
 end
 
 function M.test_ghost_stories_a_taoist_walks_to_a_tile_beside_the_one_it_stands_on(check)

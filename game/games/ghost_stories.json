@@ -131,7 +131,10 @@
     "vert4": { "vectors": [[0, 4], [0, -4]] },
     "horiz4": { "vectors": [[4, 0], [-4, 0]] }
   },
-  "computed_tags": { "led": { "needs": { "req": ["guided@self >= 1"] } } },
+  "computed_tags": {
+    "led": { "needs": { "req": ["guided@self >= 1"] } },
+    "centre_tile": { "needs": { "req": ["col@self == 3", "row@self == 3"] } }
+  },
   "computes": [
     {
       "key": "power_yellow",
@@ -842,6 +845,23 @@
         "g_soul_eater"
       ],
       "tooltip": "Fifty-five ghosts. The incarnation of Wu-Feng comes off the urn when ten are left, which is where the rulebook buries it."
+    },
+    {
+      "key": "tiles",
+      "layout": "stack",
+      "display": "offscreen",
+      "tags": ["shuffle"],
+      "contents": [
+        "t_cemetery",
+        "t_altar",
+        "t_herbalist",
+        "t_sorcerer",
+        "t_temple",
+        "t_watchman",
+        "t_circle_tile",
+        "t_pavilion",
+        "t_tea_house"
+      ]
     },
     {
       "key": "urn",
@@ -1657,6 +1677,7 @@
       "key": "t_cemetery",
       "text": "Cemetery",
       "tags": ["village", "cemetery"],
+      "card_stats": { "col": 0, "row": 0 },
       "asset": "t_cemetery",
       "story": "Bring a dead Taoist back with 2 Qi, then roll the Curse die.",
       "tooltip": "Bring a dead Taoist back with 2 Qi, then roll the Curse die.",
@@ -1716,6 +1737,7 @@
       "key": "t_altar",
       "text": "Taoist Altar",
       "tags": ["village", "altar"],
+      "card_stats": { "col": 0, "row": 0 },
       "asset": "t_altar",
       "story": "Turn one haunted tile back to its active side, then bring a ghost into play.",
       "tooltip": "Turn one haunted tile back to its active side, then bring a ghost into play.",
@@ -1745,6 +1767,7 @@
       "key": "t_herbalist",
       "text": "Herbalist's Shop",
       "tags": ["village", "herbalist"],
+      "card_stats": { "col": 0, "row": 0 },
       "asset": "t_herbalist",
       "story": "Roll 2 Tao dice and take a token of each colour rolled; a white face is any colour.",
       "tooltip": "Roll 2 Tao dice and take a token of each colour rolled; a white face is any colour.",
@@ -1827,6 +1850,7 @@
       "key": "t_sorcerer",
       "text": "Sorcerer's Hut",
       "tags": ["village", "sorcerer"],
+      "card_stats": { "col": 0, "row": 0 },
       "asset": "t_sorcerer",
       "story": "Discard any ghost in play, with neither its curse nor its reward. Lose 1 Qi.",
       "tooltip": "Discard any ghost in play, with neither its curse nor its reward. Lose 1 Qi.",
@@ -1850,7 +1874,8 @@
     {
       "key": "t_temple",
       "text": "Buddhist Temple",
-      "tags": ["village", "temple", "centre_tile"],
+      "tags": ["village", "temple"],
+      "card_stats": { "col": 0, "row": 0 },
       "asset": "t_temple",
       "story": "Take a Buddha figurine. You may place it from your next turn on.",
       "tooltip": "Take a Buddha figurine. You may place it from your next turn on.",
@@ -1875,6 +1900,7 @@
       "key": "t_watchman",
       "text": "Night Watchman's Beat",
       "tags": ["village", "watchman"],
+      "card_stats": { "col": 0, "row": 0 },
       "asset": "t_watchman",
       "story": "Send every haunting figure on one board back onto its card.",
       "tooltip": "Send every haunting figure on one board back onto its card."
@@ -1883,6 +1909,7 @@
       "key": "t_circle_tile",
       "text": "Circle of Prayer",
       "tags": ["village", "circle_tile"],
+      "card_stats": { "col": 0, "row": 0 },
       "asset": "t_circle_tile",
       "story": "Put a Tao token here, or change the one there. Ghosts of that colour are one easier to exorcise, for everybody.",
       "tooltip": "Put a Tao token here, or change the one there. Ghosts of that colour are one easier to exorcise, for everybody.",
@@ -1906,6 +1933,7 @@
       "key": "t_pavilion",
       "text": "Pavilion of the Heavenly Wind",
       "tags": ["village", "pavilion"],
+      "card_stats": { "col": 0, "row": 0 },
       "asset": "t_pavilion",
       "story": "Move one ghost to any free space, then move another Taoist to any tile.",
       "tooltip": "Move one ghost to any free space, then move another Taoist to any tile.",
@@ -1949,6 +1977,7 @@
       "key": "t_tea_house",
       "text": "Tea House",
       "tags": ["village", "tea_house"],
+      "card_stats": { "col": 0, "row": 0 },
       "asset": "t_tea_house",
       "story": "Take a Tao token of your choice and 1 Qi, then bring a ghost into play.",
       "tooltip": "Take a Tao token of your choice and 1 Qi, then bring a ghost into play.",
@@ -5280,15 +5309,11 @@
       { "card": "north", "zone": "seat_home" },
       { "card": "east", "zone": "seat_home" },
       { "card": "monk", "zone": "figure" },
-      { "card": "t_cemetery", "zone": "table", "at": "b2" },
-      { "card": "t_altar", "zone": "table", "at": "c2" },
-      { "card": "t_herbalist", "zone": "table", "at": "d2" },
-      { "card": "t_sorcerer", "zone": "table", "at": "b3" },
-      { "card": "t_temple", "zone": "table", "at": "c3" },
-      { "card": "t_watchman", "zone": "table", "at": "d3" },
-      { "card": "t_circle_tile", "zone": "table", "at": "b4" },
-      { "card": "t_pavilion", "zone": "table", "at": "c4" },
-      { "card": "t_tea_house", "zone": "table", "at": "d4" },
+      {
+        "deck": "tiles",
+        "zone": "table",
+        "at": ["b2", "c2", "d2", "b3", "c3", "d3", "b4", "c4", "d4"]
+      },
       { "card": "plaque_south", "owner": "south", "zone": "table", "at": "a1" },
       { "card": "plaque_west", "owner": "west", "zone": "table", "at": "a5" },
       { "card": "plaque_north", "owner": "north", "zone": "table", "at": "e5" },

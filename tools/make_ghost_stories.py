@@ -64,9 +64,6 @@ ON_BOARD = {
 }
 
 VILLAGE = ["b2", "c2", "d2", "b3", "c3", "d3", "b4", "c4", "d4"]
-# The tiles are laid out in the order they are listed, so the fifth of them
-# stands in the middle and is where the four Taoists begin.
-CENTRE_TILE = "temple"
 
 # Tao colours. Black is a Tao colour and not a board colour: black ghosts go to
 # whoever is playing rather than to a board of their own.
@@ -366,6 +363,8 @@ def zones():
          "contents": ["g_" + g[0] for g in G],
          "tooltip": "Fifty-five ghosts. The incarnation of Wu-Feng comes off the urn "
                     "when ten are left, which is where the rulebook buries it."},
+        {"key": "tiles", "layout": "stack", "display": "offscreen", "tags": ["shuffle"],
+         "contents": ["t_" + t[0] for t in TILES]},
         {"key": "urn", "label": "Wu-Feng", "layout": "stack", "visibility": "secret",
          "tags": ["shuffle"], "pos": [0.925, 0.02, 0.995, 0.18],
          "contents": ["i_" + i[0] for i in INC],
@@ -730,10 +729,8 @@ def village():
     }
     out = []
     for key, name, text in TILES:
-        tags = ["village", key]
-        if key == CENTRE_TILE:
-            tags.append("centre_tile")
-        card = {"key": "t_" + key, "text": name, "tags": tags,
+        # The village is dealt at random, so the centre tile is wherever a tile stands rather than which one it is.
+        card = {"key": "t_" + key, "text": name, "tags": ["village", key], "card_stats": {"col": 0, "row": 0},
                 "asset": "t_" + key, "story": text, "tooltip": text}
         rules = []
         if powers[key]:
@@ -1354,8 +1351,7 @@ def phases():
 def setup():
     place = [{"card": s[0], "zone": "seat_home"} for s in SIDES]
     place.append({"card": "monk", "zone": "figure"})
-    for (key, _n, _t), square in zip(TILES, VILLAGE):
-        place.append({"card": "t_" + key, "zone": "table", "at": square})
+    place.append({"deck": "tiles", "zone": "table", "at": VILLAGE})
     for name, _c, _s, square, _pat in SIDES:
         place.append({"card": "plaque_" + name, "owner": name, "zone": "table", "at": square})
     for key in ("no_move", "no_act", "roll_dice", "use_yy", "give_up", "borrow", "keep_roll",
@@ -1414,7 +1410,8 @@ def build():
         },
         "assets": assets(),
         "patterns": patterns(),
-        "computed_tags": {"led": {"needs": {"req": ["guided@self >= 1"]}}},
+        "computed_tags": {"led": {"needs": {"req": ["guided@self >= 1"]}},
+                          "centre_tile": {"needs": {"req": ["col@self == 3", "row@self == 3"]}}},
         "computes": computes(),
         "stats": stats(),
         "tags": t,

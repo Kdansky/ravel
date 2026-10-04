@@ -1196,19 +1196,20 @@ function M.parse(filename)
 	-- seat has to exist before it can act — so a game never writes them down.
 	-- Everything else is an entry an author put in "setup".
 	for _, e in ipairs(type(G.setup.place) == "table" and G.setup.place or {}) do
-		if type(e) == "table" and type(e.card) == "string" then
+		if type(e) == "table" and (type(e.card) == "string" or type(e.deck) == "string") then
 			-- One square or several: eight pawns are one entry naming eight
 			-- squares, which is how the placement list reads like the diagram
 			-- in a rulebook rather than like a table of cell numbers.
 			local at = e.at
 			if type(at) == "string" then at = { at } end
-			G.setup_place[#G.setup_place + 1] = { card = e.card, zone = e.zone,
+			G.setup_place[#G.setup_place + 1] = { card = type(e.card) == "string" and e.card or nil,
+				deck = type(e.card) ~= "string" and e.deck or nil, zone = e.zone,
 				at = type(at) == "table" and at or nil,
 				owner = type(e.owner) == "string" and e.owner or nil }
 		elseif type(e) == "string" then
 			G.setup_place[#G.setup_place + 1] = { card = e }
 		else
-			pp[#pp + 1] = 'a "setup.place" entry should name a card, like { "card": "throne", "zone": "board", "at": "c3" }'
+			pp[#pp + 1] = 'a "setup.place" entry should name a card or a deck, like { "card": "throne", "zone": "board", "at": "c3" }'
 		end
 	end
 
@@ -1381,7 +1382,7 @@ function M.parse(filename)
 	-- which "named" below sees and this loop then leaves alone.
 	do
 		local named = {}
-		for _, e in ipairs(G.setup_place) do named[e.card] = true end
+		for _, e in ipairs(G.setup_place) do if e.card then named[e.card] = true end end
 		local own = {}
 		for _, key in ipairs(G.card_list) do
 			local cd = G.card_defs[key]

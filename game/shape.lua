@@ -230,7 +230,7 @@ local FILE = rec({
 	effects = map(rec({ base = STR, size = NUM, speed = NUM, count = NUM, color = COLOUR })),
 	end_conditions = list(rec({ when = COND, ["then"] = ACTIONS })),
 	setup = rec({
-		place = list(either(STR, rec({ card = STR, zone = STR, at = WORDS, owner = STR }))),
+		place = list(either(STR, rec({ card = STR, zone = STR, at = WORDS, owner = STR, deck = STR }))),
 	}),
 	players = list(rec({ card = STR, text = STR, owns = STR, stats = map(NUM) })),
 	patterns = map(either(VECTORS, rec({ vectors = VECTORS, class = STRS, zone = STR }))),

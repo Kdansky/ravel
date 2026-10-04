@@ -338,7 +338,7 @@ local PATTERN_FIELDS  = { vectors = true, class = true, zone = true }
 -- long as it took somebody to copy it. A move rule had no set at all, so a
 -- misspelt "fil" was ignored rather than reported.
 local SETUP_FIELDS = { place = true }
-local PLACE_FIELDS = { card = true, zone = true, at = true, owner = true }
+local PLACE_FIELDS = { card = true, zone = true, at = true, owner = true, deck = true }
 local MOVE_RULE_FIELDS = { patterns = true, fill = true, needs = true, where = true }
 local PLAYER_FIELDS = { card = true, stats = true, text = true }
 -- A value names its own parameter field, so every word on every one of the seven
@@ -3407,7 +3407,16 @@ function M.check(G)
 			local where = ("setup.place entry %d"):format(i)
 			if type(e) == "table" then
 				check_fields(where, e, PLACE_FIELDS)
-				if not G.card_defs[e.card] then
+				-- A deck entry places what is in that pile, so naming a card as
+				-- well is two answers to which card goes here.
+				if e.deck ~= nil and e.card ~= nil then
+					warn('%s: names both a card and a deck — "card" makes one, "deck" deals what is in a pile', where)
+				elseif e.deck ~= nil then
+					if not G.zone_defs[e.deck] then
+						warn("%s: deals from '%s', but no zone has that key%s", where, tostring(e.deck),
+							suggest(e.deck, G.zone_defs))
+					end
+				elseif not G.card_defs[e.card] then
 					warn("%s: places '%s', but no card has that key%s", where, tostring(e.card),
 						suggest(e.card, G.card_defs))
 				end

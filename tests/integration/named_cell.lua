@@ -47,10 +47,10 @@ local GAME = [==[{
   ] }
 }]==]
 
-local function with_game(fn)
+local function with_game(fn, game)
 	local path = "game/games/" .. harness.tmp()
 	local f = assert(io.open(path, "w"))
-	f:write(GAME)
+	f:write(game or GAME)
 	f:close()
 	local ok, err = pcall(fn, harness.tmp())
 	os.remove(path)
@@ -164,6 +164,27 @@ function M.test_named_cell_the_card_knows_the_square_it_took(check)
 		check("it holds the card back", slot.occupant == zones.find("row").cards[1])
 		check("and it is the fourth cell", slot.stats.col == 4, tostring(slot.stats.col))
 	end)
+end
+
+-- Setup deals a pile the same way: top card first, onto the squares named, and
+-- without any it fills the grid until the pile runs out.
+local function dealt(entry)
+	return (GAME:gsub('{ "card": "gamma", "zone": "hand" }', '{ "card": "gamma", "zone": "hand" },\n    ' .. entry))
+end
+
+function M.test_named_cell_setup_deals_a_pile_onto_named_squares(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		check("top card to the first square named", row() == ".,.,.,alpha,beta", row())
+		check("and the pile is spent", #zones.find("deck").cards == 0)
+	end, dealt('{ "deck": "deck", "zone": "row", "at": ["e1", "d1"] }'))
+end
+
+function M.test_named_cell_setup_deals_a_pile_until_it_runs_out(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		check("the free cells fill in order", row() == "beta,alpha,.,.,.", row())
+	end, dealt('{ "deck": "deck", "zone": "row" }'))
 end
 
 return M
