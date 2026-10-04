@@ -51,6 +51,17 @@
       ]
     },
     {
+      "key": "discard_pick",
+      "tooltip": "A card picked out of the hand or the codex goes to the discard: one off its shelf if it was the codex's, or the card itself.",
+      "needs": {
+        "boxed": "stock@param1 >= 1"
+      },
+      "action": [
+        "boxed? take:param1:mine.discard:1",
+        "!boxed? move:param1:mine.discard"
+      ]
+    },
+    {
       "key": "sideline",
       "tooltip": "Sideline a unit: it leaves its post for an army, the second argument, since nothing reads the army of whoever owns the unit.",
       "action": [
@@ -3199,6 +3210,9 @@
       "key": "codex",
       "layout": "stack",
       "status": "supply",
+      "tags": [
+        "on_call"
+      ],
       "visibility": "owner",
       "display": "offscreen",
       "copies": "per_seat",
@@ -3565,7 +3579,20 @@
       "tooltip": "Face down to everybody else: this is where your codex picks land."
     },
     {
+      "key": "todo",
+      "label": "Play these",
+      "status": "todo",
+      "layout": "row",
+      "visibility": "owner",
+      "copies": "per_seat",
+      "pos": "hand",
+      "tooltip": "A spell somebody handed you to play now. Nothing else happens until it has been played."
+    },
+    {
       "key": "hand",
+      "tags": [
+        "on_call"
+      ],
       "layout": "row",
       "visibility": "owner",
       "copies": "per_seat",
@@ -9293,9 +9320,38 @@
         "generate_art"
       ],
       "asset": "jurisdiction",
-      "tooltip": "Play any non-ultimate spell from your codex, paying its cost. NOT MODELLED: paying the second cost — an offer's pick has a price of its own, but a price the picked card names is not sayable.",
+      "tooltip": "Play any non-ultimate spell from your codex, paying its cost.",
       "card_stats": {
         "price": 2
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": {
+          "req": [
+            "tagged:hero@mine.hero",
+            "tagged:h_law@mine.hero"
+          ]
+        },
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "action": [
+          "show:mine.codex"
+        ]
+      },
+      "chosen": {
+        "needs": {
+          "where": [
+            "tagged:spell@target",
+            "not_tagged:ultimate@target"
+          ]
+        },
+        "action": [
+          "take:target:mine.todo:1"
+        ]
       }
     },
     {
@@ -20697,7 +20753,7 @@
         "generate_art"
       ],
       "asset": "cinderblast_dragon",
-      "tooltip": "Flying, resist 2. Arrives or attacks: you may play a non-ultimate Fire spell from your hand or codex for free. NOT MODELLED: the free spell.",
+      "tooltip": "Flying, resist 2. Arrives or attacks: you may play a non-ultimate Fire spell from your hand or codex for free.",
       "card_stats": {
         "price": 7,
         "atk": 6,
@@ -20707,6 +20763,51 @@
         },
         "alt": 1,
         "aa": 1
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": {
+          "req": [
+            "tagged:t3_ok@self"
+          ]
+        },
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "deploy",
+          "show:mine.on_call.fire:optional"
+        ]
+      },
+      "abilities": [
+        {
+          "key": "attacks",
+          "phases": [],
+          "text": "Attacks",
+          "needs": {
+            "req": [
+              "attacking@self >= 1"
+            ]
+          },
+          "action": [
+            "show:mine.on_call.fire:optional"
+          ]
+        }
+      ],
+      "chosen": {
+        "needs": {
+          "where": [
+            "tagged:spell@target",
+            "not_tagged:ultimate@target",
+            "tagged:h_fire@mine.hero"
+          ]
+        },
+        "action": [
+          "discard_pick:target",
+          "copy:target:play"
+        ]
       }
     },
     {

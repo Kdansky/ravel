@@ -1898,6 +1898,35 @@ The fetch waits for the discard. A price paid in cards is a question with no way
 In `chosen`, `@target` is the pick and no longer the unit the spell aimed at, so the spell writes
 down what it measured first. The spell is still `@self` in `chosen`, since it asked the question.
 
+### Play any non-ultimate spell from your codex, paying its cost.
+
+```json
+"play": { "cost": { "gold@mine.player": "price@self" }, "action": ["show:mine.codex"] },
+"chosen": { "needs": { "where": ["tagged:spell@target", "not_tagged:ultimate@target"] },
+            "action": ["take:target:mine.todo:1"] }
+```
+
+**The pick is handed over to be played, not resolved.** A card in a `status: "todo"` zone is owed:
+nothing moves until it has been played, and playing it is an ordinary play — aimed, gated by its
+own `needs`, and paid at the price it names. A pick nobody can pay for goes back on its shelf.
+
+### You may play a non-ultimate Fire spell from your hand or codex for free.
+
+```json
+"zones": [{ "key": "codex", "status": "supply", "tags": ["on_call"] },
+          { "key": "hand", "tags": ["on_call"] }],
+"verbs": [{ "key": "discard_pick", "needs": { "boxed": "stock@param1 >= 1" },
+            "action": ["boxed? take:param1:mine.discard:1", "!boxed? move:param1:mine.discard"] }],
+"play": { "action": ["deploy", "show:mine.on_call.fire:optional"] },
+"chosen": { "needs": { "where": ["tagged:spell@target", "not_tagged:ultimate@target"] },
+            "action": ["discard_pick:target", "copy:target:play"] }
+```
+
+**Free is a copy.** `copy:target:play` puts an imaginary card in the `todo` zone, which costs
+nothing and vanishes once played; the real one goes to the discard as a played spell would. A
+codex pick is a shelf, so it is `take`n one off and a hand card is `move`d, and `chosen` takes no
+gates — the branch lives in a verb, which does.
+
 ### Put a marker on one of these eight spaces, and it stays there.
 
 ```json

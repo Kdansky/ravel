@@ -51,8 +51,7 @@ card, in its own tooltip.
   cards, and a number is not one), **Censorship Council** (no card may put a
   condition on what another player may play), **Free Speech** (nothing takes a
   card's abilities away), **Building Inspector** (a cost is adjustable only
-  through an aim, and a building is raised from a board button), **Jurisdiction**
-  (a pick out of an offer cannot then pay a price the picked card names),
+  through an aim, and a building is raised from a board button),
   **Eyes of the Chancellor** (hands revealed), **Bigby's stash** (nothing may be
   held back through the draw), **Traffic Director** (unstoppable against one
   kind of target only), **Drill Sergeant** (spending a rune to move it).
@@ -97,10 +96,8 @@ shipped; their costs, 1 and 2 gold, are not in the rulebook and were not checked
 ## Fetching out of the codex
 
 The codex is a `supply`, so `show:mine.codex` answered by `take:target:<zone>:1` is the whole of
-fetching. A pick may ask a second question and carry on, so Vandy, Feral Strike and Temporal Distortion
-are written. Two remain, and they are not about ordering: **Jurisdiction** wants the pick to pay a price
-the *picked card* names, and **Cinderblast Dragon** wants it to cost nothing (see the section on them
-below). **Rambasa Twin** goes back to the codex with `purge:self`; what it still lacks is the death
+fetching. A pick handed to the `todo` zone is played rather than resolved, which is Jurisdiction
+(at the picked card's price) and Cinderblast Dragon (a free copy). **Rambasa Twin** goes back to the codex with `purge:self`; what it still lacks is the death
 replacement it shares with four other cards.
 
 ## The tech offer is public, and the rulebook makes the hidden pick a rule
@@ -114,15 +111,6 @@ and the discard is `owner` so only the moment of the pick leaks. Fixing it wants
 an offer that belongs to the seat that asked, and there is exactly one `options`
 zone and one overlay by design, so this is a question about that design rather
 than a line to change.
-
-## Cinderblast Dragon and Jurisdiction
-
-*"Arrives or attacks: you may play a non-ultimate Fire spell from your hand or codex for free."* A cost
-aura (`"verb": "play"`) cannot say "this one play"; a card put into the `todo` zone is played free by
-construction, so this is a fetch that mints rather than a discount. The same trick is what
-**Jurisdiction** wants from the other end — a pick that then pays the price the picked card names is an
-ordinary play, if the pick is handed over to be played rather than resolved. Guargum still plays Growth
-spells *without a Growth hero* only on paper: the spells' own `needs` ask for the hero.
 
 ## Sparkshot cannot be lent
 

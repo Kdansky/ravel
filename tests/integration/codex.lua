@@ -2969,4 +2969,97 @@ function M.test_codex_vandy_discards_to_fetch(check)
 	check("and she is spent", spent(vandy.id))
 end
 
+-- Jurisdiction hands the pick over to be played rather than resolving it, so its price is the picked
+-- card's own, paid the ordinary way out of the todo zone.
+function M.test_codex_jurisdiction_plays_a_spell_at_its_price(check)
+	start("pick_blue", "pick_green")
+	take_the_field("bigby")
+	local gold = seat("south").stats.gold
+	local stock = stock_in("mine.codex")
+	flow.play_card(require("cards").create("jurisdiction", zones.find_id("hand", "mine")).id, {})
+	flow.settle()
+	check("Jurisdiction cost two", seat("south").stats.gold == gold - 2, tostring(seat("south").stats.gold))
+	local service, day, scribe = in_zone("options", "community_service"), in_zone("options", "judgment_day"), in_zone("options", "scribe")
+	check("a spell may be picked", service and flow.can_play(service.id))
+	check("an ultimate may not", day and not flow.can_play(day.id))
+	check("nor a unit", scribe and not flow.can_play(scribe.id))
+	flow.play_card(service.id, {})
+	flow.settle()
+	local owed = in_zone("mine.todo", "community_service")
+	check("the spell is owed", owed ~= nil)
+	check("and came off the shelf", stock_in("mine.codex") == stock - 1, tostring(stock_in("mine.codex")))
+	check("it plays", owed and flow.play_card(owed.id, {}))
+	flow.settle()
+	flow.dismiss_offer()
+	flow.settle()
+	check("at its own price", seat("south").stats.gold == gold - 7, tostring(seat("south").stats.gold))
+	check("and lands in the discard", in_zone("mine.discard", "community_service") ~= nil)
+end
+
+-- A spell nobody can pay for is a lock rather than a rule, so it goes back on its shelf.
+function M.test_codex_jurisdiction_returns_what_cannot_be_paid(check)
+	start("pick_blue", "pick_green")
+	take_the_field("bigby")
+	seat("south").stats.gold = 2
+	local stock = stock_in("mine.codex")
+	flow.play_card(require("cards").create("jurisdiction", zones.find_id("hand", "mine")).id, {})
+	flow.settle()
+	flow.play_card(in_zone("options", "community_service").id, {})
+	flow.settle()
+	check("nothing is owed", count_in("mine.todo") == 0)
+	check("and the shelf is full again", stock_in("mine.codex") == stock, tostring(stock_in("mine.codex")))
+end
+
+-- Cinderblast's spell is an imaginary copy, so it is free; the real one is spent into the discard,
+-- off its shelf when it came out of the codex.
+function M.test_codex_cinderblast_arrives_with_a_free_spell(check)
+	start("pick_red", "pick_green")
+	take_the_field("jaina")
+	tech_2("fire")
+	require("cards").create("tech_3", zones.find_id("tech", "mine"))
+	seat("south").stats.gold = 20
+	local stock = stock_in("mine.codex")
+	local dragon = require("cards").create("cinderblast_dragon", zones.find_id("hand", "mine"))
+	check("the dragon plays", flow.play_card(dragon.id, {}))
+	flow.settle()
+	check("it cost seven", seat("south").stats.gold == 13, tostring(seat("south").stats.gold))
+	local dart, volley = in_zone("options", "fire_dart"), in_zone("options", "burning_volley")
+	check("a Fire spell is offered", dart and flow.can_play(dart.id))
+	check("not the ultimate", volley and not flow.can_play(volley.id))
+	check("and it may be declined", zones.find("options").dismissable == true)
+	flow.play_card(dart.id, {})
+	flow.settle()
+	check("one came off the shelf into the discard", stock_in("mine.codex") == stock - 1
+		and in_zone("mine.discard", "fire_dart") ~= nil, tostring(stock_in("mine.codex")))
+	local copy = in_zone("mine.todo", "fire_dart")
+	local cub = summon("tiger_cub", "enemy.army")
+	check("the copy is owed, and plays", copy and flow.play_card(copy.id, { cub.id }))
+	flow.settle()
+	check("for nothing", seat("south").stats.gold == 13, tostring(seat("south").stats.gold))
+	check("and it landed", entity.get(cub.id).zone_id ~= zones.find_id("army", "north"))
+	check("and is gone", count_in("mine.todo") == 0)
+end
+
+-- Attacking asks again, and a spell from hand is the card itself into the discard.
+function M.test_codex_cinderblast_attacks_with_a_spell_from_hand(check)
+	start("pick_red", "pick_green")
+	take_the_field("jaina")
+	local dragon = summon("cinderblast_dragon", "mine.army")
+	local held = require("cards").create("fire_dart", zones.find_id("hand", "mine"))
+	local prey = summon("tiger_cub", "enemy.army")
+	local gold = seat("south").stats.gold
+	use(dragon, "strike_free", { prey.id })
+	flow.settle()
+	local offered = in_zone("options", "fire_dart")
+	check("the attack asks", offered ~= nil)
+	flow.play_card(held.id, {})
+	flow.settle()
+	check("the held dart went to the discard", entity.get(held.id).zone_id == zones.find_id("discard", "mine"))
+	local copy = in_zone("mine.todo", "fire_dart")
+	check("and its copy is owed", copy ~= nil)
+	check("which plays free", copy and flow.play_card(copy.id, { base_of("north").id }))
+	flow.settle()
+	check("for nothing", seat("south").stats.gold == gold, tostring(seat("south").stats.gold))
+end
+
 return M
