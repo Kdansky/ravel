@@ -1589,6 +1589,36 @@ its own included, and the future announces nothing, so the zone a forecast card 
 the trashing. `@everywhere` because a forecast card is not in play; the union keeps out the one
 in the hand.
 
+### All tech 0, I and II units are Illusions.
+
+```json
+"lends": { "covers": "anyone.unit", "needs": { "req": ["tech_level@target <= 2"] }, "tags": ["illusion"] }
+```
+
+On the card, and the whole of it. A unit covered wears the printed `illusion` as if printed, so
+its dying, `tagged:illusion` and an anthem over Illusions all reach it, and nothing outside the
+card changes. Lent from play only: the word goes the instant the lender leaves.
+
+### Up to two units are Illusions this turn.
+
+```json
+"play": { "target": { "type": "card", "tags": ["unit"], "min": 0, "max": 2 },
+          "action": ["tag:target:illusion"] }
+```
+
+Then `"untag:self:illusion"` in the end-of-turn column. `untag` takes back only what `tag` gave,
+so a printed Illusion survives it. A given word is stored on the card and forgotten when it leaves
+play. No `verb` on the target: the card does not aim, so a printed Illusion picked does not die.
+
+### Sacrifice this when you lose your Truth hero.
+
+```json
+"reactions": [{ "to": "fell", "whose": "mine", "forced": "mandatory", "in": "board",
+                "needs": { "req": ["none@mine.h_truth"] }, "action": ["destroy:self"] }]
+```
+
+`fell` is the hero tag's `leaves` saying `emit:fell` once it has gone home.
+
 ### The first two of your Illusions to die each turn return to your hand.
 
 ```json

@@ -135,6 +135,8 @@ local CARD_FIELDS = {
 	name = true,
 	play = true, challenge = true, receive = true, round = true,
 	chosen = true, leaves = true, grave = true,
+	-- Tags this card hands to others while it is in play, and who gets them.
+	lends = true,
 	-- Everything the card can be used for, one entry each. A card that does one
 	-- thing writes a list of one: there is no second spelling, so no two sets of
 	-- fields to keep in step.
@@ -306,6 +308,7 @@ local END_FIELDS      = { when = true, ["then"] = true }
 -- second comparison language with three operators, no "greater than" and no
 -- "not equal", beside the one everything else is written in.
 local COMPUTED_FIELDS = { needs = true, any_of = true, injected = true }
+local LENDS_FIELDS    = { covers = true, needs = true, tags = true }
 local COMPUTED_RETIRED = { stat = "the stat now names itself in the condition",
 	less_than = "<", less_than_stat = "<", at_least = ">=", equals = "==",
 	less_than_max = "gone: nothing says a stat's own ceiling",
@@ -382,6 +385,7 @@ M.FIELDS = {
 	verbs         = VERB_FIELDS,
 	adjusts       = ADJUST_FIELDS,
 	runs_out      = RUNS_OUT_FIELDS,
+	lends         = LENDS_FIELDS,
 }
 
 -- The shapes above, reachable for the same reason M.FIELDS is: a set nobody can
@@ -461,6 +465,10 @@ function M.check(G)
 		for _, t in ipairs(type(zd.applies) == "table" and zd.applies or {}) do
 			carried_tags[t] = true
 		end
+	end
+	for _, def in pairs(G.card_defs) do
+		local lend = type(def.lends) == "table" and def.lends
+		for _, t in ipairs(lend and type(lend.tags) == "table" and lend.tags or {}) do carried_tags[t] = true end
 	end
 	-- Every ability key in the file, and the ones that aim at something. "aims:"
 	-- names one, and the two ways to get it wrong are naming a key nothing
@@ -1597,6 +1605,11 @@ function M.check(G)
 				-- An action's stat argument is a full subject: it may carry a
 				-- scope, and a scoped one may read a stat only cards have.
 				subject_ok(where .. ": " .. op, a)
+			elseif t == "tag" then
+				if not known_tags[a] then
+					warn("%s: '%s' hands out '%s', which no card is printed with and no tag defines%s",
+						where, op, tostring(a), suggest(a, known_tags))
+				end
 			elseif t == "statkey" then
 				-- A bare stat key, not a subject: the op already says which
 				-- cards, so a scope here would be a second answer to a question
@@ -3651,6 +3664,37 @@ function M.check(G)
 				check_list(where .. " instead", ad.instead)
 				bound.amount = nil
 			end
+		end
+	end
+
+	-- A lend is an aura whose effect is a word, so it says who it covers the way an
+	-- aura does — and it has no "self", because a card lending to itself is a tag
+	-- it should have printed.
+	for _, key in ipairs(G.card_list or {}) do
+		local lend = G.card_defs[key].lends
+		local where = ("card '%s' lends"):format(key)
+		if type(lend) == "table" then
+			check_fields(where, lend, M.FIELDS.lends)
+			if lend.covers == nil then
+				warn('%s: needs a "covers" saying who it lends to, as "anyone.unit" or "host_of.self"', where)
+			else
+				local sc    = predicate.parse_scope(lend.covers)
+				local named = sc and scope_named(sc.name)
+				if not (sc and scope_names[named]) and not scope_pair_ok(where, "covers", lend.covers, named) then
+					warn("%s: covers '%s', which is neither a zone nor a tag%s",
+						where, tostring(lend.covers), suggest(named or lend.covers, scope_names))
+				end
+			end
+			if type(lend.tags) ~= "table" or #lend.tags == 0 then
+				warn('%s: needs "tags", the words it hands out, as ["illusion"]', where)
+			end
+			for _, t in ipairs(type(lend.tags) == "table" and lend.tags or {}) do
+				if not tag_defs[t] and not card_tags[t] then
+					warn("%s: hands out '%s', which no card is printed with and no tag defines%s",
+						where, tostring(t), suggest(t, known_tags))
+				end
+			end
+			check_conditions(where .. " needs", lend.needs)
 		end
 	end
 

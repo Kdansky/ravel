@@ -1714,3 +1714,25 @@ once a turn. Not a restock word but the moment: `runs_out: { needs, action }` on
   `lowest:tech_level.enemy.fielded.unit:N`.
 - **"Units" is `fielded.unit`, not `army`.** `army` holds heroes, and a hero is tech 0, so it sorted
   first. It also leaves the patrol out. Death Rites and Blackhand Dozer had the same fault.
+
+# A word handed out: `lends` and `tag:` · shipped
+
+Dreamscape and Hallucination make units Illusions, and the printed `illusion` is the word they hand
+out — untouched, so its dying, `tagged:illusion`, Macciatus and Reteller all reach a unit that wears
+it borrowed. Two words, split where the cards split:
+
+- **`lends` on a card** is *while I stand*: `covers` a scope read from the lender, `needs` with the
+  covered card as `@target`, `tags` the words. Nothing is written onto anything, so the word goes
+  the moment the lender leaves play. `G.lend_index` keeps a game with no lender at one nil lookup.
+- **`tag:`/`untag:`** is *for a while*: stored as `e.given`, forgotten by `cards.reprint` on the way
+  out of play, and `untag` takes back only what `tag` gave. Hallucination's turn ends in the
+  fighter's `endturn` column.
+- **Rejected:** a union over the base tag (every new granter edits `illusion`), and a computed tag
+  that counts as another (the rule off the card). Both keep a card from being its own sentence.
+- **`tags.worn(e, field)`** is now the one gather for a word a card wears but did not print —
+  computed, given or lent — and `cards.abilities`, `accepts`, `on_receive` and `keywords` all use it.
+  Two of them had walked `computed_tags` with `pairs`, so a tooltip's order was a hash's.
+- **Channeling** is a reaction: the hero tag's `leaves` says `emit:fell`, and Dreamscape answers it
+  when `none@mine.h_truth`.
+- **Trap:** a test that `create`s a hero adds a fourth, and a full command zone refuses the walk home,
+  so its `leaves` stops before the `emit`. Summon the real one out of command.

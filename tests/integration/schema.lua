@@ -23,6 +23,8 @@ local NESTED = {
 	-- A pile's empty-draw block, documented in the zones entry too.
 	runs_out = true,
 	round = true, chosen = true, leaves = true,
+	-- A card's lend, documented in the cards entry.
+	lends = true,
 	-- An aura entry lives inside a tag, beside the behaviour blocks.
 	adjusts = true,
 }

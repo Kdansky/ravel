@@ -82,9 +82,9 @@ on the bench with no change at all.
    The ones that only change combat arithmetic — Quick Attack, Lifesteal — are
    the cheap half; the ones that change *who may block* — Elusive, Fearsome,
    Challenger — are rules about the pairing and want the pairing solid first.
-   Note that the spells which *grant* a keyword for a round (Ranger's Resolve,
-   Might, Prismatic Barrier) need a way to hand out a tag temporarily, which a
-   computed tag cannot be: it may carry a buff and nothing else.
+   The spells which *grant* a keyword for a round (Ranger's Resolve, Might,
+   Prismatic Barrier) are `tag:` and an `untag:` where the round ends, since
+   Codex's Hallucination.
 3. **Champions**, which are `transform` plus a trigger watching the level-up
    condition, so they land after [01](01-boardgames.md) gap 5.
 

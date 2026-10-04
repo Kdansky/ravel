@@ -180,10 +180,12 @@ local function with_moments(fields)
 	return fields
 end
 
+local LENDS = rec({ covers = STR, needs = NEEDS, tags = STRS })
+
 local CARD = rec(with_moments({
 	key = STR, text = STR, name = STR, tooltip = STR, story = STR, asset = STR,
 	tags = STRS, card_stats = map(STAT_VALUE, '{ "hp": 3 }'), outcome = STR, grave = STR,
-	reactions = list(REACTION),
+	reactions = list(REACTION), lends = LENDS,
 }))
 
 local ADJUST = rec({ key = STR, verb = STR, stat = STR, covers = STR, needs = NEEDS,
@@ -440,7 +442,7 @@ M.SPECS = {
 	effects = F.effects.of, assets = F.assets.of[3], patterns = F.patterns.of[2],
 	computed_tags = F.computed_tags.of, computes = F.computes.of, styles = F.styles.of,
 	end_conditions = F.end_conditions.of, verbs = F.verbs.of,
-	target = TARGET, route = ROUTE, adjusts = ADJUST, ability = ABILITY, reaction = REACTION,
+	target = TARGET, route = ROUTE, adjusts = ADJUST, ability = ABILITY, reaction = REACTION, lends = LENDS,
 	setup = F.setup, place = F.setup.fields.place.of[2], move_rule = MOVE_RULE,
 	player = F.players.of, prompt = F.prompt,
 }
@@ -476,7 +478,7 @@ M.ENTITY = {
 		zone_id = NUM, slot_id = NUM, parent_id = NUM, attached = IDS,
 		borrowed_from = NUM, origin_zone_id = NUM, origin_slot_id = NUM,
 		stats = map(NUM), stat_max = map(NUM), stat_min = map(NUM),
-		exhausted = BOOL, minted = BOOL, imaginary = BOOL, imaginary_depth = NUM,
+		exhausted = BOOL, minted = BOOL, imaginary = BOOL, imaginary_depth = NUM, given = STRS,
 		-- A record on the stack: stack.push_event writes these.
 		re_action = LINES, re_verb = STR, re_subject = IDS, re_event = IDS, re_targets = IDS,
 		re_let = map(NUM), re_aimed = STRS, re_source = NUM, re_spent = STR, re_ability = STR,

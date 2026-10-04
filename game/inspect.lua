@@ -48,7 +48,7 @@ local function effective_tags(e)
 	for _, t in ipairs(def and def.tags or {}) do offer(t) end
 	local z = e.zone_id and entity.get(e.zone_id)
 	for _, t in ipairs(z and z.applies or {}) do offer(t) end
-	for t in pairs(G.computed_tags or {}) do offer(t) end
+	for _, t in ipairs(tags.worn(e)) do offer(t) end
 	table.sort(out)
 	return out
 end

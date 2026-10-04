@@ -178,6 +178,7 @@ local function each_block(def, what, pp)
 	for i, ad in ipairs(type(def.adjusts) == "table" and def.adjusts or {}) do
 		unfold(ad, what .. " adjusts " .. i, BLOCKS.plain, pp)
 	end
+	if type(def.lends) == "table" then unfold(def.lends, what .. " lends", BLOCKS.plain, pp) end
 end
 
 -- In place, on the copy shape.clean made. Problems go to `pp`, as shape's do.

@@ -307,7 +307,7 @@ end
 -- way out of play.
 function M.reprint(e)
 	local owner = e.stats.owner
-	e.stats, e.stat_max, e.stat_min, e.exhausted = { owner = owner }, {}, {}, nil
+	e.stats, e.stat_max, e.stat_min, e.exhausted, e.given = { owner = owner }, {}, {}, nil, nil
 	for k, v in pairs(M.def(e).card_stats or {}) do M.attach_stat(e, k, v) end
 end
 
@@ -382,11 +382,8 @@ function M.abilities(card_entity)
 	-- everything that does not depend on the board. It still moves when the
 	-- condition flips, which is the same thing a zone's "applies" already does
 	-- and the reason a menu entry carries the index it meant.
-	for _, tag in ipairs(declaration.G.computed_list or EMPTY) do
-		local td = declaration.G.tag_defs[tag]
-		if td and td.abilities and #td.abilities > 0 and require("tags").entity_has(card_entity, tag) then
-			for _, a in ipairs(td.abilities) do out[#out + 1] = a end
-		end
+	for _, tag in ipairs(require("tags").worn(card_entity, "abilities")) do
+		for _, a in ipairs(declaration.G.tag_defs[tag].abilities) do out[#out + 1] = a end
 	end
 	return merged(out)
 end
@@ -419,10 +416,7 @@ function M.accepts(card_entity)
 	for _, tag in ipairs(type(def) == "table" and type(def.tags) == "table" and def.tags or EMPTY) do
 		take(declaration.G.tag_defs[tag])
 	end
-	for tag in pairs(declaration.G.computed_tags or EMPTY) do
-		local td = declaration.G.tag_defs[tag]
-		if td and td.accepts and require("tags").entity_has(card_entity, tag) then take(td) end
-	end
+	for _, tag in ipairs(require("tags").worn(card_entity, "accepts")) do take(declaration.G.tag_defs[tag]) end
 	return out
 end
 
@@ -454,16 +448,9 @@ function M.on_receive(card_entity)
 	for _, tag in ipairs(type(def) == "table" and type(def.tags) == "table" and def.tags or EMPTY) do
 		take(declaration.G.tag_defs[tag])
 	end
-	-- Sorted, unlike the gather above it: a list of conditions is an and and the
-	-- order says nothing, while two computed keywords that both act would run in
-	-- whatever order pairs felt like and a replay would not match itself.
-	local worn = {}
-	for tag in pairs(declaration.G.computed_tags or EMPTY) do
-		local td = declaration.G.tag_defs[tag]
-		if td and td.on_receive and require("tags").entity_has(card_entity, tag) then worn[#worn + 1] = tag end
-	end
-	table.sort(worn)
-	for _, tag in ipairs(worn) do take(declaration.G.tag_defs[tag]) end
+	-- Sorted: two worn keywords that both act would otherwise run in whatever
+	-- order pairs felt like, and a replay would not match itself.
+	for _, tag in ipairs(require("tags").worn(card_entity, "on_receive")) do take(declaration.G.tag_defs[tag]) end
 	return out
 end
 
@@ -559,12 +546,8 @@ function M.keywords(card_entity)
 	-- the sentence is written once under the tag that grants it, and the card
 	-- shows it for as long as the condition holds. Marked, so the panel can say
 	-- it was lent rather than printed.
-	for tag in pairs(declaration.G.computed_tags or EMPTY) do
-		local td = declaration.G.tag_defs[tag]
-		if td and type(td.tooltip) == "string" and td.tooltip ~= ""
-			and require("tags").entity_has(card_entity, tag) then
-			out[#out + 1] = { tag = tag, text = td.tooltip, granted = true }
-		end
+	for _, tag in ipairs(require("tags").worn(card_entity, "tooltip")) do
+		out[#out + 1] = { tag = tag, text = declaration.G.tag_defs[tag].tooltip, granted = true }
 	end
 	return out
 end

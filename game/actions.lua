@@ -1712,6 +1712,39 @@ HANDLERS["compact"] = function(p, ctx)
 	end
 end
 
+-- tag:<scope>:<tag> / untag:<scope>:<tag> — give a card a keyword it was not
+-- printed with, and take it back.
+--
+-- **Stored on the card, and gone when it leaves play**: cards.reprint forgets it
+-- with every other number, because a unit hallucinated into an Illusion and
+-- bounced to hand is a plain unit again. untag takes back only what tag gave, so
+-- a card printed an Illusion stays one whatever is written at the end of a turn.
+HANDLERS["tag"] = function(p, ctx)
+	local sc = predicate.parse_scope(p[2] or "")
+	if not (sc and p[3]) then return end
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
+		-- Asked of the given list and not of entity_has: a unit Dreamscape lends the
+		-- word to must keep it for the turn after Dreamscape goes.
+		local has = false
+		for _, t in ipairs(e.kind == "card" and e.given or {}) do has = has or t == p[3] end
+		if e.kind == "card" and not has then
+			e.given = e.given or {}
+			e.given[#e.given + 1] = p[3]
+		end
+	end
+end
+
+HANDLERS["untag"] = function(p, ctx)
+	local sc = predicate.parse_scope(p[2] or "")
+	if not (sc and p[3]) then return end
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
+		for i = #(e.given or {}), 1, -1 do
+			if e.given[i] == p[3] then table.remove(e.given, i) end
+		end
+		if e.given and #e.given == 0 then e.given = nil end
+	end
+end
+
 local SPEC = {
 	create            = "zone card n",
 	shuffle           = "zone",
@@ -1761,6 +1794,8 @@ local SPEC = {
 	compact           = "scope pattern",
 	set_name          = "scope any",
 	stay = "",
+	tag = "scope tag",
+	untag = "scope tag",
 }
 
 -- The full op vocabulary, for the validator's suggestions — and for the test

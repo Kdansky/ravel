@@ -30,15 +30,8 @@ Blue is in and playable — Bigby, Onimaru and Sirus all win games against red a
 green. What it could not say, worst first. The full rule for each card is on the
 card, in its own tooltip.
 
-- **The Truth spec's remainder.** An Illusion dies of being aimed at, which
-  `receive`'s `when` and `action` say on the tag. What is left wants its own
-  word each:
-
-  - **Dreamscape** and **Hallucination** — *"All tech 0, I and II units are
-    Illusions"* and *"Up to two tech 0, I or II units are Illusions this turn"*.
-    Handing a tag out, which nothing does; the dying they would hand out is in.
-  - **Spectral Flagbearer**'s compulsion — an aim narrowed after it is made, which is a word
-    nothing has yet (COOKBOOK, *Known gaps*).
+- **The Truth spec's remainder: Spectral Flagbearer**'s compulsion — an aim narrowed after it
+  is made, which is a word nothing has yet (COOKBOOK, *Known gaps*).
 
 - **A card cannot become another card and come back.** `transform` destroys and
   creates, keeping no memory of what it replaced. **Manufactured Truth** and

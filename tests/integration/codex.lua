@@ -3062,4 +3062,67 @@ function M.test_codex_cinderblast_attacks_with_a_spell_from_hand(check)
 	check("for nothing", seat("south").stats.gold == gold, tostring(seat("south").stats.gold))
 end
 
+-- Dreamscape lends the word from where it stands, and the word is the printed
+-- one: its dying, and Macciatus's say over it, come with it untouched.
+function M.test_codex_dreamscape_makes_the_cheap_units_illusions(check)
+	start("pick_red", "pick_green")
+	local hero = in_zone("command", "jaina")
+	use(hero, "summon")
+	flow.settle()
+	seat("south").stats.gold = 9
+	local cub = summon("tiger_cub", "enemy.army")
+	local gryphon = summon("lawbringer_gryphon", "enemy.army")
+	check("no Illusion before Dreamscape", not tags.entity_has(cub, "illusion"))
+	summon("dreamscape", "enemy.ongoing")
+	check("the tech 0 cub is one under it", tags.entity_has(cub, "illusion"))
+	check("the tech III gryphon is not", not tags.entity_has(gryphon, "illusion"),
+		tostring(read(gryphon, "tech_level")))
+	summon("macciatus", "enemy.army")
+	check("their Macciatus whispers to the lent Illusion too", read(cub, "atk") == 3, tostring(read(cub, "atk")))
+end
+
+function M.test_codex_a_dreamt_unit_dies_of_being_aimed_at(check)
+	start("pick_red", "pick_green")
+	use(in_zone("command", "jaina"), "summon")
+	flow.settle()
+	seat("south").stats.gold = 9
+	local cub = summon("tiger_cub", "enemy.army")
+	summon("dreamscape", "mine.ongoing")
+	flow.play_card(require("cards").create("fire_dart", zones.find_id("hand", "mine")).id, { cub.id })
+	flow.settle()
+	check("the cub died of the aim", entity.get(cub.id).zone_id ~= zones.find_id("army", "enemy"))
+	check("and not of the dart", entity.get(cub.id).stats.hp == 2, tostring(entity.get(cub.id).stats.hp))
+end
+
+-- Channeling: Dreamscape goes when the Truth hero does, and the word with it.
+function M.test_codex_dreamscape_goes_with_the_truth_hero(check)
+	start("pick_blue", "pick_green")
+	take_the_field("sirus")
+	local sirus = in_zone("army", "sirus")
+	local scape = summon("dreamscape", "mine.ongoing")
+	local cub = summon("tiger_cub", "enemy.army")
+	actions.execute("destroy:mine.h_truth", {})
+	flow.settle()
+	check("Sirus has gone home", entity.get(sirus.id).zone_id == zones.find_id("command", "mine"))
+	check("Dreamscape is sacrificed", entity.get(scape.id).zone_id ~= zones.find_id("ongoing", "mine"),
+		tostring(entity.get(scape.id).zone_id))
+	check("and the cub is plain again", not tags.entity_has(cub, "illusion"))
+end
+
+-- Hallucination gives the word for the turn: it outlasts nothing but the turn.
+function M.test_codex_hallucination_lasts_the_turn(check)
+	start("pick_blue", "pick_green")
+	take_the_field("sirus")
+	seat("south").stats.gold = 9
+	local cub, treant = summon("tiger_cub", "enemy.army"), summon("young_treant", "enemy.army")
+	local spell = require("cards").create("hallucination", zones.find_id("hand", "mine"))
+	flow.play_card(spell.id, { cub.id, treant.id })
+	flow.settle()
+	check("both are Illusions", tags.entity_has(cub, "illusion") and tags.entity_has(treant, "illusion"))
+	check("and neither died of being picked", entity.get(cub.id).zone_id == zones.find_id("army", "enemy"))
+	actions.execute("activate_zone:enemy.army:by_column:endturn", {})
+	check("the turn's end takes the word back", not tags.entity_has(cub, "illusion")
+		and not tags.entity_has(treant, "illusion"))
+end
+
 return M

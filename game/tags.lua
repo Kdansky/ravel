@@ -28,9 +28,18 @@ end
 -- asking about a tag asks about one card all the way down.
 local resolving = {}
 
+-- **The other upward call: whether a card in play lends `e` this tag.** `lent` is the
+-- tag's entries in `lend_index`, each a lender's key and its `lends`. A lend is a
+-- scope and a condition read from the lender, which is predicate's language for the
+-- reason a computed tag is, so predicate fills this in too.
+function M.lent(e, lent)
+    return false
+end
+
 -- True if entity e has the given tag: one it was defined with, one the zone it
--- sits in grants ("applies"), or a computed one, whose condition is asked with
--- this card as @self.
+-- sits in grants ("applies"), one a verb gave it ("tag:"), one a card in play
+-- lends it ("lends"), or a computed one, whose condition is asked with this card
+-- as @self.
 -- Where a card *is* can therefore decide what it is — bounded on purpose to the
 -- tags a game declares, and to a fixed list on the zone. A computed tag's
 -- condition is worked out on every ask rather than stored, which is what keeps
@@ -43,6 +52,16 @@ function M.entity_has(e, tag)
         local z = e.zone_id and entity.get(e.zone_id)
         for _, granted in ipairs(z and z.applies or {}) do
             if granted == tag then return true end
+        end
+        for _, given in ipairs(e.given or {}) do
+            if given == tag then return true end
+        end
+        local lent = G.lend_index and G.lend_index[tag]
+        if lent and not resolving[tag] then
+            resolving[tag] = true
+            local hit = M.lent(e, lent)
+            resolving[tag] = nil
+            if hit then return true end
         end
     end
     local cd = G.computed_tags and G.computed_tags[tag]
@@ -81,6 +100,31 @@ function M.entity_has(e, tag)
     end
     resolving[tag] = nil
     return worn
+end
+
+-- **The tags a card wears beyond what is printed on it and where it lies**, sorted,
+-- and only those whose tag def says `field` (any, when nil). Computed, given by a
+-- verb, or lent by a card in play: the three ways a keyword comes and goes. What
+-- the card prints or its zone applies is left out, because every caller has
+-- already walked those, and a keyword taken twice would act twice.
+function M.worn(e, field)
+    local G, out, seen = declaration.G, {}, {}
+    local def = e.kind == "card" and G.card_defs[e.def_key]
+    local z = e.zone_id and entity.get(e.zone_id)
+    for _, t in ipairs(def and type(def.tags) == "table" and def.tags or {}) do seen[t] = true end
+    for _, t in ipairs(z and z.applies or {}) do seen[t] = true end
+    local function offer(t)
+        if seen[t] then return end
+        seen[t] = true
+        local v = field and (G.tag_defs[t] or {})[field]
+        if field and (v == nil or v == "" or (type(v) == "table" and next(v) == nil)) then return end
+        if M.entity_has(e, t) then out[#out + 1] = t end
+    end
+    for _, t in ipairs(e.given or {}) do offer(t) end
+    for t in pairs(G.lend_index or {}) do offer(t) end
+    for t in pairs(G.computed_tags or {}) do offer(t) end
+    table.sort(out)
+    return out
 end
 
 -- **A tag may shift a stat, and the shift is never written down.** "elite" says

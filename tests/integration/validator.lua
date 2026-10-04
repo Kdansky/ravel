@@ -981,7 +981,15 @@ local CASES = {
 	{ "a setup deal from a pile that is not there", "deals from 'tiles', but no zone has that key",
 		function(g) g.setup.place = { { deck = "tiles", zone = "board" } } end },
 	{ "a setup entry naming a card and a deck", "names both a card and a deck",
-		function(g) g.setup.place = { { card = "throne_room", deck = "board", zone = "board" } } end },
+		function(g) g.setup.place = { { card = "throne_room", deck = "board", zone = "board" } } end },	-- a card lending a word
+	{ "a lend that says nobody", 'needs a "covers" saying who it lends to',
+		function(g) g.card_defs.pearl.lends = { tags = { "keepsake" } } end },
+	{ "a lend of a word nothing defines", "hands out 'dragons', which no card is printed with",
+		function(g) g.card_defs.pearl.lends = { covers = "board", tags = { "dragons" } } end },
+	{ "a lend handing out nothing", 'needs "tags", the words it hands out',
+		function(g) g.card_defs.pearl.lends = { covers = "board" } end },
+	{ "a tag given that nothing defines", "'tag' hands out 'dragons'",
+		function(g) g.card_defs.c_flee.on_play = { "tag:board:dragons" } end },
 }
 
 -- The verb check runs last for a reason: what a game emits is only known once

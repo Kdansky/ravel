@@ -12,7 +12,7 @@ M.TEMPLATE_FIELDS = {
 	"card_defs", "card_list", "computed_tags", "stat_defs", "stat_defs_list", "pays_for_index",
 	"tag_defs", "effect_defs", "pattern_defs", "asset_defs", "raw_assets", "parse_problems",
 	"compute_defs", "compute_list", "react_index", "buff_index",
-	"verb_defs", "verb_list", "adjust_index",
+	"verb_defs", "verb_list", "adjust_index", "lend_index",
 	"style_defs", "dynamic_styles", "seat_index", "prompt",
 }
 
@@ -751,9 +751,6 @@ function M.parse(filename)
 		phase_list     = {},       -- ordered array of phase keys
 		phase_by_key   = {},
 		computed_tags  = parsed.computed_tags or {},
-		-- The computed tags, in the order the file wrote them. "cards.abilities"
-		-- walks this, and an ability's index has to be the same on both machines.
-		computed_list  = {},
 		-- A style is a named bundle of presentation properties, claimed by
 		-- tagging it. "This card is crimson" becomes a word instead of three
 		-- numbers repeated on fourteen cards, and the word can be a computed
@@ -765,6 +762,7 @@ function M.parse(filename)
 		verb_defs      = {},   -- the game's own word for a moment -> the engine verb that carries it
 		verb_list      = {},   -- ordered, for the reference panel and deterministic reporting
 		adjust_index   = {},   -- "<game verb>:<stat>" -> the tags that change what it lands for
+		lend_index     = {},   -- tag -> the cards that lend it, so a tag nobody lends costs one nil lookup
 		end_conditions = parsed.end_conditions or {},
 		setup          = parsed.setup or {},
 		-- Where the game begins, in the order the manual would say it. A card
@@ -840,17 +838,6 @@ function M.parse(filename)
 		end
 		G.tag_defs[name] = td
 	end
-
-	-- The computed tags that grant an ability, in one settled order. A map has
-	-- none, and an ability's index has to be the same number on both machines —
-	-- so they are sorted by name rather than walked as they come out of a hash.
-	for name in pairs(G.computed_tags) do
-		local td = G.tag_defs[name]
-		if td and type(td.abilities) == "table" and #td.abilities > 0 then
-			G.computed_list[#G.computed_list + 1] = name
-		end
-	end
-	table.sort(G.computed_list)
 
 	-- **A game names the moments it means to be answerable.** "stat_damage" is a
 	-- mechanism and not a meaning: poison and a sword both take hp and armour
@@ -978,6 +965,17 @@ function M.parse(filename)
 			cd.reactions = reactions_of(cd, pp, "card '" .. cd.key .. "'")
 			cd.emits = emits_of(cd, pp, "card '" .. cd.key .. "'")
 			G.card_defs[cd.key] = cd
+		end
+	end
+
+	-- Sorted by card, because an index walked out of a hash would ask the lenders
+	-- in a different order on each machine.
+	for _, key in ipairs(G.card_list) do
+		local lend = G.card_defs[key].lends
+		for _, tag in ipairs(type(lend) == "table" and type(lend.tags) == "table" and lend.tags or {}) do
+			local list = G.lend_index[tag] or {}
+			list[#list + 1] = { card = key, lend = lend }
+			G.lend_index[tag] = list
 		end
 	end
 

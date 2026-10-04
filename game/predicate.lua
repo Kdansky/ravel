@@ -1213,4 +1213,35 @@ function tags.asks(needs, e)
 	return M.meets_all(needs, { card_id = e.id })
 end
 
+-- **Filling tags.lent**, for the same reason. A lender lends from play and from
+-- nowhere else, so the walk is the board zones' cards and not every card made.
+-- Read as the lender's side, as an aura is: "anyone.unit" and "mine.unit" are
+-- whose units from where the lender sits, and @target in its needs is the card
+-- asking.
+function tags.lent(e, lent)
+	local by = {}
+	for _, l in ipairs(lent) do by[l.card] = l.lend end
+	for z in entity.each("zone") do
+		if z.status == "board" then
+			for _, id in ipairs(z.cards) do
+				local holder = entity.get(id)
+				local lend = holder and by[holder.def_key]
+				if lend then
+					local sub = { card_id = id, targets = { e.id } }
+					local covered = false
+					zones.as_seat(M.seat_of(holder), function()
+						local sc = M.parse_scope(lend.covers)
+						for _, c in ipairs(sc and M.entities_in_scope(sc.name, sub, sc.owner, sc.quant) or {}) do
+							if c.id == e.id then covered = true; break end
+						end
+						covered = covered and M.meets_all(lend.needs, sub)
+					end)
+					if covered then return true end
+				end
+			end
+		end
+	end
+	return false
+end
+
 return M

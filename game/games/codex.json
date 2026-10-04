@@ -1942,7 +1942,8 @@
           "scav? stat_gain:gold@mine.player:1",
           "tech? draw_from:mine.deck:mine.hand:1",
           "boon? stat_gain:xp@opponent:2",
-          "move_to:mine.command"
+          "move_to:mine.command",
+          "emit:fell"
         ]
       },
       "abilities": [
@@ -2388,7 +2389,8 @@
             "stat_damage:swift@self:1",
             "stat_damage:hp@self:sum:bleeds@self",
             "stat_damage:life@self:sum:bleeds@self",
-            "stat_set:bleeds@self:0"
+            "stat_set:bleeds@self:0",
+            "untag:self:illusion"
           ]
         },
         {
@@ -10140,10 +10142,21 @@
         "generate_art"
       ],
       "asset": "dreamscape",
-      "tooltip": "Channelled ongoing spell. All tech 0, I and II units are Illusions. NOT MODELLED: handing the word out. The dying itself is in.",
+      "tooltip": "Channeling (Stays in play. Sacrifice it when you lose your Truth hero.) All tech 0, I, and II units are Illusions. (Illusions die when a spell or an ability aims at them.)",
       "card_stats": {
         "price": 3
-      }
+      },
+      "play": {
+        "phases": ["main"],
+        "needs": { "req": ["tagged:hero@mine.hero", "tagged:h_truth@mine.hero"] },
+        "cost": { "gold@mine.player": "price@self" },
+        "action": ["move_to:mine.ongoing"]
+      },
+      "lends": { "covers": "anyone.unit", "needs": { "req": ["tech_level@target <= 2"] }, "tags": ["illusion"] },
+      "reactions": [
+        { "to": "fell", "whose": "mine", "forced": "mandatory", "in": "board",
+          "needs": { "req": ["none@mine.h_truth"] }, "action": ["destroy:self"] }
+      ]
     },
     {
       "key": "free_speech",
@@ -10178,9 +10191,17 @@
         "generate_art"
       ],
       "asset": "hallucination",
-      "tooltip": "Up to two tech 0, I or II units are Illusions this turn. NOT MODELLED: handing the word out, and taking it back at end of turn. The dying itself is in.",
+      "tooltip": "Up to two tech 0, I, or II units are Illusions this turn. (Illusions die when a spell or an ability aims at them.)",
       "card_stats": {
         "price": 2
+      },
+      "play": {
+        "phases": ["main"],
+        "needs": { "req": ["tagged:hero@mine.hero", "tagged:h_truth@mine.hero"], "where": ["tech_level@target <= 2"] },
+        "cost": { "gold@mine.player": "price@self" },
+        "target": { "type": "card", "min": 0, "max": 2, "owner": "anyone", "tags": ["unit"], "zones": ["fielded"] },
+        "action": ["tag:target:illusion"],
+        "spent": "mine.discard"
       }
     },
     {
