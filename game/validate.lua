@@ -391,7 +391,8 @@ M.FIELDS = {
 -- The shapes above, reachable for the same reason M.FIELDS is: a set nobody can
 -- ask about is a set no document can be held to.
 M.SHAPES = { setup = SETUP_FIELDS, place = PLACE_FIELDS, move_rule = MOVE_RULE_FIELDS,
-	player = PLAYER_FIELDS, prompt = { pos = true } }
+	player = PLAYER_FIELDS, prompt = { pos = true },
+	bot = { value = true, per_phase = true }, per_phase = { phase = true, value = true } }
 
 -- Fields declaration.parse adds to a def after reading it. They are legal on an
 -- entry the engine hands around and are not things an author ever writes, so
@@ -3393,6 +3394,29 @@ function M.check(G)
 		check_list(where, cond["then"])
 		if cond["then"] == nil then
 			warn("%s: has no 'then' — nothing happens when it fires", where)
+		end
+	end
+
+	-- What an engine seat climbs: a number for the game, and one for a phase
+	-- whose effect the first cannot see by the time the round turns.
+	if G.bot then
+		local function worth(where, s)
+			if s == nil then
+				return warn('%s: needs a "value", like "shards@mine.player - shards@opponent"', where)
+			end
+			local v, err = predicate.parse_value(s)
+			if not v then return warn("%s: %s", where, err) end
+			for _, side in ipairs(v.terms) do
+				if tonumber(side) == nil then subject_ok(where, side) end
+			end
+		end
+		check_fields("bot", G.bot, M.SHAPES.bot)
+		worth("bot", G.bot.value)
+		for i, o in ipairs(G.bot.per_phase or {}) do
+			local where = "bot per_phase " .. i
+			check_fields(where, o, M.SHAPES.per_phase)
+			if not G.phase_by_key[o.phase] then warn("%s: no phase called '%s'", where, tostring(o.phase)) end
+			worth(where, o.value)
 		end
 	end
 

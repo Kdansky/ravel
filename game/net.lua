@@ -798,6 +798,19 @@ end
 -- its own, checking the name against `seat_set` the way `zones.watching` does
 -- would not have caught it. Found by an engine-played seat, which picked "play
 -- online" out of a menu and locked the next game out.
+-- Moves made only to be taken back: an engine seat trying each of its options
+-- under flow.rehearse. The other side must hear none of them, and the hash they
+-- invalidate is forgotten anyway.
+local unheard = false
+
+function M.unheard(fn)
+	local prev = unheard
+	unheard = true
+	local ok, err = pcall(fn)
+	unheard = prev
+	if not ok then error(err, 0) end
+end
+
 function M.may_act()
 	if unattended then return true end
 	if not M.seat or claimed_in ~= declaration.filename then return true end
@@ -1162,7 +1175,8 @@ for _, name in ipairs({ "play_card", "activate", "activate_zone", "react", "pass
 		-- cached hash can be invalidated from. Skipping it while offline left a
 		-- stale hash for whoever linked later.
 		forget_hash()
-		if result ~= false then M.publish() end   -- silent when offline
+		-- Silent when offline.
+		if result ~= false and not unheard then M.publish() end
 		return result
 	end
 end

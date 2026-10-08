@@ -19,6 +19,8 @@ local EMPTY = {}
 M.pending_load   = nil   -- set by load_game, consumed by flow after the action list
 M.pending_slot   = nil   -- set by load_save, consumed the same way
 M.on_net         = nil   -- optional hook(what, arg): the networking layer's UI, if one is loaded
+-- Optional hook(): an engine seat was asked for, if opponent.lua is loaded.
+M.on_bot = nil
 M.on_save        = nil   -- optional hook(what, slot): the save layer, if one is loaded
 M.on_open        = nil   -- optional hook(): asks the machine for a game file, if that layer is loaded
 M.on_stat_change = nil   -- optional hook(entity, key, delta, ctx) for visual feedback
@@ -1434,6 +1436,13 @@ HANDLERS["net_invite"]  = net_ui("invite")
 HANDLERS["net_join"]    = net_ui("join")
 HANDLERS["net_seat"]    = net_ui("seat")
 
+-- bot_seats — the engine plays every seat but this screen's. The net words'
+-- bargain: the engine knows the word, opponent.lua the behaviour, and a build
+-- without it does nothing.
+HANDLERS["bot_seats"] = function()
+	if M.on_bot then M.on_bot() end
+end
+
 -- The one seat a scope names, or nil. A scope names cards and the seat is whose
 -- they are, so "set_active_seat:owner_of.target" and "set_active_seat:target"
 -- say the same thing about an ordinary card and a seat card answers for itself.
@@ -1796,6 +1805,7 @@ local SPEC = {
 	stay = "",
 	tag = "scope tag",
 	untag = "scope tag",
+	bot_seats = "",
 }
 
 -- The full op vocabulary, for the validator's suggestions — and for the test

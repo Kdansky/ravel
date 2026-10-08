@@ -66,7 +66,7 @@ and a line here names a section that exists:
 - **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · A second asker is a second answer · `chosen`'s `where` — which of the revealed cards may be taken · An answer may have a price · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · A list waits for the question it asked
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `answered` — the announcement itself · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · An automatic phase can ask, if the ask is the last thing it does · A mandatory reaction is how you ask somebody else a question · What it will not do yet
 - **Boards and pieces** — Pieces that move · Asking about the square you are considering · Moves with fixed destinations (castling) · Legality between two cards · Which end of a deck a card lands on · A cell, where the destination is a grid · Filling a row up · `origin` — back where it came from · `fan` — a stack you can read
-- **Outside the game itself** — Engine behaviors you get for free · Playing over a network · Offering it from your own game · Saving a game, and picking it up
+- **Outside the game itself** — Engine behaviors you get for free · Playing over a network · Offering it from your own game · An opponent the engine plays · Saving a game, and picking it up
 
 ---
 
@@ -5505,6 +5505,7 @@ what a player reads.
 | `open_game` | Ask the player for a game file of *theirs* and play it — a file picker in the browser, a dropped file on the desktop. Nothing is uploaded and nothing is installed: the engine already runs a game handed to it as text, which is how a network invite carries its rules to somebody who has never seen the file, so this is only the asking. A build with no way to ask says nothing and does nothing |
 | `each_seat:<action>` | Run one action once per seat, in seat order, with each seat up in turn — so `mine` does the work and a four-seat deal is one line rather than four. Whoever was up is up again when it returns, and no handover happens: the undo history is not cleared, because dealing to everybody is not anybody's turn. See *Every seat, once* |
 | `net_invite` / `net_join` / `net_seat:<who>` | The networking layer's own UI, offered as actions so a game may put "Host" and "Join" on its own menu cards. The engine knows the words; the behaviour arrives only if the net module is loaded, and a game without one is unaffected. See *Playing over a network* |
+| `bot_seats` | The engine plays every seat but the first, and this screen sits there. Written beside the `load_game` it goes with, and means that game. See *An opponent the engine plays* below |
 | `save_game:<slot>` / `load_save:<slot>` | Write the position out, and put it back. The slot is a plain word your game picks; where it lands is the engine's business. See *Saving a game* below |
 
 ### Engine behaviors you get for free
@@ -5612,6 +5613,48 @@ was reached by a legal move. Both would need a referee the engine does not have
 (`ideas/DONE.md` says what that would cost). So: play with people you
 trust, and think twice before shipping a game whose whole tension is a secret
 hand.
+
+### An opponent the engine plays
+
+A game says what a good position is worth, and the engine does the rest:
+
+```json
+"bot": {
+  "value": "10 * shards@mine.player - 10 * shards@opponent + health@mine.player - health@opponent",
+  "per_phase": [
+    { "phase": "gain_card", "value": "sum:tier_req@mine.discard - 3 * count:junk@mine.discard" }
+  ]
+}
+```
+
+`value` is a compute's grammar, read as the engine's seat, so `mine` is the bot
+and `@opponent` the seat it plays against. There is one bot and one algorithm:
+every legal move is tried a few times, each try played out with random moves for
+everybody until the round turns or the game ends, and the best average is kept.
+A seat whose `won` stat is set is worth more than any number.
+
+**It never reads what it cannot see.** Before each try, every `secret` pile is
+shuffled and every other seat's `owner` zones — hand, face-down play, deck — are
+pooled and dealt back the same sizes. The bot knows what cards the other side
+owns, and not which of them it is holding.
+
+**`per_phase` is for a decision the number cannot see by the time the round
+turns.** Spellstorm scores a card gained by the deck it lands in, since shards
+and health have not moved yet when the round ends. While a named phase is
+anywhere on the stack, its value is climbed instead.
+
+Without a `bot` section an engine seat moves at random. The title screen offers
+it as an answer to one question:
+
+```json
+{ "key": "play_spellstorm", "text": "Spellstorm",
+  "play": { "action": ["options:m_table,m_engine"] },
+  "abilities": [{ "action": ["load_game:spellstorm.json"] }] },
+{ "key": "m_engine", "text": "Against the engine",
+  "play": { "action": ["copy:target:activate", "bot_seats"] } }
+```
+
+`o` in the GUI and `bot <seat>` in `play.lua` do the same thing mid-game.
 
 ### Saving a game, and picking it up
 

@@ -378,6 +378,11 @@ local function readings(frag)
 				local t = validate.FIELDS[sec] or validate.SHAPES[sec]
 				if sec == "prompt" then
 					walk("prompt", body, validate.SHAPES.prompt, found)
+				elseif sec == "bot" then
+					walk("bot", body, validate.SHAPES.bot, found)
+					for i, e in ipairs(type(body) == "table" and body.per_phase or {}) do
+						walk("bot.per_phase[" .. i .. "]", e, validate.SHAPES.per_phase, found)
+					end
 				elseif sec == "setup" then
 					walk("setup", body, validate.SHAPES.setup, found)
 					for i, e in ipairs(type(body) == "table" and body.place or {}) do

@@ -2455,6 +2455,15 @@ def build():
             {"when": "max:shards@anyone.player >= 8", "then": ["reveal:end_shards"]},
             {"when": "min:health@anyone.player <= 0", "then": ["reveal:end_dead"]},
         ],
+        # What the engine seat climbs. The game is won on shards and lost on
+        # health, so those are the number; a card gained shows in no shard or
+        # wound by the time the round turns, so gaining climbs the deck instead:
+        # its tiers, less the junk in it.
+        "bot": {
+            "value": "10 * shards@mine.player - 10 * shards@opponent + health@mine.player - health@opponent",
+            "per_phase": [{"phase": "gain_card", "value": " + ".join(
+                "sum:tier_req@mine.%s - 3 * count:junk@mine.%s" % (z, z) for z in ("hand", "discard", "deck"))}],
+        },
         "setup": {"place": [
             {"card": "seat_one", "owner": "seat_one", "zone": "wizard"},
             {"card": "seat_two", "owner": "seat_two", "zone": "wizard"},

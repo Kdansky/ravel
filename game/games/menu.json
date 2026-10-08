@@ -202,8 +202,26 @@
       "text": "Spellstorm",
       "asset": "ss_stormdragon.jpg",
       "tooltip": "Keith Burgun's tactical deckbuilder. Pick one of eight asymmetrical wizards, play a card face down each round, and see whose element counters whose. First to eight Storm Shards, or the last one still standing.",
-      "play": { "action": ["load_game:spellstorm.json"] },
+      "comment": "Play asks who sits across the table; the ability is what either answer runs.",
+      "play": { "action": ["options:m_table,m_engine"] },
+      "abilities": [{ "action": ["load_game:spellstorm.json"] }],
       "tags": ["immutable"]
+    },
+    {
+      "key": "m_table",
+      "text": "At this table",
+      "tooltip": "Everyone plays from this screen, taking turns.",
+      "asset": "circle:slate",
+      "tags": ["immutable"],
+      "play": { "action": ["copy:target:activate"] }
+    },
+    {
+      "key": "m_engine",
+      "text": "Against the engine",
+      "tooltip": "You play the first seat and the engine plays the rest. It tries every move in a few possible deals of what it cannot see, so it never reads your hand.",
+      "asset": "square:slate",
+      "tags": ["immutable"],
+      "play": { "action": ["copy:target:activate", "bot_seats"] }
     }
   ],
   "phases": [{ "key": "waiting", "type": "player_input" }]

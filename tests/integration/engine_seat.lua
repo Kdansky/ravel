@@ -181,4 +181,146 @@ function M.test_opponent_leaves_the_seat_when_told(check)
 	end)
 end
 
+
+-- A seat the engine weighs moves for. Seat one holds two guesses and a dud; seat
+-- two holds one colour in a hidden hand and the other in a hidden deck. A guess
+-- scores if the hand holds its colour, so the true answer is red every time —
+-- and a bot that may not look should not know that. A round is one play, so a
+-- try is scored on the move it tried rather than on the rest of the hand.
+local GUESS = [==[{
+  "title": "Guess",
+  "players": [{ "card": "one" }, { "card": "two" }],
+  "stats": [{ "key": "score", "label": "Score", "on": ["player"], "start": 0, "min": 0, "max": 9 }],
+  "zones": [
+    { "key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat",
+      "pos": [[0.20, 0.80, 0.50, 0.95], [0.20, 0.05, 0.50, 0.20]] },
+    { "key": "deck", "layout": "stack", "visibility": "secret", "copies": "per_seat",
+      "pos": [[0.60, 0.80, 0.70, 0.95], [0.60, 0.05, 0.70, 0.20]] },
+    { "key": "table", "layout": "row", "status": "board", "copies": "per_seat",
+      "pos": [[0.75, 0.80, 0.95, 0.95], [0.75, 0.05, 0.95, 0.20]] },
+    { "key": "box", "layout": "stack", "use": "none", "pos": [0.45, 0.45, 0.55, 0.55] }
+  ],
+  "phases": [
+    { "key": "deal", "type": "automatic", "next": [{ "then": "act" }],
+      "actions": ["move:box.guess:mine.hand", "move:box.red:enemy.hand", "move:box.blue:enemy.deck"] },
+    { "key": "act", "type": "player_input", "zone": "hand", "seat": "next", "ends_when": "plays >= 1",
+      "next": [{ "then": "act", "ends_round": true }] }
+  ],
+  "cards": [
+    { "key": "one", "text": "One", "tags": ["player"] },
+    { "key": "two", "text": "Two", "tags": ["player"] },
+    { "key": "red", "text": "Red", "tags": ["red"], "play": { "action": [], "spent": "mine.table" } },
+    { "key": "blue", "text": "Blue", "tags": ["blue"], "play": { "action": [], "spent": "mine.table" } },
+    { "key": "guess_red", "text": "Guess red", "tags": ["guess"],
+      "play": { "action": ["stat_gain:score@mine.player:count:red@enemy.hand"], "spent": "mine.table" } },
+    { "key": "guess_blue", "text": "Guess blue", "tags": ["guess"],
+      "play": { "action": ["stat_gain:score@mine.player:count:blue@enemy.hand"], "spent": "mine.table" } },
+    { "key": "dud", "text": "Dud", "tags": ["guess"], "play": { "action": [], "spent": "mine.table" } }
+  ],
+  "bot": { "value": "score@mine.player" },
+  "setup": { "place": [
+    { "card": "one", "owner": "one", "zone": "table" },
+    { "card": "two", "owner": "two", "zone": "table" },
+    { "card": "guess_red", "zone": "box" }, { "card": "guess_blue", "zone": "box" },
+    { "card": "dud", "zone": "box" }, { "card": "red", "zone": "box" }, { "card": "blue", "zone": "box" }
+  ] }
+}]==]
+
+local function with_guess(fn)
+	local name = harness.tmp("guess")
+	local f = assert(io.open("game/games/" .. name, "w"))
+	f:write(GUESS)
+	f:close()
+	local ok, err = pcall(fn, name)
+	os.remove("game/games/" .. name)
+	opponent.leave()
+	if not ok then error(err, 0) end
+end
+
+local function picked(moves, i)
+	local before = {}
+	for e in entity.each("card") do before[e.id] = e.zone_id end
+	local key
+	flow.rehearse(function()
+		moves[i]()
+		for e in entity.each("card") do
+			if e.zone_id ~= before[e.id] then key = e.def_key end
+		end
+	end)
+	return key
+end
+
+function M.test_engine_seat_weighs_a_move_without_reading_the_hidden_hand(check)
+	with_guess(function(name)
+		local count = { guess_red = 0, guess_blue = 0, dud = 0 }
+		for n = 1, 40 do
+			math.randomseed(n)
+			flow.init(name, n)
+			local moves = opponent.legal()
+			local k = picked(moves, opponent.choose("one", moves))
+			count[k] = (count[k] or 0) + 1
+		end
+		check("a guess beats a move worth nothing", count.dud <= 4,
+			count.dud .. " dud, " .. count.guess_red .. " red, " .. count.guess_blue .. " blue")
+		check("red, which is the truth, is picked", count.guess_red > 0, count.guess_red)
+		check("and so is blue, which a bot reading the hand would never pick", count.guess_blue > 0, count.guess_blue)
+	end)
+end
+
+function M.test_engine_seat_leaves_nothing_of_what_it_tried(check)
+	with_guess(function(name)
+		math.randomseed(1)
+		flow.init(name, 1)
+		local json = require("json")
+		local log = require("log")
+		local board, lines, undo = json.encode(entity.registry()), log.count(), flow.can_undo()
+		opponent.choose("one", opponent.legal())
+		check("the board is as it was", json.encode(entity.registry()) == board)
+		check("the log has nothing of the tries", log.count() == lines)
+		check("and undo is where it was", flow.can_undo() == undo)
+	end)
+end
+
+-- A rehearsal makes as many moves as it likes, and every one of them checkpoints.
+-- Past MAX_HISTORY those would push the player's own undo off the far end.
+function M.test_a_rehearsal_keeps_the_undo_stack_it_found(check)
+	math.randomseed(2)
+	flow.init("tower.json", 2)
+	local json = require("json")
+	local board = json.encode(entity.registry())
+	opponent.legal()[1]()
+	flow.rehearse(function()
+		for _ = 1, 200 do
+			local moves = opponent.legal()
+			if #moves == 0 then break end
+			moves[math.random(#moves)]()
+		end
+	end)
+	check("the move before it can still be taken back", flow.undo())
+	check("all the way back", json.encode(entity.registry()) == board)
+end
+
+-- The title screen asks who sits across the table. `bot_seats` is written beside
+-- a `load_game` and runs before the load lands, so it has to mean the next game.
+function M.test_engine_seat_chosen_on_the_menu_is_the_next_games(check)
+	local function card(k)
+		for e in entity.each("card") do
+			if e.def_key == k and e.zone_id then return e end
+		end
+	end
+	local function choose(answer)
+		flow.init("menu.json", 1)
+		flow.play_card(card("play_spellstorm").id, {})
+		flow.play_card(card(answer).id, {})
+	end
+	choose("m_engine")
+	check("the engine plays the second seat", opponent.seats.seat_two == true)
+	check("and the first is this screen's", net.seat == "seat_one" and not opponent.seats.seat_one)
+	flow.init("menu.json", 1)
+	check("loading another game stands it down", next(opponent.seats) == nil)
+	choose("m_table")
+	check("at the table nobody is the engine", next(opponent.seats) == nil)
+	net.claim_seat(nil)
+end
+
 return M

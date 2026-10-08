@@ -332,14 +332,26 @@ local function fired_flags()
 	return f
 end
 
-local function checkpoint()
-	history[#history + 1] = {
+local function point()
+	return {
 		ents     = entity.snapshot(),
 		phases   = phase.snapshot(),
 		fired    = fired_flags(),
 		log_mark = log.count(),
 		rng      = rng.state(),
 	}
+end
+
+local function back_to(h)
+	entity.restore(h.ents)
+	phase.restore(h.phases)
+	rng.set_state(h.rng)
+	for i, cond in ipairs(declaration.G.end_conditions) do cond.ravel_fired = h.fired[i] end
+	log.truncate(h.log_mark)
+end
+
+local function checkpoint()
+	history[#history + 1] = point()
 	if #history > MAX_HISTORY then table.remove(history, 1) end
 end
 
@@ -358,14 +370,25 @@ end
 function M.undo()
 	local h = table.remove(history)
 	if not h then return false end
-	entity.restore(h.ents)
-	phase.restore(h.phases)
-	rng.set_state(h.rng)
-	for i, cond in ipairs(declaration.G.end_conditions) do cond.ravel_fired = h.fired[i] end
-	log.truncate(h.log_mark)
+	back_to(h)
 	targeting.clear()
 	if M.on_reset then M.on_reset() end
 	return true
+end
+
+-- Run `fn` and then put everything back as it was: the board, the phases, the
+-- ending, the log, the generator and the undo stack. An engine seat weighs a move
+-- by making it, and a move tried must leave nothing behind — least of all an undo
+-- stack whose real entries it pushed out past MAX_HISTORY.
+--
+-- Not undo: no hook fires, because nothing a player could see has happened.
+function M.rehearse(fn)
+	local h, kept = point(), history
+	history = {}
+	local ok, err = pcall(fn)
+	history = kept
+	back_to(h)
+	if not ok then error(err, 0) end
 end
 
 -- The first matching condition fires; all are then marked fired so a game has
@@ -1389,6 +1412,8 @@ end
 -- Through seat_text rather than off the def, since a seat's text may be the
 -- template a set_name verb feeds: a banner reading "{name} wins" is the third
 -- read path found bypassing label.fill, and the only one a player sees.
+M.victor = victor
+
 function M.winner()
 	local won = victor()
 	return won and (label.seat_text(won) or won) or nil

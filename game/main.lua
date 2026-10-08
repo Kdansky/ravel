@@ -501,21 +501,12 @@ function love.keypressed(key)
 	elseif key == "l" then
 		render.toggle_log()
 	elseif key == "o" then
-		-- Single player, as one gesture: you keep the seat you are watching and
-		-- the engine takes the rest. Sitting down is part of it, because an
-		-- opponent implies a side to be on — and claiming a seat is also what
-		-- turns the other hand face down, which is the half a player would
-		-- otherwise have to know to ask for.
-		local seats = declaration.G.seat_list or {}
 		if next(opponent.seats) then
 			opponent.leave()
 			log.add("Every seat is yours again.")
-		elseif #seats > 1 then
-			local mine = zones.watching() or net.claim_seat(seats[1])
-			for _, k in ipairs(seats) do
-				if k ~= mine then opponent.take(k) end
-			end
-			log.add("You are " .. tostring(mine) .. "; the engine plays the rest.")
+		else
+			local mine = opponent.engage()
+			if mine then log.add("You are " .. tostring(mine) .. "; the engine plays the rest.") end
 		end
 	end
 	stage.seal()

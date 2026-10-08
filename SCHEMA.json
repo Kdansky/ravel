@@ -433,6 +433,15 @@
       "tooltip": "what this tag means, in one place. Two readings, and both are live: a tag a *zone* hands out through \"applies\" describes what lying there lets a card do, and a tag a *card* carries is a keyword — the game says once what Tough does and every card with the tag inherits the sentence, in the hover panel and in the detail overlay. A card's own tooltip is shown as well, because they describe different things."
     }
   },
+  "bot": {
+    "value": "what a seat the engine plays tries to make large, as an arithmetic expression in the grammar a compute's value uses, read from that seat — so mine is the bot and opponent is whoever it plays against (\"10 * shards@mine.player - 10 * shards@opponent + health@mine.player - health@opponent\"). The engine tries every legal move, plays each out with random moves for everybody until the round turns or the game ends, and keeps the one that scored best; a seat a won stat names is worth more than any number. Before each try it deals again everything the seat cannot see — another seat's owner-only zones are pooled and dealt back, and every secret pile loses its order — so a move is weighed against what the other hand might hold, never against what it does. Without this section an engine seat picks at random. Several bots in one game are not a thing: there is one algorithm, and this is what it climbs",
+    "per_phase": [
+      {
+        "phase": "a phase key: while that phase is anywhere on the stack, this value is climbed instead — for a decision whose effect the game's own number cannot see by the time the round turns, such as gaining a card into a deck",
+        "value": "the number to climb in that phase, in the same grammar as the bot's own value"
+      }
+    ]
+  },
   "prompt": {
     "pos": "[left, top, right, bottom] as fractions of the board, the same rect a zone writes: where the engine asks the table a question it did not click for — what has been announced, who is to answer, and Pass for the seat that may. Left out, the question is a bar across the top-left corner, which a game filling its board edge to edge has already given to something. The message wraps inside the rect and a long one grows it downward. The game says where and never what: the wording and the button are the engine's."
   },
@@ -544,6 +553,7 @@
     "net_invite": "net_invite — build an invite to send somebody",
     "net_join": "net_join — open the box to paste one into",
     "net_seat": "net_seat:<seat> — sit in a chair, or any to give it up",
+    "bot_seats": "bot_seats — the engine plays every seat but the first, and this screen sits in that one. Written beside a load_game, and it means the game being loaded: every load stands the engine down, and the one this asked for stands it back up. How well it plays is the loaded game's bot section; without one it moves at random.",
     "save_game": "save_game:<slot> — write the position to a save, under a plain word the game chooses. The slot says which save, never where it goes: the engine decides that, because a game file can arrive from a stranger. What is written is exactly what a networked opponent would be sent, so there is no second format to keep correct. Refused while a network game is connected, since two people saving one game write two files that both claim to be it.",
     "load_save": "load_save:<slot> — put a saved position back, whichever game it was of: the save names its own file and that file is loaded first. Refused if the game file has changed since it was written, because the same position means something else against different rules. The log comes back with it and the undo history does not, exactly as when a state arrives over the wire.",
     "exhaust": "exhaust:<scope> — spend those cards' readiness, whoever they belong to. The same state the \"exhaust\" cost writes, said as an effect: a cost is a card spending *itself*, which is the whole of \"once per turn\" and reaches nothing else, so disabling, tapping down and arresting had no spelling and \"ready:\" had no opposite. What it writes is readable as the engine tag \"exhausted\", so a rule may ask who is spent as well as spend them."

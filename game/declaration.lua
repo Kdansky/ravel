@@ -443,7 +443,7 @@ local KNOWN_SECTIONS = {
 	cards = true, zones = true, phases = true,
 	end_conditions = true, setup = true, tags = true, effects = true, players = true, verbs = true,
 	patterns = true, assets = true, styles = true, prompt = true,
-	include = true, replaces = true,
+	include = true, replaces = true, bot = true,
 }
 M.KNOWN_SECTIONS = KNOWN_SECTIONS
 
@@ -764,6 +764,8 @@ function M.parse(filename)
 		adjust_index   = {},   -- "<game verb>:<stat>" -> the tags that change what it lands for
 		lend_index     = {},   -- tag -> the cards that lend it, so a tag nobody lends costs one nil lookup
 		end_conditions = parsed.end_conditions or {},
+		-- What an engine-played seat climbs. Read by opponent.lua and nothing else.
+		bot = parsed.bot,
 		setup          = parsed.setup or {},
 		-- Where the game begins, in the order the manual would say it. A card
 		-- does not declare its own place: the list of cards is what comes out of

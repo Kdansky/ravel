@@ -231,6 +231,7 @@ local FILE = rec({
 	verbs = list(rec({ key = STR, does = STR, action = ACTIONS, needs = NEEDS, tooltip = STR, effect = STR })),
 	effects = map(rec({ base = STR, size = NUM, speed = NUM, count = NUM, color = COLOUR })),
 	end_conditions = list(rec({ when = COND, ["then"] = ACTIONS })),
+	bot = rec({ value = STR, per_phase = list(rec({ phase = STR, value = STR })) }),
 	setup = rec({
 		place = list(either(STR, rec({ card = STR, zone = STR, at = WORDS, owner = STR, deck = STR }))),
 	}),
@@ -444,7 +445,7 @@ M.SPECS = {
 	end_conditions = F.end_conditions.of, verbs = F.verbs.of,
 	target = TARGET, route = ROUTE, adjusts = ADJUST, ability = ABILITY, reaction = REACTION, lends = LENDS,
 	setup = F.setup, place = F.setup.fields.place.of[2], move_rule = MOVE_RULE,
-	player = F.players.of, prompt = F.prompt,
+	player = F.players.of, prompt = F.prompt, bot = F.bot, per_phase = F.bot.fields.per_phase.of,
 }
 for moment in pairs(M.MOMENTS) do M.SPECS[moment] = CARD.fields[moment] end
 M.FILE = FILE

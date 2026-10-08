@@ -1,7 +1,8 @@
 # 34 — An opponent
 
-**Status:** steps 1 and 2 shipped. `game/opponent.lua` is the move list *and* a
-seat that plays from it; `bot <seat>` in the CLI and `o` in the GUI turn it on.
+**Status:** steps 1–3 shipped. `game/opponent.lua` is the move list, a seat that
+plays from it, and a search scored by the game's `bot` section; the title screen,
+`bot <seat>` in the CLI and `o` in the GUI turn it on.
 **Size:** every version after this is a design question about where the thinking
 lives.
 
@@ -55,57 +56,42 @@ something that does not come through a mouse could reach it.
   fallthrough. It had never had a way to use a place's ability either, so from
   that prompt half the corpus could not finish a turn.
 
-## The three versions, and the honest gap between them
+## Step 3: a bot the game file values
 
-| | What it does | What it costs |
-|---|---|---|
-| **Random** | picks uniformly from `legal()` | shipped |
-| **Greedy** | picks the move that most improves a number the game names | a way for a game file to say which number, and to score a move without committing to it |
-| **Searching** | looks ahead | undo already exists, and a search is undo used in anger |
+Asked for 2026-10-04 for Spellstorm ("a valuation logic and a brute force
+approach ... okay if it's mediocre"), and settled with the user: **one bot, one
+algorithm, and the game file says only what a position is worth** — no named
+bots, no per-bot logic. Documented in AUTHORING.md, *An opponent the engine
+plays*. What it cost that the docs do not say:
 
-The gap between random and greedy is the whole track. Random needs nothing from
-the format; greedy needs the game file to say **what winning looks like as a
-number**, and that is a word the format has not got.
+- **Scoring right after the move scores nothing in Spellstorm.** A card goes face
+  down and nothing moves until both have played. So a try plays on, random moves
+  for everybody, until the round turns. The guess test found the other edge: in a
+  game whose round never turns, the rollout plays the whole hand and every first
+  move scores alike.
+- **Undo is not a rehearsal.** A tried move checkpoints, and two hundred of them
+  push the player's own undo off MAX_HISTORY. `flow.rehearse` keeps the stack it
+  found and fires no hook.
+- **The hooks a try fires are the screen's.** `zones.on_change`, `on_stat_change`
+  and `on_effect` record a run to play back, and undo's `on_reset` clears it.
+  `opponent` mutes the four for the search, and `net.unheard` keeps tries off
+  the wire.
+- **Not cheating needed no word.** Zone `visibility` already says what a seat
+  cannot see; the bot deals it again before every try.
 
-Two things it might already be, and neither quite fits:
-
-- **`end_conditions`** say when the game is over and who won, but they are
-  yes/no. "Am I closer to eight shards" is not a condition, and turning one into
-  a gradient is inventing a second meaning for it.
-- **`computes`** name a number with a formula, which is exactly the right shape.
-  What is missing is nothing about computing it; it is *saying which compute the
-  opponent should climb*, which is one field and therefore a decision to take
-  with the user rather than in passing.
-
-**[Assumption: that a single number is enough to play any of the shipped games
-badly-but-legally is untested. Splendor and Lost Cities have an obvious one
-(score); Puzzle Strike and Codex plainly do not, and The Crew is cooperative and
-wants a different shape entirely.]**
-
-A second thing the same word would fix, found by watching it play: a random seat
-will happily choose **"With a friend, online"** out of a game's own opening menu,
-claim a seat and hand the game to nobody. The card is content and looks like
-every other move from here. Nothing in the file says a move is about the session
-rather than the game — the same gap as not knowing what a move is *for*.
-
-## Where it does not go
-
-**Not in the game file as a script.** DESIGN.md's whole schema section exists to
-keep the format from becoming a programming language, and "how to play well" is
-the most programming-shaped thing there is. The format's job is to say what
-winning is; picking moves is the engine's.
-
-**Not per game.** An opponent that has to be written once per game is a second
-copy of every game's rules, and it will disagree with the first copy. Whatever
-lands has to be one algorithm reading what the game file already says.
+Against random play over six Spellstorm games it won five; random against random
+splits about evenly. A decision takes 0.5–2 s at `TRIES = 4`, inside one frame.
 
 ## Left
 
-1. **Where the switch belongs.** `o` and `bot <seat>` are an interface's
-   affordances, and the invariant says *when in doubt, decks and cards* — which
-   is how networking is offered ("a two-player game deals a card that says play
-   this with a friend"). An engine opponent wants the same, and that needs an
-   action word nobody has agreed yet.
-2. **A better-than-random pick**, which is where the number above comes in.
-3. **Only the minimum targets are chosen**, so an optional target is never
-   taken. Nothing in the corpus turns on it.
+1. **The search blocks a frame for up to two seconds.** Run it across frames (a
+   coroutine stepped from `love.update`), or cut `TRIES` and `REACH`.
+2. **`per_phase` is unmeasured.** Spellstorm's gain override reads sensible and
+   nobody has watched it gain.
+3. **Every other game is random.** The menu asks only where a game declares
+   `bot`. Splendor and Lost Cities have an obvious score; Codex and Puzzle Strike
+   do not; The Crew and Ghost Stories are cooperative and want another shape.
+4. **The rollout opponent is random**, so the bot plans against a fool. Playing
+   the rollout with the bot itself is the next step up and costs TRIES² time.
+5. **Only the minimum targets are chosen**, so an optional target is never
+   taken, and a target is picked at random once per move rather than tried.

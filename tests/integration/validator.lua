@@ -990,6 +990,14 @@ local CASES = {
 		function(g) g.card_defs.pearl.lends = { covers = "board" } end },
 	{ "a tag given that nothing defines", "'tag' hands out 'dragons'",
 		function(g) g.card_defs.c_flee.on_play = { "tag:board:dragons" } end },
+	{ "a bot with nothing to climb", 'bot: needs a "value"',
+		function(g) g.bot = {} end },
+	{ "a bot value that is not arithmetic", "bot: '>=' comes after the expression has ended",
+		function(g) g.bot = { value = "health@mine.player >= 3" } end },
+	{ "a bot climbing in a phase nobody declared", "no phase called 'nowhere'",
+		function(g) g.bot = { value = "1", per_phase = { { phase = "nowhere", value = "1" } } } end },
+	{ "a bot with a field it does not read", "bot: has a field 'weights'",
+		function(g) g.bot = { value = "1", weights = { 1 } } end },
 }
 
 -- The verb check runs last for a reason: what a game emits is only known once
