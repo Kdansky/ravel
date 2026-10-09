@@ -81,7 +81,7 @@ is left rather than what was done.
 
 | # | Item | Difficulty | Why here |
 |---|---|---|---|
-| 93 | [34](34-an-opponent.md) — **the bot thinks across frames** | small | the search runs inside one frame and holds it for up to two seconds in Spellstorm. A coroutine stepped from `love.update` keeps the board alive while it thinks; the alternative is fewer tries, which costs strength |
+| ~~93~~ | [34](34-an-opponent.md) — ~~the bot thinks across frames~~ | — | shipped as a second engine linked like a remote player: a love.thread on desktop, wasmoon in a Web Worker in the browser |
 | 94 | [34](34-an-opponent.md) — **a `bot` section for Splendor and Lost Cities** | small | both have a score that is the whole game, so the bot is one line each and the menu question follows. Codex and Puzzle Strike have no single number; the co-op games want another shape |
 | 24 | [16](16-the-player-at-this-screen.md) — **chat with the peer, and a name** | medium | asked for again, and on its own this time: a wire kind beside `H` that changes no state, and a text field — the input surface is still the decision. The name can follow rather than ship with it |
 | 23 | [07](07-presentation.md) — **an offer of fifty-one** | small | the draft may only look bad because its two buttons are 23px squares — and item 2 is in now, so the second look is available. Decide then whether `layout: "page"` — which already draws the reveal overlay — should serve an offer too |

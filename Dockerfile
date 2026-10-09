@@ -12,6 +12,15 @@ RUN mkdir -p /tmp/lovejs /out/lovejs \
 	&& cp -R /tmp/lovejs/lua /out/lua \
 	&& cp -R "/tmp/lovejs/${LOVEJS_VERSION}" "/out/lovejs/${LOVEJS_VERSION}"
 
+# The browser's second engine runs on wasmoon (Lua 5.4 in wasm) in a Web Worker:
+# love.js has no threads of its own. See engine-worker.js.
+ARG WASMOON_VERSION=1.16.0
+RUN mkdir -p /tmp/wasmoon /out/engine \
+	&& curl -fsSL "https://registry.npmjs.org/wasmoon/-/wasmoon-${WASMOON_VERSION}.tgz" -o /tmp/wasmoon.tgz \
+	&& tar -xzf /tmp/wasmoon.tgz -C /tmp/wasmoon --strip-components=1 \
+	&& cp /tmp/wasmoon/dist/index.js /out/engine/wasmoon.js \
+	&& cp /tmp/wasmoon/dist/glue.wasm /out/engine/glue.wasm
+
 FROM nginx:1.27-alpine
 
 RUN apk add --no-cache zip inotify-tools
@@ -21,6 +30,8 @@ COPY index.html /usr/share/nginx/html/index.html
 COPY --from=lovejs /out/lovejs /usr/share/nginx/html/lovejs
 COPY --from=lovejs /out/lovejs/11.5 /usr/share/nginx/html/11.5
 COPY --from=lovejs /out/lua /usr/share/nginx/html/lua
+COPY --from=lovejs /out/engine /usr/share/nginx/html/engine
+COPY engine-worker.js /usr/share/nginx/html/engine/worker.js
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 
 RUN chmod +x /docker-entrypoint.sh

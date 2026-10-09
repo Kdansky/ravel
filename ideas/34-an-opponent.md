@@ -80,12 +80,20 @@ plays*. What it cost that the docs do not say:
   cannot see; the bot deals it again before every try.
 
 Against random play over six Spellstorm games it won five; random against random
-splits about evenly. A decision takes 0.5–2 s at `TRIES = 4`, inside one frame.
+splits about evenly. A decision is 0.5–2 s of CPU at `TRIES = 4` under LuaJIT, about twice that on Lua 5.4.
 
 ## Left
 
-1. **The search blocks a frame for up to two seconds.** Run it across frames (a
-   coroutine stepped from `love.update`), or cut `TRIES` and `REACH`.
+1. **The search runs on a second engine**, linked like a remote player
+   (`botlink`, `botpeer`): a love.thread on desktop, wasmoon in a Web Worker in
+   the browser. Measured: desktop, Spellstorm via the menu, 60 s under xvfb —
+   engine turns 0.48 s mean, 1.57 s max, no frame over 33 ms; headless Firefox
+   against the built image — the worker answers in 2.0 s cold and moves 1.6 s
+   later. Not yet clicked through in a real browser tab. Two costs of being a
+   peer: undo stops at the engine's last move (an applied state clears it), and
+   a game against the engine cannot also be online. Tried first and dropped: the
+   search in slices of a frame (~2x slower to decide), and a thread answering an
+   index into a seeded move list (desktop only).
 2. **`per_phase` is unmeasured.** Spellstorm's gain override reads sensible and
    nobody has watched it gain.
 3. **Every other game is random.** The menu asks only where a game declares

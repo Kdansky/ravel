@@ -24,6 +24,7 @@ require("save")
 -- lets a seat be played by the engine. It requires net back, because a move made
 -- for a seat nobody is sitting at has to get past the turn gate.
 local opponent    = require("opponent")
+local botlink = require("botlink")
 local openfile    = require("openfile")
 local render      = require("render")
 local tooltip     = require("tooltip")
@@ -34,7 +35,6 @@ local fx          = require("fx")
 local debugserver = require("debugserver")
 local validate    = require("validate")
 local log         = require("log")
-local stats       = require("stats")
 
 -- The offer that is open, if one is: the only hidden zone a click may reach.
 -- Mirrors what render draws for an overlay phase, and per_seat resolves to the
@@ -341,20 +341,7 @@ function love.load()
 		render.set_selected(nil)
 		render.set_detail(nil)
 	end
-	-- Every visible thing the rules do, in the order they did it. A step nobody can see is still a state, so it is
-	-- recorded, but the board does not wait on it: seven options cleared from a closed question are no time at all.
-	local function drawn(zone_id)
-		local z = zone_id and entity.get(zone_id)
-		return z and zones.shown(z)
-	end
-	zones.on_change = function(what, id)
-		local e = entity.get(id)
-		local was = stage.last(id)
-		local seen = what == "shuffle" and drawn(id) or drawn(e and e.zone_id) or drawn(was and was.zone_id)
-		-- A shuffle is told as a fact, so the pile whirls on the other side of a network too.
-		stage.record(what, id, nil, not seen and { wait = 0 } or what == "shuffle" and {} or nil)
-	end
-
+	stage.listen()
 	-- Stat changes float up from where they happened (card, or the HUD row).
 	-- A card losing health also takes a small damage burst, and whoever did it
 	-- leans into them — a number changing across the board says nothing about
@@ -418,27 +405,9 @@ function love.load()
 		end
 	end
 
-	-- A number the game hides says nothing as it changes. It is seen if its row is listed either side of the change —
-	-- a `nonzero` stat appearing or going away is news — or if the card wears it as a badge.
-	actions.on_stat_change = function(e, key, delta, ctx)
-		local v = stats.current(e, key)
-		local badges = e.kind == "card" and cards.style(e).badges
-		local badged = false
-		for _, b in ipairs(type(badges) == "table" and badges or {}) do badged = badged or b == key end
-		if not (badged or declaration.stat_shown(key, v) or declaration.stat_shown(key, v - delta)) then return end
-		stage.record("stat", e.id, nil, { key = key, delta = delta, actor = ctx and ctx.card_id })
-	end
-
-	-- Named card effects land where a verb lands, else on the acting card (or mid-screen without one). One that
-	-- travels holds the next beat until it arrives, so the number it brings changes when it gets there.
-	actions.on_effect = function(name, ctx, at)
+	stage.effect_wait = function(name, from)
 		local def = declaration.G.effect_defs[name]
-		if not def then return end
-		local by = ctx and ctx.card_id and entity.get(ctx.card_id)
-		local to = at or by
-		local from = by and to and by.id ~= to.id and by.id or nil
-		local wait = def.base == "announce" and anim.announce_time(def) or from and fx.flight(def)
-		stage.record("effect", to and to.id, nil, { effect = name, from = from, wait = wait })
+		return def and (def.base == "announce" and anim.announce_time(def) or from and fx.flight(def)) or nil
 	end
 
 	-- A move from the other side comes with the run that made it, and is watched
@@ -501,8 +470,9 @@ function love.keypressed(key)
 	elseif key == "l" then
 		render.toggle_log()
 	elseif key == "o" then
-		if next(opponent.seats) then
+		if next(opponent.seats) or botlink.active() then
 			opponent.leave()
+			botlink.leave()
 			log.add("Every seat is yours again.")
 		else
 			local mine = opponent.engage()
@@ -619,9 +589,13 @@ function love.update(dt)
 	-- against the live registry instead, every card would be asked for its final
 	-- position on the first frame of a run and the whole thing would happen at
 	-- once, which is what the run exists to stop.
-	-- A seat the engine plays moves between runs and is bracketed exactly as a
+	-- The engine's seats go to a second engine on a thread of its own, whose
+	-- moves arrive as a peer's do. Where none could start they stay here: a
+	-- seat the engine plays moves between runs and is bracketed exactly as a
 	-- click is, so its turn is played back a beat at a time like anybody else's
 	-- — and never starts while the last one is still being watched.
+	botlink.update(love.timer.getTime())
+	render.set_thinking(botlink.thinking())
 	if opponent.due() and not stage.busy() then
 		stage.arm()
 		opponent.act()

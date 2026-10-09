@@ -7,6 +7,7 @@
 --   folder     a file per side in a shared directory — two terminals on one
 --              machine, or any folder that syncs itself between two machines
 --   browser    BroadcastChannel between two tabs of the same page, no server
+--   engine     a second engine on a thread of its own, playing the engine's seats
 --
 -- The copy/paste path needs nothing here: net.export/net.import are the whole
 -- of it, and a chat window is the transport.
@@ -391,6 +392,59 @@ function M.rtc()
 				.. 'window.__ravelRTC={};return "ok"'))
 		end,
 	}
+end
+
+---------------------------------------------------------------- engine
+
+-- A second engine for the engine's seats (botpeer.lua is its end), on a thread
+-- of its own so the search never holds up the screen. Linked like any peer.
+
+local function thread()
+	if not (love and love.thread and love.thread.newThread) then return nil end
+	local ok, t = pcall(love.thread.newThread, "botpeer_thread.lua")
+	if not ok then return nil end
+	local inbox, outbox = love.thread.getChannel("ravel_engine_in"), love.thread.getChannel("ravel_engine_out")
+	inbox:clear()
+	outbox:clear()
+	if not pcall(t.start, t) then return nil end
+	return {
+		name = "engine",
+		send = function(text) inbox:push(text) end,
+		recv = function() return outbox:pop() end,
+		failed = function() return t:getError() end,
+	}
+end
+
+-- love.js is built without threads, so in the browser the second engine is the
+-- same Lua on wasmoon in a Web Worker (engine-worker.js), heard over a
+-- BroadcastChannel in a room of its own: the browser transport above, unchanged.
+local function worker()
+	local room = "engine" .. math.random(1e9)
+	local started = eval(guarded([[
+		var E = window.__ravelEngine = window.__ravelEngine || {};
+		if (E.w) E.w.terminate();
+		E.err = "";
+		E.w = new Worker("/engine/worker.js#" + ]] .. js_string(room) .. [[);
+		E.w.onerror = function (e) { E.err = String(e.message || "the engine's worker failed"); };
+		return "ok";
+	]]))
+	if started ~= "ok" then return nil end
+	local t = M.browser(room)
+	if not t then return nil end
+	t.name = "engine"
+	t.failed = function()
+		local err = eval(guarded('return String((window.__ravelEngine || {}).err || "")'))
+		return err ~= "" and err or nil
+	end
+	return t
+end
+
+-- nil where neither can start.
+function M.engine()
+	if love and love.system and love.system.getOS and love.system.getOS() == "Web" then
+		return M.browser_available() and worker() or nil
+	end
+	return thread()
 end
 
 -- Exposed because the control panel needs the same door, and because a person

@@ -34,6 +34,10 @@
 
 local entity = require("entity")
 local zones = require("zones")
+local actions = require("actions")
+local declaration = require("declaration")
+local cards = require("cards")
+local stats = require("stats")
 
 local M = {}
 
@@ -143,6 +147,11 @@ end
 -- registry already holds where it ended.
 function M.replay(from, beats)
 	if #queue > 0 then drain() end
+	for _, b in ipairs(beats) do
+		if b.what == "effect" and b.data and b.data.wait == nil and M.effect_wait then
+			b.data.wait = M.effect_wait(tostring(b.data.effect), tonumber(b.data.from))
+		end
+	end
 	enqueue(beats)
 	presented = #queue > 0 and from or nil
 end
@@ -199,6 +208,49 @@ end
 
 function M.speed()
 	return rate
+end
+
+-- How long a named effect holds the next beat, or nil for the usual gap: a flight
+-- takes as long as it flies. Only a screen knows; main.lua supplies it, and a
+-- run recorded where nothing is drawn is given its waits when it is replayed.
+M.effect_wait = nil   -- hook(name, from)
+
+-- Every visible thing the rules do, recorded in the order they did it. A step
+-- nobody can see is still a state, so it is recorded, but the board does not
+-- wait on it: seven options cleared from a closed question are no time at all.
+-- The screen listens, and so does an engine seat on another thread, whose runs
+-- go out with its moves to be watched here.
+function M.listen()
+	local function drawn(zone_id)
+		local z = zone_id and entity.get(zone_id)
+		return z and zones.shown(z)
+	end
+	zones.on_change = function(what, id)
+		local e = entity.get(id)
+		local was = M.last(id)
+		local seen = what == "shuffle" and drawn(id) or drawn(e and e.zone_id) or drawn(was and was.zone_id)
+		-- A shuffle is told as a fact, so the pile whirls on the other side of a network too.
+		M.record(what, id, nil, not seen and { wait = 0 } or what == "shuffle" and {} or nil)
+	end
+	-- A number the game hides says nothing as it changes. It is seen if its row is listed either side of the change —
+	-- a `nonzero` stat appearing or going away is news — or if the card wears it as a badge.
+	actions.on_stat_change = function(e, key, delta, ctx)
+		local v = stats.current(e, key)
+		local badges = e.kind == "card" and cards.style(e).badges
+		local badged = false
+		for _, b in ipairs(type(badges) == "table" and badges or {}) do badged = badged or b == key end
+		if not (badged or declaration.stat_shown(key, v) or declaration.stat_shown(key, v - delta)) then return end
+		M.record("stat", e.id, nil, { key = key, delta = delta, actor = ctx and ctx.card_id })
+	end
+	-- Named card effects land where a verb lands, else on the acting card (or mid-screen without one). One that
+	-- travels holds the next beat until it arrives, so the number it brings changes when it gets there.
+	actions.on_effect = function(name, ctx, at)
+		if not declaration.G.effect_defs[name] then return end
+		local by = ctx and ctx.card_id and entity.get(ctx.card_id)
+		local to = at or by
+		local from = by and to and by.id ~= to.id and by.id or nil
+		M.record("effect", to and to.id, nil, { effect = name, from = from, wait = M.effect_wait and M.effect_wait(name, from) })
+	end
 end
 
 function M.clear()

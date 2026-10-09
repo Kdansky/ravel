@@ -411,6 +411,10 @@ local react_offer = {}
 
 function M.set_can_undo(b) can_undo = b end
 
+-- The seat the engine is deciding for, or nil.
+local thinking = nil
+function M.set_thinking(seat) thinking = seat end
+
 -- Which on-screen button (if any) is at x,y. Rects were stored during draw.
 function M.hit_button(x, y)
 	for name, r in pairs(buttons) do
@@ -1724,6 +1728,25 @@ local function draw_loading_note()
 	love.graphics.pop()
 end
 
+-- The engine's turn takes a few seconds, and a board where nothing moves for
+-- that long reads as a hang. Bottom centre, where the targeting bar goes: the
+-- seat thinking is not the one at this screen, so nobody is aiming.
+local function draw_thinking_note()
+	if not thinking then return end
+	local W, H = love.graphics.getDimensions()
+	local text = tostring(label.seat_text(thinking)) .. " is thinking" .. string.rep(".", math.floor(love.timer.getTime() * 3) % 3 + 1)
+	local mf = love.graphics.getFont()
+	local pad = 8 * S
+	local w, h = mf:getWidth(text .. "..") + pad * 2, mf:getHeight() + pad * 2
+	local x, y = (W - w) / 2, H - h - 8 * S
+	love.graphics.push("all")
+	love.graphics.setColor(0.00, 0.00, 0.00, 0.82)
+	love.graphics.rectangle("fill", x, y, w, h, 5 * S, 5 * S)
+	love.graphics.setColor(1.00, 0.88, 0.55, 0.65 + 0.35 * pulse(3))
+	love.graphics.print(text, x + pad, y + pad)
+	love.graphics.pop()
+end
+
 local function draw_undo_button()
 	if targeting.active() or not can_undo then return end
 	local W, H = love.graphics.getDimensions()
@@ -2080,6 +2103,7 @@ function M.draw()
 	draw_undo_button()
 	draw_detail_overlay()
 	draw_loading_note()
+	draw_thinking_note()
 end
 
 -- Sync card.place (used for hit-testing, tooltips and as the animation target)

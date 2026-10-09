@@ -64,7 +64,11 @@ back, which is `net`'s own snapshot with somewhere to live), and `opponent`
 random — single player, and what the random terminator plays whole games with).
 `opponent` is the one of these that requires another: a move made for a seat
 nobody is sitting at has to get past `net`'s turn gate, which is what
-`net.unattended` is for.
+`net.unattended` is for. On a screen the engine's seats are played by a second
+engine on a thread of its own, linked like a remote player: `botlink` hands
+them over, `botpeer` plays them at the far end (`botpeer_thread.lua` on desktop,
+`engine-worker.js` on wasmoon in the browser, whose love.js has no threads), and
+`stage.listen` records its runs there the way it does here.
 They sit beside the engine rather than in it — see
 [ideas/DONE](ideas/DONE.md).
 
