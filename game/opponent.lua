@@ -173,11 +173,13 @@ function M.legal()
 	return moves
 end
 
--- How many deals a move is tried in, and how many moves each is played out for
--- at most. Spellstorm's round is a dozen moves; the cap is for a game whose
--- round never closes while random moves are being made in it.
-M.TRIES = 4
+-- How many deals the best move is tried in at most, how many moves each try is
+-- played out for at most, and how many seconds a decision may take. Spellstorm's
+-- round is a dozen moves; the reach is for a game whose round never closes while
+-- random moves are being made in it.
+M.TRIES = 16
 M.REACH = 60
+M.BUDGET = 5
 
 -- The number to climb now: an override naming a phase on the stack, the topmost
 -- first, since an offer opened inside a phase is still that phase's decision.
@@ -280,35 +282,57 @@ local function unseen(fn)
 	if not ok then error(err, 0) end
 end
 
--- Which of `moves` the engine makes for `seat`. Each is tried M.TRIES times in a
--- fresh deal, played out, and scored by the game's `bot` section; the best
--- total wins and a tie is broken at random. A game with no section, and a choice
--- of one, is a coin.
+-- A wall clock where there is one: a love.thread's CPU time is the screen's too.
+local function now()
+	return love and love.timer and love.timer.getTime and love.timer.getTime() or os.clock()
+end
+
+-- Which of `moves` the engine makes for `seat`. Each is tried in a fresh deal,
+-- played out, and scored by the game's `bot` section. Every move gets one try,
+-- the better half twice as many, and so on until one is left or the best have
+-- M.TRIES: a hundred openings cost a hundred tries and not four hundred, and the
+-- tries go where the decision is close. Out of time, the best average so far is
+-- the answer. A tie is broken at random; a game with no section, and a choice of
+-- one, is a coin.
 function M.choose(seat, moves)
 	local bot = declaration.G.bot
 	if not bot or #moves < 2 then return math.random(#moves) end
 	local expr, G = valuation(bot), declaration.G
-	local best, picks = -math.huge, {}
+	local deadline = now() + M.BUDGET
+	local alive, sum, n = {}, {}, {}
+	for i = 1, #moves do alive[i], sum[i], n[i] = i, 0, 0 end
+	local function mean(i) return n[i] > 0 and sum[i] / n[i] or -math.huge end
 	unseen(function()
-		for i, move in ipairs(moves) do
-			local sum = 0
-			for _ = 1, M.TRIES do
-				flow.rehearse(function()
-					redeal(seat)
-					rng.seed(math.random(2 ^ 30))
-					move()
-					play_out()
-					sum = sum + score(seat, expr)
-				end)
-				assert(declaration.G == G, "a move tried by the engine seat loaded another game")
+		local want = 1
+		while true do
+			for _, i in ipairs(alive) do
+				while n[i] < want do
+					if now() > deadline then return end
+					flow.rehearse(function()
+						redeal(seat)
+						rng.seed(math.random(2 ^ 30))
+						moves[i]()
+						play_out()
+						sum[i] = sum[i] + score(seat, expr)
+					end)
+					n[i] = n[i] + 1
+					assert(declaration.G == G, "a move tried by the engine seat loaded another game")
+				end
 			end
-			if sum > best then
-				best, picks = sum, { i }
-			elseif sum == best then
-				picks[#picks + 1] = i
-			end
+			if #alive == 1 or want >= M.TRIES then return end
+			table.sort(alive, function(a, b) return mean(a) > mean(b) end)
+			for k = #alive, math.ceil(#alive / 2) + 1, -1 do alive[k] = nil end
+			want = want * 2
 		end
 	end)
+	local best, picks = -math.huge, {}
+	for _, i in ipairs(alive) do
+		if mean(i) > best then
+			best, picks = mean(i), { i }
+		elseif mean(i) == best then
+			picks[#picks + 1] = i
+		end
+	end
 	return picks[math.random(#picks)]
 end
 

@@ -80,7 +80,10 @@ plays*. What it cost that the docs do not say:
   cannot see; the bot deals it again before every try.
 
 Against random play over six Spellstorm games it won five; random against random
-splits about evenly. A decision is 0.5–2 s of CPU at `TRIES = 4` under LuaJIT, about twice that on Lua 5.4.
+splits about evenly. A decision was 0.5–2 s of CPU at four tries a move. Halving
+the field each round instead (every move once, the better half twice, up to 16)
+took Spellstorm to 0.15 s mean, 0.9 s slowest, and won 3 of 4 against random;
+`M.BUDGET` stops any decision at 5 s. `tools/bot_match.lua` measures a game.
 
 ## Left
 

@@ -5629,8 +5629,10 @@ A game says what a good position is worth, and the engine does the rest:
 
 `value` is a compute's grammar, read as the engine's seat, so `mine` is the bot
 and `@opponent` the seat it plays against. There is one bot and one algorithm:
-every legal move is tried a few times, each try played out with random moves for
-everybody until the round turns or the game ends, and the best average is kept.
+every legal move is tried, each try played out with random moves for everybody
+until the round turns or the game ends. The better half of the moves is tried
+twice as often, and so on, until one is left or the best have had sixteen tries;
+five seconds in, the best average so far is the move.
 A seat whose `won` stat is set is worth more than any number.
 
 **It never reads what it cannot see.** Before each try, every `secret` pile is
