@@ -1424,7 +1424,7 @@ local function draw_zone(zone_e)
 			local top = entity.get(zone_e.cards[#zone_e.cards])
 			if anim.visual_place(top.id, top.place) then
 				-- Whirling or turning over: drawn with the cards in the air.
-			elseif zone_e.visibility ~= "secret" then
+			elseif zone_e.visibility ~= "secret" and zones.visible(top) then
 				draw_card_face(places[1], top, false)
 			else
 				draw_card_back(places[1], hue)
@@ -1438,7 +1438,7 @@ local function draw_zone(zone_e)
 		if #zone_e.cards > 0 then
 			local top = entity.get(zone_e.cards[#zone_e.cards])
 			if not anim.visual_place(top.id, top.place) then
-				if zone_e.visibility == "secret" then
+				if zone_e.visibility == "secret" or not zones.visible(top) then
 					draw_card_back(places[1], hue)
 				else
 					draw_card_face(places[1], top, false)
@@ -1455,8 +1455,14 @@ local function draw_zone(zone_e)
 		for i, card_id in ipairs(zone_e.cards) do
 			if places[i] and not anim.visual_place(card_id, places[i]) then
 				local c = entity.get(card_id)
-				draw_card_face(places[i], c, false)
-				draw_card_stats_overlay(places[i], c)
+				-- A board can hold what one seat may see: a card committed face
+				-- down is somebody's secret until it is turned over.
+				if zone_e.visibility == "secret" or not zones.visible(c) then
+					draw_card_back(places[i], hue)
+				else
+					draw_card_face(places[i], c, false)
+					draw_card_stats_overlay(places[i], c)
+				end
 			end
 		end
 	else
