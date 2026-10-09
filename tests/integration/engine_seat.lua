@@ -171,6 +171,42 @@ function M.test_opponent_presses_a_gated_button_in_the_system_column(check)
 	if not ok then error(err, 0) end
 end
 
+-- A win shared by every seat is a win for the engine's too. The Crew sets `won`
+-- on all four seats, and the first seat holding it was read as the winner, so a
+-- completed mission scored as a loss for the other three.
+function M.test_opponent_a_win_for_everybody_is_a_win(check)
+	-- Without the stack, so a card's play lands when it is played; with the
+	-- seats in play, so a stat written to one lands on it; and with a turn that
+	-- is one play, so a try that did not play the pact stops before it can.
+	local text = GAME
+		:gsub('"next": %[{ "then": "act" }%] }', '"ends_when": "plays >= 1", "next": [{ "then": "act", "seat": "next", "ends_round": true }] }')
+		:gsub('{ "key": "table", "layout": "stack",', '{ "key": "table", "layout": "stack", "status": "board",')
+		:gsub(',\n    { "key": "stack", "layout": "stack", "tags": %["stack"%], "pos": %[0.55, 0.45, 0.70, 0.65%] }', '')
+		:gsub('"tags": { "loud"', '"bot": { "value": "loot@mine.player" },\n  "tags": { "loud"')
+		:gsub('{ "key": "coin", "text": "Coin",',
+			'{ "key": "pact", "text": "Pact", "play": { "action": ["stat_gain:won@each.anyone.player:1"] } },\n'
+			.. '    { "key": "coin", "text": "Coin",')
+	local f = assert(io.open("game/games/" .. harness.tmp("engine_seat_pact"), "w"))
+	f:write(text)
+	f:close()
+	local ok, err = pcall(function()
+		flow.init(harness.tmp("engine_seat_pact"), 3)
+		local hand = zone_of("hand", "two")
+		zones.add(hand, "coin")
+		zones.add(hand, "pact")
+		require("actions").execute("set_active_seat:owner_of.target", { targets = { seat_card("two").id } })
+		local moves = opponent.legal()
+		net.unattended(function()
+			local i = opponent.choose("two", moves)
+			moves[i]()
+		end)
+		check("the second seat plays the card that wins for both", (seat_card("two").stats.won or 0) > 0,
+			"loot " .. tostring(seat_card("two").stats.loot))
+	end)
+	os.remove("game/games/" .. harness.tmp("engine_seat_pact"))
+	if not ok then error(err, 0) end
+end
+
 -- A window is answerable, and a window nobody wants to answer still closes:
 -- passing is always on the list. Without it a seat with no reaction sat there
 -- for ever, which is what stalled Spellstorm.

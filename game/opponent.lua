@@ -273,10 +273,13 @@ end
 
 local WIN = 1e9
 
+-- The seat's own `won` before anybody's: a cooperative game sets it on every
+-- seat, and The Crew's mission, won by all four, read as lost to three of them.
 local function score(seat, expr)
-	local won = flow.victor()
-	if won then return won == seat and WIN or -WIN end
 	local v = 0
+	zones.as_seat(seat, function() v = predicate.value("won@mine.player", {}) end)
+	if v > 0 then return WIN end
+	if flow.victor() then return -WIN end
 	zones.as_seat(seat, function() v = predicate.value(expr, {}) end)
 	return v
 end
