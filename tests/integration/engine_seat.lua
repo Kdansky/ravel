@@ -145,6 +145,32 @@ function M.test_opponent_offers_a_place(check)
 	end)
 end
 
+-- A game's own button in the system column is a move when a phase gates it, and
+-- the engine's buttons beside it, and a game's ungated one, are not. Spellstorm
+-- keeps "Unplayable hand" there, the only way past a hand of ASH, and a seat
+-- holding one stopped the game.
+function M.test_opponent_presses_a_gated_button_in_the_system_column(check)
+	local text = GAME
+		:gsub('{ "key": "coin", "text": "Coin",',
+			'{ "key": "bell", "text": "Bell", "abilities": [{ "phases": ["act"], "action": ["stat_gain:loot@mine.player:3"] }] },\n'
+			.. '    { "key": "rules", "text": "Rules", "abilities": [{ "action": ["stat_gain:loot@mine.player:1"] }] },\n'
+			.. '    { "key": "coin", "text": "Coin",')
+		:gsub('{ "card": "two", "owner": "two", "zone": "table" }',
+			'{ "card": "two", "owner": "two", "zone": "table" },\n'
+			.. '      { "card": "bell", "zone": "menu" }, { "card": "rules", "zone": "menu" }')
+	local f = assert(io.open("game/games/" .. harness.tmp("engine_seat_menu"), "w"))
+	f:write(text)
+	f:close()
+	local ok, err = pcall(function()
+		flow.init(harness.tmp("engine_seat_menu"), 3)
+		check("the bell stands in the system column", flow.is_system_card(seat_card("bell").id))
+		check("and is on the list beside the deck, where the rules and the engine's buttons are not",
+			#opponent.legal() == 2, tostring(#opponent.legal()))
+	end)
+	os.remove("game/games/" .. harness.tmp("engine_seat_menu"))
+	if not ok then error(err, 0) end
+end
+
 -- A window is answerable, and a window nobody wants to answer still closes:
 -- passing is always on the list. Without it a seat with no reaction sat there
 -- for ever, which is what stalled Spellstorm.

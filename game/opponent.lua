@@ -135,9 +135,13 @@ function M.legal()
 		local z = entity.get(e.zone_id)
 		-- The system column is outside the game — Save, Menu, the event log —
 		-- and a phase naming no zone makes its cards look playable to the one
-		-- gate that would otherwise refuse them.
-		if z and not flow.is_system_card(e.id) then
-			if flow.can_play(e.id) then
+		-- gate that would otherwise refuse them. A game's own button may stand
+		-- there too, and one a phase gates is a move (flow.use_system_card):
+		-- Spellstorm's "Unplayable hand" is the only way past a hand of ASH, and
+		-- without it a seat holding one stopped the game.
+		local column = flow.is_system_card(e.id)
+		if z then
+			if not column and flow.can_play(e.id) then
 				-- A card in an offer is being *chosen*, not played: flow skips the
 				-- target check for it and hands the choice the asker. Asking for
 				-- targets it will never be given is how a seat stalled in front of
@@ -153,7 +157,7 @@ function M.legal()
 			end
 			for _, u in ipairs(flow.usable_abilities(e.id)) do
 				local id, idx = e.id, u.index
-				local targets = targets_for(id, u.rule.target)
+				local targets = (not column or u.rule.phases) and targets_for(id, u.rule.target)
 				if targets then
 					per_payment(moves, flow.rule_payments(id, u.rule, targets), function(pay)
 						return function() flow.activate(id, targets, idx, pay) end
