@@ -2,6 +2,9 @@
   "title": "Splendor",
   "seed": 23,
   "players": [{ "card": "north" }, { "card": "south" }],
+  "bot": {
+    "value": "20 * score@mine.player - 20 * score@opponent + 4 * count@mine.tableau - 4 * count@enemy.tableau + t_white@mine.player + t_blue@mine.player + t_green@mine.player + t_red@mine.player + t_black@mine.player + 2 * t_gold@mine.player"
+  },
   "styles": {
     "plate_white": { "color": [0.86, 0.86, 0.82] },
     "plate_blue": { "color": [0.22, 0.42, 0.78] },
@@ -446,7 +449,7 @@
       ],
       "play": {
         "phases": ["act"],
-        "needs": { "req": ["buyable@self >= 1"] },
+        "needs": { "req": ["buyable@self >= 1", "takes@mine.player == 0"] },
         "action": [
           "stat_damage:t_white@mine.player:sum:due_white@self",
           "stat_damage:t_blue@mine.player:sum:due_blue@self",
@@ -531,6 +534,7 @@
       "layout": "row",
       "visibility": "owner",
       "copies": "per_seat",
+      "tags": ["optional"],
       "pos": [[0.57, 0.01, 0.8, 0.15], [0.57, 0.85, 0.8, 0.99]]
     },
     {
@@ -602,6 +606,7 @@
       "abilities": [
         {
           "phases": ["act"],
+          "needs": { "req": ["takes@mine.player == 0"] },
           "cost": { "reserve_slots": 1 },
           "action": [
             "draw_from:t3_deck:mine.reserve:1",
@@ -665,6 +670,7 @@
       "abilities": [
         {
           "phases": ["act"],
+          "needs": { "req": ["takes@mine.player == 0"] },
           "cost": { "reserve_slots": 1 },
           "action": [
             "draw_from:t2_deck:mine.reserve:1",
@@ -738,6 +744,7 @@
       "abilities": [
         {
           "phases": ["act"],
+          "needs": { "req": ["takes@mine.player == 0"] },
           "cost": { "reserve_slots": 1 },
           "action": [
             "draw_from:t1_deck:mine.reserve:1",
@@ -800,6 +807,7 @@
       "type": "player_input",
       "seat": "next",
       "label": "Take tokens, buy a card, or reserve one",
+      "zone": ["t1_row", "t2_row", "t3_row", "reserve", "controls"],
       "on_enter": [
         "stat_set:takes@each.anyone.player:0",
         "stat_set:done@each.anyone.player:0",
@@ -861,7 +869,11 @@
     {
       "key": "handover",
       "type": "automatic",
-      "next": [{ "when": "ending@anyone.player >= 1", "then": "maybe_end" }, { "then": "act" }]
+      "next": [
+        { "when": "ending@anyone.player >= 1", "then": "maybe_end" },
+        { "when": "opens@mine.player == 0", "then": "act", "ends_round": true },
+        { "then": "act" }
+      ]
     },
     {
       "key": "maybe_end",
@@ -1136,6 +1148,7 @@
       "tags": ["immutable"],
       "play": {
         "phases": ["act"],
+        "needs": { "req": ["takes@mine.player == 0"] },
         "cost": { "reserve_slots": 1 },
         "target": { "type": "card", "count": 1, "zones": ["t1_row", "t2_row", "t3_row"] },
         "action": [

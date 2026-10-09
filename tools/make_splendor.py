@@ -287,7 +287,10 @@ def zones(rows):
     return [
         {"key": "tableau", "label": "Bought", "layout": "row", "visibility": "owner", "copies": "per_seat",
          "pos": [[0.02, 0.01, 0.55, 0.15], [0.02, 0.85, 0.55, 0.99]]},
+        # Optional: a reserved card never has to be bought, so nothing here is
+        # forced. Without it a hand with no other move bought one for free.
         {"key": "reserve", "label": "Reserved", "layout": "row", "visibility": "owner", "copies": "per_seat",
+         "tags": ["optional"],
          "pos": [[0.57, 0.01, 0.80, 0.15], [0.57, 0.85, 0.80, 0.99]]},
         # The one gap tableau/reserve leave: the top-right and bottom-right
         # corners, past reserve's own edge at 0.80. Two zone keys, not one
@@ -309,7 +312,7 @@ def zones(rows):
          "pos": [0.02, 0.32, 0.11, 0.47],
          "tooltip": "Tier three. Click to reserve the top card without looking at it.",
          "contents": tier[3],
-         "abilities": [{"phases": ["act"], "cost": {"reserve_slots": 1},
+         "abilities": [{"phases": ["act"], "needs": {"req": ["takes@mine.player == 0"]}, "cost": {"reserve_slots": 1},
                       "action": ["draw_from:t3_deck:mine.reserve:1"] + RESERVE_GOLD}]},
         {"key": "t3_row", "layout": "grid", "grid": [4, 1], "tags": ["optional", "market"],
          "pos": [0.13, 0.32, 0.55, 0.47]},
@@ -317,7 +320,7 @@ def zones(rows):
          "pos": [0.02, 0.49, 0.11, 0.64],
          "tooltip": "Tier two. Click to reserve the top card without looking at it.",
          "contents": tier[2],
-         "abilities": [{"phases": ["act"], "cost": {"reserve_slots": 1},
+         "abilities": [{"phases": ["act"], "needs": {"req": ["takes@mine.player == 0"]}, "cost": {"reserve_slots": 1},
                       "action": ["draw_from:t2_deck:mine.reserve:1"] + RESERVE_GOLD}]},
         {"key": "t2_row", "layout": "grid", "grid": [4, 1], "tags": ["optional", "market"],
          "pos": [0.13, 0.49, 0.55, 0.64]},
@@ -325,7 +328,7 @@ def zones(rows):
          "pos": [0.02, 0.66, 0.11, 0.81],
          "tooltip": "Tier one. Click to reserve the top card without looking at it.",
          "contents": tier[1],
-         "abilities": [{"phases": ["act"], "cost": {"reserve_slots": 1},
+         "abilities": [{"phases": ["act"], "needs": {"req": ["takes@mine.player == 0"]}, "cost": {"reserve_slots": 1},
                       "action": ["draw_from:t1_deck:mine.reserve:1"] + RESERVE_GOLD}]},
         {"key": "t1_row", "layout": "grid", "grid": [4, 1], "tags": ["optional", "market"],
          "pos": [0.13, 0.66, 0.55, 0.81]},
@@ -413,7 +416,8 @@ def buttons():
                     "Three reserved cards at a time; buying one gives the slot back. "
                     "To reserve the top of a deck unseen, click the deck itself.",
          "tags": ["immutable"],
-         "play": {"phases": ["act"], "cost": {"reserve_slots": 1},
+         # A turn is one of three things, and tokens already taken make it the first.
+         "play": {"phases": ["act"], "needs": {"req": ["takes@mine.player == 0"]}, "cost": {"reserve_slots": 1},
                   "target": {"type": "card", "count": 1,
                              "zones": ["t1_row", "t2_row", "t3_row"]},
                   "action": ["set_owner:target:mine.player", "stat_set:reserved@target:1",
@@ -513,8 +517,12 @@ def phases():
         # one take and the next — every time round, where the counters reset on
         # arrival and nowhere else. That split used to be two phase keys, the
         # second a copy of the first with its first four lines and one word gone.
+        # The places a card may be played from. Unnamed, every card anywhere was
+        # one, and the other seat's reserved cards were for sale at the price
+        # worked out for that seat.
         {"key": "act", "type": "player_input", "seat": "next",
          "label": "Take tokens, buy a card, or reserve one",
+         "zone": ["t1_row", "t2_row", "t3_row", "reserve", "controls"],
          "on_enter": turn_top, "actions": REPRICE, "next": routes},
         {"key": "noble_check", "type": "automatic", "actions": ["activate_zone:nobles"],
          "next": [{"when": "tagged:noble_ready", "then": "noble_pick"},
@@ -540,8 +548,11 @@ def phases():
         # Reaching fifteen does not stop the game: everybody finishes the round,
         # so the two questions are asked one phase apart rather than as one
         # condition, which the grammar has no "and" for.
+        # The round turns after the seat that does not open it, which is also
+        # where the engine seat stops looking ahead.
         {"key": "handover", "type": "automatic",
          "next": [{"when": "ending@anyone.player >= 1", "then": "maybe_end"},
+                  {"when": "opens@mine.player == 0", "then": "act", "ends_round": True},
                   {"then": "act"}]},
         # The seat that just played is still "mine" here, so the round is over
         # exactly when that seat is not the one that opens it.
@@ -593,6 +604,13 @@ def build(here):
         "title": "Splendor",
         "seed": 23,
         "players": [{"card": "north"}, {"card": "south"}],
+        # What the engine seat climbs: prestige first, then the cards that make
+        # the next ones cheaper, then the tokens in hand.
+        "bot": {"value": " ".join([
+            "20 * score@mine.player - 20 * score@opponent",
+            "+ 4 * count@mine.tableau - 4 * count@enemy.tableau",
+            "+ t_white@mine.player + t_blue@mine.player + t_green@mine.player",
+            "+ t_red@mine.player + t_black@mine.player + 2 * t_gold@mine.player"])},
         "styles": styles(),
         "stats": stats(),
         "computed_tags": {
@@ -610,7 +628,7 @@ def build(here):
             # carrying a copy for somebody to keep in step.
             "development": {
                 "abilities": [{"key": "price", "text": "Price", "action": pricing()}],
-                "play": {"phases": ["act"], "needs": {"req": ["buyable@self >= 1"]},
+                "play": {"phases": ["act"], "needs": {"req": ["buyable@self >= 1", "takes@mine.player == 0"]},
                          "action": buying()},
             },
             "noble": {
