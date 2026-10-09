@@ -16,6 +16,7 @@
 local entity  = require("entity")
 local zones   = require("zones")
 local flow    = require("flow")
+local phase   = require("phase")
 local actions = require("actions")
 local log     = require("log")
 local declaration = require("declaration")
@@ -167,6 +168,41 @@ function M.test_every_seat_loops_inside_a_deferred_list(check)
 			and seat("south").stats.held == 1,
 			("%d/%d/%d"):format(seat("north").stats.held, seat("east").stats.held,
 				seat("south").stats.held))
+	end)
+end
+
+-- A phase pushed from inside the loop is the seat's the loop was running as, not
+-- whoever is up once the loop has put the turn back. Spellstorm's Energy Wave
+-- fires each wizard's Ultimate from a loop like this, and Oren's opened his
+-- potions for the other wizard, who had nothing to drink them with.
+function M.test_every_seat_a_phase_pushed_inside_is_that_seats(check)
+	local text = GAME
+		:gsub('"contents": %["chip:9"%] }',
+			'"contents": ["chip:9"] },\n'
+			.. '    { "key": "shrine", "layout": "row", "use": "abilities", "copies": "per_seat",\n'
+			.. '      "pos": [[0, 0.3, 0.2, 0.4], [0.2, 0.3, 0.4, 0.4], [0.4, 0.3, 0.6, 0.4]] }')
+		:gsub('"next": %[{ "then": "act" }%] }',
+			'"next": [{ "then": "act" }] },\n'
+			.. '    { "key": "ask", "type": "player_input", "zone": "hand" }')
+		:gsub('{ "key": "chip",  "text": "Chip",  "tags": %["chip"%] }',
+			'{ "key": "chip",  "text": "Chip",  "tags": ["chip"] },\n'
+			.. '    { "key": "omen", "text": "Omen", "play": { "action": ["each_seat:activate_zone:mine.shrine:by_column:call"] } },\n'
+			.. '    { "key": "bell", "text": "Bell", "abilities": [{ "key": "call", "phases": [], "action": ["push_phase:ask"] }] },\n'
+			.. '    { "key": "done", "text": "Done", "play": { "phases": ["ask"], "action": ["pop_phase"] } }')
+	with_game(text, function(name)
+		flow.init(name, 3)
+		zones.add(zones.find("shrine", "east"), "bell")
+		local done = zones.add(zones.find("hand", "east"), "done")
+		local omen = zones.add(zones.find("hand", "mine"), "omen")
+		flow.play_card(omen.id, {})
+		flow.settle()
+		check("the bell rang inside the loop and its phase opened",
+			phase.current().key == "ask", phase.current().key)
+		check("for east, who rang it", zones.acting_seat() == "east", tostring(zones.acting_seat()))
+		check("while the turn stayed north's", zones.turn_seat() == "north", tostring(zones.turn_seat()))
+		flow.play_card(done.id, {})
+		flow.settle()
+		check("and once it closed, north acts again", zones.acting_seat() == "north", tostring(zones.acting_seat()))
 	end)
 end
 

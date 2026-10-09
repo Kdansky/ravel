@@ -103,7 +103,7 @@ function M.snapshot()
 	local ph, phases = phase.snapshot(), {}
 	for i, f in ipairs(ph.stack) do
 		phases[i] = { key = f.def.key, fresh = f.fresh and true or false,
-			arrived = f.arrived and true or false, seat = f.seat, turn_seat = f.turn_seat }
+			arrived = f.arrived and true or false, seat = f.seat, turn_seat = f.turn_seat, by = f.by }
 		if f.turn then
 			local seats = {}
 			for j, k in ipairs(f.turn.seats or {}) do seats[j] = k end
@@ -571,11 +571,11 @@ local function restore(snap, ents)
 		local def = type(f) == "table" and declaration.G.phase_by_key[f.key]
 		if not def then return false, "unknown phase: " .. tostring(type(f) == "table" and f.key) end
 		-- `seat` is the phase's own word for whose it is ("next" among them); a turn's seat is a seat.
-		if not (f.seat == nil or type(f.seat) == "string") or not seated(f.turn_seat) then
+		if not (f.seat == nil or type(f.seat) == "string") or not seated(f.turn_seat) or not seated(f.by) then
 			return false, "phase " .. f.key .. " names no seat"
 		end
 		stack[i] = { def = def, fresh = f.fresh and true or false,
-			arrived = f.arrived and true or false, seat = f.seat, turn_seat = f.turn_seat }
+			arrived = f.arrived and true or false, seat = f.seat, turn_seat = f.turn_seat, by = f.by }
 		local t = type(f.turn) == "table" and f.turn
 		if t then
 			local tdef = declaration.G.phase_by_key[t.key]

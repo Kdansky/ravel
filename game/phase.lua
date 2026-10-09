@@ -99,13 +99,26 @@ local function enter(def, arrived, seat)
 		turn_seat = t.seats and t.seats[1] }
 end
 
-function M.push(key)
+-- `by` is the seat a rule pushed it as, when a rule did: see M.pushed_by.
+function M.push(key, by)
 	local pd = G.phase_by_key[key]
 	-- A phase nobody declared is a typo the validator reports, and pushing nothing leaves the game where it was.
 	if not pd then return end
 	-- A push is always an arrival: whatever is underneath is a different phase,
 	-- or the same one being entered a second time over the top of itself.
-	stack[#stack + 1] = enter(pd, true, nil)
+	local f = enter(pd, true, nil)
+	f.by = by
+	stack[#stack + 1] = f
+end
+
+-- The seat whose phase the top one is, when a rule pushed it. A pushed phase is
+-- played by whoever pushed it, and that is not always whoever is up once it
+-- opens: `each_seat` runs a rule as each seat in turn and then puts the turn
+-- back, so Oren's Ultimate, fired from the weather's loop, opened his potions
+-- for the other wizard.
+function M.pushed_by()
+	local top = stack[#stack]
+	return top and top.by
 end
 
 function M.pop()
@@ -264,7 +277,7 @@ end
 
 local function copy_frame(f)
 	return { def = f.def, fresh = f.fresh, arrived = f.arrived, seat = f.seat,
-		turn = copy_turn(f.turn), turn_seat = f.turn_seat }
+		turn = copy_turn(f.turn), turn_seat = f.turn_seat, by = f.by }
 end
 
 function M.snapshot()

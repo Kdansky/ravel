@@ -351,7 +351,10 @@ the seat of `ctx.card_id` (a card's owner, a zone's seat) — so a rule never re
 "whoever is up" unless nothing owns it. Costs, the plays counter and reachability
 read `active_seat` too, which is why moving priority is the entire out-of-turn
 unlock: outside any rule no lens is held and the two agree. An offer records
-`acting_seat`, since the seat that answers it is the actor, not the asker.
+`acting_seat`, since the seat that answers it is the actor, not the asker. So
+does `push_phase` (the frame's `by`), and the phase opens with priority on that
+seat: `each_seat` puts the turn back before a phase pushed inside it opens, and
+without this the phase went to whoever had been up before the loop.
 
 **Nothing on the stack is a game card.** Each entry is an `event` record
 standing for something announced; the card that announced it stays in the hand or

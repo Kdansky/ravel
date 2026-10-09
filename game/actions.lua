@@ -612,7 +612,7 @@ end
 
 HANDLERS["push_phase"] = function(p)
 	if frozen("push_phase") then return end
-	phase.push(p[2])
+	phase.push(p[2], zones.acting_seat())
 end
 
 HANDLERS["pop_phase"] = function()

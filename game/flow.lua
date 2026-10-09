@@ -244,6 +244,15 @@ local function take_turn_seat()
 	if i and sys and i ~= (sys.stats.turn or 0) then hand_to(i) end
 end
 
+-- A phase a rule pushed opens for the seat that pushed it, held the way any other
+-- interjection is: by priority, which nothing gives back while it is open. On
+-- entry and not after, so the phase's own actions may still hand it on —
+-- Spellstorm's gain step opens for whoever owes, the Initiative first.
+local function take_pusher()
+	local by = phase.pushed_by()
+	if by and zones.acting_seat() ~= by then stack.give_priority(by) end
+end
+
 -- Which targets the rules allow, re-derived rather than trusted. Counts were
 -- always enforced here; identity never was, so a script or the debug API could
 -- name any card as a target of anything. targeting.eligible is what a player
@@ -636,6 +645,7 @@ function M.settle()
 			elseif cur and cur.type == "automatic" then
 				if phase.take_fresh() then
 					take_turn_seat()
+					take_pusher()
 					if phase.arrived() then actions.run(cur.on_enter, {}) end
 					actions.run(cur.actions, {})
 					announce(cur, "begin")
@@ -660,6 +670,7 @@ function M.settle()
 				local seat = phase.route_seat() or cur.seat
 				if seat == "next" then rotate_seat() end
 				take_turn_seat()
+				take_pusher()
 				local pl = player()
 				if pl then pl.stats.plays = 0 end
 				-- What a phase does when the turn *begins*, as against what it
