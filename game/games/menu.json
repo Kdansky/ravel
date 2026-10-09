@@ -53,7 +53,8 @@
       "text": "Codex",
       "tooltip": "Sirlin's RTS in a card game: hire workers, raise tech buildings, build your deck out of a codex as you play, and knock the other base down. Core set, one hero each.",
       "asset": "star:5:crimson",
-      "play": { "action": ["load_game:codex.json"] },
+      "play": { "action": ["options:m_table,m_engine"] },
+      "abilities": [{ "action": ["load_game:codex.json"] }],
       "tags": ["immutable"]
     },
     {
@@ -132,7 +133,8 @@
       "key": "play_ghost_stories",
       "text": "Ghost Stories",
       "tooltip": "Four Taoists guard a village of nine tiles against the incarnation of Wu-Feng. Ghosts pile onto the four boards around it, a haunting figure turns a tile over every second turn, and a fourth dark tile loses the game for everybody. Roll three Tao dice, spend tokens to make up the difference, and exorcise the thing in front of you. Cooperative. Four players, one device.",
-      "play": { "action": ["load_game:ghost_stories.json"] },
+      "play": { "action": ["options:m_table,m_engine"] },
+      "abilities": [{ "action": ["load_game:ghost_stories.json"] }],
       "asset": "square:violet",
       "tags": ["immutable"]
     },
@@ -140,7 +142,8 @@
       "key": "play_splendor",
       "text": "Splendor",
       "tooltip": "Buy gem mines, and each one discounts the next. Ninety cards, ten nobles, fifteen prestige to win. Two players, one device.",
-      "play": { "action": ["load_game:splendor.json"] },
+      "play": { "action": ["options:m_table,m_engine"] },
+      "abilities": [{ "action": ["load_game:splendor.json"] }],
       "asset": "diamond:teal",
       "tags": ["immutable"]
     },
@@ -172,7 +175,8 @@
       "key": "play_puzzle_strike",
       "text": "Puzzle Strike",
       "tooltip": "Sirlin's chip deckbuilder. Pick a character, buy gems, and crash them into the other player's pile — end your own turn holding ten and you lose. Two players, one device.",
-      "play": { "action": ["load_game:puzzle_strike.json"] },
+      "play": { "action": ["options:m_table,m_engine"] },
+      "abilities": [{ "action": ["load_game:puzzle_strike.json"] }],
       "asset": "polygon:6:magenta",
       "tags": ["immutable"]
     },
