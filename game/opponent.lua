@@ -251,9 +251,10 @@ local function round()
 end
 
 -- Random moves for everybody until the round turns or the game ends: far enough
--- that a card played face down has met the one it was played against.
-local function play_out()
-	local start = round()
+-- that a card played face down has met the one it was played against. `start`
+-- is the round before the tried move, so a move that ends the round is scored
+-- where it ends it, not after the next one.
+local function play_out(start)
 	for _ = 1, M.REACH do
 		if over() or round() ~= start then return end
 		local moves = M.legal()
@@ -282,6 +283,9 @@ local function unseen(fn)
 	if not ok then error(err, 0) end
 end
 
+-- Where the engine has moved to this round, by fingerprint.
+local been = {}
+
 -- A wall clock where there is one: a love.thread's CPU time is the screen's too.
 local function now()
 	return love and love.timer and love.timer.getTime and love.timer.getTime() or os.clock()
@@ -300,9 +304,26 @@ function M.choose(seat, moves)
 	local expr, G = valuation(bot), declaration.G
 	local deadline = now() + M.BUDGET
 	local alive, sum, n = {}, {}, {}
-	for i = 1, #moves do alive[i], sum[i], n[i] = i, 0, 0 end
+	for i = 1, #moves do sum[i], n[i] = 0, 0 end
 	local function mean(i) return n[i] > 0 and sum[i] / n[i] or -math.huge end
+	local lands = {}
 	unseen(function()
+		-- A move back to a position it already stood in this round is not a move.
+		-- Taken, it is a way never to end a turn, and a search that fears the next
+		-- turn finds it: Ghost Stories' bot once clicked a ghost forever, then two
+		-- ghosts in turn, rather than let another one arrive.
+		if round() ~= been.round or G ~= been.game then been = { round = round(), game = G } end
+		been[net.fingerprint()] = true
+		for i, move in ipairs(moves) do
+			flow.rehearse(function()
+				move()
+				lands[i] = net.fingerprint()
+			end)
+			if not been[lands[i]] then alive[#alive + 1] = i end
+		end
+		if #alive == 0 then
+			for i = 1, #moves do alive[i] = i end
+		end
 		local want = 1
 		while true do
 			for _, i in ipairs(alive) do
@@ -311,8 +332,9 @@ function M.choose(seat, moves)
 					flow.rehearse(function()
 						redeal(seat)
 						rng.seed(math.random(2 ^ 30))
+						local start = round()
 						moves[i]()
-						play_out()
+						play_out(start)
 						sum[i] = sum[i] + score(seat, expr)
 					end)
 					n[i] = n[i] + 1
@@ -333,7 +355,9 @@ function M.choose(seat, moves)
 			picks[#picks + 1] = i
 		end
 	end
-	return picks[math.random(#picks)]
+	local pick = picks[math.random(#picks)]
+	been[lands[pick]] = true
+	return pick
 end
 
 -- Whether the engine is owed a move. Asked before act() by a driver that has to
