@@ -327,6 +327,19 @@ def phases():
     return out
 
 
+# What an expedition would score now, for each side: its numbers less the 20 it
+# costs to start, times one more than its wagers. Nothing is scored before the
+# tally, so the engine seat reads the rule rather than the stat.
+def bot():
+    def run(side, c):
+        started = "((count@%s.%s + 11) / 12)" % (side, c)
+        return "(sum:value@%s.%s - 20 * %s) * (1 + count:wager@%s.%s)" % (side, c, started, side, c)
+    mine = " + ".join(run("mine", c) for c, _, _, _ in COLOURS)
+    theirs = " - ".join(run("enemy", c) for c, _, _, _ in COLOURS)
+    return {"comment": "An expedition holds at most twelve cards, so (count + 11) / 12 is 1 once it is started and 0 before.",
+            "value": mine + " - " + theirs}
+
+
 def build():
     tpl = templates()
     z = zones()
@@ -347,6 +360,7 @@ def build():
             {"key": "tallied", "min": 0, "max": 99, "display": "offscreen",
              "on": ["player"], "start": 0},
         ],
+        "bot": bot(),
         "tags": TAG_DEFS,
         "zones": z,
         "cards": tpl,
