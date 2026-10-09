@@ -133,7 +133,8 @@
   },
   "computed_tags": {
     "led": { "needs": { "req": ["guided@self >= 1"] } },
-    "centre_tile": { "needs": { "req": ["col@self == 3", "row@self == 3"] } }
+    "centre_tile": { "needs": { "req": ["col@self == 3", "row@self == 3"] } },
+    "watched": { "needs": { "req": ["tagged:ghost@self", "tagged:taoist@attached_to.orthogonal"] } }
   },
   "computes": [
     {
@@ -1491,7 +1492,7 @@
     { "when": "sum:haunted@village >= 4", "then": ["push_phase:lost_village"] }
   ],
   "bot": {
-    "value": "1000000 * count:incarnation@hell + 40 * count:ghost@hell - 30 * count:ghost@table - 50 * sum:to_haunt@ghost - 300 * sum:haunted@village * sum:haunted@village + 10 * sum:qi@player + 50 * min:qi@player"
+    "value": "1000000 * count:incarnation@hell + 40 * count:ghost@hell - 30 * count:ghost@table - 50 * sum:to_haunt@ghost - 300 * sum:haunted@village * sum:haunted@village + 10 * sum:qi@player + 50 * min:qi@player + 25 * count:watched@table"
   },
   "cards": [
     {

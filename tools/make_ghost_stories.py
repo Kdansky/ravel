@@ -1411,7 +1411,9 @@ def build():
         "assets": assets(),
         "patterns": patterns(),
         "computed_tags": {"led": {"needs": {"req": ["guided@self >= 1"]}},
-                          "centre_tile": {"needs": {"req": ["col@self == 3", "row@self == 3"]}}},
+                          "centre_tile": {"needs": {"req": ["col@self == 3", "row@self == 3"]}},
+                          # A ghost some Taoist stands facing, whoever's: one an exorcism may reach.
+                          "watched": {"needs": {"req": ["tagged:ghost@self", "tagged:taoist@attached_to.orthogonal"]}}},
         "computes": computes(),
         "stats": stats(),
         "tags": t,
@@ -1434,7 +1436,10 @@ def build():
             "- 50 * sum:to_haunt@ghost",
             "- 300 * sum:haunted@village * sum:haunted@village",
             "+ 10 * sum:qi@player",
-            "+ 50 * min:qi@player"])},
+            "+ 50 * min:qi@player",
+            # Standing in front of a ghost is half an exorcism, and a try that
+            # rolls at random rarely finishes the other half.
+            "+ 25 * count:watched@table"])},
         "cards": (seat_cards() + monks() + plaques() + village() + ghosts()
                   + pieces() + powers() + buttons() + endings()),
         "setup": setup(),
