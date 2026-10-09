@@ -1449,6 +1449,9 @@ def spell_template(c):
         if gates: cast["needs"] = gates
         abil.append(cast)
     if asks: abil.append(ability("cast_ask", asks, text="Resolve"))
+    # Only the resolve phase runs them. Without the empty list a card lying in
+    # the Storm Cloud while you gain could be clicked for its power.
+    for a in abil: a["phases"] = []
     t["abilities"] = abil
     # On Discard is not an ability. An ability is something the card does, and
     # every rule that runs abilities would run this one -- resolving it, copying

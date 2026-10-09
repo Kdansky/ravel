@@ -1177,7 +1177,8 @@
           "key": "cast",
           "text": "Resolve",
           "action": ["stat_gain:mana@mine.player:1", "init? hit:health@opponent:1"],
-          "needs": { "init": "initiative@mine.player >= 1" }
+          "needs": { "init": "initiative@mine.player >= 1" },
+          "phases": []
         }
       ]
     },
@@ -1191,7 +1192,8 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["take_initiative", "heal:health@mine.player:count:fire@battle"]
+          "action": ["take_initiative", "heal:health@mine.player:count:fire@battle"],
+          "phases": []
         }
       ]
     },
@@ -1202,8 +1204,13 @@
       "tags": ["earth", "loam", "spell", "basic", "has_discard"],
       "tooltip": "*Power up*. You may gain a card from the *Storm Cloud* at or below your *Tier*; if you do, it goes to your discard. On discard: *power up*.\n\n_The golden gems of the Spell Storm take time to develop their power._",
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["power_up:power@mine.player:1"] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["gain_discard"] }
+        {
+          "key": "cast",
+          "text": "Resolve",
+          "action": ["power_up:power@mine.player:1"],
+          "phases": []
+        },
+        { "key": "cast_ask", "text": "Resolve", "action": ["gain_discard"], "phases": [] }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:1"] }
     },
@@ -1217,9 +1224,10 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["hit:health@opponent:1", "move_to:void"]
+          "action": ["hit:health@opponent:1", "move_to:void"],
+          "phases": []
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["gain_fire"] }
+        { "key": "cast_ask", "text": "Resolve", "action": ["gain_fire"], "phases": [] }
       ]
     },
     {
@@ -1232,9 +1240,10 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["stat_gain:mana@mine.player:1", "move_to:void"]
+          "action": ["stat_gain:mana@mine.player:1", "move_to:void"],
+          "phases": []
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["gain_water"] }
+        { "key": "cast_ask", "text": "Resolve", "action": ["gain_water"], "phases": [] }
       ]
     },
     {
@@ -1247,9 +1256,10 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["power_up:power@mine.player:1", "move_to:void"]
+          "action": ["power_up:power@mine.player:1", "move_to:void"],
+          "phases": []
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["gain_earth"] }
+        { "key": "cast_ask", "text": "Resolve", "action": ["gain_earth"], "phases": [] }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:1"] }
     },
@@ -1269,7 +1279,8 @@
             "init? hit:health@opponent:2",
             "init? lose_initiative"
           ],
-          "needs": { "init": "initiative@mine.player >= 1" }
+          "needs": { "init": "initiative@mine.player >= 1" },
+          "phases": []
         }
       ]
     },
@@ -1285,7 +1296,8 @@
           "key": "cast",
           "text": "Resolve",
           "action": ["hit:health@opponent:2", "init? hit:health@opponent:2"],
-          "needs": { "init": "initiative@mine.player >= 1" }
+          "needs": { "init": "initiative@mine.player >= 1" },
+          "phases": []
         }
       ]
     },
@@ -1296,11 +1308,12 @@
       "tags": ["fire", "ember", "spell", "ult"],
       "tooltip": "Deal *1 damage*, then resolve and discard a different *Fire* card from your hand.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_You need *magic* water to put a magical flame out._",
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["hit:health@opponent:1"] },
+        { "key": "cast", "text": "Resolve", "action": ["hit:health@opponent:1"], "phases": [] },
         {
           "key": "cast_ask",
           "text": "Resolve",
-          "action": ["show:others.mine.hand.fire:optional"]
+          "action": ["show:others.mine.hand.fire:optional"],
+          "phases": []
         }
       ],
       "chosen": { "action": ["copy:target:activate", "destroy:target"] }
@@ -1315,7 +1328,8 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["heal:health@mine.player:3", "gain_junk:curse"]
+          "action": ["heal:health@mine.player:3", "gain_junk:curse"],
+          "phases": []
         }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["hurt:health@mine.player:1"] }
@@ -1337,7 +1351,8 @@
             "vs_water? gain_junk:curse",
             "vs_water? hurt:health@mine.player:1"
           ],
-          "needs": { "vs_water": "tagged:water@enemy.battle" }
+          "needs": { "vs_water": "tagged:water@enemy.battle" },
+          "phases": []
         }
       ]
     },
@@ -1351,12 +1366,14 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["stat_gain:mana@mine.player:1", "take_initiative"]
+          "action": ["stat_gain:mana@mine.player:1", "take_initiative"],
+          "phases": []
         },
         {
           "key": "cast_ask",
           "text": "Resolve",
-          "action": ["options:bat_take,bat_give:optional"]
+          "action": ["options:bat_take,bat_give:optional"],
+          "phases": []
         }
       ]
     },
@@ -1367,8 +1384,13 @@
       "tags": ["fire", "ember", "spell", "has_discard"],
       "tooltip": "*VOID* a *Water* card in the *Storm Cloud*. If you did, gain *3 mana*. On discard: take *1 damage* and gain *1 mana*.\n\n_While there are many theories, no one knows where the magic inside gems originally comes from._",
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": [] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud.water:optional"] }
+        { "key": "cast", "text": "Resolve", "action": [], "phases": [] },
+        {
+          "key": "cast_ask",
+          "text": "Resolve",
+          "action": ["show:storm_cloud.water:optional"],
+          "phases": []
+        }
       ],
       "leaves": {
         "from": "hand",
@@ -1403,7 +1425,8 @@
             "can_pay? emit:resolving",
             "no_pass? stat_damage:mana@mine.player:2"
           ],
-          "needs": { "can_pay": "mana@mine.player >= 2", "no_pass": "ult_free@mine.player <= 0" }
+          "needs": { "can_pay": "mana@mine.player >= 2", "no_pass": "ult_free@mine.player <= 0" },
+          "phases": []
         }
       ]
     },
@@ -1423,7 +1446,8 @@
             "init? hit:health@opponent:2",
             "init? options:rf_back:optional"
           ],
-          "needs": { "init": "initiative@mine.player >= 1" }
+          "needs": { "init": "initiative@mine.player >= 1" },
+          "phases": []
         }
       ]
     },
@@ -1441,9 +1465,10 @@
             "draw_from:mine.deck:sifting:3",
             "create:sifting:ruby_burn:1",
             "stat_set:counted@sifting.burn:count:fire@sifting"
-          ]
+          ],
+          "phases": []
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:sifting"] }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:sifting"], "phases": [] }
       ],
       "chosen": {
         "action": ["ruby_pick", "purge:options.burn", "purge:sifting.burn", "move:sifting:mine.discard"]
@@ -1465,7 +1490,8 @@
             "destroy:random.enemy.hand",
             "take_initiative",
             "hit:health@opponent:1"
-          ]
+          ],
+          "phases": []
         }
       ]
     },
@@ -1485,7 +1511,8 @@
             "init? lose_initiative",
             "!init? take_initiative"
           ],
-          "needs": { "init": "initiative@mine.player >= 1" }
+          "needs": { "init": "initiative@mine.player >= 1" },
+          "phases": []
         }
       ]
     },
@@ -1501,7 +1528,8 @@
           "key": "cast",
           "text": "Resolve",
           "needs": { "req": ["initiative@mine.player >= 1"] },
-          "action": ["hit:health@opponent:3", "lose_initiative", "move_to:enemy.discard"]
+          "action": ["hit:health@opponent:3", "lose_initiative", "move_to:enemy.discard"],
+          "phases": []
         }
       ]
     },
@@ -1521,7 +1549,8 @@
             "draw_from:mine.deck:mine.hand:1",
             "heal:health@mine.player:2",
             "give_junk:ice"
-          ]
+          ],
+          "phases": []
         }
       ]
     },
@@ -1535,7 +1564,8 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["heal:health@mine.player:1", "stat_damage:power@mine.player:1", "give_junk:ice"]
+          "action": ["heal:health@mine.player:1", "stat_damage:power@mine.player:1", "give_junk:ice"],
+          "phases": []
         }
       ]
     },
@@ -1547,8 +1577,18 @@
       "tooltip": "Give an *ICE*. You may *VOID* an *ICE* from your hand or discard. Gain *Initiative*.\n\n_\"Watch your step!\" - Unknown_",
       "card_stats": { "tier_req": 2 },
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["give_junk:ice", "take_initiative"] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.held.ice:optional"] }
+        {
+          "key": "cast",
+          "text": "Resolve",
+          "action": ["give_junk:ice", "take_initiative"],
+          "phases": []
+        },
+        {
+          "key": "cast_ask",
+          "text": "Resolve",
+          "action": ["show:mine.held.ice:optional"],
+          "phases": []
+        }
       ],
       "chosen": { "action": ["move:target:ice_pile"] }
     },
@@ -1559,11 +1599,17 @@
       "tags": ["water", "tide", "spell"],
       "tooltip": "*Draw a card*. You may discard up to *2 cards*, and *heal 1* for each *Water* card discarded.\n\n_Doctors throughout Omia have used Water Magic to heal the sick for generations._",
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["draw_from:mine.deck:mine.hand:1"] },
+        {
+          "key": "cast",
+          "text": "Resolve",
+          "action": ["draw_from:mine.deck:mine.hand:1"],
+          "phases": []
+        },
         {
           "key": "cast_ask",
           "text": "Resolve",
-          "action": ["show:mine.hand:optional", "show:mine.hand:optional"]
+          "action": ["show:mine.hand:optional", "show:mine.hand:optional"],
+          "phases": []
         }
       ],
       "chosen": { "action": ["lapis_heal", "destroy:target"] }
@@ -1580,7 +1626,8 @@
           "key": "cast",
           "text": "Resolve",
           "action": ["take_initiative", "heal:health@mine.player:1", "vs_fire? show:mine.held:optional"],
-          "needs": { "vs_fire": "tagged:fire@enemy.battle" }
+          "needs": { "vs_fire": "tagged:fire@enemy.battle" },
+          "phases": []
         }
       ],
       "chosen": { "action": ["move:target:void"], "needs": { "where": ["not_tagged:no_void@target"] } }
@@ -1592,7 +1639,14 @@
       "tags": ["water", "tide", "spell", "has_discard"],
       "tooltip": "*Heal 4*. On discard: *heal 2*.\n\n_The rare and beautiful Moonstone is one of the most coveted in all of Omia._",
       "card_stats": { "tier_req": 3 },
-      "abilities": [{ "key": "cast", "text": "Resolve", "action": ["heal:health@mine.player:4"] }],
+      "abilities": [
+        {
+          "key": "cast",
+          "text": "Resolve",
+          "action": ["heal:health@mine.player:4"],
+          "phases": []
+        }
+      ],
       "leaves": { "from": "hand", "into": "discard", "action": ["heal:health@mine.player:2"] }
     },
     {
@@ -1612,7 +1666,8 @@
             "heal:health@mine.player:1",
             "vs_fire? hit:health@opponent:2"
           ],
-          "needs": { "vs_fire": "tagged:fire@enemy.battle" }
+          "needs": { "vs_fire": "tagged:fire@enemy.battle" },
+          "phases": []
         }
       ]
     },
@@ -1626,7 +1681,8 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["draw_from:mine.deck:mine.hand:1", "heal:health@mine.player:1", "gain_junk:ash"]
+          "action": ["draw_from:mine.deck:mine.hand:1", "heal:health@mine.player:1", "gain_junk:ash"],
+          "phases": []
         }
       ]
     },
@@ -1641,7 +1697,8 @@
           "key": "cast",
           "text": "Resolve",
           "action": ["init? heal:health@mine.player:1", "!init? take_initiative"],
-          "needs": { "init": "initiative@mine.player >= 1" }
+          "needs": { "init": "initiative@mine.player >= 1" },
+          "phases": []
         }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["take_initiative"] }
@@ -1657,7 +1714,8 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["draw_from:mine.deck:mine.hand:1", "heal:health@mine.player:2"]
+          "action": ["draw_from:mine.deck:mine.hand:1", "heal:health@mine.player:2"],
+          "phases": []
         }
       ]
     },
@@ -1668,8 +1726,13 @@
       "tags": ["water", "tide", "spell", "ult"],
       "tooltip": "You may *VOID* an *Earth* card from your hand. If you did, gain *3 mana*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"He just needs a little splash, is all he needs.\" - The Splashmaster_",
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": [] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.earth:optional"] }
+        { "key": "cast", "text": "Resolve", "action": [], "phases": [] },
+        {
+          "key": "cast_ask",
+          "text": "Resolve",
+          "action": ["show:mine.hand.earth:optional"],
+          "phases": []
+        }
       ],
       "chosen": {
         "action": [
@@ -1698,7 +1761,8 @@
             "stat_gain:mana@mine.player:1",
             "destroy:enemy.hand",
             "draw_from:enemy.deck:enemy.hand:4"
-          ]
+          ],
+          "phases": []
         }
       ]
     },
@@ -1709,8 +1773,18 @@
       "tags": ["earth", "loam", "spell", "has_discard"],
       "tooltip": "*Power up*. You must gain two cards from the *Storm Cloud* at or below your *Tier*. On discard: *power up*.\n\n_The Business Demons considered drilling operations at the Spellstorm, but it was deemed too costly._",
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["power_up:power@mine.player:1"] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["gain_must", "gain_must"] }
+        {
+          "key": "cast",
+          "text": "Resolve",
+          "action": ["power_up:power@mine.player:1"],
+          "phases": []
+        },
+        {
+          "key": "cast_ask",
+          "text": "Resolve",
+          "action": ["gain_must", "gain_must"],
+          "phases": []
+        }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:1"] }
     },
@@ -1724,9 +1798,15 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["stat_gain:mana@mine.player:1", "hurt:health@mine.player:1"]
+          "action": ["stat_gain:mana@mine.player:1", "hurt:health@mine.player:1"],
+          "phases": []
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.held:optional"] }
+        {
+          "key": "cast_ask",
+          "text": "Resolve",
+          "action": ["show:mine.held:optional"],
+          "phases": []
+        }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:mana@mine.player:1"] },
       "chosen": { "action": ["move:target:void"], "needs": { "where": ["not_tagged:no_void@target"] } }
@@ -1742,7 +1822,8 @@
           "key": "cast",
           "text": "Resolve",
           "needs": { "req": ["count:spell@mine.hand >= 3"] },
-          "action": ["power_up:power@mine.player:3", "show:mine.hand", "show:mine.hand", "show:mine.hand"]
+          "action": ["power_up:power@mine.player:3", "show:mine.hand", "show:mine.hand", "show:mine.hand"],
+          "phases": []
         }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:1"] },
@@ -1755,8 +1836,18 @@
       "tags": ["earth", "loam", "spell", "has_discard"],
       "tooltip": "Take *1 damage*. You may resolve any card in the *Storm Cloud* regardless of tier, then *VOID* it. On discard: take *1 damage*.\n\n_\"Mom! Look! This fell from the sky!\" - A child of Tiya Bannet_",
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["hurt:health@mine.player:1"] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
+        {
+          "key": "cast",
+          "text": "Resolve",
+          "action": ["hurt:health@mine.player:1"],
+          "phases": []
+        },
+        {
+          "key": "cast_ask",
+          "text": "Resolve",
+          "action": ["show:storm_cloud:optional"],
+          "phases": []
+        }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["hurt:health@mine.player:1"] },
       "chosen": {
@@ -1779,9 +1870,10 @@
             "power_up:power@mine.player:2",
             "stat_gain:mana@mine.player:1",
             "stat_gain:mana@mine.player:1"
-          ]
+          ],
+          "phases": []
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["gain_tier"] }
+        { "key": "cast_ask", "text": "Resolve", "action": ["gain_tier"], "phases": [] }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:2"] }
     },
@@ -1795,9 +1887,10 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["stat_damage:power@opponent:2", "give_junk:ash"]
+          "action": ["stat_damage:power@opponent:2", "give_junk:ash"],
+          "phases": []
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["gain_tier"] }
+        { "key": "cast_ask", "text": "Resolve", "action": ["gain_tier"], "phases": [] }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:1"] }
     },
@@ -1809,11 +1902,12 @@
       "tooltip": "You may *VOID* up to *2 cards* from your hand, and *power up* for each. On discard: *power up*.\n\n_\"That there spellstorm water's FULL-a gold, I tell ya!\" - Prospector_",
       "card_stats": { "tier_req": 2 },
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": [] },
+        { "key": "cast", "text": "Resolve", "action": [], "phases": [] },
         {
           "key": "cast_ask",
           "text": "Resolve",
-          "action": ["show:mine.hand:optional", "show:mine.hand:optional"]
+          "action": ["show:mine.hand:optional", "show:mine.hand:optional"],
+          "phases": []
         }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:1"] },
@@ -1832,9 +1926,10 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["power_up:power@mine.player:1", "draw_from:mine.deck:sifting:2"]
+          "action": ["power_up:power@mine.player:1", "draw_from:mine.deck:sifting:2"],
+          "phases": []
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:sifting"] }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:sifting"], "phases": [] }
       ],
       "chosen": { "action": ["move:sifting:mine.deck", "move:target:mine.deck"] }
     },
@@ -1845,11 +1940,17 @@
       "tags": ["earth", "loam", "spell", "has_discard"],
       "tooltip": "*Draw a card*. Reveal an *Earth* card from your hand, resolve it and then discard it. On discard: *power up*.\n\n_It's said that Earth magic is the oldest form of magic, which is why so many stones are imbued with powers._",
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["draw_from:mine.deck:mine.hand:1"] },
+        {
+          "key": "cast",
+          "text": "Resolve",
+          "action": ["draw_from:mine.deck:mine.hand:1"],
+          "phases": []
+        },
         {
           "key": "cast_ask",
           "text": "Resolve",
-          "action": ["show:others.mine.hand.earth:optional"]
+          "action": ["show:others.mine.hand.earth:optional"],
+          "phases": []
         }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:1"] },
@@ -1867,9 +1968,10 @@
           "key": "cast",
           "text": "Resolve",
           "action": ["power_up:power@mine.player:2", "water? power_up:power@mine.player:1"],
-          "needs": { "water": "tagged:water@battle" }
+          "needs": { "water": "tagged:water@battle" },
+          "phases": []
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["gain_tier"] }
+        { "key": "cast_ask", "text": "Resolve", "action": ["gain_tier"], "phases": [] }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:2"] }
     },
@@ -1880,8 +1982,13 @@
       "tags": ["earth", "loam", "spell", "has_discard"],
       "tooltip": "*Power up twice* and you may gain a card from the *Storm Cloud* at or below your *Tier*. On discard: *power up twice*.\n\n_When you see the \"Gain Card\" icon on a card, keep in mind that you may choose not to gain a card._",
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["power_up:power@mine.player:2"] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["gain_tier"] }
+        {
+          "key": "cast",
+          "text": "Resolve",
+          "action": ["power_up:power@mine.player:2"],
+          "phases": []
+        },
+        { "key": "cast_ask", "text": "Resolve", "action": ["gain_tier"], "phases": [] }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:2"] }
     },
@@ -1892,7 +1999,7 @@
       "tags": ["water", "tide", "spell", "junk", "ice", "has_discard"],
       "tooltip": "This can't be played. On discard during *Regroup*: -1 to your *Blast Score*.\n\n_\"Ice cut into a cube shape is kind of like a gem.\" - Beosnook_",
       "play": { "action": [] },
-      "abilities": [{ "key": "cast", "text": "Resolve", "action": [] }],
+      "abilities": [{ "key": "cast", "text": "Resolve", "action": [], "phases": [] }],
       "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:ice_pen@mine.player:1"] }
     },
     {
@@ -1902,7 +2009,7 @@
       "tags": ["earth", "loam", "spell", "junk", "ash", "has_discard"],
       "tooltip": "This can't be played. On discard: lose *1 Power Token*.\n\n_The Spellstorm is a highly volcanic area, often covered in ash._",
       "play": { "action": [] },
-      "abilities": [{ "key": "cast", "text": "Resolve", "action": [] }],
+      "abilities": [{ "key": "cast", "text": "Resolve", "action": [], "phases": [] }],
       "leaves": { "from": "hand", "into": "discard", "action": ["stat_damage:power@mine.player:1"] }
     },
     {
@@ -1912,7 +2019,7 @@
       "tags": ["fire", "ember", "spell", "junk", "curse", "has_discard"],
       "tooltip": "This can't be played. On discard: take *1 damage*.\n\n_\"Curses!\" - H.M.T. Holliganger, Distinguished Professor at the Azura Academy School of Archaeology_",
       "play": { "action": [] },
-      "abilities": [{ "key": "cast", "text": "Resolve", "action": [] }],
+      "abilities": [{ "key": "cast", "text": "Resolve", "action": [], "phases": [] }],
       "leaves": { "from": "hand", "into": "discard", "action": ["hurt:health@mine.player:1"] }
     },
     {
@@ -1930,7 +2037,8 @@
             "hit:health@opponent:4",
             "stat_gain:mana@mine.player:1",
             "stat_gain:mana@mine.player:1"
-          ]
+          ],
+          "phases": []
         }
       ]
     },
@@ -1945,12 +2053,14 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["take_initiative", "stat_gain:shards@mine.player:1"]
+          "action": ["take_initiative", "stat_gain:shards@mine.player:1"],
+          "phases": []
         },
         {
           "key": "cast_ask",
           "text": "Resolve",
-          "action": ["show:others.mine.hand:optional", "show:others.mine.hand:optional"]
+          "action": ["show:others.mine.hand:optional", "show:others.mine.hand:optional"],
+          "phases": []
         }
       ],
       "chosen": { "action": ["copy:target:activate", "destroy:target"] }
@@ -1966,7 +2076,8 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["heal:health@mine.player:3", "stat_gain:shards@mine.player:1", "give_junk:ice"]
+          "action": ["heal:health@mine.player:3", "stat_gain:shards@mine.player:1", "give_junk:ice"],
+          "phases": []
         }
       ]
     },
@@ -1981,7 +2092,8 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["hit:health@opponent:3", "stat_gain:shards@mine.player:1"]
+          "action": ["hit:health@opponent:3", "stat_gain:shards@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -1996,9 +2108,15 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["hit:health@opponent:2", "stat_gain:shards@mine.player:1", "give_junk:ash"]
+          "action": ["hit:health@opponent:2", "stat_gain:shards@mine.player:1", "give_junk:ash"],
+          "phases": []
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["gain_tier", "gain_tier"] }
+        {
+          "key": "cast_ask",
+          "text": "Resolve",
+          "action": ["gain_tier", "gain_tier"],
+          "phases": []
+        }
       ]
     },
     {
@@ -2057,8 +2175,13 @@
       "tags": ["earth", "loam", "spell", "wizard_spell", "no_void", "ult"],
       "tooltip": "*Power up twice* and you may gain a card from the *Storm Cloud* at or below your *Tier*. If you gained an *Earth* card, gain *Initiative*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"This is gonna be the best coffee run of all time!\"_",
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["power_up:power@mine.player:2"] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["gain_coffee"] }
+        {
+          "key": "cast",
+          "text": "Resolve",
+          "action": ["power_up:power@mine.player:2"],
+          "phases": []
+        },
+        { "key": "cast_ask", "text": "Resolve", "action": ["gain_coffee"], "phases": [] }
       ]
     },
     {
@@ -2078,7 +2201,8 @@
             "gain_junk:ash",
             "init? hit:health@opponent:1"
           ],
-          "needs": { "init": "initiative@mine.player >= 1" }
+          "needs": { "init": "initiative@mine.player >= 1" },
+          "phases": []
         }
       ]
     },
@@ -2153,7 +2277,8 @@
             "stat_damage:mana@opponent:1",
             "stat_gain:mana@mine.player:1",
             "destroy:random.enemy.hand"
-          ]
+          ],
+          "phases": []
         }
       ]
     },
@@ -2174,7 +2299,8 @@
             "move:quiet:mine.discard",
             "draw_from:mine.deck:mine.hand:1",
             "draw_from:mine.deck:mine.hand:1"
-          ]
+          ],
+          "phases": []
         }
       ]
     },
@@ -2237,9 +2363,15 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["draw_from:mine.deck:mine.hand:1", "stat_gain:mana@mine.player:1"]
+          "action": ["draw_from:mine.deck:mine.hand:1", "stat_gain:mana@mine.player:1"],
+          "phases": []
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud.water:optional"] }
+        {
+          "key": "cast_ask",
+          "text": "Resolve",
+          "action": ["show:storm_cloud.water:optional"],
+          "phases": []
+        }
       ],
       "chosen": {
         "action": [
@@ -2264,7 +2396,8 @@
           "action": [
             "power_up:power@mine.player:sum:tier@mine.player",
             "activate_zone:rules:by_column:curric_void"
-          ]
+          ],
+          "phases": []
         }
       ]
     },
@@ -2336,7 +2469,8 @@
             "hit:health@opponent:sum:doom@mine.player",
             "no_curses? stat_gain:doom@mine.player:1"
           ],
-          "needs": { "no_curses": "not_tagged:junk@curse_pile" }
+          "needs": { "no_curses": "not_tagged:junk@curse_pile" },
+          "phases": []
         }
       ]
     },
@@ -2355,7 +2489,8 @@
             "draw_from:mine.deck:mine.hand:1",
             "more_spells? stat_gain:doom@mine.player:1"
           ],
-          "needs": { "more_spells": "count:spell@mine.hand >= count:spell@enemy.hand" }
+          "needs": { "more_spells": "count:spell@mine.hand >= count:spell@enemy.hand" },
+          "phases": []
         }
       ]
     },
@@ -2422,8 +2557,13 @@
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void", "ult"],
       "tooltip": "Discard a *Fire* card from your hand to deal *2 damage*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_A hero to many, Omar is regarded by the powerful as an eco-terrorist._",
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": [] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.fire:optional"] }
+        { "key": "cast", "text": "Resolve", "action": [], "phases": [] },
+        {
+          "key": "cast_ask",
+          "text": "Resolve",
+          "action": ["show:mine.hand.fire:optional"],
+          "phases": []
+        }
       ],
       "chosen": { "action": ["destroy:target", "hit:health@opponent:2"] }
     },
@@ -2435,11 +2575,12 @@
       "tooltip": "SPECIAL: this card ALWAYS goes first. Gain *Initiative*. *Draw a card* OR your opponent discards their revealed card (it does not resolve) and they draw.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"...\"_",
       "comment": "\"ALWAYS goes first\" is the order the duel is taken in, and the duel already takes an order off a stat -- so it is a second stat rather than a second rule. `lead` is written at the reveal, when what was played is known and before the group that reads it is entered, and the Shuriken outweighs the Tracker by more than the Tracker can ever be worth. \"It does not resolve\" needs no word at all: going first is what takes the card out of the battle before the seat that played it is up.",
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["take_initiative"] },
+        { "key": "cast", "text": "Resolve", "action": ["take_initiative"], "phases": [] },
         {
           "key": "cast_ask",
           "text": "Resolve",
-          "action": ["options:shuriken_draw,shuriken_strike"]
+          "action": ["options:shuriken_draw,shuriken_strike"],
+          "phases": []
         }
       ]
     },
@@ -2512,12 +2653,14 @@
             "stat_gain:mana@mine.player:1",
             "low_tier? power_up:power@opponent:1"
           ],
-          "needs": { "low_tier": "tier@opponent <= 1" }
+          "needs": { "low_tier": "tier@opponent <= 1" },
+          "phases": []
         },
         {
           "key": "cast_ask",
           "text": "Resolve",
-          "action": ["show:others.battle.earth:optional"]
+          "action": ["show:others.battle.earth:optional"],
+          "phases": []
         }
       ],
       "chosen": { "action": ["copy:target:activate"] }
@@ -2533,7 +2676,8 @@
           "key": "cast",
           "text": "Resolve",
           "action": ["heal:health@mine.player:2", "clean_discard? give_junk:ice"],
-          "needs": { "clean_discard": "not_tagged:junk@enemy.discard" }
+          "needs": { "clean_discard": "not_tagged:junk@enemy.discard" },
+          "phases": []
         }
       ]
     },
@@ -2604,8 +2748,13 @@
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void", "ult"],
       "tooltip": "Deal *1 damage*. You may give a non-Wizard card from your hand to your opponent. If you do, gain 2 of the Element matching it.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Think I can hit that old barrel by the hill over there?\"_",
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["hit:health@opponent:1"] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
+        { "key": "cast", "text": "Resolve", "action": ["hit:health@opponent:1"], "phases": [] },
+        {
+          "key": "cast_ask",
+          "text": "Resolve",
+          "action": ["show:mine.hand:optional"],
+          "phases": []
+        }
       ],
       "chosen": {
         "action": [
@@ -2632,14 +2781,16 @@
             "stat_gain:mana@mine.player:1",
             "water? stat_gain:earth_el@mine.player:1"
           ],
-          "needs": { "water": "tagged:water@battle" }
+          "needs": { "water": "tagged:water@battle" },
+          "phases": []
         },
         {
           "key": "cast_ask",
           "text": "Resolve",
           "action": [
             "options:pour_fire_earth,pour_fire_water,pour_earth_fire,pour_earth_water,pour_water_fire,pour_water_earth:optional"
-          ]
+          ],
+          "phases": []
         }
       ]
     },
@@ -2704,11 +2855,12 @@
       "tags": ["earth", "loam", "spell", "wizard_spell", "no_void", "ult"],
       "tooltip": "Lose 1 or *2 Energy* Tokens to *power up* that many times. If you still hold *2 Energy*, your opponent reveals their hand and you choose what they discard.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Yes! I'm in. Now let's see what these idiots have planned next...\"_",
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": [] },
+        { "key": "cast", "text": "Resolve", "action": [], "phases": [] },
         {
           "key": "cast_ask",
           "text": "Resolve",
-          "action": ["options:may_lose1,may_lose2:optional"]
+          "action": ["options:may_lose1,may_lose2:optional"],
+          "phases": []
         }
       ]
     },
@@ -2725,9 +2877,15 @@
           "action": [
             "stat_gain:mana@mine.player:sum:energy@mine.player",
             "stat_damage:energy@mine.player:2"
-          ]
+          ],
+          "phases": []
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
+        {
+          "key": "cast_ask",
+          "text": "Resolve",
+          "action": ["show:mine.hand:optional"],
+          "phases": []
+        }
       ],
       "chosen": { "action": ["star_shot", "destroy:target", "hit:health@opponent:1"] }
     },
