@@ -99,9 +99,20 @@ took Spellstorm to 0.15 s mean, 0.9 s slowest, and won 3 of 4 against random;
    index into a seeded move list (desktop only).
 2. **`per_phase` is unmeasured.** Spellstorm's gain override reads sensible and
    nobody has watched it gain.
-3. **Every other game is random.** The menu asks only where a game declares
-   `bot`. Splendor and Lost Cities have an obvious score; Codex and Puzzle Strike
-   do not; The Crew and Ghost Stories are cooperative and want another shape.
+3. **Puzzle Strike, Codex and Ghost Stories have a `bot` section** (2026-10-09).
+   Against random play: Puzzle Strike 17 of 18 (gem piles cubed, the bag's
+   average price), Codex 10 of 10 (bases, board, hero levels, a worker curve).
+   Ghost Stories loses every night still — 6 to 14 ghosts exorcised where random
+   play gets none, then the village falls; the rollouts are random, and an
+   exorcism is a walk, a roll and a choice of dice that random play rarely
+   finishes. Splendor and Lost Cities have an obvious score and no section yet;
+   The Crew is cooperative like Ghost Stories. Measured with
+   `tools/bot_match.lua`. What the matches found besides: a phase pushed inside
+   `each_seat` went to the wrong seat (Oren's potions), a game's button in the
+   system column was not a move (Spellstorm's "Unplayable hand"), rules only a
+   phase walks were clickable (Spellstorm's Resolve, Ghost Stories' haunting),
+   and three ways for a bot to stall a turn it feared to end. Open: Codex's
+   Overpower opens `spill` with nothing left to hit and no way out.
 4. **The rollout opponent is random**, so the bot plans against a fool. Playing
    the rollout with the bot itself is the next step up and costs TRIES² time.
 5. **Only the minimum targets are chosen**, so an optional target is never
