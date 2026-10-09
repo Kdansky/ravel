@@ -19,6 +19,8 @@ local predicate = require("predicate")
 
 local file, games = arg[1], tonumber(arg[2]) or 6
 opponent.BUDGET = tonumber(arg[3]) or opponent.BUDGET
+opponent.FIRST = tonumber(os.getenv("FIRST")) or opponent.FIRST
+opponent.TRIES = tonumber(os.getenv("TRIES")) or opponent.TRIES
 local STEPS = tonumber(os.getenv("STEPS")) or 3000
 local clock = os.clock
 
@@ -27,6 +29,7 @@ for g = 1, games do
 	math.randomseed(g)
 	flow.init(file, g)
 	if os.getenv("RANDOM") then require("declaration").G.bot = nil end
+	if os.getenv("VALUE") then require("declaration").G.bot = { value = os.getenv("VALUE") } end
 	local seats = net.seats()
 	local coop = os.getenv("COOP") ~= nil
 	local mine = seats[(g - 1) % #seats + 1]
@@ -61,6 +64,21 @@ for g = 1, games do
 		res = word == "victory" and "won" or "lost"
 	else
 		res = "open"
+		-- Where it stopped, since a game nobody can move in is a bug in the game or the engine.
+		local st = {}
+		for _, f in ipairs(phase.snapshot().stack) do st[#st + 1] = f.def.key end
+		print(("  stuck in %s, turn %s, acting %s"):format(table.concat(st, " > "), tostring(zones.turn_seat()), tostring(zones.acting_seat())))
+		for z in require("entity").each("zone") do
+			if #z.cards > 0 and z.display ~= "offscreen" or z.key == "options" then
+				local cs = {}
+				for _, c in ipairs(z.cards) do
+					local e = require("entity").get(c)
+					cs[#cs + 1] = e.def_key .. (flow.can_play(c) and "+" or "")
+				end
+				print(("  %s/%s: %s"):format(z.key, tostring(z.seat), table.concat(cs, " ")))
+			end
+		end
+		for _, l in ipairs(require("log").tail(10)) do print("  | " .. l) end
 	end
 	if res == "won" then wins = wins + 1 elseif res == "lost" then losses = losses + 1 else open = open + 1 end
 	local shown = ""

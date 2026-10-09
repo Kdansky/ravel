@@ -173,10 +173,13 @@ function M.legal()
 	return moves
 end
 
--- How many deals the best move is tried in at most, how many moves each try is
--- played out for at most, and how many seconds a decision may take. Spellstorm's
--- round is a dozen moves; the reach is for a game whose round never closes while
--- random moves are being made in it.
+-- How many deals every move is tried in first, how many the best is tried in at
+-- most, how many moves each try is played out for at most, and how many seconds a
+-- decision may take. One try first cut good Spellstorm moves on a bad deal: 14 of
+-- 23 against random play, where four first won 17 of 22. Spellstorm's round is a
+-- dozen moves; the reach is for a game whose round never closes while random
+-- moves are being made in it.
+M.FIRST = 4
 M.TRIES = 16
 M.REACH = 60
 M.BUDGET = 5
@@ -253,14 +256,15 @@ end
 -- Random moves for everybody until the round turns or the game ends: far enough
 -- that a card played face down has met the one it was played against. `start`
 -- is the round before the tried move, so a move that ends the round is scored
--- where it ends it, not after the next one.
+-- where it ends it, not after the next one. False when the reach ran out first.
 local function play_out(start)
 	for _ = 1, M.REACH do
-		if over() or round() ~= start then return end
+		if over() or round() ~= start then return true end
 		local moves = M.legal()
-		if #moves == 0 then return end
+		if #moves == 0 then return true end
 		moves[math.random(#moves)]()
 	end
+	return over() or round() ~= start
 end
 
 local WIN = 1e9
@@ -292,20 +296,27 @@ local function now()
 end
 
 -- Which of `moves` the engine makes for `seat`. Each is tried in a fresh deal,
--- played out, and scored by the game's `bot` section. Every move gets one try,
--- the better half twice as many, and so on until one is left or the best have
--- M.TRIES: a hundred openings cost a hundred tries and not four hundred, and the
--- tries go where the decision is close. Out of time, the best average so far is
--- the answer. A tie is broken at random; a game with no section, and a choice of
--- one, is a coin.
+-- played out, and scored by the game's `bot` section. Every move gets M.FIRST
+-- tries, the better half twice as many, and so on until one is left or the best
+-- have M.TRIES: the tries go where the decision is close. Out of time, the best
+-- average so far is the answer. A tie is broken at random; a game with no
+-- section, and a choice of one, is a coin.
 function M.choose(seat, moves)
 	local bot = declaration.G.bot
 	if not bot or #moves < 2 then return math.random(#moves) end
 	local expr, G = valuation(bot), declaration.G
 	local deadline = now() + M.BUDGET
-	local alive, sum, n = {}, {}, {}
-	for i = 1, #moves do sum[i], n[i] = 0, 0 end
-	local function mean(i) return n[i] > 0 and sum[i] / n[i] or -math.huge end
+	-- A try that ran out of reach never saw where the round ends, so it is not
+	-- evidence beside one that did: Puzzle Strike's bot, sure to lose when its turn
+	-- ended, bought free wounds for hundreds of moves because one try in twenty
+	-- after a wound never got as far as the loss. It counts only for a move that
+	-- has no finished try at all.
+	local alive, sum, n, short, shorts = {}, {}, {}, {}, {}
+	for i = 1, #moves do sum[i], n[i], short[i], shorts[i] = 0, 0, 0, 0 end
+	local function mean(i)
+		if n[i] > shorts[i] then return sum[i] / (n[i] - shorts[i]) end
+		return shorts[i] > 0 and short[i] / shorts[i] or -math.huge
+	end
 	local lands = {}
 	unseen(function()
 		-- A move back to a position it already stood in this round is not a move.
@@ -324,7 +335,7 @@ function M.choose(seat, moves)
 		if #alive == 0 then
 			for i = 1, #moves do alive[i] = i end
 		end
-		local want = 1
+		local want = M.FIRST
 		while true do
 			for _, i in ipairs(alive) do
 				while n[i] < want do
@@ -334,8 +345,11 @@ function M.choose(seat, moves)
 						rng.seed(math.random(2 ^ 30))
 						local start = round()
 						moves[i]()
-						play_out(start)
-						sum[i] = sum[i] + score(seat, expr)
+						if play_out(start) then
+							sum[i] = sum[i] + score(seat, expr)
+						else
+							short[i], shorts[i] = short[i] + score(seat, expr), shorts[i] + 1
+						end
 					end)
 					n[i] = n[i] + 1
 					assert(declaration.G == G, "a move tried by the engine seat loaded another game")
