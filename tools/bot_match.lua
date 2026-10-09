@@ -4,12 +4,18 @@
 --   luajit tools/bot_match.lua codex.json 4 2              (budget of 2 s a decision)
 -- The engine takes the first seat in odd games and the second in even ones.
 -- Every seat but the engine's moves at random; a cooperative game is won or
--- lost by everybody, so there the engine plays every seat.
+-- lost by everybody, so there the engine plays every seat (COOP=1), and SHOW names
+-- a number to print at each game's end, since such a game has no winning seat:
+--   COOP=1 SHOW='count:ghost@hell' luajit tools/bot_match.lua ghost_stories.json 4
+-- END names a phase that means the game is over, for a game that ends by routing
+-- there rather than by a seat's `won`. RANDOM=1 drops the game's `bot` section, for the baseline it is measured against.
 require("headless")
 local flow = require("flow")
 local zones = require("zones")
 local net = require("net")
 local opponent = require("opponent")
+local phase = require("phase")
+local predicate = require("predicate")
 
 local file, games = arg[1], tonumber(arg[2]) or 6
 opponent.BUDGET = tonumber(arg[3]) or opponent.BUDGET
@@ -20,6 +26,7 @@ local wins, losses, open, slowest, spent, decisions = 0, 0, 0, 0, 0, 0
 for g = 1, games do
 	math.randomseed(g)
 	flow.init(file, g)
+	if os.getenv("RANDOM") then require("declaration").G.bot = nil end
 	local seats = net.seats()
 	local coop = os.getenv("COOP") ~= nil
 	local mine = seats[(g - 1) % #seats + 1]
@@ -32,6 +39,7 @@ for g = 1, games do
 	local steps, t0 = 0, clock()
 	while steps < STEPS do
 		if flow.victor() or flow.outcome() then break end
+		if os.getenv("END") and phase.current() and phase.current().key == os.getenv("END") then break end
 		steps = steps + 1
 		if opponent.due() then
 			local t = clock()
@@ -55,7 +63,10 @@ for g = 1, games do
 		res = "open"
 	end
 	if res == "won" then wins = wins + 1 elseif res == "lost" then losses = losses + 1 else open = open + 1 end
-	print(("game %d: engine as %s %s after %d steps, %.0f s"):format(g, mine, res, steps, clock() - t0))
+	local shown = ""
+	if os.getenv("SHOW") then zones.as_seat(mine, function() shown = " " .. os.getenv("SHOW") .. " = " .. predicate.value(os.getenv("SHOW"), {}) end) end
+	print(("game %d: engine as %s %s after %d steps in %s, %.0f s%s"):format(g, coop and "every seat" or mine, res, steps,
+		phase.current() and phase.current().key or "?", clock() - t0, shown))
 	io.stdout:flush()
 end
 print(("%s: %d won, %d lost, %d unfinished; %d decisions, %.2f s mean, %.2f s slowest"):format(

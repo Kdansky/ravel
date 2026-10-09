@@ -604,6 +604,9 @@
     }
   ],
   "players": [{ "card": "south" }, { "card": "north" }],
+  "bot": {
+    "value": "sum:value@enemy.gem_pile * sum:value@enemy.gem_pile * sum:value@enemy.gem_pile - sum:value@mine.gem_pile * sum:value@mine.gem_pile * sum:value@mine.gem_pile + 100 * (sum:price@mine.everywhere - sum:price@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile)"
+  },
   "cards": [
     { "key": "south", "text": "{name}", "name": "South", "tags": ["south_side"] },
     { "key": "north", "text": "{name}", "name": "North", "tags": ["north_side"] },

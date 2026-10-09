@@ -414,29 +414,34 @@
         {
           "key": "stamp_south",
           "needs": { "req": "row@self == 1" },
-          "action": ["stat_set:board@self:0"]
+          "action": ["stat_set:board@self:0"],
+          "phases": []
         },
         {
           "key": "stamp_west",
           "needs": { "req": "col@self == 1" },
-          "action": ["stat_set:board@self:1"]
+          "action": ["stat_set:board@self:1"],
+          "phases": []
         },
         {
           "key": "stamp_north",
           "needs": { "req": "row@self == 5" },
-          "action": ["stat_set:board@self:2"]
+          "action": ["stat_set:board@self:2"],
+          "phases": []
         },
         {
           "key": "stamp_east",
           "needs": { "req": "col@self == 5" },
-          "action": ["stat_set:board@self:3"]
+          "action": ["stat_set:board@self:3"],
+          "phases": []
         },
         {
           "key": "haunt_v1",
           "needs": {
             "req": ["to_haunt@self >= 1", "board@self != 1", "board@self != 3", "haunted@vert1 == 0"]
           },
-          "action": ["stat_gain:haunted@vert1:1", "stat_set:to_haunt@self:0"]
+          "action": ["stat_gain:haunted@vert1:1", "stat_set:to_haunt@self:0"],
+          "phases": []
         },
         {
           "key": "haunt_v2",
@@ -449,7 +454,8 @@
               "haunted@vert2 == 0"
             ]
           },
-          "action": ["stat_gain:haunted@vert2:1", "stat_set:to_haunt@self:0"]
+          "action": ["stat_gain:haunted@vert2:1", "stat_set:to_haunt@self:0"],
+          "phases": []
         },
         {
           "key": "haunt_v3",
@@ -463,14 +469,16 @@
               "haunted@vert3 == 0"
             ]
           },
-          "action": ["stat_gain:haunted@vert3:1", "stat_set:to_haunt@self:0"]
+          "action": ["stat_gain:haunted@vert3:1", "stat_set:to_haunt@self:0"],
+          "phases": []
         },
         {
           "key": "haunt_h1",
           "needs": {
             "req": ["to_haunt@self >= 1", "board@self != 0", "board@self != 2", "haunted@horiz1 == 0"]
           },
-          "action": ["stat_gain:haunted@horiz1:1", "stat_set:to_haunt@self:0"]
+          "action": ["stat_gain:haunted@horiz1:1", "stat_set:to_haunt@self:0"],
+          "phases": []
         },
         {
           "key": "haunt_h2",
@@ -483,7 +491,8 @@
               "haunted@horiz2 == 0"
             ]
           },
-          "action": ["stat_gain:haunted@horiz2:1", "stat_set:to_haunt@self:0"]
+          "action": ["stat_gain:haunted@horiz2:1", "stat_set:to_haunt@self:0"],
+          "phases": []
         },
         {
           "key": "haunt_h3",
@@ -497,37 +506,44 @@
               "haunted@horiz3 == 0"
             ]
           },
-          "action": ["stat_gain:haunted@horiz3:1", "stat_set:to_haunt@self:0"]
+          "action": ["stat_gain:haunted@horiz3:1", "stat_set:to_haunt@self:0"],
+          "phases": []
         },
         {
           "key": "death_go",
           "needs": { "req": ["dying@self >= 1", "to_haunt@self == 0"] },
-          "action": ["destroy:self"]
+          "action": ["destroy:self"],
+          "phases": []
         },
         {
           "key": "curse_qi",
           "needs": { "req": ["rolls@self >= 1", "tagged:c_qi@curse"] },
-          "action": ["stat_damage:qi@mine.player:1"]
+          "action": ["stat_damage:qi@mine.player:1"],
+          "phases": []
         },
         {
           "key": "curse_tao",
           "needs": { "req": ["rolls@self >= 1", "tagged:c_tao@curse"] },
-          "action": ["purge:mine.tao"]
+          "action": ["purge:mine.tao"],
+          "phases": []
         },
         {
           "key": "curse_ghost",
           "needs": { "req": ["rolls@self >= 1", "tagged:c_ghost@curse"] },
-          "action": ["stat_gain:incoming@mine.player:1"]
+          "action": ["stat_gain:incoming@mine.player:1"],
+          "phases": []
         },
         {
           "key": "curse_haunt",
           "needs": { "req": ["rolls@self >= 1", "tagged:c_haunt@curse"] },
-          "action": ["stat_gain:to_haunt@self:1"]
+          "action": ["stat_gain:to_haunt@self:1"],
+          "phases": []
         },
         {
           "key": "curse_done",
           "needs": { "req": ["rolls@self >= 1"] },
-          "action": ["stat_set:rolls@self:0", "stat_set:rolling@mine.player:0"]
+          "action": ["stat_set:rolls@self:0", "stat_set:rolling@mine.player:0"],
+          "phases": []
         },
         {
           "key": "place_free_south",
@@ -589,12 +605,14 @@
         {
           "key": "haunt_step",
           "needs": { "req": ["board@self == side@mine.player", "haunt@self <= 1"] },
-          "action": ["stat_gain:haunt@self:1"]
+          "action": ["stat_gain:haunt@self:1"],
+          "phases": []
         },
         {
           "key": "haunt_strike",
           "needs": { "req": ["board@self == side@mine.player", "haunt@self >= 2"] },
-          "action": ["stat_set:haunt@self:0", "stat_gain:to_haunt@self:1"]
+          "action": ["stat_set:haunt@self:0", "stat_gain:to_haunt@self:1"],
+          "phases": []
         }
       ]
     },
@@ -617,7 +635,8 @@
             "stat_set:rolled@self:1",
             "stat_set:rolls@self:1",
             "stat_set:rolling@mine.player:1"
-          ]
+          ],
+          "phases": []
         }
       ]
     },
@@ -635,7 +654,8 @@
             "stat_set:dying@self:2",
             "stat_set:rolls@self:1",
             "stat_set:rolling@mine.player:1"
-          ]
+          ],
+          "phases": []
         }
       ]
     },
@@ -1470,6 +1490,9 @@
     { "when": "max:qi@player <= 0", "then": ["push_phase:lost_dead"] },
     { "when": "sum:haunted@village >= 4", "then": ["push_phase:lost_village"] }
   ],
+  "bot": {
+    "value": "1000000 * count:incarnation@hell + 40 * count:ghost@hell - 30 * count:ghost@table - 50 * sum:to_haunt@ghost - 300 * sum:haunted@village * sum:haunted@village + 10 * sum:qi@player + 50 * min:qi@player"
+  },
   "cards": [
     {
       "key": "south",
@@ -1478,7 +1501,7 @@
       "asset": "circle:gold",
       "card_stats": { "side": 0 },
       "tooltip": "The south Taoist, guarding the yellow board.",
-      "abilities": [{ "key": "handover", "action": ["set_active_seat:west_seat"] }]
+      "abilities": [{ "key": "handover", "action": ["set_active_seat:west_seat"], "phases": [] }]
     },
     {
       "key": "west",
@@ -1487,7 +1510,7 @@
       "asset": "circle:blue",
       "card_stats": { "side": 1 },
       "tooltip": "The west Taoist, guarding the blue board.",
-      "abilities": [{ "key": "handover", "action": ["set_active_seat:north_seat"] }]
+      "abilities": [{ "key": "handover", "action": ["set_active_seat:north_seat"], "phases": [] }]
     },
     {
       "key": "north",
@@ -1496,7 +1519,7 @@
       "asset": "circle:green",
       "card_stats": { "side": 2 },
       "tooltip": "The north Taoist, guarding the green board.",
-      "abilities": [{ "key": "handover", "action": ["set_active_seat:east_seat"] }]
+      "abilities": [{ "key": "handover", "action": ["set_active_seat:east_seat"], "phases": [] }]
     },
     {
       "key": "east",
@@ -1505,7 +1528,7 @@
       "asset": "circle:crimson",
       "card_stats": { "side": 3 },
       "tooltip": "The east Taoist, guarding the red board.",
-      "abilities": [{ "key": "handover", "action": ["set_active_seat:south_seat"] }]
+      "abilities": [{ "key": "handover", "action": ["set_active_seat:south_seat"], "phases": [] }]
     },
     {
       "key": "monk",
@@ -1555,7 +1578,8 @@
         {
           "key": "overrun",
           "needs": { "req": ["my_turn@self", "count:ghost@row3 >= 3"] },
-          "action": ["stat_damage:qi@mine.player:1", "stat_set:skip@mine.player:1"]
+          "action": ["stat_damage:qi@mine.player:1", "stat_set:skip@mine.player:1"],
+          "phases": []
         },
         {
           "key": "watch",
@@ -1573,7 +1597,8 @@
         {
           "key": "mute",
           "needs": { "req": ["my_turn@self", "tagged:power_off@row3"] },
-          "action": ["stat_set:powered@mine.player:0"]
+          "action": ["stat_set:powered@mine.player:0"],
+          "phases": []
         }
       ]
     },
@@ -1587,7 +1612,8 @@
         {
           "key": "overrun",
           "needs": { "req": ["my_turn@self", "count:ghost@col3 >= 3"] },
-          "action": ["stat_damage:qi@mine.player:1", "stat_set:skip@mine.player:1"]
+          "action": ["stat_damage:qi@mine.player:1", "stat_set:skip@mine.player:1"],
+          "phases": []
         },
         {
           "key": "watch",
@@ -1605,7 +1631,8 @@
         {
           "key": "mute",
           "needs": { "req": ["my_turn@self", "tagged:power_off@col3"] },
-          "action": ["stat_set:powered@mine.player:0"]
+          "action": ["stat_set:powered@mine.player:0"],
+          "phases": []
         }
       ]
     },
@@ -1619,7 +1646,8 @@
         {
           "key": "overrun",
           "needs": { "req": ["my_turn@self", "count:ghost@row3 >= 3"] },
-          "action": ["stat_damage:qi@mine.player:1", "stat_set:skip@mine.player:1"]
+          "action": ["stat_damage:qi@mine.player:1", "stat_set:skip@mine.player:1"],
+          "phases": []
         },
         {
           "key": "watch",
@@ -1637,7 +1665,8 @@
         {
           "key": "mute",
           "needs": { "req": ["my_turn@self", "tagged:power_off@row3"] },
-          "action": ["stat_set:powered@mine.player:0"]
+          "action": ["stat_set:powered@mine.player:0"],
+          "phases": []
         }
       ]
     },
@@ -1651,7 +1680,8 @@
         {
           "key": "overrun",
           "needs": { "req": ["my_turn@self", "count:ghost@col3 >= 3"] },
-          "action": ["stat_damage:qi@mine.player:1", "stat_set:skip@mine.player:1"]
+          "action": ["stat_damage:qi@mine.player:1", "stat_set:skip@mine.player:1"],
+          "phases": []
         },
         {
           "key": "watch",
@@ -1669,7 +1699,8 @@
         {
           "key": "mute",
           "needs": { "req": ["my_turn@self", "tagged:power_off@col3"] },
-          "action": ["stat_set:powered@mine.player:0"]
+          "action": ["stat_set:powered@mine.player:0"],
+          "phases": []
         }
       ]
     },
@@ -1709,27 +1740,32 @@
         {
           "key": "curse_qi",
           "needs": { "req": ["rolls@self >= 1", "tagged:c_qi@curse"] },
-          "action": ["stat_damage:qi@mine.player:1"]
+          "action": ["stat_damage:qi@mine.player:1"],
+          "phases": []
         },
         {
           "key": "curse_tao",
           "needs": { "req": ["rolls@self >= 1", "tagged:c_tao@curse"] },
-          "action": ["purge:mine.tao"]
+          "action": ["purge:mine.tao"],
+          "phases": []
         },
         {
           "key": "curse_ghost",
           "needs": { "req": ["rolls@self >= 1", "tagged:c_ghost@curse"] },
-          "action": ["stat_gain:incoming@mine.player:1"]
+          "action": ["stat_gain:incoming@mine.player:1"],
+          "phases": []
         },
         {
           "key": "curse_haunt",
           "needs": { "req": ["rolls@self >= 1", "tagged:c_haunt@curse"] },
-          "action": ["stat_gain:haunted@self:1"]
+          "action": ["stat_gain:haunted@self:1"],
+          "phases": []
         },
         {
           "key": "curse_done",
           "needs": { "req": ["rolls@self >= 1"] },
-          "action": ["stat_set:rolls@self:0", "stat_set:rolling@mine.player:0"]
+          "action": ["stat_set:rolls@self:0", "stat_set:rolling@mine.player:0"],
+          "phases": []
         }
       ]
     },
@@ -1812,37 +1848,44 @@
         {
           "key": "herb_yellow",
           "needs": { "req": ["rolls@self >= 1", "tagged:yellow@dice"] },
-          "action": ["take:box.yellow:mine.tao:1"]
+          "action": ["take:box.yellow:mine.tao:1"],
+          "phases": []
         },
         {
           "key": "herb_green",
           "needs": { "req": ["rolls@self >= 1", "tagged:green@dice"] },
-          "action": ["take:box.green:mine.tao:1"]
+          "action": ["take:box.green:mine.tao:1"],
+          "phases": []
         },
         {
           "key": "herb_red",
           "needs": { "req": ["rolls@self >= 1", "tagged:red@dice"] },
-          "action": ["take:box.red:mine.tao:1"]
+          "action": ["take:box.red:mine.tao:1"],
+          "phases": []
         },
         {
           "key": "herb_blue",
           "needs": { "req": ["rolls@self >= 1", "tagged:blue@dice"] },
-          "action": ["take:box.blue:mine.tao:1"]
+          "action": ["take:box.blue:mine.tao:1"],
+          "phases": []
         },
         {
           "key": "herb_black",
           "needs": { "req": ["rolls@self >= 1", "tagged:black@dice"] },
-          "action": ["take:box.black:mine.tao:1"]
+          "action": ["take:box.black:mine.tao:1"],
+          "phases": []
         },
         {
           "key": "herb_white",
           "needs": { "req": ["rolls@self >= 1", "tagged:white@dice"] },
-          "action": ["stat_gain:owed@mine.player:count:white@dice"]
+          "action": ["stat_gain:owed@mine.player:count:white@dice"],
+          "phases": []
         },
         {
           "key": "herb_done",
           "needs": { "req": ["rolls@self >= 1"] },
-          "action": ["stat_set:rolls@self:0", "stat_set:herbs@mine.player:0"]
+          "action": ["stat_set:rolls@self:0", "stat_set:herbs@mine.player:0"],
+          "phases": []
         }
       ]
     },
@@ -2027,7 +2070,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2056,7 +2100,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2085,12 +2130,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "arrive",
           "needs": { "req": ["fresh@self >= 1"] },
-          "action": ["stat_gain:incoming@mine.player:1"]
+          "action": ["stat_gain:incoming@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2119,12 +2166,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "arrive",
           "needs": { "req": ["fresh@self >= 1"] },
-          "action": ["stat_gain:incoming@mine.player:1"]
+          "action": ["stat_gain:incoming@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2153,7 +2202,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2182,7 +2232,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2211,7 +2262,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2240,7 +2292,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2269,7 +2322,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2298,12 +2352,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:owed@mine.player:2"]
+          "action": ["stat_gain:owed@mine.player:2"],
+          "phases": []
         }
       ]
     },
@@ -2332,12 +2388,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:boons@mine.player:1"]
+          "action": ["stat_gain:boons@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2362,7 +2420,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2387,7 +2446,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2412,12 +2472,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "arrive",
           "needs": { "req": ["fresh@self >= 1"] },
-          "action": ["stat_gain:incoming@mine.player:1"]
+          "action": ["stat_gain:incoming@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2442,12 +2504,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "arrive",
           "needs": { "req": ["fresh@self >= 1"] },
-          "action": ["stat_gain:incoming@mine.player:1"]
+          "action": ["stat_gain:incoming@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2472,7 +2536,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2497,7 +2562,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2522,7 +2588,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2547,7 +2614,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2572,7 +2640,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2597,12 +2666,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:owed@mine.player:2"]
+          "action": ["stat_gain:owed@mine.player:2"],
+          "phases": []
         }
       ]
     },
@@ -2627,12 +2698,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:boons@mine.player:1"]
+          "action": ["stat_gain:boons@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2657,7 +2730,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2682,7 +2756,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2707,12 +2782,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "arrive",
           "needs": { "req": ["fresh@self >= 1"] },
-          "action": ["stat_gain:incoming@mine.player:1"]
+          "action": ["stat_gain:incoming@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2737,12 +2814,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "arrive",
           "needs": { "req": ["fresh@self >= 1"] },
-          "action": ["stat_gain:incoming@mine.player:1"]
+          "action": ["stat_gain:incoming@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2767,7 +2846,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2792,7 +2872,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2817,7 +2898,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2842,7 +2924,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2867,7 +2950,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2892,12 +2976,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:owed@mine.player:2"]
+          "action": ["stat_gain:owed@mine.player:2"],
+          "phases": []
         }
       ]
     },
@@ -2922,12 +3008,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:boons@mine.player:1"]
+          "action": ["stat_gain:boons@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2952,7 +3040,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -2977,7 +3066,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3002,12 +3092,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "arrive",
           "needs": { "req": ["fresh@self >= 1"] },
-          "action": ["stat_gain:incoming@mine.player:1"]
+          "action": ["stat_gain:incoming@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3032,12 +3124,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "arrive",
           "needs": { "req": ["fresh@self >= 1"] },
-          "action": ["stat_gain:incoming@mine.player:1"]
+          "action": ["stat_gain:incoming@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3062,7 +3156,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3087,7 +3182,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3112,7 +3208,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3137,7 +3234,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3162,7 +3260,8 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3187,12 +3286,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:owed@mine.player:2"]
+          "action": ["stat_gain:owed@mine.player:2"],
+          "phases": []
         }
       ]
     },
@@ -3217,12 +3318,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:boons@mine.player:1"]
+          "action": ["stat_gain:boons@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3247,12 +3350,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:owed@mine.player:1"]
+          "action": ["stat_gain:owed@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3277,12 +3382,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:owed@mine.player:1"]
+          "action": ["stat_gain:owed@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3307,17 +3414,20 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "arrive",
           "needs": { "req": ["fresh@self >= 1"] },
-          "action": ["stat_gain:incoming@mine.player:1"]
+          "action": ["stat_gain:incoming@mine.player:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:owed@mine.player:1"]
+          "action": ["stat_gain:owed@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3342,17 +3452,20 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "arrive",
           "needs": { "req": ["fresh@self >= 1"] },
-          "action": ["stat_gain:incoming@mine.player:1"]
+          "action": ["stat_gain:incoming@mine.player:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:owed@mine.player:1"]
+          "action": ["stat_gain:owed@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3377,17 +3490,20 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "arrive",
           "needs": { "req": ["fresh@self >= 1"] },
-          "action": ["stat_damage:qi@mine.player:1"]
+          "action": ["stat_damage:qi@mine.player:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:boons@mine.player:1"]
+          "action": ["stat_gain:boons@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3412,12 +3528,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:boons@mine.player:1"]
+          "action": ["stat_gain:boons@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3442,12 +3560,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:boons@mine.player:1"]
+          "action": ["stat_gain:boons@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3472,12 +3592,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:boons@mine.player:1"]
+          "action": ["stat_gain:boons@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3502,12 +3624,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:boons@mine.player:1"]
+          "action": ["stat_gain:boons@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3532,17 +3656,20 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "arrive",
           "needs": { "req": ["fresh@self >= 1"] },
-          "action": ["stat_gain:to_haunt@self:1"]
+          "action": ["stat_gain:to_haunt@self:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:boons@mine.player:1"]
+          "action": ["stat_gain:boons@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3567,17 +3694,20 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "arrive",
           "needs": { "req": ["fresh@self >= 1"] },
-          "action": ["each_seat:purge:random.mine.tao:1"]
+          "action": ["each_seat:purge:random.mine.tao:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:boons@mine.player:1"]
+          "action": ["stat_gain:boons@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3608,17 +3738,20 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "arrive",
           "needs": { "req": ["fresh@self >= 1"] },
-          "action": ["stat_gain:incoming@mine.player:1"]
+          "action": ["stat_gain:incoming@mine.player:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"]
+          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3643,17 +3776,20 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "arrive",
           "needs": { "req": ["fresh@self >= 1"] },
-          "action": ["stat_gain:incoming@mine.player:1"]
+          "action": ["stat_gain:incoming@mine.player:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"]
+          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3685,12 +3821,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"]
+          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3715,12 +3853,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"]
+          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3745,14 +3885,16 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"]
+          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"],
+          "phases": []
         },
-        { "key": "mute", "action": ["stat_set:powered@mine.player:0"] }
+        { "key": "mute", "action": ["stat_set:powered@mine.player:0"], "phases": [] }
       ]
     },
     {
@@ -3776,22 +3918,26 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "arrive",
           "needs": { "req": ["fresh@self >= 1"] },
-          "action": ["each_seat:purge:random.mine.tao:1"]
+          "action": ["each_seat:purge:random.mine.tao:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"]
+          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"],
+          "phases": []
         },
         {
           "key": "yin_tithe",
           "needs": { "req": ["board@self == side@mine.player"] },
-          "action": ["each_seat:purge:random.mine.tao:1"]
+          "action": ["each_seat:purge:random.mine.tao:1"],
+          "phases": []
         }
       ]
     },
@@ -3816,12 +3962,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"]
+          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3846,12 +3994,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"]
+          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3880,12 +4030,14 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"]
+          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -3918,13 +4070,20 @@
         {
           "key": "faced",
           "needs": { "req": ["tagged:taoist@mine.attached_to.orthogonal"] },
-          "action": ["stat_gain:facing@mine.player:1"]
+          "action": ["stat_gain:facing@mine.player:1"],
+          "phases": []
         },
-        { "key": "arrive", "needs": { "req": ["fresh@self >= 1"] }, "action": ["purge:circle"] },
+        {
+          "key": "arrive",
+          "needs": { "req": ["fresh@self >= 1"] },
+          "action": ["purge:circle"],
+          "phases": []
+        },
         {
           "key": "reward",
           "needs": { "req": ["dying@self >= 1"] },
-          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"]
+          "action": ["stat_gain:qi@mine.player:1", "stat_set:yy@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -5038,7 +5197,8 @@
         {
           "key": "settle",
           "needs": { "req": ["powered@mine.player == 0"] },
-          "action": ["stat_set:mantra@each.table.ghost:0", "purge:self"]
+          "action": ["stat_set:mantra@each.table.ghost:0", "purge:self"],
+          "phases": []
         }
       ]
     },
@@ -5097,7 +5257,8 @@
         {
           "key": "settle",
           "needs": { "req": ["powered@mine.player >= 1"] },
-          "action": ["stat_set:mountain@mine.player:1"]
+          "action": ["stat_set:mountain@mine.player:1"],
+          "phases": []
         }
       ]
     },
@@ -5112,7 +5273,8 @@
         {
           "key": "settle",
           "needs": { "req": ["powered@mine.player >= 1"] },
-          "action": ["stat_set:mix@mine.player:2", "stat_set:most@mine.player:2"]
+          "action": ["stat_set:mix@mine.player:2", "stat_set:most@mine.player:2"],
+          "phases": []
         }
       ]
     },
@@ -5131,7 +5293,8 @@
             "stat_set:asks@mine.player:2",
             "stat_set:tries@mine.player:2",
             "stat_set:most@mine.player:2"
-          ]
+          ],
+          "phases": []
         }
       ]
     },

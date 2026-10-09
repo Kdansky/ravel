@@ -5633,7 +5633,21 @@ every legal move is tried, each try played out with random moves for everybody
 until the round turns or the game ends. The better half of the moves is tried
 twice as often, and so on, until one is left or the best have had sixteen tries;
 five seconds in, the best average so far is the move.
-A seat whose `won` stat is set is worth more than any number.
+A seat whose `won` stat is set is worth more than any number. A move is scored
+from the round it was made in, so ending the turn is scored where the turn ends;
+and a move back to a position the engine already stood in this round is never
+taken, so stalling is not a way to keep a bad turn from coming.
+
+**The other side's zones are `enemy.<zone>`.** `@opponent` names the other
+player's card and nothing else, so `opponent.gem_pile` reads nothing; Puzzle
+Strike writes `sum:value@enemy.gem_pile`. The grammar has no power, and needs
+none — a number that should matter more the closer it gets to losing is written
+as a product: Puzzle Strike cubes each gem pile, so the ninth gem costs far more
+than the fourth.
+
+**A cooperative game climbs one number from every seat.** Ghost Stories names no
+seat at all, and since no seat's `won` is set, its win is a term like any other:
+`1000000 * count:incarnation@hell`.
 
 **It never reads what it cannot see.** Before each try, every `secret` pile is
 shuffled and every other seat's `owner` zones — hand, face-down play, deck — are

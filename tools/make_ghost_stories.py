@@ -29,7 +29,7 @@ same pattern from the north edge names the tile below. One rule, four boards.
     python3 tools/make_ghost_stories.py
 """
 
-import os, re, sys
+import json, os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import jsonfmt
 import guard
@@ -1392,7 +1392,7 @@ def build():
     t = tags()
     t.update(placement())
     t["ghost"]["abilities"] = t["ghost"]["abilities"] + anywhere_rules()
-    return {
+    game = {
         "title": "Ghost Stories",
         "seed": 9,
         "verbs": VERBS,
@@ -1422,10 +1422,32 @@ def build():
             {"when": "max:qi@player <= 0", "then": ["push_phase:lost_dead"]},
             {"when": "sum:haunted@village >= 4", "then": ["push_phase:lost_village"]},
         ],
+        # What an engine seat climbs, and every seat climbs the same number: the
+        # night is won or lost together. Nobody's `won` is set, so the win is read
+        # where it happens. A haunted tile is squared because the fourth loses;
+        # the weakest Taoist counts beside the total, since one death costs a
+        # board.
+        "bot": {"value": " ".join([
+            "1000000 * count:incarnation@hell",
+            "+ 40 * count:ghost@hell",
+            "- 30 * count:ghost@table",
+            "- 50 * sum:to_haunt@ghost",
+            "- 300 * sum:haunted@village * sum:haunted@village",
+            "+ 10 * sum:qi@player",
+            "+ 50 * min:qi@player"])},
         "cards": (seat_cards() + monks() + plaques() + village() + ghosts()
                   + pieces() + powers() + buttons() + endings()),
         "setup": setup(),
     }
+    # A rule a phase walks (activate_zone ... by_column:<key>) is the phase's to
+    # run and nobody's to click. Without the empty list it works in every phase:
+    # a ghost could be faced, a plaque overrun or a power settled from a Yang turn.
+    walked = set(re.findall(r"by_column:(\w+)", json.dumps(game)))
+    for holder in game["cards"] + list(game["tags"].values()):
+        for a in holder.get("abilities", []):
+            if a["key"] in walked and "phases" not in a:
+                a["phases"] = []
+    return game
 
 
 if __name__ == "__main__":

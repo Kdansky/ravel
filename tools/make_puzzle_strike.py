@@ -2299,6 +2299,15 @@ def build():
         "zones": zones(),
         "phases": phases(),
         "players": [{"card": k} for k, _ in SEATS],
+        # What the engine seat climbs. A gem pile is cubed: ten loses, so the
+        # ninth gem costs far more than the fourth. A chip bought is worth what
+        # it does to the bag's average price — the price is the designer's own
+        # verdict on a chip — so a wound or a weak chip makes the bag worse.
+        "bot": {"value": "%s - %s + 100 * (%s) / (%s)" % (
+            " * ".join(["sum:value@enemy.gem_pile"] * 3),
+            " * ".join(["sum:value@mine.gem_pile"] * 3),
+            "sum:price@mine.everywhere - sum:price@mine.gem_pile",
+            "count:chip@mine.everywhere - count@mine.gem_pile")},
         "cards": (seat_cards() + other_cards() + button_cards()
                   + by_colour(priced(named(lands(say(gem_cards() + purple_cards() + puzzle_cards()
                                                      + character_chips())))))

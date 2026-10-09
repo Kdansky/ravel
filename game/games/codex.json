@@ -3921,6 +3921,10 @@
       ]
     }
   ],
+  "bot": {
+    "comment": "The base is the game, so it weighs most; then what stands on the board, both sides. Workers are a curve: each pays for itself early and is a card lost late.",
+    "value": "20 * sum:integrity@mine.base - 20 * sum:integrity@enemy.base + 3 * (sum:atk@mine.army + sum:hp@mine.army + sum:atk@mine.patrol + sum:hp@mine.patrol) - 3 * (sum:atk@enemy.army + sum:hp@enemy.army + sum:atk@enemy.patrol + sum:hp@enemy.patrol) + 2 * (sum:integrity@mine.structures + sum:integrity@mine.tech) + 5 * sum:level@mine.everywhere - 5 * sum:level@enemy.everywhere + workers@mine.player * (14 - workers@mine.player) + gold@mine.player"
+  },
   "setup": {
     "place": [
       {
