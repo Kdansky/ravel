@@ -300,6 +300,27 @@ function M.test_a_rehearsal_keeps_the_undo_stack_it_found(check)
 	check("all the way back", json.encode(entity.registry()) == board)
 end
 
+-- A move that ends the game by loading another is one the engine has to be able
+-- to weigh, and weighing it must not leave this game.
+function M.test_a_rehearsal_cannot_load_another_game(check)
+	local declaration = require("declaration")
+	flow.init("menu.json", 1)
+	local G = declaration.G
+	local card
+	for e in entity.each("card") do
+		if e.def_key == "play_spellstorm" and e.zone_id then card = e end
+	end
+	flow.play_card(card.id, {})
+	local answer
+	for e in entity.each("card") do
+		if e.def_key == "m_table" and e.zone_id then answer = e end
+	end
+	flow.rehearse(function() flow.play_card(answer.id, {}) end)
+	check("still the menu", declaration.G == G and declaration.filename == "menu.json", declaration.filename)
+	check("with no load left waiting", require("actions").pending_load == nil)
+	check("and the answer still on offer", flow.can_play(answer.id))
+end
+
 -- The title screen asks who sits across the table. `bot_seats` is written beside
 -- a `load_game` and runs before the load lands, so it has to mean the next game.
 function M.test_engine_seat_chosen_on_the_menu_is_the_next_games(check)

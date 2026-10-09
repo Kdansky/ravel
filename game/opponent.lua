@@ -236,6 +236,7 @@ local function redeal(seat)
 end
 
 local function over()
+	if actions.pending_load or actions.pending_slot then return true end
 	for _, cond in ipairs(declaration.G.end_conditions) do
 		if cond.ravel_fired then return true end
 	end

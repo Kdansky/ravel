@@ -53,6 +53,8 @@ M.default_seed  = nil   -- applied to every game load (CLI arg / RAVEL_SEED env)
 
 local history     = {}
 local MAX_HISTORY = 50
+-- How many rehearsals deep we are: what is tried there may not load a game.
+local rehearsing = 0
 
 -- The engine's own two cards. Seats are named by their player card's key, so
 -- the acting seat's card is the one whose def_key the active seat names — a
@@ -384,8 +386,12 @@ end
 -- Not undo: no hook fires, because nothing a player could see has happened.
 function M.rehearse(fn)
 	local h, kept = point(), history
+	local load, slot = actions.pending_load, actions.pending_slot
 	history = {}
+	rehearsing = rehearsing + 1
 	local ok, err = pcall(fn)
+	rehearsing = rehearsing - 1
+	actions.pending_load, actions.pending_slot = load, slot
 	history = kept
 	back_to(h)
 	if not ok then error(err, 0) end
@@ -559,6 +565,8 @@ function M.settle()
 			return
 		end
 
+		-- A rehearsal cannot leave its game: a load stays asked for, and the rehearsal ends there.
+		if rehearsing > 0 and (actions.pending_load or actions.pending_slot) then return end
 		local fname = actions.take_load()
 		if fname then
 			-- fname is untrusted content (routed here from the load_game
