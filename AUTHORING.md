@@ -4358,7 +4358,9 @@ departure the block is about, so a destroy is refused the same way. Healing is
 the block's own business: one that stays at nought dies again at the next rest.
 
 **When.** When the game comes to rest: a fight lands both blows before anything dies, a buff running out kills as surely
-as a blow, and everything that fell at once dies at once.
+as a blow, and everything that fell at once dies at once. **A card is never killed halfway through what it is doing**:
+while a phase its own rule pushed is open, it stays standing and dies at the first rest after the phase closes. Codex's
+Overpower asks where a blow's excess goes, and an attacker that fell in the same exchange still answers, then dies.
 
 **Where.** Only in play — a `status: board` zone. A card in hand at nought is a
 number, not a corpse.

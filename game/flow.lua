@@ -536,6 +536,9 @@ end
 -- a number, not a corpse. Everything due is gathered before the first moves, so cards that fell
 -- together die together, and each dies as `destroy` kills: into its grave, `leaves` and all.
 --
+-- A card waiting on a phase it pushed is in the middle of something — Overpower asking where the
+-- excess goes — and dies once that is done rather than halfway through it.
+--
 -- A death a card refuses is its own `leaves` saying `stay`. True when anything died.
 local function death_step()
 	local lethal = {}
@@ -547,7 +550,7 @@ local function death_step()
 	local due = {}
 	for e in entity.each("card") do
 		local z = e.zone_id and entity.get(e.zone_id)
-		if z and z.status == "board" then
+		if z and z.status == "board" and not phase.holds(e.id) then
 			for _, s in ipairs(lethal) do
 				if e.stats[s.key] ~= nil and stats.current(e, s.key) <= s.dies_at then
 					due[#due + 1] = e.id

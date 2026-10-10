@@ -2821,6 +2821,9 @@ function M.test_codex_jandra_takes_the_rest_with_her(check)
 	local theirs = summon("tiger_cub", "enemy.army")
 	use(jandra, "strike_patrol", { post("crashbarrow", "enemy", 3).id })
 	flow.settle()
+	-- She has Overpower, and places the excess before she falls.
+	use(jandra, "spill_free", { in_zone("enemy.base").id })
+	flow.settle()
 	check("Jandra died of the fight", in_zone("discard", "jandra_the_negator") ~= nil)
 	check("and took the cub", entity.get(cub.id).zone_id ~= zones.find_id("army", "mine"))
 	check("but not the Demon", entity.get(demon.id).zone_id == zones.find_id("army", "mine"))
@@ -3123,6 +3126,27 @@ function M.test_codex_hallucination_lasts_the_turn(check)
 	actions.execute("activate_zone:enemy.army:by_column:endturn", {})
 	check("the turn's end takes the word back", not tags.entity_has(cub, "illusion")
 		and not tags.entity_has(treant, "illusion"))
+end
+
+
+-- A blow lands whole: Overpower's excess is in flight before the attacker falls, so the attacker that
+-- dies in the exchange still says where it goes, and dies once it has.
+function M.test_codex_overpower_outlives_its_attacker(check)
+	start("pick_red", "pick_green")
+	local ram = summon("crashbarrow", "army")   -- 6/2, overpower
+	local lead = post("iron_man", "enemy", 1)   -- hits back for 3
+	lead.stats.hp = 1
+	local base = in_zone("enemy.base")
+
+	use(ram, "strike_lead", { lead.id })
+	flow.settle()
+	check("its player is asked where the rest goes", phase.current().key == "spill", phase.current().key)
+	check("by an attacker still standing", in_zone("army", "crashbarrow") ~= nil)
+	use(ram, "spill_free", { base.id })
+	flow.settle()
+	check("the leader's armor ate one and four went past it", base.stats.integrity == 16, tostring(base.stats.integrity))
+	check("and then the attacker died", in_zone("army", "crashbarrow") == nil)
+	check("the turn carries on", phase.current().key == "main", phase.current().key)
 end
 
 return M

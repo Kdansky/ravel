@@ -610,9 +610,9 @@ HANDLERS["end_phase"] = function(p)
 	phase.next()
 end
 
-HANDLERS["push_phase"] = function(p)
+HANDLERS["push_phase"] = function(p, ctx)
 	if frozen("push_phase") then return end
-	phase.push(p[2], zones.active_seat())
+	phase.push(p[2], zones.active_seat(), ctx and ctx.card_id)
 end
 
 HANDLERS["pop_phase"] = function()

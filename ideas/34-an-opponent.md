@@ -117,9 +117,10 @@ took Spellstorm to 0.15 s mean, 0.9 s slowest, and won 3 of 4 against random;
    clickable (Spellstorm's Resolve, Ghost Stories' haunting); Splendor sold the
    other seat's reserved cards at that seat's price, let the escape hatch buy a
    reserved card for nothing, and let a turn take tokens and then buy; a win
-   shared by every seat read as a loss; and three ways for a bot to stall a
-   turn it feared to end. **Open:** Codex's Overpower opens `spill` with
-   nothing left to hit and no way out — a rules question.
+   shared by every seat read as a loss; three ways for a bot to stall a
+   turn it feared to end; and an Overpower attacker that died in the exchange
+   left its `spill` step with nobody to answer it, which is now a rule of dying
+   (*a card is never killed halfway through what it is doing*).
 4. **The rollout opponent is random**, so the bot plans against a fool. Playing
    the rollout with the bot itself is the next step up and costs TRIES² time.
 5. **Only the minimum targets are chosen**, so an optional target is never

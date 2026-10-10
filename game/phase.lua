@@ -99,15 +99,15 @@ local function enter(def, arrived, seat)
 		turn_seat = t.seats and t.seats[1] }
 end
 
--- `by` is the seat a rule pushed it as, when a rule did: see M.pushed_by.
-function M.push(key, by)
+-- `by` is the seat a rule pushed it as, when a rule did: see M.pushed_by. `card` is the card whose rule it was.
+function M.push(key, by, card)
 	local pd = G.phase_by_key[key]
 	-- A phase nobody declared is a typo the validator reports, and pushing nothing leaves the game where it was.
 	if not pd then return end
 	-- A push is always an arrival: whatever is underneath is a different phase,
 	-- or the same one being entered a second time over the top of itself.
 	local f = enter(pd, true, nil)
-	f.by = by
+	f.by, f.card = by, card
 	stack[#stack + 1] = f
 end
 
@@ -119,6 +119,15 @@ end
 function M.pushed_by()
 	local top = stack[#stack]
 	return top and top.by
+end
+
+-- Whether a phase this card pushed is still open. A card asking its player where its blow goes is
+-- not done with the blow, so it does not die halfway through: see flow's death_step.
+function M.holds(card_id)
+	for _, f in ipairs(stack) do
+		if f.card == card_id then return true end
+	end
+	return false
 end
 
 function M.pop()
@@ -277,7 +286,7 @@ end
 
 local function copy_frame(f)
 	return { def = f.def, fresh = f.fresh, arrived = f.arrived, seat = f.seat,
-		turn = copy_turn(f.turn), turn_seat = f.turn_seat, by = f.by }
+		turn = copy_turn(f.turn), turn_seat = f.turn_seat, by = f.by, card = f.card }
 end
 
 function M.snapshot()

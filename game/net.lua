@@ -103,7 +103,7 @@ function M.snapshot()
 	local ph, phases = phase.snapshot(), {}
 	for i, f in ipairs(ph.stack) do
 		phases[i] = { key = f.def.key, fresh = f.fresh and true or false,
-			arrived = f.arrived and true or false, seat = f.seat, turn_seat = f.turn_seat, by = f.by }
+			arrived = f.arrived and true or false, seat = f.seat, turn_seat = f.turn_seat, by = f.by, card = f.card }
 		if f.turn then
 			local seats = {}
 			for j, k in ipairs(f.turn.seats or {}) do seats[j] = k end
@@ -574,8 +574,9 @@ local function restore(snap, ents)
 		if not (f.seat == nil or type(f.seat) == "string") or not seated(f.turn_seat) or not seated(f.by) then
 			return false, "phase " .. f.key .. " names no seat"
 		end
+		if not (f.card == nil or type(f.card) == "number") then return false, "phase " .. f.key .. " names no card" end
 		stack[i] = { def = def, fresh = f.fresh and true or false,
-			arrived = f.arrived and true or false, seat = f.seat, turn_seat = f.turn_seat, by = f.by }
+			arrived = f.arrived and true or false, seat = f.seat, turn_seat = f.turn_seat, by = f.by, card = f.card }
 		local t = type(f.turn) == "table" and f.turn
 		if t then
 			local tdef = declaration.G.phase_by_key[t.key]
