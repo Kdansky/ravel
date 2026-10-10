@@ -14,6 +14,7 @@ tournament default.
     python3 tools/make_puzzle_strike.py
 """
 
+import re
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import jsonfmt
@@ -875,6 +876,12 @@ def stats():
         # least one chip" — and neither the box nor the rulebook puts a ceiling
         # over it, so what stops a second chip is the money.
         player("bought", None, None, hidden=True),
+        # What a turn did, for the engine seats: they score a turn once it is
+        # cleaned up, when the table and the hand it drew are gone (see counted).
+        player("played", None, None, hidden=True),
+        player("arrows", None, None, hidden=True),
+        player("drawn", None, None, hidden=True),
+        player("combines", None, None, hidden=True),
         player("to_draw", None, None, hidden=True),
         player("crashed", None, None, hidden=True),
         # The largest gem broken, kept apart from how many were sent: a 4-gem
@@ -1040,7 +1047,8 @@ def purple_cards():
                   "target": dict(own_gems, count=2),
                   "action": ["resolve_challenge"]},
          "challenge": {"needs": {"req": ["sum:value@target <= 4"]},
-                       "pass": ["stat_set:combined@mine.player:sum:value@target",
+                       "pass": ["stat_gain:combines@mine.player:1",
+                                "stat_set:combined@mine.player:sum:value@target",
                                 "purge:target",
                                 "take_combined",
                                 "stat_damage:money@mine.player:1",
@@ -1194,7 +1202,8 @@ def puzzle_cards():
                   "target": dict(own_gems, count=2),
                   "action": ["resolve_challenge"], "spent": "mine.table"},
          "challenge": {"needs": {"req": ["sum:value@target <= 4"]},
-                       "pass": ["stat_set:combined@mine.player:sum:value@target",
+                       "pass": ["stat_gain:combines@mine.player:1",
+                                "stat_set:combined@mine.player:sum:value@target",
                                 "purge:target",
                                 "take_combined",
                                 "stat_gain:act_red@mine.player:1"],
@@ -2171,6 +2180,10 @@ def phases():
                     + ["stat_set:%s:0" % arrow(c) for c in COLOURS]
                     + ["stat_set:piggy@mine.player:0",
                        "stat_set:bought@mine.player:0",
+                       "stat_set:played@mine.player:0",
+                       "stat_set:arrows@mine.player:0",
+                       "stat_set:drawn@mine.player:0",
+                       "stat_set:combines@mine.player:0",
                        "stat_set:panic@clock:count:spent@bank",
                        # Whatever was kept back last cleanup, back in hand — the
                        # other half of the piggy bank, and the reason the stash
@@ -2232,7 +2245,66 @@ def phases():
     ]
 
 
+ARROW_GAIN = re.compile(r"^stat_gain:(acts|act_[a-z]+)@mine\.player:(.+)$")
+DRAW = re.compile(r"^draw_from:mine\.bag:mine\.hand:(.+)$")
+
+
+def counted(cards):
+    """Every chip tallies what it does for a turn: a play, an arrow gained, a
+    chip drawn. Stamped here rather than written on ninety chips, so a chip
+    added later counts without anyone remembering to."""
+    def walk(node, played):
+        if isinstance(node, dict):
+            for k, v in node.items():
+                # A challenge's pass is an action list too: Combine's arrow comes
+                # back there. It is the pass that plays a challenged chip — one that
+                # fails stays in hand, and counting it would pay for replaying it.
+                if k in ("action", "pass") and isinstance(v, list):
+                    out = ["stat_gain:played@mine.player:1"] if played and "resolve_challenge" not in v else []
+                    for a in v:
+                        out.append(a)
+                        m = isinstance(a, str) and ARROW_GAIN.match(a)
+                        if m:
+                            out.append("stat_gain:arrows@mine.player:%s" % m.group(2))
+                        m = isinstance(a, str) and DRAW.match(a)
+                        if m:
+                            out.append("stat_gain:drawn@mine.player:%s" % m.group(1))
+                    node[k] = out
+                else:
+                    walk(v, played and k in ("play", "challenge"))
+        elif isinstance(node, list):
+            for x in node:
+                walk(x, False)
+    for c in cards:
+        if "chip" in c.get("tags", []):
+            walk(c, True)
+    return cards
+
+
 def build():
+    bag = "count:chip@mine.everywhere - count@mine.gem_pile"
+    enemy, mine = (" * ".join(["sum:value@%s.gem_pile" % side] * 3) for side in ("enemy", "mine"))
+    # What a hand of five is worth in money, in tenths: the division rounds down,
+    # and whole coins are too coarse to tell one gem bought from none.
+    money = "50 * (sum:value@mine.everywhere - sum:value@mine.gem_pile) / (%s)" % bag
+    # The same, but no further than the four a Combine costs: what each hand
+    # must reach before a turn can make a big gem, and so worth climbing
+    # steeply. Past eight coins the cap stops holding, and no bag gets there.
+    four = "%s - (%s) / 40 * ((%s) - 40)" % (money, money, money)
+    ammo = " + ".join("count:%s@mine.everywhere" % c for c in ("combine", "crash_gem", "double_crash"))
+    full, half = "10 * (%s) - 15 * count@mine.gem_pile" % ammo, "5 * (%s) - 8 * count@mine.gem_pile" % ammo
+    # The turn itself: every chip that left the hand helped, an arrow is never
+    # wasted, and a chip drawn is worth having while there is an arrow to play
+    # it with — the fewer of drawn and arrows, spelt without a min.
+    over = "(drawn@mine.player - arrows@mine.player)"
+    turn = "10 * played@mine.player + 10 * arrows@mine.player + 5 * (drawn@mine.player - %s * ((%s + 99) / 100))" % (over, over)
+    # A Combine in hand is always played. What it is for comes a chip later —
+    # the bigger gem crashed — and a crash now scores at once, so on the cubes
+    # alone the crash wins the arrow and the Combine waits in hand. The arrow
+    # it gives back pays for the crash after it.
+    turn += " + 100 * combines@mine.player"
+    base = "%s - %s + 100 * (sum:price@mine.everywhere - sum:price@mine.gem_pile) / (%s) - 3 * (%s) + 2 * %s + 5 * (%s) + %s" % (
+        enemy, mine, bag, bag, money, four, turn)
     return {
         "title": "Puzzle Strike",
         "verbs": VERBS,
@@ -2274,7 +2346,8 @@ def build():
                  # Play one gem, play the hand's: a gem is only ever played for
                  # its money, and the rest would follow it click by click.
                  "gem": {"play": {"phases": ["buy"],
-                                  "action": ["stat_gain:money@mine.player:sum:value@mine.hand.gem",
+                                  "action": ["stat_gain:played@mine.player:count:gem@mine.hand",
+                                             "stat_gain:money@mine.player:sum:value@mine.hand.gem",
                                              "move:mine.hand.gem:mine.table"]}},
                  "buyable": {"emits": {"activate": "buy"}},
                  # The sale, and the whole of it. "price@self" in the buy cost
@@ -2309,19 +2382,57 @@ def build():
         "zones": zones(),
         "phases": phases(),
         "players": [{"card": k} for k, _ in SEATS],
-        # What the engine seat climbs. A gem pile is cubed: ten loses, so the
+        # What the engine seats climb. A gem pile is cubed: ten loses, so the
         # ninth gem costs far more than the fourth. A chip bought is worth what
         # it does to the bag's average price — the price is the designer's own
-        # verdict on a chip — so a wound or a weak chip makes the bag worse.
-        "bots": [{"name": "brawler", "description": "Keeps its own pile small, the other one big, and its bag's chips dear.",
-                  "value": "%s - %s + 100 * (%s) / (%s)" % (
-            " * ".join(["sum:value@enemy.gem_pile"] * 3),
-            " * ".join(["sum:value@mine.gem_pile"] * 3),
-            "sum:price@mine.everywhere - sum:price@mine.gem_pile",
-            "count:chip@mine.everywhere - count@mine.gem_pile")}],
+        # verdict on a chip — so a wound or a weak chip makes the bag worse; and
+        # a bag is better small, since its best chip comes round more often.
+        # Three a chip is about a quarter of what a wound costs the average.
+        # And money in the bag, a little for everybody: whatever the plan, a
+        # player buys gems, or the bag gets poorer as it grows.
+        # Every bot weighs all of that: one that does not know a chip's worth
+        # meets the one-buy rule with a free wound, every turn.
+        #
+        # And crashing big, which is how a game is won: a crashed 1-gem is a
+        # coin's worth of harm, a crashed 4-gem is the turn. The cubes already
+        # prefer the big crash once there is a big gem; what they cannot see is
+        # making one, since a Combine leaves the pile's sum where it was. So a
+        # pile is better in fewer gems, and a Combine or a crash chip in the
+        # bag is worth having before it is played. Red scrapes by on attacks,
+        # and weighs this half as much.
+        #
+        # Then a plan, by colour: each bot prizes its own colour of chip, ten a
+        # chip. A seat leans toward econ or red as its own bag holds brown or
+        # red — so the character picked, whose chips start in the bag, sets the
+        # first lean without any bot naming a character — and toward blue as
+        # the other bag holds red, since blue is the answer to an attack.
+        # Economy holds red and blue against a chip, and climbs the bag's money
+        # harder than anyone: it is what makes the bag rich enough to finish.
+        #
+        # And the finish, which is how the game is played: once the bag is rich,
+        # turn it into crashes. A hand is five chips, so five times the bag's
+        # money per chip is what a turn can spend; the crash bot wants the seat
+        # by as much as that beats the price of a Combine, and not at all
+        # before. It prizes purple twice as hard as the others prize their
+        # colour, and counts the other pile double.
+        "bots": [
+            {"name": "econ", "description": "Builds a richer bag: brown chips and bigger gems, and no attacks or defences to clog it.",
+             "rating": "1 + count:brown@mine.everywhere",
+             "value": "%s + %s + 3 * %s + 10 * (%s) - 10 * count:red@mine.everywhere - 10 * count:blue@mine.everywhere + 10 * count:brown@mine.everywhere" % (
+                 base, full, money, four)},
+            {"name": "red", "description": "Attacks: buys red chips and fills the other pile.",
+             "rating": "1 + count:red@mine.everywhere",
+             "value": "%s + %s + 10 * count:red@mine.everywhere" % (base, half)},
+            {"name": "blue", "description": "Defends: buys blue chips, the more the other side attacks.",
+             "rating": "1 + count:red@enemy.everywhere",
+             "value": "%s + %s + 10 * count:blue@mine.everywhere" % (base, full)},
+            {"name": "crash", "description": "Turns a rich bag into a win: buys purple chips and crashes hard.",
+             "rating": "8 * (%s - 10 * price@bank.combine) / 10" % money,
+             "value": "%s + %s + %s + 20 * count:purple@mine.everywhere" % (base, full, enemy)},
+        ],
         "cards": (seat_cards() + other_cards() + button_cards()
-                  + by_colour(priced(named(lands(say(gem_cards() + purple_cards() + puzzle_cards()
-                                                     + character_chips())))))
+                  + counted(by_colour(priced(named(lands(say(gem_cards() + purple_cards() + puzzle_cards()
+                                                             + character_chips()))))))
                   + character_cards() + [c for _, c in rule_cards()]),
         "setup": {"place": [{"card": k, "zone": "seat_box"} for k, _ in SEATS]
                            + [{"card": "clock", "zone": "sys"},

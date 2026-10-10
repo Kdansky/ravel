@@ -5715,7 +5715,7 @@ it as an answer to one question:
 random moves, or against another bot with `VS` (`VS=rated` lets the ratings choose):
 
 ```sh
-BOT=brawler VS=rated luajit tools/bot_match.lua puzzle_strike.json 4 1
+BOT=red VS=econ luajit tools/bot_match.lua puzzle_strike.json 4 1
 ```
 
 ### Saving a game, and picking it up

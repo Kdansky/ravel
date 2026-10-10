@@ -390,6 +390,25 @@ function M.test_puzzle_strike_a_gem_is_money_in_hand_and_weight_in_the_pile(chec
 	check("the pile still holds only the ante", count_in("gem_pile", "south") == 1)
 end
 
+-- The engine seats score a turn after its cleanup, so what the turn did is
+-- kept on the seat: chips played, arrows gained, chips drawn.
+function M.test_puzzle_strike_a_turn_tallies_what_its_chips_did(check)
+	opening(7)
+	local me = seat_card("south").stats
+	check("a turn starts with nothing done", (me.played or 0) == 0 and (me.arrows or 0) == 0 and (me.drawn or 0) == 0)
+	actions.run({ "create:mine.hand:roundhouse:1" }, {})
+	flow.play_card(find_in("hand", "roundhouse", "south").id, {})
+	check("Roundhouse is one chip played", me.played == 1, tostring(me.played))
+	check("one arrow gained", me.arrows == 1, tostring(me.arrows))
+	check("and two chips drawn", me.drawn == 2, tostring(me.drawn))
+	flow.activate(loose("done_acting").id, {})
+	actions.run({ "create:mine.hand:gem_1:2" }, {})
+	local gems = count_in("hand", "south", "gem_1") + count_in("hand", "south", "gem_2")
+		+ count_in("hand", "south", "gem_3") + count_in("hand", "south", "gem_4")
+	flow.play_card(find_in("hand", "gem_1", "south").id, {})
+	check("and every gem played counts", me.played == 1 + gems, tostring(me.played))
+end
+
 -- The whole of the loss condition is a sum over one zone, so it has to be a
 -- zone a scope can see.
 function M.test_puzzle_strike_the_pile_is_read_as_a_sum_of_values(check)

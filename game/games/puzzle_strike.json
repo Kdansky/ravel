@@ -179,6 +179,38 @@
       "display": "offscreen"
     },
     {
+      "key": "played",
+      "min": 0,
+      "max": 99,
+      "on": ["player"],
+      "start": 0,
+      "display": "offscreen"
+    },
+    {
+      "key": "arrows",
+      "min": 0,
+      "max": 99,
+      "on": ["player"],
+      "start": 0,
+      "display": "offscreen"
+    },
+    {
+      "key": "drawn",
+      "min": 0,
+      "max": 99,
+      "on": ["player"],
+      "start": 0,
+      "display": "offscreen"
+    },
+    {
+      "key": "combines",
+      "min": 0,
+      "max": 99,
+      "on": ["player"],
+      "start": 0,
+      "display": "offscreen"
+    },
+    {
       "key": "to_draw",
       "min": 0,
       "max": 99,
@@ -330,7 +362,11 @@
     "gem": {
       "play": {
         "phases": ["buy"],
-        "action": ["stat_gain:money@mine.player:sum:value@mine.hand.gem", "move:mine.hand.gem:mine.table"]
+        "action": [
+          "stat_gain:played@mine.player:count:gem@mine.hand",
+          "stat_gain:money@mine.player:sum:value@mine.hand.gem",
+          "move:mine.hand.gem:mine.table"
+        ]
       }
     },
     "buyable": { "emits": { "activate": "buy" } },
@@ -547,6 +583,10 @@
         "stat_set:act_purple@mine.player:0",
         "stat_set:piggy@mine.player:0",
         "stat_set:bought@mine.player:0",
+        "stat_set:played@mine.player:0",
+        "stat_set:arrows@mine.player:0",
+        "stat_set:drawn@mine.player:0",
+        "stat_set:combines@mine.player:0",
         "stat_set:panic@clock:count:spent@bank",
         "move:mine.stash:mine.hand",
         "activate_zone:mine.ongoing",
@@ -617,9 +657,28 @@
   "players": [{ "card": "south" }, { "card": "north" }],
   "bots": [
     {
-      "name": "brawler",
-      "description": "Keeps its own pile small, the other one big, and its bag's chips dear.",
-      "value": "sum:value@enemy.gem_pile * sum:value@enemy.gem_pile * sum:value@enemy.gem_pile - sum:value@mine.gem_pile * sum:value@mine.gem_pile * sum:value@mine.gem_pile + 100 * (sum:price@mine.everywhere - sum:price@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile)"
+      "name": "econ",
+      "description": "Builds a richer bag: brown chips and bigger gems, and no attacks or defences to clog it.",
+      "rating": "1 + count:brown@mine.everywhere",
+      "value": "sum:value@enemy.gem_pile * sum:value@enemy.gem_pile * sum:value@enemy.gem_pile - sum:value@mine.gem_pile * sum:value@mine.gem_pile * sum:value@mine.gem_pile + 100 * (sum:price@mine.everywhere - sum:price@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile) - 3 * (count:chip@mine.everywhere - count@mine.gem_pile) + 2 * 50 * (sum:value@mine.everywhere - sum:value@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile) + 5 * (50 * (sum:value@mine.everywhere - sum:value@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile) - (50 * (sum:value@mine.everywhere - sum:value@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile)) / 40 * ((50 * (sum:value@mine.everywhere - sum:value@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile)) - 40)) + 10 * played@mine.player + 10 * arrows@mine.player + 5 * (drawn@mine.player - (drawn@mine.player - arrows@mine.player) * (((drawn@mine.player - arrows@mine.player) + 99) / 100)) + 100 * combines@mine.player + 10 * (count:combine@mine.everywhere + count:crash_gem@mine.everywhere + count:double_crash@mine.everywhere) - 15 * count@mine.gem_pile + 3 * 50 * (sum:value@mine.everywhere - sum:value@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile) + 10 * (50 * (sum:value@mine.everywhere - sum:value@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile) - (50 * (sum:value@mine.everywhere - sum:value@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile)) / 40 * ((50 * (sum:value@mine.everywhere - sum:value@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile)) - 40)) - 10 * count:red@mine.everywhere - 10 * count:blue@mine.everywhere + 10 * count:brown@mine.everywhere"
+    },
+    {
+      "name": "red",
+      "description": "Attacks: buys red chips and fills the other pile.",
+      "rating": "1 + count:red@mine.everywhere",
+      "value": "sum:value@enemy.gem_pile * sum:value@enemy.gem_pile * sum:value@enemy.gem_pile - sum:value@mine.gem_pile * sum:value@mine.gem_pile * sum:value@mine.gem_pile + 100 * (sum:price@mine.everywhere - sum:price@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile) - 3 * (count:chip@mine.everywhere - count@mine.gem_pile) + 2 * 50 * (sum:value@mine.everywhere - sum:value@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile) + 5 * (50 * (sum:value@mine.everywhere - sum:value@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile) - (50 * (sum:value@mine.everywhere - sum:value@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile)) / 40 * ((50 * (sum:value@mine.everywhere - sum:value@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile)) - 40)) + 10 * played@mine.player + 10 * arrows@mine.player + 5 * (drawn@mine.player - (drawn@mine.player - arrows@mine.player) * (((drawn@mine.player - arrows@mine.player) + 99) / 100)) + 100 * combines@mine.player + 5 * (count:combine@mine.everywhere + count:crash_gem@mine.everywhere + count:double_crash@mine.everywhere) - 8 * count@mine.gem_pile + 10 * count:red@mine.everywhere"
+    },
+    {
+      "name": "blue",
+      "description": "Defends: buys blue chips, the more the other side attacks.",
+      "rating": "1 + count:red@enemy.everywhere",
+      "value": "sum:value@enemy.gem_pile * sum:value@enemy.gem_pile * sum:value@enemy.gem_pile - sum:value@mine.gem_pile * sum:value@mine.gem_pile * sum:value@mine.gem_pile + 100 * (sum:price@mine.everywhere - sum:price@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile) - 3 * (count:chip@mine.everywhere - count@mine.gem_pile) + 2 * 50 * (sum:value@mine.everywhere - sum:value@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile) + 5 * (50 * (sum:value@mine.everywhere - sum:value@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile) - (50 * (sum:value@mine.everywhere - sum:value@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile)) / 40 * ((50 * (sum:value@mine.everywhere - sum:value@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile)) - 40)) + 10 * played@mine.player + 10 * arrows@mine.player + 5 * (drawn@mine.player - (drawn@mine.player - arrows@mine.player) * (((drawn@mine.player - arrows@mine.player) + 99) / 100)) + 100 * combines@mine.player + 10 * (count:combine@mine.everywhere + count:crash_gem@mine.everywhere + count:double_crash@mine.everywhere) - 15 * count@mine.gem_pile + 10 * count:blue@mine.everywhere"
+    },
+    {
+      "name": "crash",
+      "description": "Turns a rich bag into a win: buys purple chips and crashes hard.",
+      "rating": "8 * (50 * (sum:value@mine.everywhere - sum:value@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile) - 10 * price@bank.combine) / 10",
+      "value": "sum:value@enemy.gem_pile * sum:value@enemy.gem_pile * sum:value@enemy.gem_pile - sum:value@mine.gem_pile * sum:value@mine.gem_pile * sum:value@mine.gem_pile + 100 * (sum:price@mine.everywhere - sum:price@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile) - 3 * (count:chip@mine.everywhere - count@mine.gem_pile) + 2 * 50 * (sum:value@mine.everywhere - sum:value@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile) + 5 * (50 * (sum:value@mine.everywhere - sum:value@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile) - (50 * (sum:value@mine.everywhere - sum:value@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile)) / 40 * ((50 * (sum:value@mine.everywhere - sum:value@mine.gem_pile) / (count:chip@mine.everywhere - count@mine.gem_pile)) - 40)) + 10 * played@mine.player + 10 * arrows@mine.player + 5 * (drawn@mine.player - (drawn@mine.player - arrows@mine.player) * (((drawn@mine.player - arrows@mine.player) + 99) / 100)) + 100 * combines@mine.player + 10 * (count:combine@mine.everywhere + count:crash_gem@mine.everywhere + count:double_crash@mine.everywhere) - 15 * count@mine.gem_pile + sum:value@enemy.gem_pile * sum:value@enemy.gem_pile * sum:value@enemy.gem_pile + 20 * count:purple@mine.everywhere"
     }
   ],
   "cards": [
@@ -748,11 +807,14 @@
       "challenge": {
         "needs": { "req": ["sum:value@target <= 4"] },
         "pass": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:combines@mine.player:1",
           "stat_set:combined@mine.player:sum:value@target",
           "purge:target",
           "take_combined",
           "stat_damage:money@mine.player:1",
           "stat_gain:acts@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
           "move_to:mine.table"
         ],
         "fail": ["stat_gain:acts@mine.player:1"]
@@ -775,7 +837,12 @@
           "owner": "anyone",
           "count": 1
         },
-        "action": ["crash_gems", "stat_gain:money@mine.player:1", "emit:crash"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "crash_gems",
+          "stat_gain:money@mine.player:1",
+          "emit:crash"
+        ],
         "spent": "mine.table"
       },
       "card_stats": { "plus_pow": 1, "price": 5 }
@@ -797,7 +864,12 @@
           "min": 1,
           "max": 2
         },
-        "action": ["crash_gems", "stat_gain:money@mine.player:2", "emit:crash"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "crash_gems",
+          "stat_gain:money@mine.player:2",
+          "emit:crash"
+        ],
         "spent": "mine.table"
       },
       "card_stats": { "plus_pow": 2, "price": 9 }
@@ -827,6 +899,7 @@
           "owner": "anyone"
         },
         "action": [
+          "stat_gain:played@mine.player:1",
           "stat_set:combined@mine.player:sum:value@target",
           "move:target:mine.gem_pile",
           "take_upgrade:mine.discard",
@@ -844,7 +917,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_red@mine.player": 1 },
-        "action": ["take:bank.wound:enemy.discard:1"],
+        "action": ["stat_gain:played@mine.player:1", "take:bank.wound:enemy.discard:1"],
         "spent": "mine.table"
       },
       "reactions": [
@@ -868,7 +941,11 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["draw_from:mine.bag:mine.hand:3"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "draw_from:mine.bag:mine.hand:3",
+          "stat_gain:drawn@mine.player:3"
+        ],
         "spent": "mine.table"
       },
       "card_stats": { "plus_draw": 3, "price": 3 }
@@ -882,7 +959,12 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["stat_gain:acts@mine.player:4", "take:bank.wound:mine.discard:1"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:acts@mine.player:4",
+          "stat_gain:arrows@mine.player:4",
+          "take:bank.wound:mine.discard:1"
+        ],
         "spent": "mine.table"
       },
       "card_stats": { "plus_act": 4, "price": 3 }
@@ -896,7 +978,12 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_red@mine.player": 1 },
-        "action": ["stat_gain:act_red@mine.player:1", "take:bank.gem_1:enemy.gem_pile:1"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:act_red@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
+          "take:bank.gem_1:enemy.gem_pile:1"
+        ],
         "spent": "mine.table"
       },
       "card_stats": { "plus_act": 1, "hits": 1, "price": 3 }
@@ -912,11 +999,16 @@
         "cost": { "act_brown@mine.player": 1 },
         "target": { "type": "card", "tags": ["gem"], "zones": ["hand"], "count": 1, "owner": "anyone" },
         "action": [
+          "stat_gain:played@mine.player:1",
           "purge:target",
           "stat_gain:act_brown@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
           "stat_gain:act_red@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
           "stat_gain:act_blue@mine.player:1",
-          "stat_gain:act_purple@mine.player:1"
+          "stat_gain:arrows@mine.player:1",
+          "stat_gain:act_purple@mine.player:1",
+          "stat_gain:arrows@mine.player:1"
         ],
         "spent": "mine.table"
       },
@@ -931,7 +1023,11 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["stat_gain:acts@mine.player:2"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:acts@mine.player:2",
+          "stat_gain:arrows@mine.player:2"
+        ],
         "spent": "mine.table"
       },
       "card_stats": { "plus_act": 2, "price": 4 }
@@ -946,10 +1042,13 @@
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
         "action": [
+          "stat_gain:played@mine.player:1",
           "stat_gain:acts@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
           "stat_gain:piggy@mine.player:1",
           "stat_gain:money@mine.player:1",
-          "draw_from:mine.bag:mine.hand:1"
+          "draw_from:mine.bag:mine.hand:1",
+          "stat_gain:drawn@mine.player:1"
         ],
         "spent": "mine.table"
       },
@@ -964,7 +1063,13 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["stat_gain:acts@mine.player:1", "draw_from:mine.bag:mine.hand:2"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:acts@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
+          "draw_from:mine.bag:mine.hand:2",
+          "stat_gain:drawn@mine.player:2"
+        ],
         "spent": "mine.table"
       },
       "card_stats": { "plus_act": 1, "plus_draw": 2, "price": 6 }
@@ -977,7 +1082,12 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_red@mine.player": 1 },
-        "action": ["stat_gain:act_red@mine.player:1", "show:mine.discard:optional"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:act_red@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
+          "show:mine.discard:optional"
+        ],
         "spent": "mine.table"
       },
       "chosen": { "action": ["move:target:mine.bag:top"] },
@@ -992,7 +1102,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["purge:self", "end_phase"]
+        "action": ["stat_gain:played@mine.player:1", "purge:self", "end_phase"]
       },
       "tooltip": "If this is the only action you play this turn, gain any two different non-Puzzle chips from the bank, end your action phase, then trash this chip.\n\nDEV: it ends your action phase and trashes itself. \"The only action you play this turn\" cannot be asked — nothing counts the actions a player has played — so the two chips are not given.",
       "card_stats": { "price": 6 }
@@ -1005,7 +1115,11 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_purple@mine.player": 1 },
-        "action": ["draw_from:mine.bag:mine.hand:2"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "draw_from:mine.bag:mine.hand:2",
+          "stat_gain:drawn@mine.player:2"
+        ],
         "spent": "mine.table"
       },
       "reactions": [
@@ -1029,7 +1143,12 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["purge:self", "stat_gain:acts@mine.player:1"]
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "purge:self",
+          "stat_gain:acts@mine.player:1",
+          "stat_gain:arrows@mine.player:1"
+        ]
       },
       "tooltip": "+1 action. Put a trap token on a stack in the bank, then trash this chip. Each token gives a wound to each player who buys from that stack.\n\nDEV: the action is built and the chip trashes itself. A token that sits on a bank stack and changes what buying from it does is a rule on somebody else's card, which nothing writes.",
       "card_stats": { "plus_act": 1, "price": 2 }
@@ -1042,7 +1161,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["take:bank.crash_gem:mine.gem_pile:1"],
+        "action": ["stat_gain:played@mine.player:1", "take:bank.crash_gem:mine.gem_pile:1"],
         "spent": "mine.table"
       },
       "tooltip": "Put a Crash Gem from the bank into your gem pile. You may play it later as if from your hand.\n\nDEV: the Crash Gem arrives in your gem pile. Playing a card out of a gem pile is not built — a zone can grant what lying in it lets a card do, and this one does not.",
@@ -1056,7 +1175,13 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_red@mine.player": 1 },
-        "action": ["stat_gain:act_purple@mine.player:1", "set_priority:enemy.player", "show:enemy.hand"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:act_purple@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
+          "set_priority:enemy.player",
+          "show:enemy.hand"
+        ],
         "spent": "mine.table"
       },
       "chosen": { "action": ["destroy:target", "clear_priority"] },
@@ -1071,7 +1196,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["purge:self", "show:bank:optional"]
+        "action": ["stat_gain:played@mine.player:1", "purge:self", "show:bank:optional"]
       },
       "chosen": {
         "needs": { "where": ["not_tagged:gem@target", "not_tagged:puzzle@target"] },
@@ -1101,10 +1226,13 @@
       "challenge": {
         "needs": { "req": ["sum:value@target <= 4"] },
         "pass": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:combines@mine.player:1",
           "stat_set:combined@mine.player:sum:value@target",
           "purge:target",
           "take_combined",
-          "stat_gain:act_red@mine.player:1"
+          "stat_gain:act_red@mine.player:1",
+          "stat_gain:arrows@mine.player:1"
         ],
         "fail": ["stat_gain:act_red@mine.player:1"]
       },
@@ -1119,7 +1247,11 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["stat_gain:money@mine.player:1", "stat_set:on_sale@each.bank.dear:1"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:money@mine.player:1",
+          "stat_set:on_sale@each.bank.dear:1"
+        ],
         "spent": "mine.table"
       },
       "tooltip": "+$1. Chips in the bank cost 1 less this turn, to a minimum of 1.\n\nDEV: a second Sale Prices in one turn takes nothing more off — the mark a chip carries is on or off, and a buff is a plain number rather than one the mark could count.",
@@ -1145,7 +1277,11 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["stat_gain:acts@mine.player:1"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:acts@mine.player:1",
+          "stat_gain:arrows@mine.player:1"
+        ],
         "spent": "mine.ongoing"
       },
       "tooltip": "+1 action. Ongoing: piggy bank each turn. Discard this when you buy a purple.",
@@ -1166,7 +1302,7 @@
           "count": 1,
           "owner": "anyone"
         },
-        "action": ["purge:target"],
+        "action": ["stat_gain:played@mine.player:1", "purge:target"],
         "spent": "mine.table"
       },
       "reactions": [
@@ -1174,7 +1310,7 @@
           "to": "attack",
           "whose": "enemy",
           "text": "+3 chips",
-          "action": ["draw_from:mine.bag:mine.hand:3"],
+          "action": ["draw_from:mine.bag:mine.hand:3", "stat_gain:drawn@mine.player:3"],
           "spent": "mine.discard"
         }
       ],
@@ -1189,7 +1325,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_red@mine.player": 1 },
-        "action": ["show:enemy.hand:optional"],
+        "action": ["stat_gain:played@mine.player:1", "show:enemy.hand:optional"],
         "spent": "mine.table"
       },
       "chosen": {
@@ -1207,7 +1343,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_blue@mine.player": 1 },
-        "action": ["stat_gain:money@mine.player:1"],
+        "action": ["stat_gain:played@mine.player:1", "stat_gain:money@mine.player:1"],
         "spent": "mine.table"
       },
       "reactions": [
@@ -1237,6 +1373,7 @@
           "owner": "anyone"
         },
         "action": [
+          "stat_gain:played@mine.player:1",
           "stat_gain:piggy@mine.player:1",
           "stat_set:budget@mine.player:sum:price@target",
           "stat_gain:budget@mine.player:2",
@@ -1260,7 +1397,13 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["stat_gain:act_brown@mine.player:1", "draw_from:mine.bag:mine.hand:2"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:act_brown@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
+          "draw_from:mine.bag:mine.hand:2",
+          "stat_gain:drawn@mine.player:2"
+        ],
         "spent": "mine.table"
       },
       "tooltip": "+1 brown action, +2 chips",
@@ -1275,7 +1418,13 @@
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
         "needs": { "req": ["sum:value@mine.gem_pile <= 4"] },
-        "action": ["stat_gain:acts@mine.player:2", "draw_from:mine.bag:mine.hand:2"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:acts@mine.player:2",
+          "stat_gain:arrows@mine.player:2",
+          "draw_from:mine.bag:mine.hand:2",
+          "stat_gain:drawn@mine.player:2"
+        ],
         "spent": "mine.table"
       },
       "tooltip": "If your gem pile totals 4 or fewer, +2 actions, +2 chips. Once-per-turn.\n\nDEV: the gem-pile gate is built. Once-per-turn is not: nothing marks a chip as already used this turn.",
@@ -1289,7 +1438,12 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_blue@mine.player": 1 },
-        "action": ["stat_gain:act_blue@mine.player:1", "show:mine.bag:optional"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:act_blue@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
+          "show:mine.bag:optional"
+        ],
         "spent": "mine.table"
       },
       "chosen": { "needs": { "where": ["tagged:blue@target"] }, "action": ["move:target:mine.hand"] },
@@ -1313,7 +1467,12 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["purge:self", "stat_gain:acts@mine.player:2"]
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "purge:self",
+          "stat_gain:acts@mine.player:2",
+          "stat_gain:arrows@mine.player:2"
+        ]
       },
       "tooltip": "+2 actions, then trash this chip.",
       "card_stats": { "plus_act": 2, "price": 3 }
@@ -1334,7 +1493,9 @@
           "owner": "anyone"
         },
         "action": [
+          "stat_gain:played@mine.player:1",
           "draw_from:mine.bag:mine.hand:2",
+          "stat_gain:drawn@mine.player:2",
           "stat_set:budget@mine.player:sum:price@target",
           "stat_gain:budget@mine.player:2",
           "purge:target",
@@ -1357,7 +1518,11 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_red@mine.player": 1 },
-        "action": ["stat_gain:act_red@mine.player:1"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:act_red@mine.player:1",
+          "stat_gain:arrows@mine.player:1"
+        ],
         "spent": "mine.table"
       },
       "tooltip": "+1 red action. Choose blue, red, purple or brown. Each opponent discards a chip of that banner colour, or reveals his hand if he can't. If any can't, +1 action.\n\nDEV: the action is built. The discard is narrowed by a colour the player picks as the chip runs, and neither the narrowing nor a branch on whether they could is sayable.",
@@ -1379,7 +1544,12 @@
           "min": 0,
           "max": 2
         },
-        "action": ["purge:target", "stat_gain:acts@mine.player:1"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "purge:target",
+          "stat_gain:acts@mine.player:1",
+          "stat_gain:arrows@mine.player:1"
+        ],
         "spent": "mine.table"
       },
       "tooltip": "+1 action. Trash up to two chips from your hand. (Character chips can't be trashed.)",
@@ -1393,7 +1563,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_blue@mine.player": 1 },
-        "action": ["options:ef_trash,ef_ante"],
+        "action": ["stat_gain:played@mine.player:1", "options:ef_trash,ef_ante"],
         "spent": "mine.table"
       },
       "reactions": [
@@ -1416,7 +1586,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": [],
+        "action": ["stat_gain:played@mine.player:1"],
         "spent": "mine.ongoing"
       },
       "reactions": [
@@ -1446,7 +1616,11 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_blue@mine.player": 1 },
-        "action": ["draw_from:mine.bag:mine.hand:2"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "draw_from:mine.bag:mine.hand:2",
+          "stat_gain:drawn@mine.player:2"
+        ],
         "spent": "mine.table"
       },
       "tooltip": "Main: +2 chips. Discard 2 drawn and play the other drawn chips. Reaction: After you're red-attacked, you may play a chip as if it were your turn.\n\nDEV: the two chips are drawn. \"The other drawn chips\" needs the set a draw just produced, which nothing keeps.",
@@ -1460,7 +1634,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_red@mine.player": 1 },
-        "action": ["options:js_wound,js_trash"],
+        "action": ["stat_gain:played@mine.player:1", "options:js_wound,js_trash"],
         "spent": "mine.table"
       },
       "tooltip": "Choose one: each opponent gains a wound — OR — trash a wound from your hand or discard pile and +1 red action.\n\nDEV: built, with the trash reaching your hand rather than the discard pile.",
@@ -1474,7 +1648,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_blue@mine.player": 1 },
-        "action": ["take:bank.gem_2:mine.hand:1"],
+        "action": ["stat_gain:played@mine.player:1", "take:bank.gem_2:mine.hand:1"],
         "spent": "mine.table"
       },
       "reactions": [
@@ -1497,7 +1671,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["options:nl_chips,nl_trash"],
+        "action": ["stat_gain:played@mine.player:1", "options:nl_chips,nl_trash"],
         "spent": "mine.table"
       },
       "tooltip": "Choose one: +2 chips — OR — trash a gem, a wound, or both from your hand / discard pile.\n\nDEV: built, with the trash reaching your hand rather than the discard pile.",
@@ -1512,9 +1686,13 @@
         "phases": ["action"],
         "cost": { "act_purple@mine.player": 1 },
         "action": [
+          "stat_gain:played@mine.player:1",
           "stat_gain:act_brown@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
           "stat_gain:act_red@mine.player:1",
-          "stat_gain:act_blue@mine.player:1"
+          "stat_gain:arrows@mine.player:1",
+          "stat_gain:act_blue@mine.player:1",
+          "stat_gain:arrows@mine.player:1"
         ],
         "spent": "mine.table"
       },
@@ -1529,7 +1707,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "acts@mine.player": 1 },
-        "action": ["purge:self", "show:bank:optional"]
+        "action": ["stat_gain:played@mine.player:1", "purge:self", "show:bank:optional"]
       },
       "chosen": { "needs": { "where": ["sum:price@target <= 5"] }, "action": ["copy:target:play"] },
       "tooltip": "Play this as if it were any bank chip of cost 5 or less, then trash this chip.\n\nDEV: built whole, now that the bank holds chips and not plates: the shelf comes up as an offer, and copy: runs what the chosen chip does. A copy carries no targets, so a chip that waits to be aimed — a Crash Gem — is played and goes off at nothing.",
@@ -1543,7 +1721,11 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_red@mine.player": 1 },
-        "action": ["take:bank.gem_1:enemy.gem_pile:1", "take:bank.wound:enemy.discard:1"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "take:bank.gem_1:enemy.gem_pile:1",
+          "take:bank.wound:enemy.discard:1"
+        ],
         "spent": "mine.table"
       },
       "tooltip": "Ante a 1-gem into each opposing gem pile. Then each opponent trashes a Combine from his discard pile, discards a chip, and gains a wound. Once-per-turn.\n\nDEV: the ante and the wound are built. Trashing a named chip out of their discard needs a pick narrowed to one card, and once-per-turn is not marked.",
@@ -1558,8 +1740,11 @@
         "phases": ["action"],
         "cost": { "act_red@mine.player": 1 },
         "action": [
+          "stat_gain:played@mine.player:1",
           "stat_gain:act_red@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
           "draw_from:mine.bag:mine.hand:1",
+          "stat_gain:drawn@mine.player:1",
           "stat_gain:piggy@mine.player:1",
           "set_priority:enemy.player",
           "options:pp_ante,pp_discard"
@@ -1577,7 +1762,13 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["stat_gain:acts@mine.player:2", "draw_from:mine.bag:mine.hand:1"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:acts@mine.player:2",
+          "stat_gain:arrows@mine.player:2",
+          "draw_from:mine.bag:mine.hand:1",
+          "stat_gain:drawn@mine.player:1"
+        ],
         "spent": "mine.table"
       },
       "tooltip": "+2 actions, +1 chip",
@@ -1591,7 +1782,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_red@mine.player": 1 },
-        "action": ["take:bank.gem_1:enemy.gem_pile:1"],
+        "action": ["stat_gain:played@mine.player:1", "take:bank.gem_1:enemy.gem_pile:1"],
         "spent": "mine.bag"
       },
       "tooltip": "Ante a 1-gem into each opposing gem pile. You may put this chip on top of your bag.\n\nDEV: it always goes back on top of your bag rather than to the table. \"You may\" would be an offer of two landings, and where a chip lands is one word.",
@@ -1605,7 +1796,11 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["take:bank.gem_3:mine.gem_pile:1", "each_seat:draw_from:mine.bag:mine.hand:2"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "take:bank.gem_3:mine.gem_pile:1",
+          "each_seat:draw_from:mine.bag:mine.hand:2"
+        ],
         "spent": "mine.table"
       },
       "tooltip": "Ante a 3-gem. All players draw two chips. You may trash this chip.\n\nDEV: the ante and the draw are built; the chip is not offered the choice of trashing itself.",
@@ -1628,7 +1823,9 @@
           "max": 1
         },
         "action": [
+          "stat_gain:played@mine.player:1",
           "stat_gain:acts@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
           "stat_gain:piggy@mine.player:1",
           "move:target:mine.bag"
         ],
@@ -1645,7 +1842,11 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["show:mine.everywhere.character_stowed:optional", "activate_zone:rules_signature"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "show:mine.everywhere.character_stowed:optional",
+          "activate_zone:rules_signature"
+        ],
         "spent": "mine.table"
       },
       "chosen": { "action": ["move:target:mine.hand"] },
@@ -1669,9 +1870,12 @@
           "max": 3
         },
         "action": [
+          "stat_gain:played@mine.player:1",
           "move:target:mine.gem_pile",
           "stat_gain:acts@mine.player:count:gem@target",
-          "draw_from:mine.bag:mine.hand:count:gem@target"
+          "stat_gain:arrows@mine.player:count:gem@target",
+          "draw_from:mine.bag:mine.hand:count:gem@target",
+          "stat_gain:drawn@mine.player:count:gem@target"
         ],
         "spent": "mine.table"
       },
@@ -1693,7 +1897,7 @@
           "count": 1,
           "owner": "anyone"
         },
-        "action": ["copy:target:play:2"],
+        "action": ["stat_gain:played@mine.player:1", "copy:target:play:2"],
         "spent": "mine.table"
       },
       "tooltip": "Choose a Puzzle chip, Crash Gem, or Double Crash Gem in your hand and play it twice.\n\nDEV: built with copy:, which runs the chosen chip's play twice without playing the chip. Nothing narrows the pick to those three kinds.",
@@ -1707,7 +1911,11 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_purple@mine.player": 1 },
-        "action": ["stat_gain:act_brown@mine.player:1"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:act_brown@mine.player:1",
+          "stat_gain:arrows@mine.player:1"
+        ],
         "spent": "mine.ongoing"
       },
       "tooltip": "+1 brown action. Ongoing: Whenever you play a Combine, you may combine again and −$1. Discard when your gem pile totals 5 or less.\n\nDEV: the action is built and laying it out says you have it. Nothing announces a Combine being played, so there is no verb for the ongoing half to answer; the gem-pile discard clause is a state rather than an event.",
@@ -1737,7 +1945,9 @@
           "count": 1
         },
         "action": [
+          "stat_gain:played@mine.player:1",
           "stat_gain:act_brown@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
           "purge:target",
           "take:bank.gem_1:enemy.gem_pile:1"
         ],
@@ -1757,9 +1967,12 @@
         "cost": { "act_brown@mine.player": 1 },
         "target": { "type": "card", "tags": ["gem_1"], "zones": ["hand"], "count": 1, "owner": "anyone" },
         "action": [
+          "stat_gain:played@mine.player:1",
           "move:target:mine.gem_pile",
           "draw_from:mine.bag:mine.hand:4",
-          "stat_gain:acts@mine.player:1"
+          "stat_gain:drawn@mine.player:4",
+          "stat_gain:acts@mine.player:1",
+          "stat_gain:arrows@mine.player:1"
         ],
         "spent": "mine.table"
       },
@@ -1775,7 +1988,9 @@
         "phases": ["action"],
         "cost": { "act_red@mine.player": 1 },
         "action": [
+          "stat_gain:played@mine.player:1",
           "stat_gain:act_blue@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
           "take:bank.wound:enemy.bag:1",
           "shuffle:enemy.bag",
           "take:bank.gem_1:enemy.gem_pile:count:wound@enemy.discard"
@@ -1792,7 +2007,11 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_blue@mine.player": 1 },
-        "action": ["move_to:mine.ongoing", "transform:self:bubble_shield_up"]
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "move_to:mine.ongoing",
+          "transform:self:bubble_shield_up"
+        ]
       },
       "reactions": [
         {
@@ -1832,7 +2051,11 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["stat_gain:act_blue@mine.player:1"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:act_blue@mine.player:1",
+          "stat_gain:arrows@mine.player:1"
+        ],
         "spent": "mine.ongoing"
       },
       "card_stats": { "plus_act": 1 }
@@ -1847,10 +2070,14 @@
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
         "action": [
+          "stat_gain:played@mine.player:1",
           "take:bank.gem_1:mine.gem_pile:1",
           "stat_gain:act_brown@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
           "stat_gain:act_red@mine.player:1",
-          "draw_from:mine.bag:mine.hand:1"
+          "stat_gain:arrows@mine.player:1",
+          "draw_from:mine.bag:mine.hand:1",
+          "stat_gain:drawn@mine.player:1"
         ],
         "spent": "mine.table"
       },
@@ -1866,7 +2093,13 @@
         "phases": ["action"],
         "cost": { "act_red@mine.player": 1 },
         "target": { "type": "card", "tags": ["wound"], "zones": ["hand"], "count": 1, "owner": "anyone" },
-        "action": ["purge:target", "stat_gain:acts@mine.player:1", "take:bank.gem_1:enemy.gem_pile:1"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "purge:target",
+          "stat_gain:acts@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
+          "take:bank.gem_1:enemy.gem_pile:1"
+        ],
         "spent": "mine.table"
       },
       "card_stats": { "plus_act": 1, "hits": 1 }
@@ -1889,6 +2122,7 @@
           "max": 2
         },
         "action": [
+          "stat_gain:played@mine.player:1",
           "crash_gems",
           "stat_gain:money@mine.player:2",
           "move_to:mine.table",
@@ -1932,7 +2166,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": [],
+        "action": ["stat_gain:played@mine.player:1"],
         "spent": "mine.ongoing"
       }
     },
@@ -1980,7 +2214,7 @@
           "count": 1,
           "owner": "anyone"
         },
-        "action": ["purge:target", "take:bank.gem_2:mine.hand:1"],
+        "action": ["stat_gain:played@mine.player:1", "purge:target", "take:bank.gem_2:mine.hand:1"],
         "spent": "mine.table"
       }
     },
@@ -1995,7 +2229,12 @@
         "cost": { "act_brown@mine.player": 1 },
         "needs": { "where": ["not_tagged:puzzle@target"] },
         "target": { "type": "card", "tags": ["chip"], "zones": ["hand"], "owner": "anyone", "count": 1 },
-        "action": ["copy:target:play:2", "purge:target", "end_phase:action"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "copy:target:play:2",
+          "purge:target",
+          "end_phase:action"
+        ],
         "spent": "mine.table"
       }
     },
@@ -2009,9 +2248,12 @@
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
         "action": [
+          "stat_gain:played@mine.player:1",
           "stat_gain:act_brown@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
           "stat_gain:piggy@mine.player:1",
-          "draw_from:mine.bag:mine.hand:1"
+          "draw_from:mine.bag:mine.hand:1",
+          "stat_gain:drawn@mine.player:1"
         ],
         "spent": "mine.table"
       },
@@ -2026,7 +2268,13 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["stat_gain:act_brown@mine.player:2", "draw_from:mine.bag:mine.hand:1"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:act_brown@mine.player:2",
+          "stat_gain:arrows@mine.player:2",
+          "draw_from:mine.bag:mine.hand:1",
+          "stat_gain:drawn@mine.player:1"
+        ],
         "spent": "mine.table"
       },
       "card_stats": { "plus_act": 2, "plus_draw": 1 }
@@ -2039,7 +2287,11 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_purple@mine.player": 1 },
-        "action": ["draw_from:mine.bag:mine.hand:2"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "draw_from:mine.bag:mine.hand:2",
+          "stat_gain:drawn@mine.player:2"
+        ],
         "spent": "mine.table"
       },
       "reactions": [
@@ -2084,7 +2336,12 @@
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
         "target": { "type": "card", "tags": ["chip"], "zones": ["hand"], "count": 1, "owner": "anyone" },
-        "action": ["purge:target", "stat_gain:acts@mine.player:1"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "purge:target",
+          "stat_gain:acts@mine.player:1",
+          "stat_gain:arrows@mine.player:1"
+        ],
         "spent": "mine.table"
       },
       "card_stats": { "plus_act": 1 }
@@ -2098,7 +2355,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["options:vs_tempo,vs_money,vs_chips"],
+        "action": ["stat_gain:played@mine.player:1", "options:vs_tempo,vs_money,vs_chips"],
         "spent": "mine.table"
       }
     },
@@ -2110,7 +2367,12 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_purple@mine.player": 1 },
-        "action": ["draw_from:mine.bag:mine.hand:1", "stat_gain:piggy@mine.player:1"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "draw_from:mine.bag:mine.hand:1",
+          "stat_gain:drawn@mine.player:1",
+          "stat_gain:piggy@mine.player:1"
+        ],
         "spent": "mine.table"
       },
       "reactions": [
@@ -2143,6 +2405,7 @@
           "owner": "anyone"
         },
         "action": [
+          "stat_gain:played@mine.player:1",
           "stat_set:combined@mine.player:sum:value@target",
           "purge:target",
           "take_upgrade:mine.hand"
@@ -2167,11 +2430,13 @@
           "count": 1
         },
         "action": [
+          "stat_gain:played@mine.player:1",
           "stat_set:combined@mine.player:sum:value@target",
           "purge:target",
           "take_upgrade:mine.gem_pile",
           "stat_damage:stock@bank.gem_1:1",
-          "stat_gain:act_brown@mine.player:1"
+          "stat_gain:act_brown@mine.player:1",
+          "stat_gain:arrows@mine.player:1"
         ],
         "spent": "mine.table"
       },
@@ -2185,7 +2450,12 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_red@mine.player": 1 },
-        "action": ["draw_from:mine.bag:mine.hand:1", "show:enemy.hand:optional"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "draw_from:mine.bag:mine.hand:1",
+          "stat_gain:drawn@mine.player:1",
+          "show:enemy.hand:optional"
+        ],
         "spent": "mine.table"
       },
       "chosen": {
@@ -2218,7 +2488,12 @@
           "min": 0,
           "max": 2
         },
-        "action": ["purge:target", "stat_gain:act_red@mine.player:1"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "purge:target",
+          "stat_gain:act_red@mine.player:1",
+          "stat_gain:arrows@mine.player:1"
+        ],
         "spent": "mine.table"
       },
       "card_stats": { "plus_act": 1, "hits": 1 }
@@ -2232,7 +2507,11 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["set_priority:enemy.player", "options:tr_tempo,tr_money"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "set_priority:enemy.player",
+          "options:tr_tempo,tr_money"
+        ],
         "spent": "mine.table"
       }
     },
@@ -2245,7 +2524,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["stat_gain:extra@mine.player:1", "purge:self"]
+        "action": ["stat_gain:played@mine.player:1", "stat_gain:extra@mine.player:1", "purge:self"]
       }
     },
     {
@@ -2264,7 +2543,13 @@
           "owner": "anyone",
           "count": 1
         },
-        "action": ["draw_from:mine.bag:mine.hand:1", "crash_gems", "emit:crash"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "draw_from:mine.bag:mine.hand:1",
+          "stat_gain:drawn@mine.player:1",
+          "crash_gems",
+          "emit:crash"
+        ],
         "spent": "mine.table"
       },
       "card_stats": { "plus_draw": 1 }
@@ -2278,7 +2563,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["options:ct_ab,ct_am,ct_ac,ct_bm,ct_bc,ct_mc"],
+        "action": ["stat_gain:played@mine.player:1", "options:ct_ab,ct_am,ct_ac,ct_bm,ct_bc,ct_mc"],
         "spent": "mine.table"
       }
     },
@@ -2290,7 +2575,12 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["stat_gain:acts@mine.player:1", "show:mine.bag:optional"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:acts@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
+          "show:mine.bag:optional"
+        ],
         "spent": "mine.table"
       },
       "chosen": { "needs": { "where": ["tagged:purple@target"] }, "action": ["move:target:mine.hand"] },
@@ -2314,7 +2604,12 @@
           "min": 0,
           "max": 2
         },
-        "action": ["draw_from:mine.bag:mine.hand:2", "move:target:mine.bag:top"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "draw_from:mine.bag:mine.hand:2",
+          "stat_gain:drawn@mine.player:2",
+          "move:target:mine.bag:top"
+        ],
         "spent": "mine.table"
       },
       "card_stats": { "plus_draw": 2 }
@@ -2327,7 +2622,12 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["stat_gain:acts@mine.player:1", "show:mine.discard:optional"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:acts@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
+          "show:mine.discard:optional"
+        ],
         "spent": "mine.table"
       },
       "chosen": {
@@ -2346,7 +2646,7 @@
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
         "needs": { "req": ["tagged:chip@mine.discard"] },
-        "action": ["set_priority:enemy.player", "show:mine.discard"],
+        "action": ["stat_gain:played@mine.player:1", "set_priority:enemy.player", "show:mine.discard"],
         "spent": "mine.table"
       },
       "chosen": { "action": ["move:target:mine.hand", "clear_priority"] },
@@ -2360,7 +2660,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": [],
+        "action": ["stat_gain:played@mine.player:1"],
         "spent": "mine.ongoing"
       },
       "reactions": [
@@ -2395,13 +2695,17 @@
         {
           "key": "upkeep",
           "text": "Patriot Mirror",
-          "action": ["stat_gain:acts@mine.player:1", "stat_gain:piggy@mine.player:1"]
+          "action": [
+            "stat_gain:acts@mine.player:1",
+            "stat_gain:arrows@mine.player:1",
+            "stat_gain:piggy@mine.player:1"
+          ]
         }
       ],
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": [],
+        "action": ["stat_gain:played@mine.player:1"],
         "spent": "mine.ongoing"
       },
       "tooltip": "Ongoing: +1 action, piggy bank. Discard this at the start of your action phase if your gem pile totals an odd number.\n\nDEV: the action and the piggy bank are paid every action phase, by the same upkeep every ongoing chip uses. Odd is not sayable — a condition is one comparison and there is no remainder — so it never discards itself.",
@@ -2416,7 +2720,11 @@
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
         "target": { "type": "card", "tags": ["puzzle"], "zones": ["hand"], "count": 1, "owner": "anyone" },
-        "action": ["stat_set:shown@clock:sum:price@target", "show:bank:optional"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "stat_set:shown@clock:sum:price@target",
+          "show:bank:optional"
+        ],
         "spent": "mine.table"
       },
       "chosen": {
@@ -2440,7 +2748,7 @@
           "owner": "anyone",
           "count": 2
         },
-        "action": ["crash_gems", "emit:crash"],
+        "action": ["stat_gain:played@mine.player:1", "crash_gems", "emit:crash"],
         "spent": "mine.table"
       },
       "tooltip": "Crash exactly two 1-gems. (You don't get +$1.)"
@@ -2453,7 +2761,12 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_blue@mine.player": 1 },
-        "action": ["stat_gain:acts@mine.player:1", "stat_gain:piggy@mine.player:1"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:acts@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
+          "stat_gain:piggy@mine.player:1"
+        ],
         "spent": "mine.table"
       },
       "reactions": [
@@ -2485,6 +2798,7 @@
           "count": 1
         },
         "action": [
+          "stat_gain:played@mine.player:1",
           "purge:target",
           "stat_set:crashed@mine.player:2",
           "stat_set:broke@mine.player:1",
@@ -2506,10 +2820,12 @@
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
         "action": [
+          "stat_gain:played@mine.player:1",
           "each_seat:stat_set:redraw@mine.player:count:chip@mine.hand",
           "each_seat:destroy:mine.hand",
           "each_seat:draw_from:mine.bag:mine.hand:sum:redraw@mine.player",
-          "draw_from:mine.bag:mine.hand:1"
+          "draw_from:mine.bag:mine.hand:1",
+          "stat_gain:drawn@mine.player:1"
         ],
         "spent": "mine.table"
       },
@@ -2531,7 +2847,7 @@
           "owner": "anyone",
           "count": 1
         },
-        "action": ["crash_gems", "emit:crash"],
+        "action": ["stat_gain:played@mine.player:1", "crash_gems", "emit:crash"],
         "spent": "mine.table"
       },
       "tooltip": "Choose one: Crash a 1-gem in your gem pile — OR — exchange this with a Crash Gem in any player's discard pile.\n\nDEV: the crash is built. The exchange is not: a discard is a stack, and a stack offers only the card on top of it — so there is no way to point at a Crash Gem lying in one. With one branch left there is no choice to open."
@@ -2544,7 +2860,13 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_purple@mine.player": 1 },
-        "action": ["stat_gain:acts@mine.player:1", "stat_gain:act_blue@mine.player:1"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:acts@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
+          "stat_gain:act_blue@mine.player:1",
+          "stat_gain:arrows@mine.player:1"
+        ],
         "spent": "mine.table"
       },
       "reactions": [
@@ -2552,7 +2874,12 @@
           "to": "crash",
           "whose": "enemy",
           "text": "Trim a gem off every pile",
-          "action": ["purge:mine.gem_1:1", "purge:enemy.gem_1:1", "draw_from:mine.bag:mine.hand:1"],
+          "action": [
+            "purge:mine.gem_1:1",
+            "purge:enemy.gem_1:1",
+            "draw_from:mine.bag:mine.hand:1",
+            "stat_gain:drawn@mine.player:1"
+          ],
           "spent": "mine.discard"
         }
       ],
@@ -2568,8 +2895,11 @@
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
         "action": [
+          "stat_gain:played@mine.player:1",
           "stat_gain:acts@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
           "draw_from:mine.bag:mine.hand:1",
+          "stat_gain:drawn@mine.player:1",
           "stat_gain:piggy@mine.player:1"
         ],
         "spent": "mine.table"
@@ -2586,6 +2916,7 @@
         "phases": ["action"],
         "cost": { "act_blue@mine.player": 1 },
         "action": [
+          "stat_gain:played@mine.player:1",
           "stat_gain:piggy@mine.player:1",
           "stat_gain:money@mine.player:1",
           "each_seat:draw_from:mine.bag:mine.hand:1"
@@ -2597,7 +2928,7 @@
           "to": "attack",
           "whose": "enemy",
           "text": "+2 chips",
-          "action": ["draw_from:mine.bag:mine.hand:2"],
+          "action": ["draw_from:mine.bag:mine.hand:2", "stat_gain:drawn@mine.player:2"],
           "spent": "mine.discard"
         }
       ],
@@ -2612,7 +2943,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "acts@mine.player": 1 },
-        "action": [],
+        "action": ["stat_gain:played@mine.player:1"],
         "spent": "mine.discard"
       },
       "tooltip": "Whenever you discard this chip, gain a wound. Action: Discard this without gaining a wound.\n\nDEV: the action that ducks the wound is built. The wound itself is not: nothing announces a chip being discarded, so there is no verb for the other half to answer."
@@ -2626,9 +2957,13 @@
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
         "action": [
+          "stat_gain:played@mine.player:1",
           "stat_gain:acts@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
           "stat_gain:act_red@mine.player:1",
-          "draw_from:mine.bag:mine.hand:1"
+          "stat_gain:arrows@mine.player:1",
+          "draw_from:mine.bag:mine.hand:1",
+          "stat_gain:drawn@mine.player:1"
         ],
         "spent": "mine.table"
       },
@@ -2644,8 +2979,11 @@
         "phases": ["action"],
         "cost": { "act_red@mine.player": 1 },
         "action": [
+          "stat_gain:played@mine.player:1",
           "stat_gain:act_brown@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
           "draw_from:mine.bag:mine.hand:2",
+          "stat_gain:drawn@mine.player:2",
           "set_priority:enemy.player",
           "show:enemy.hand"
         ],
@@ -2664,6 +3002,7 @@
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
         "action": [
+          "stat_gain:played@mine.player:1",
           "options:ac_brown_purple,ac_brown_red,ac_brown_blue,ac_purple_red,ac_purple_blue,ac_red_blue"
         ],
         "spent": "mine.table"
@@ -2680,7 +3019,9 @@
         "phases": ["action"],
         "cost": { "act_red@mine.player": 1 },
         "action": [
+          "stat_gain:played@mine.player:1",
           "stat_gain:act_red@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
           "draw_from:enemy.bag:enemy.hand:1",
           "show:enemy.hand"
         ],
@@ -2698,7 +3039,11 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["stat_gain:act_brown@mine.player:1"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:act_brown@mine.player:1",
+          "stat_gain:arrows@mine.player:1"
+        ],
         "spent": "mine.ongoing"
       },
       "tooltip": "+1 brown action. Ongoing: Opponents can't combine gems unless they discard a Puzzle chip first. Discard this at the start of your next turn.\n\nDEV: the action is built and laying it out says you have it. The tax on their combining is a rule on somebody else's card, which nothing writes; \"at the start of your next turn\" is a moment nothing announces.",
@@ -2712,7 +3057,11 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["stat_gain:act_brown@mine.player:1"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:act_brown@mine.player:1",
+          "stat_gain:arrows@mine.player:1"
+        ],
         "spent": "mine.ongoing"
       },
       "reactions": [
@@ -2739,8 +3088,11 @@
         "cost": { "act_brown@mine.player": 1 },
         "needs": { "req": ["sum:value@mine.gem_pile >= 6"] },
         "action": [
+          "stat_gain:played@mine.player:1",
           "draw_from:mine.bag:mine.hand:2",
+          "stat_gain:drawn@mine.player:2",
           "stat_gain:act_brown@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
           "stat_gain:piggy@mine.player:1"
         ],
         "spent": "mine.table"
@@ -2763,7 +3115,12 @@
           "owner": "mine",
           "count": 1
         },
-        "action": ["purge:target", "stat_gain:money@mine.player:1", "take:bank.gem_2:mine.discard:1"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "purge:target",
+          "stat_gain:money@mine.player:1",
+          "take:bank.gem_2:mine.discard:1"
+        ],
         "spent": "mine.table"
       },
       "tooltip": "Trash a 1-gem from your hand or gem pile. If you do, +$1 and gain a 2-gem.",
@@ -2778,10 +3135,13 @@
         "phases": ["action"],
         "cost": { "act_red@mine.player": 1 },
         "action": [
+          "stat_gain:played@mine.player:1",
           "stat_gain:act_red@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
           "take:bank.wound:enemy.bag:1",
           "shuffle:enemy.bag",
-          "draw_from:mine.bag:mine.hand:count:wound@enemy.discard"
+          "draw_from:mine.bag:mine.hand:count:wound@enemy.discard",
+          "stat_gain:drawn@mine.player:count:wound@enemy.discard"
         ],
         "spent": "mine.table"
       },
@@ -2796,7 +3156,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_red@mine.player": 1 },
-        "action": ["show:enemy.hand:optional"],
+        "action": ["stat_gain:played@mine.player:1", "show:enemy.hand:optional"],
         "spent": "mine.table"
       },
       "tooltip": "If chosen opponent's gem pile totals 6 or 9, reveal his hand. Put a non-Puzzle bank chip into his hand and make him play up to two chips in his hand as you wish.\n\nDEV: the reveal is built and nothing else is. \"6 or 9\" is two comparisons and a condition is one; making somebody else play their own chips has no spelling, since a copied action benefits whoever is up."
@@ -2809,7 +3169,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_blue@mine.player": 1 },
-        "action": ["stat_gain:piggy@mine.player:2"],
+        "action": ["stat_gain:played@mine.player:1", "stat_gain:piggy@mine.player:2"],
         "spent": "mine.table"
       },
       "reactions": [
@@ -2839,7 +3199,7 @@
           "owner": "anyone",
           "count": 1
         },
-        "action": ["crash_gems", "emit:crash"],
+        "action": ["stat_gain:played@mine.player:1", "crash_gems", "emit:crash"],
         "spent": "mine.table"
       },
       "reactions": [
@@ -2893,6 +3253,7 @@
           "max": 2
         },
         "action": [
+          "stat_gain:played@mine.player:1",
           "stat_set:money@mine.player:sum:price@target",
           "stat_gain:money@mine.player:count:chip@target",
           "stat_gain:money@mine.player:1",
@@ -2919,7 +3280,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": [],
+        "action": ["stat_gain:played@mine.player:1"],
         "spent": "mine.ongoing"
       },
       "reactions": [
@@ -2954,6 +3315,7 @@
         "phases": ["action"],
         "cost": { "act_purple@mine.player": 1 },
         "action": [
+          "stat_gain:played@mine.player:1",
           "stat_set:crashed@mine.player:count:gem_1@mine.gem_pile",
           "purge:mine.gem_1",
           "purge:self"
@@ -2969,7 +3331,12 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_red@mine.player": 1 },
-        "action": ["stat_gain:act_brown@mine.player:1", "show:enemy.hand"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:act_brown@mine.player:1",
+          "stat_gain:arrows@mine.player:1",
+          "show:enemy.hand"
+        ],
         "spent": "mine.table"
       },
       "chosen": {
@@ -2987,7 +3354,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["show:bank:optional"],
+        "action": ["stat_gain:played@mine.player:1", "show:bank:optional"],
         "spent": "mine.table"
       },
       "chosen": { "needs": { "where": ["tagged:puzzle@target"] }, "action": ["move:target:chip_box"] },
@@ -3003,7 +3370,13 @@
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
         "needs": { "req": ["sum:value@mine.gem_pile >= 10"] },
-        "action": ["draw_from:mine.bag:mine.hand:3", "stat_gain:acts@mine.player:1"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "draw_from:mine.bag:mine.hand:3",
+          "stat_gain:drawn@mine.player:3",
+          "stat_gain:acts@mine.player:1",
+          "stat_gain:arrows@mine.player:1"
+        ],
         "spent": "mine.table"
       },
       "card_stats": { "plus_act": 1, "plus_draw": 3 }
@@ -3016,7 +3389,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": [],
+        "action": ["stat_gain:played@mine.player:1"],
         "spent": "mine.ongoing"
       },
       "reactions": [
@@ -3034,7 +3407,11 @@
           "forced": "mandatory",
           "in": "board",
           "needs": { "req": ["owed@mine.player >= 1"] },
-          "action": ["draw_from:mine.bag:mine.hand:1", "stat_set:owed@mine.player:0"]
+          "action": [
+            "draw_from:mine.bag:mine.hand:1",
+            "stat_gain:drawn@mine.player:1",
+            "stat_set:owed@mine.player:0"
+          ]
         }
       ],
       "tooltip": "Ongoing: At the end of any turn you bought a Puzzle chip, +1 chip. Discard this when you buy a purple.",
@@ -3049,7 +3426,12 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["stat_gain:money@mine.player:1", "stat_gain:acts@mine.player:1"],
+        "action": [
+          "stat_gain:played@mine.player:1",
+          "stat_gain:money@mine.player:1",
+          "stat_gain:acts@mine.player:1",
+          "stat_gain:arrows@mine.player:1"
+        ],
         "spent": "mine.table"
       },
       "card_stats": { "plus_act": 1, "plus_pow": 1 }
