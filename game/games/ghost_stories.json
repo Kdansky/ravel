@@ -1491,9 +1491,13 @@
     { "when": "max:qi@player <= 0", "then": ["push_phase:lost_dead"] },
     { "when": "sum:haunted@village >= 4", "then": ["push_phase:lost_village"] }
   ],
-  "bot": {
-    "value": "1000000 * count:incarnation@hell + 40 * count:ghost@hell - 30 * count:ghost@table - 50 * sum:to_haunt@ghost - 300 * sum:haunted@village * sum:haunted@village + 10 * sum:qi@player + 50 * min:qi@player + 25 * count:watched@table"
-  },
+  "bots": [
+    {
+      "name": "exorcist",
+      "description": "Incarnations sent to hell above all; a haunted tile costs more the closer the village is to falling.",
+      "value": "1000000 * count:incarnation@hell + 40 * count:ghost@hell - 30 * count:ghost@table - 50 * sum:to_haunt@ghost - 300 * sum:haunted@village * sum:haunted@village + 10 * sum:qi@player + 50 * min:qi@player + 25 * count:watched@table"
+    }
+  ],
   "cards": [
     {
       "key": "south",

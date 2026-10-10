@@ -182,7 +182,7 @@ function M.test_opponent_a_win_for_everybody_is_a_win(check)
 		:gsub('"next": %[{ "then": "act" }%] }', '"ends_when": "plays >= 1", "next": [{ "then": "act", "seat": "next", "ends_round": true }] }')
 		:gsub('{ "key": "table", "layout": "stack",', '{ "key": "table", "layout": "stack", "status": "board",')
 		:gsub(',\n    { "key": "stack", "layout": "stack", "tags": %["stack"%], "pos": %[0.55, 0.45, 0.70, 0.65%] }', '')
-		:gsub('"tags": { "loud"', '"bot": { "value": "loot@mine.player" },\n  "tags": { "loud"')
+		:gsub('"tags": { "loud"', '"bots": [{ "name": "looter", "description": "Loot.", "value": "loot@mine.player" }],\n  "tags": { "loud"')
 		:gsub('{ "key": "coin", "text": "Coin",',
 			'{ "key": "pact", "text": "Pact", "play": { "action": ["stat_gain:won@each.anyone.player:1"] } },\n'
 			.. '    { "key": "coin", "text": "Coin",')
@@ -279,7 +279,12 @@ local GUESS = [==[{
       "play": { "action": ["stat_gain:score@mine.player:count:blue@enemy.hand"], "spent": "mine.table" } },
     { "key": "dud", "text": "Dud", "tags": ["guess"], "play": { "action": [], "spent": "mine.table" } }
   ],
-  "bot": { "value": "score@mine.player" },
+  "bots": [
+    { "name": "guesser", "description": "Scores.", "value": "score@mine.player" },
+    { "name": "spoiler", "description": "Scores as little as it can, once it has scored.", "rating": "score@mine.player",
+      "value": "0 - score@mine.player" },
+    { "name": "indifferent", "description": "Cares for nothing.", "value": "0" }
+  ],
   "setup": { "place": [
     { "card": "one", "owner": "one", "zone": "table" },
     { "card": "two", "owner": "two", "zone": "table" },
@@ -326,6 +331,69 @@ function M.test_engine_seat_weighs_a_move_without_reading_the_hidden_hand(check)
 			count.dud .. " dud, " .. count.guess_red .. " red, " .. count.guess_blue .. " blue")
 		check("red, which is the truth, is picked", count.guess_red > 0, count.guess_red)
 		check("and so is blue, which a bot reading the hand would never pick", count.guess_blue > 0, count.guess_blue)
+	end)
+end
+
+-- A seat plays as the bot it was handed, and one handed nothing as the first.
+function M.test_engine_seat_plays_as_the_bot_it_was_handed(check)
+	with_guess(function(name)
+		local count = { guess_red = 0, guess_blue = 0, dud = 0 }
+		for n = 1, 20 do
+			math.randomseed(n)
+			flow.init(name, n)
+			opponent.take("one", "spoiler")
+			local moves = opponent.legal()
+			local k = picked(moves, opponent.choose("one", moves))
+			count[k] = count[k] + 1
+		end
+		check("the spoiler plays the dud", count.dud >= 18,
+			count.dud .. " dud, " .. count.guess_red .. " red, " .. count.guess_blue .. " blue")
+	end)
+end
+
+-- A seat handed no bot by name plays as one its ratings draw, chosen afresh on a
+-- coin each turn. The spoiler rates its own score and the guesser rates nothing,
+-- so once there is a score the spoiler is the only draw, and a new turn takes
+-- the seat over half the time.
+function M.test_engine_seat_plays_as_its_ratings_draw(check)
+	with_guess(function(name)
+		local function one()
+			for e in entity.each("card") do if e.def_key == "one" then return e end end
+		end
+		local kept, switched = 0, 0
+		for n = 1, 40 do
+			math.randomseed(n)
+			flow.init(name, n)
+			opponent.take("one")
+			check("every bot rating nothing is the first bot's seat", opponent.rated("one") == opponent.bot("guesser"))
+			one().stats.score = 1
+			check("and a turn keeps its bot whatever the ratings say", opponent.rated("one") == opponent.bot("guesser"))
+			-- One play is a round, so two make it seat one's turn again.
+			opponent.legal()[1]()
+			opponent.legal()[1]()
+			if opponent.rated("one") == opponent.bot("spoiler") then switched = switched + 1 else kept = kept + 1 end
+		end
+		check("the next turn sometimes keeps it", kept >= 10, kept)
+		check("and sometimes hands it to the spoiler", switched >= 10, switched)
+		check("which is then the bot the seat plays as", opponent.playing("one") ~= nil)
+	end)
+end
+
+-- Moves worth the same are a coin, all the way down: the search halves its list
+-- by score, and a tie cut in list order made the first move the only one.
+function M.test_engine_seat_breaks_a_tie_at_random(check)
+	with_guess(function(name)
+		local count = { guess_red = 0, guess_blue = 0, dud = 0 }
+		for n = 1, 30 do
+			math.randomseed(n)
+			flow.init(name, n)
+			opponent.take("one", "indifferent")
+			local moves = opponent.legal()
+			local k = picked(moves, opponent.choose("one", moves))
+			count[k] = count[k] + 1
+		end
+		check("every move is picked sometimes", count.dud > 0 and count.guess_red > 0 and count.guess_blue > 0,
+			count.dud .. " dud, " .. count.guess_red .. " red, " .. count.guess_blue .. " blue")
 	end)
 end
 

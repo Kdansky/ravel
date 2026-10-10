@@ -4,9 +4,9 @@
 -- **This is not test scaffolding, and it is not dead code.** It lived in
 -- `tests/run.lua` for as long as its only caller was the random terminator, and
 -- moving it out was the first step of an engine-played opponent — see
--- [ideas/34](../ideas/34-an-opponent.md). A game without a `bot` section gets a
--- random opponent; one with it gets every move tried, played out and scored by
--- the number the section names.
+-- [ideas/34](../ideas/34-an-opponent.md). A game without `bots` gets a random
+-- opponent; one with them gets every move tried, played out and scored by the
+-- number the seat's bot names.
 --
 -- Optional and additive: nothing in the engine requires it. It reads `flow`,
 -- `zones`, `targeting` and `cards` — the same door the interfaces use, so an
@@ -27,18 +27,29 @@ local rng = require("rng")
 
 local M = {}
 
--- The seats this machine plays, by key. Empty is every game as it has always
--- been played: by whoever is at the screen.
+-- The seats this machine plays, by key, each with the bot it was handed — or
+-- true for one handed none, which plays as whichever bot rates highest, and in
+-- a game with no bots at random. Empty is every game as it has always been
+-- played: by whoever is at the screen.
 M.seats = {}
 
-function M.take(seat)
-	if seat then M.seats[seat] = true end
+-- The bot each seat handed none is playing as, and the turn it was chosen on.
+local playing = {}
+
+function M.bot(name)
+	for _, b in ipairs(declaration.G.bots) do
+		if b.name == name then return b end
+	end
+end
+
+function M.take(seat, name)
+	if seat then M.seats[seat] = name and M.bot(name) or true end
 end
 
 -- No name stands every engine seat up at once, which is what leaving a game and
 -- loading another one wants.
 function M.leave(seat)
-	if seat then M.seats[seat] = nil else M.seats = {} end
+	if seat then M.seats[seat] = nil else M.seats, playing = {}, {} end
 end
 
 -- Single player, as one gesture: you keep the seat you are watching and the
@@ -72,27 +83,71 @@ flow.init = function(...)
 	if go then M.engage() end
 end
 
--- Targets for a spec, chosen at random and committed now rather than inside the
--- closure: a move that cannot fill its spec is not a move, and the only moment
--- to find that out is while the list is being written. `candidates` is asked
--- rather than `targeting.start`, because starting would wipe the aim a player
--- at this screen is halfway through taking.
+-- Most ways one card can aim, before the search has too many moves to weigh.
+M.AIMS = 12
+
+-- The ways to aim a spec, each a list of targets committed now rather than inside
+-- the closure: a move that cannot fill its spec is not a move, and the only
+-- moment to find that out is while the list is being written. `candidates` is
+-- asked rather than `targeting.start`, because starting would wipe the aim a
+-- player at this screen is halfway through taking. Empty when it cannot aim.
+--
+-- An aim at one card or two is a choice worth weighing: which gem to crash is
+-- the whole of a Crash Gem, and a random one is nearly always the smallest. So
+-- each distinct choice is its own move — cards alike in kind and place are one
+-- choice, or a pile of eight 1-gems would be eight moves. A wider aim is still
+-- drawn at random, once.
 --
 -- Only the minimum is picked. An optional target is therefore never taken,
 -- which is a real gap and a small one: nothing in the corpus turns on it.
-local function targets_for(card_id, spec)
+local function aims_for(card_id, spec)
 	local min = targeting.bounds(spec)
-	if min == 0 then return {} end
+	if min == 0 then return { {} } end
 	local pool = targeting.candidates(card_id, spec)
-	if #pool == 0 or (#pool < min and not spec.spread) then return nil end
-	local out = {}
-	-- An aim that spends points spends picks rather than candidates, so the same
-	-- card may come back — which is also the only way it fills its minimum when
-	-- the board holds fewer things than the aim has points to spread.
-	for k = 1, min do
-		out[k] = spec.spread and pool[math.random(#pool)] or table.remove(pool, math.random(#pool))
+	if #pool == 0 or (#pool < min and not spec.spread) then return {} end
+	if spec.spread or min > 2 then
+		local out = {}
+		-- An aim that spends points spends picks rather than candidates, so the same
+		-- card may come back — which is also the only way it fills its minimum when
+		-- the board holds fewer things than the aim has points to spread.
+		for k = 1, min do
+			out[k] = spec.spread and pool[math.random(#pool)] or table.remove(pool, math.random(#pool))
+		end
+		return { out }
 	end
-	return out
+	local kinds, of = {}, {}
+	for _, id in ipairs(pool) do
+		-- A zone or a square aimed at is a place, and every place its own choice.
+		local c = type(id) == "number" and entity.get(id)
+		local k = c and c.def_key and c.def_key .. "@" .. tostring(c.zone_id) or tostring(id)
+		if not of[k] then
+			of[k] = {}
+			kinds[#kinds + 1] = of[k]
+		end
+		table.insert(of[k], id)
+	end
+	local aims = {}
+	for i, a in ipairs(kinds) do
+		if min == 1 then
+			aims[#aims + 1] = { a[math.random(#a)] }
+		else
+			if #a >= 2 then
+				local x = math.random(#a)
+				local y = math.random(#a - 1)
+				aims[#aims + 1] = { a[x], a[y >= x and y + 1 or y] }
+			end
+			for j = i + 1, #kinds do
+				local b = kinds[j]
+				aims[#aims + 1] = { a[math.random(#a)], b[math.random(#b)] }
+			end
+		end
+	end
+	for k = #aims, 2, -1 do
+		local m = math.random(k)
+		aims[k], aims[m] = aims[m], aims[k]
+	end
+	for k = #aims, M.AIMS + 1, -1 do aims[k] = nil end
+	return aims
 end
 
 -- One move per way of paying. Nearly every cost has a single answer and is one
@@ -121,8 +176,7 @@ function M.legal()
 	if flow.window_locked() then
 		for _, u in ipairs(flow.usable_reactions()) do
 			local id, idx = u.card, u.index
-			local targets = targets_for(id, u.rule.target)
-			if targets then
+			for _, targets in ipairs(aims_for(id, u.rule.target)) do
 				per_payment(moves, flow.rule_payments(id, u.rule, targets), function(pay)
 					return function() flow.react(id, idx, targets, pay) end
 				end)
@@ -146,10 +200,8 @@ function M.legal()
 				-- target check for it and hands the choice the asker. Asking for
 				-- targets it will never be given is how a seat stalled in front of
 				-- a question it could have answered.
-				local targets = flow.is_choosing(e.id) and {}
-					or targets_for(e.id, cards.def(e).target)
-				if targets then
-					local id = e.id
+				local id = e.id
+				for _, targets in ipairs(flow.is_choosing(id) and { {} } or aims_for(id, cards.def(e).target)) do
 					per_payment(moves, flow.play_payments(id, targets), function(pay)
 						return function() flow.play_card(id, targets, pay) end
 					end)
@@ -157,8 +209,7 @@ function M.legal()
 			end
 			for _, u in ipairs(flow.usable_abilities(e.id)) do
 				local id, idx = e.id, u.index
-				local targets = (not column or u.rule.phases) and targets_for(id, u.rule.target)
-				if targets then
+				for _, targets in ipairs((not column or u.rule.phases) and aims_for(id, u.rule.target) or {}) do
 					per_payment(moves, flow.rule_payments(id, u.rule, targets), function(pay)
 						return function() flow.activate(id, targets, idx, pay) end
 					end)
@@ -182,7 +233,8 @@ end
 -- decision may take. One try first cut good Spellstorm moves on a bad deal: 14 of
 -- 23 against random play, where four first won 17 of 22. Spellstorm's round is a
 -- dozen moves; the reach is for a game whose round never closes while random
--- moves are being made in it.
+-- moves are being made in it. The last three are defaults: a bot may say its
+-- own `tries`, `reach` and `seconds`.
 M.FIRST = 4
 M.TRIES = 16
 M.REACH = 60
@@ -257,12 +309,52 @@ local function round()
 	return sys and sys.stats.round
 end
 
+-- A bot drawn for `seat` with a chance in proportion to its rating, read as the
+-- seat. Below 0 is 0; when every bot rates 0, the first is the game's bot.
+local function draw(seat)
+	local bots, weights, total = declaration.G.bots, {}, 0
+	for i, b in ipairs(bots) do
+		local r = 0
+		if b.rating then zones.as_seat(seat, function() r = predicate.value(b.rating, {}) end) end
+		weights[i] = math.max(r, 0)
+		total = total + weights[i]
+	end
+	if total <= 0 then return bots[1] end
+	local x = math.random() * total
+	for i, b in ipairs(bots) do
+		x = x - weights[i]
+		if x < 0 then return b end
+	end
+	return bots[#bots]
+end
+
+-- The bot a seat handed none plays this turn as. Its first turn draws one; each
+-- turn after keeps it on a coin, and draws again otherwise — so a seat leans
+-- the way the ratings say without lurching every turn, and a character picked
+-- mid-game is answered within a turn or two.
+function M.rated(seat)
+	local turn = tostring(round()) .. ":" .. tostring(zones.turn_seat())
+	local p = playing[seat]
+	if p and p.game ~= declaration.G then p = nil end
+	if p and p.turn == turn then return p.bot end
+	local bot = p and math.random(2) == 1 and p.bot or draw(seat)
+	playing[seat] = { bot = bot, turn = turn, game = declaration.G }
+	return bot
+end
+
+-- Which bot a seat handed none is playing as, without choosing one: nil until
+-- its first decision.
+function M.playing(seat)
+	local p = playing[seat]
+	return p and p.game == declaration.G and p.bot or nil
+end
+
 -- Random moves for everybody until the round turns or the game ends: far enough
 -- that a card played face down has met the one it was played against. `start`
 -- is the round before the tried move, so a move that ends the round is scored
 -- where it ends it, not after the next one. False when the reach ran out first.
-local function play_out(start)
-	for _ = 1, M.REACH do
+local function play_out(start, reach)
+	for _ = 1, reach do
 		if over() or round() ~= start then return true end
 		local moves = M.legal()
 		if #moves == 0 then return true end
@@ -303,16 +395,19 @@ local function now()
 end
 
 -- Which of `moves` the engine makes for `seat`. Each is tried in a fresh deal,
--- played out, and scored by the game's `bot` section. Every move gets M.FIRST
+-- played out, and scored by the seat's bot. Every move gets M.FIRST
 -- tries, the better half twice as many, and so on until one is left or the best
--- have M.TRIES: the tries go where the decision is close. Out of time, the best
+-- have the bot's tries: the tries go where the decision is close. Out of time, the best
 -- average so far is the answer. A tie is broken at random; a game with no
--- section, and a choice of one, is a coin.
+-- bots, and a choice of one, is a coin. A seat handed no bot by name is weighed
+-- by the bot its ratings drew for this turn.
 function M.choose(seat, moves)
-	local bot = declaration.G.bot
-	if not bot or #moves < 2 then return math.random(#moves) end
+	local bot = M.seats[seat]
+	if type(bot) ~= "table" then bot = M.rated(seat) end
+	if type(bot) ~= "table" or #moves < 2 then return math.random(#moves) end
 	local expr, G = valuation(bot), declaration.G
-	local deadline = now() + M.BUDGET
+	local deadline = now() + (bot.seconds or M.BUDGET)
+	local tries, reach = bot.tries or M.TRIES, bot.reach or M.REACH
 	-- A try that ran out of reach never saw where the round ends, so it is not
 	-- evidence beside one that did: Puzzle Strike's bot, sure to lose when its turn
 	-- ended, bought free wounds for hundreds of moves because one try in twenty
@@ -342,6 +437,13 @@ function M.choose(seat, moves)
 		if #alive == 0 then
 			for i = 1, #moves do alive[i] = i end
 		end
+		-- Halving cuts a tie wherever the sort leaves it, and the sort leaves it
+		-- in list order: Puzzle Strike's brawler, to whom every buy is worth the
+		-- same, bought the first thing on the list — a wound — fifty times a turn.
+		for k = #alive, 2, -1 do
+			local m = math.random(k)
+			alive[k], alive[m] = alive[m], alive[k]
+		end
 		local want = M.FIRST
 		while true do
 			for _, i in ipairs(alive) do
@@ -352,7 +454,7 @@ function M.choose(seat, moves)
 						rng.seed(math.random(2 ^ 30))
 						local start = round()
 						moves[i]()
-						if play_out(start) then
+						if play_out(start, reach) then
 							sum[i] = sum[i] + score(seat, expr)
 						else
 							short[i], shorts[i] = short[i] + score(seat, expr), shorts[i] + 1
@@ -362,7 +464,7 @@ function M.choose(seat, moves)
 					assert(declaration.G == G, "a move tried by the engine seat loaded another game")
 				end
 			end
-			if #alive == 1 or want >= M.TRIES then return end
+			if #alive == 1 or want >= tries then return end
 			table.sort(alive, function(a, b) return mean(a) > mean(b) end)
 			for k = #alive, math.ceil(#alive / 2) + 1, -1 do alive[k] = nil end
 			want = want * 2
@@ -389,7 +491,7 @@ function M.due()
 	-- this every frame of every game nobody has handed a seat over in.
 	if not next(M.seats) then return false end
 	local seat = zones.active_seat()
-	return seat ~= nil and M.seats[seat] == true
+	return seat ~= nil and M.seats[seat] ~= nil
 end
 
 -- One move for a seat the engine plays, when it is that seat's turn. False when

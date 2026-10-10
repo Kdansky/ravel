@@ -606,11 +606,12 @@ def build(here):
         "players": [{"card": "north"}, {"card": "south"}],
         # What the engine seat climbs: prestige first, then the cards that make
         # the next ones cheaper, then the tokens in hand.
-        "bot": {"value": " ".join([
+        "bots": [{"name": "builder", "description": "Prestige first, then the cards that make the next ones cheaper, then the tokens in hand.",
+                  "value": " ".join([
             "20 * score@mine.player - 20 * score@opponent",
             "+ 4 * count@mine.tableau - 4 * count@enemy.tableau",
             "+ t_white@mine.player + t_blue@mine.player + t_green@mine.player",
-            "+ t_red@mine.player + t_black@mine.player + 2 * t_gold@mine.player"])},
+            "+ t_red@mine.player + t_black@mine.player + 2 * t_gold@mine.player"])}],
         "styles": styles(),
         "stats": stats(),
         "computed_tags": {

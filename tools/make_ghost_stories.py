@@ -1429,7 +1429,8 @@ def build():
         # where it happens. A haunted tile is squared because the fourth loses;
         # the weakest Taoist counts beside the total, since one death costs a
         # board.
-        "bot": {"value": " ".join([
+        "bots": [{"name": "exorcist", "description": "Incarnations sent to hell above all; a haunted tile costs more the closer the village is to falling.",
+                  "value": " ".join([
             "1000000 * count:incarnation@hell",
             "+ 40 * count:ghost@hell",
             "- 30 * count:ghost@table",
@@ -1439,7 +1440,7 @@ def build():
             "+ 50 * min:qi@player",
             # Standing in front of a ghost is half an exorcism, and a try that
             # rolls at random rarely finishes the other half.
-            "+ 25 * count:watched@table"])},
+            "+ 25 * count:watched@table"])}],
         "cards": (seat_cards() + monks() + plaques() + village() + ghosts()
                   + pieces() + powers() + buttons() + endings()),
         "setup": setup(),

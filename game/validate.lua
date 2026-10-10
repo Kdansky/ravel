@@ -392,7 +392,7 @@ M.FIELDS = {
 -- ask about is a set no document can be held to.
 M.SHAPES = { setup = SETUP_FIELDS, place = PLACE_FIELDS, move_rule = MOVE_RULE_FIELDS,
 	player = PLAYER_FIELDS, prompt = { pos = true },
-	bot = { value = true, per_phase = true }, per_phase = { phase = true, value = true } }
+	bot = { name = true, description = true, rating = true, value = true, seconds = true, tries = true, reach = true, per_phase = true }, per_phase = { phase = true, value = true } }
 
 -- Fields declaration.parse adds to a def after reading it. They are legal on an
 -- entry the engine hands around and are not things an author ever writes, so
@@ -3398,8 +3398,9 @@ function M.check(G)
 	end
 
 	-- What an engine seat climbs: a number for the game, and one for a phase
-	-- whose effect the first cannot see by the time the round turns.
-	if G.bot then
+	-- whose effect the first cannot see by the time the round turns. A bot is
+	-- picked by its name, so two of one name is one that can never be picked.
+	do
 		local function worth(where, s)
 			if s == nil then
 				return warn('%s: needs a "value", like "shards@mine.player - shards@opponent"', where)
@@ -3410,13 +3411,28 @@ function M.check(G)
 				if tonumber(side) == nil then subject_ok(where, side) end
 			end
 		end
-		check_fields("bot", G.bot, M.SHAPES.bot)
-		worth("bot", G.bot.value)
-		for i, o in ipairs(G.bot.per_phase or {}) do
-			local where = "bot per_phase " .. i
-			check_fields(where, o, M.SHAPES.per_phase)
-			if not G.phase_by_key[o.phase] then warn("%s: no phase called '%s'", where, tostring(o.phase)) end
-			worth(where, o.value)
+		local named = {}
+		for i, b in ipairs(G.bots) do
+			local where = b.name and ("bot '" .. b.name .. "'") or ("bot " .. i)
+			check_fields(where, b, M.SHAPES.bot)
+			if b.name == nil then
+				warn('%s: needs a "name", which is how a seat is handed to it', where)
+			elseif named[b.name] then
+				warn("%s: two bots have this name", where)
+			end
+			named[b.name or i] = true
+			if b.description == nil then warn('%s: needs a "description", saying how it plays', where) end
+			worth(where, b.value)
+			if b.rating ~= nil then worth(where .. " rating", b.rating) end
+			for _, f in ipairs({ "seconds", "tries", "reach" }) do
+				if b[f] ~= nil and not (b[f] > 0) then warn("%s: %s must be more than 0", where, f) end
+			end
+			for k, o in ipairs(b.per_phase or {}) do
+				local at = where .. " per_phase " .. k
+				check_fields(at, o, M.SHAPES.per_phase)
+				if not G.phase_by_key[o.phase] then warn("%s: no phase called '%s'", at, tostring(o.phase)) end
+				worth(at, o.value)
+			end
 		end
 	end
 

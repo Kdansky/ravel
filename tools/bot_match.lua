@@ -1,14 +1,17 @@
--- The engine seat against random play, headless, to measure a game's `bot`
--- section. Run from the repo root:
+-- The engine seat against random play, headless, to measure one of a game's
+-- `bots`. Run from the repo root:
 --   luajit tools/bot_match.lua puzzle_strike.json 10      (ten games)
---   luajit tools/bot_match.lua codex.json 4 2              (budget of 2 s a decision)
+--   luajit tools/bot_match.lua codex.json 4 2              (2 s a decision, for a bot that names no seconds of its own)
 -- The engine takes the first seat in odd games and the second in even ones.
 -- Every seat but the engine's moves at random; a cooperative game is won or
 -- lost by everybody, so there the engine plays every seat (COOP=1), and SHOW names
 -- a number to print at each game's end, since such a game has no winning seat:
 --   COOP=1 SHOW='count:ghost@hell' luajit tools/bot_match.lua ghost_stories.json 4
 -- END names a phase that means the game is over, for a game that ends by routing
--- there rather than by a seat's `won`. RANDOM=1 drops the game's `bot` section, for the baseline it is measured against.
+-- there rather than by a seat's `won`. RANDOM=1 drops the game's `bots`, for the baseline it is measured against.
+-- BOT names the bot the engine seat plays as; without it, the bots' ratings choose. VS names one to play every other
+-- seat instead of random moves — a bot fight, reported from BOT's side — and VS=rated lets the ratings choose there too:
+--   BOT=red VS=econ luajit tools/bot_match.lua puzzle_strike.json 4 1
 require("headless")
 local flow = require("flow")
 local zones = require("zones")
@@ -28,16 +31,22 @@ local wins, losses, open, slowest, spent, decisions = 0, 0, 0, 0, 0, 0
 for g = 1, games do
 	math.randomseed(g)
 	flow.init(file, g)
-	if os.getenv("RANDOM") then require("declaration").G.bot = nil end
-	if os.getenv("VALUE") then require("declaration").G.bot = { value = os.getenv("VALUE") } end
+	if os.getenv("RANDOM") then require("declaration").G.bots = {} end
+	if os.getenv("VALUE") then require("declaration").G.bots = { { name = "value", value = os.getenv("VALUE") } } end
+	local vs = os.getenv("VS") ~= "rated" and os.getenv("VS") or nil
+	for _, b in ipairs({ os.getenv("BOT"), vs }) do
+		assert(opponent.bot(b), file .. " has no bot called '" .. b .. "'")
+	end
 	local seats = net.seats()
 	local coop = os.getenv("COOP") ~= nil
 	local mine = seats[(g - 1) % #seats + 1]
 	opponent.leave()
 	if coop then
-		for _, k in ipairs(seats) do opponent.take(k) end
+		for _, k in ipairs(seats) do opponent.take(k, os.getenv("BOT")) end
 	else
-		opponent.take(mine)
+		for _, k in ipairs(seats) do
+			if k == mine then opponent.take(k, os.getenv("BOT")) elseif os.getenv("VS") then opponent.take(k, vs) end
+		end
 	end
 	local steps, t0 = 0, clock()
 	while steps < STEPS do

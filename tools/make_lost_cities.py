@@ -336,7 +336,8 @@ def bot():
         return "(sum:value@%s.%s - 20 * %s) * (1 + count:wager@%s.%s)" % (side, c, started, side, c)
     mine = " + ".join(run("mine", c) for c, _, _, _ in COLOURS)
     theirs = " - ".join(run("enemy", c) for c, _, _, _ in COLOURS)
-    return {"comment": "An expedition holds at most twelve cards, so (count + 11) / 12 is 1 once it is started and 0 before.",
+    return {"name": "tally", "description": "Each expedition as the tally would score it now, against the other side's.",
+            "comment": "An expedition holds at most twelve cards, so (count + 11) / 12 is 1 once it is started and 0 before.",
             "value": mine + " - " + theirs}
 
 
@@ -360,7 +361,7 @@ def build():
             {"key": "tallied", "min": 0, "max": 99, "display": "offscreen",
              "on": ["player"], "start": 0},
         ],
-        "bot": bot(),
+        "bots": [bot()],
         "tags": TAG_DEFS,
         "zones": z,
         "cards": tpl,

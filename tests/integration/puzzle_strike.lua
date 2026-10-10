@@ -411,6 +411,29 @@ function M.test_puzzle_strike_a_crash_breaks_one_gem_into_that_many_ones(check)
 	check("with a gem power for the trouble", (seat_card("south").stats.money or 0) == 1)
 end
 
+-- Which gem a Crash Gem breaks is the whole of it, so the engine seat is offered
+-- every kind there is to break rather than one drawn at random — which, in a
+-- pile of 1-gems, was nearly always a 1-gem.
+function M.test_puzzle_strike_the_engine_seat_may_crash_any_kind_of_gem(check)
+	opening(7)
+	actions.run({ "create:mine.gem_pile:gem_1:3", "create:mine.gem_pile:gem_3:1", "create:mine.hand:crash_gem:1" }, {})
+	local crash = find_in("hand", "crash_gem", "south")
+	local broke = {}
+	for _, move in ipairs(require("opponent").legal()) do
+		flow.rehearse(function()
+			local before = { gem_1 = count_in("gem_pile", "south", "gem_1"), gem_3 = count_in("gem_pile", "south", "gem_3") }
+			move()
+			if entity.get(crash.id).zone_id ~= zone_of("hand", "south").id then
+				for k, n in pairs(before) do
+					if count_in("gem_pile", "south", k) < n then broke[k] = (broke[k] or 0) + 1 end
+				end
+			end
+		end)
+	end
+	check("one move breaks the 3-gem", broke.gem_3 == 1, tostring(broke.gem_3))
+	check("and one, not three, breaks a 1-gem", broke.gem_1 == 1, tostring(broke.gem_1))
+end
+
 -- Two gems out, one gem in, and the sum is what says which — a rule that turns
 -- a number into a *card*, which no amount grammar can do. One card per answer
 -- in a hidden zone, walked by the action, each with its own `when`.

@@ -4189,15 +4189,19 @@
     { "when": "max:shards@anyone.player >= 8", "then": ["reveal:end_shards"] },
     { "when": "min:health@anyone.player <= 0", "then": ["reveal:end_dead"] }
   ],
-  "bot": {
-    "value": "10 * shards@mine.player - 10 * shards@opponent + health@mine.player - health@opponent",
-    "per_phase": [
-      {
-        "phase": "gain_card",
-        "value": "sum:tier_req@mine.hand - 3 * count:junk@mine.hand + sum:tier_req@mine.discard - 3 * count:junk@mine.discard + sum:tier_req@mine.deck - 3 * count:junk@mine.deck"
-      }
-    ]
-  },
+  "bots": [
+    {
+      "name": "duelist",
+      "description": "Shards win and health loses; a card gained is judged by the deck it lands in.",
+      "value": "10 * shards@mine.player - 10 * shards@opponent + health@mine.player - health@opponent",
+      "per_phase": [
+        {
+          "phase": "gain_card",
+          "value": "sum:tier_req@mine.hand - 3 * count:junk@mine.hand + sum:tier_req@mine.discard - 3 * count:junk@mine.discard + sum:tier_req@mine.deck - 3 * count:junk@mine.deck"
+        }
+      ]
+    }
+  ],
   "setup": {
     "place": [
       { "card": "seat_one", "owner": "seat_one", "zone": "wizard" },

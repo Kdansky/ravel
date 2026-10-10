@@ -2462,11 +2462,13 @@ def build():
         # health, so those are the number; a card gained shows in no shard or
         # wound by the time the round turns, so gaining climbs the deck instead:
         # its tiers, less the junk in it.
-        "bot": {
+        "bots": [{
+            "name": "duelist",
+            "description": "Shards win and health loses; a card gained is judged by the deck it lands in.",
             "value": "10 * shards@mine.player - 10 * shards@opponent + health@mine.player - health@opponent",
             "per_phase": [{"phase": "gain_card", "value": " + ".join(
                 "sum:tier_req@mine.%s - 3 * count:junk@mine.%s" % (z, z) for z in ("hand", "discard", "deck"))}],
-        },
+        }],
         "setup": {"place": [
             {"card": "seat_one", "owner": "seat_one", "zone": "wizard"},
             {"card": "seat_two", "owner": "seat_two", "zone": "wizard"},

@@ -2,9 +2,13 @@
   "title": "Splendor",
   "seed": 23,
   "players": [{ "card": "north" }, { "card": "south" }],
-  "bot": {
-    "value": "20 * score@mine.player - 20 * score@opponent + 4 * count@mine.tableau - 4 * count@enemy.tableau + t_white@mine.player + t_blue@mine.player + t_green@mine.player + t_red@mine.player + t_black@mine.player + 2 * t_gold@mine.player"
-  },
+  "bots": [
+    {
+      "name": "builder",
+      "description": "Prestige first, then the cards that make the next ones cheaper, then the tokens in hand.",
+      "value": "20 * score@mine.player - 20 * score@opponent + 4 * count@mine.tableau - 4 * count@enemy.tableau + t_white@mine.player + t_blue@mine.player + t_green@mine.player + t_red@mine.player + t_black@mine.player + 2 * t_gold@mine.player"
+    }
+  ],
   "styles": {
     "plate_white": { "color": [0.86, 0.86, 0.82] },
     "plate_blue": { "color": [0.22, 0.42, 0.78] },

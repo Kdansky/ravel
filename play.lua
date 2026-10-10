@@ -422,7 +422,7 @@ local HELP = [[
   reload       re-read templates from the game file, keep playing
   load <file>  load a game json
   n ...        networked play (n help)
-  bot <seat>   let the engine play that seat ("bot off" hands them all back)
+  bot <seat> [name]  let the engine play that seat, as the named bot ("bot off" hands them all back)
   q            quit]]
 
 local NET_HELP = [[
@@ -498,23 +498,29 @@ local function net_command(rest)
 	end
 end
 
--- Which seats the engine plays. Naming the other seat of a two-player game is
--- the whole of single player; "off" hands them all back.
+-- Which seats the engine plays, and as which bot. Naming the other seat of a
+-- two-player game is the whole of single player; "off" hands them all back.
 local function bot_command(rest)
 	if not ok_bot then print("this build has no opponent module"); return end
-	local name = rest:match("^%S+")
-	if not name then
+	local name, who = rest:match("^(%S*)%s*(%S*)")
+	if name == "" then
 		for _, k in ipairs(declaration.G.seat_list or {}) do
-			print("  " .. k .. (bot.seats[k] and "   (engine)" or ""))
+			local b = bot.seats[k]
+			if b == true then b = bot.playing(k) or b end
+			print("  " .. k .. (b and "   (engine" .. (type(b) == "table" and ": " .. b.name or "") .. ")" or ""))
 		end
+		for _, b in ipairs(declaration.G.bots) do print("  bot " .. b.name .. " — " .. b.description) end
 	elseif name == "off" then
 		bot.leave()
 		print("every seat is yours again")
 	elseif not (declaration.G.seat_set or {})[name] then
 		print("no seat called '" .. name .. "' in this game")
+	elseif who ~= "" and not bot.bot(who) then
+		print("no bot called '" .. who .. "' in this game")
 	else
-		bot.take(name)
-		print("the engine plays " .. name)
+		bot.take(name, who ~= "" and who or nil)
+		local b = bot.seats[name]
+		print("the engine plays " .. name .. (type(b) == "table" and " as " .. b.name or #declaration.G.bots > 1 and ", as its ratings draw" or ""))
 	end
 end
 

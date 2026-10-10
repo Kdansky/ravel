@@ -66,7 +66,7 @@ function M.update(now)
 	local back = seats
 	M.leave()
 	link = false
-	for k in pairs(back) do opponent.take(k) end
+	for k, b in pairs(back) do opponent.seats[k] = b end
 end
 
 return M

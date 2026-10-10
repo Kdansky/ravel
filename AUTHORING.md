@@ -5621,20 +5621,56 @@ hand.
 A game says what a good position is worth, and the engine does the rest:
 
 ```json
-"bot": {
-  "value": "10 * shards@mine.player - 10 * shards@opponent + health@mine.player - health@opponent",
-  "per_phase": [
-    { "phase": "gain_card", "value": "sum:tier_req@mine.discard - 3 * count:junk@mine.discard" }
-  ]
-}
+"bots": [
+  {
+    "name": "duelist",
+    "description": "Shards win and health loses; a card gained is judged by the deck it lands in.",
+    "value": "10 * shards@mine.player - 10 * shards@opponent + health@mine.player - health@opponent",
+    "per_phase": [
+      { "phase": "gain_card", "value": "sum:tier_req@mine.discard - 3 * count:junk@mine.discard" }
+    ]
+  }
+]
 ```
 
 `value` is a compute's grammar, read as the engine's seat, so `mine` is the bot
-and `@opponent` the seat it plays against. There is one bot and one algorithm:
-every legal move is tried, each try played out with random moves for everybody
+and `@opponent` the seat it plays against. A game may write several bots, each
+a different idea of what a position is worth; the algorithm is the same for all
+of them. `name` is one word, and how a seat is handed to a bot; `description`
+says how it plays.
+
+**A seat nobody named a bot for plays as its ratings draw.** `rating` is a
+number in the same grammar, read as the seat. On the seat's first turn a bot is
+drawn with a chance in proportion to its rating; each turn after, the seat keeps
+its bot on a coin flip and draws again otherwise. So a seat leans toward the
+plan its position suits, and bots that rate alike share it. Puzzle Strike's bots
+each prize one colour of chip, and are rated by the bags:
+
+```json
+"bots": [
+  { "name": "red", "description": "Attacks: buys red chips and fills the other pile.",
+    "rating": "1 + count:red@mine.everywhere", "value": "... + 10 * count:red@mine.everywhere" },
+  { "name": "blue", "description": "Defends: buys blue chips, the more the other side attacks.",
+    "rating": "1 + count:red@enemy.everywhere", "value": "... + 10 * count:blue@mine.everywhere" }
+]
+```
+
+Three red chips in my bag and none in theirs is four to one for attacking;
+every red chip I buy leans me further, and every one they buy leans me toward
+defence.
+
+A rating left out, or below 0, is 0. When every bot rates 0 the first one
+plays, so a game whose bots name no rating is played by its first.
+
+Three numbers say how hard a bot searches, and each may be left out:
+`seconds` a decision may take (5), `tries` the best move gets at most (16), and
+`reach`, the most moves a try is played out for (60). A quick bot is a weaker
+one, which is a way to offer an easy opponent.
+
+Every legal move is tried, each try played out with random moves for everybody
 until the round turns or the game ends. The better half of the moves is tried
-twice as often, and so on, until one is left or the best have had sixteen tries;
-five seconds in, the best average so far is the move.
+twice as often, and so on, until one is left or the best have had `tries`
+tries; `seconds` in, the best average so far is the move.
 A seat whose `won` stat is set is worth more than any number. A move is scored
 from the round it was made in, so ending the turn is scored where the turn ends;
 and a move back to a position the engine already stood in this round is never
@@ -5661,7 +5697,7 @@ turns.** Spellstorm scores a card gained by the deck it lands in, since shards
 and health have not moved yet when the round ends. While a named phase is
 anywhere on the stack, its value is climbed instead.
 
-Without a `bot` section an engine seat moves at random. The title screen offers
+Without `bots` an engine seat moves at random. The title screen offers
 it as an answer to one question:
 
 ```json
@@ -5672,7 +5708,15 @@ it as an answer to one question:
   "play": { "action": ["copy:target:activate", "bot_seats"] } }
 ```
 
-`o` in the GUI and `bot <seat>` in `play.lua` do the same thing mid-game.
+`o` in the GUI and `bot <seat>` in `play.lua` do the same thing mid-game;
+`bot <seat> <name>` pins a bot to the seat, and `bot` alone lists them.
+
+**Two bots can play each other.** `tools/bot_match.lua` plays a bot against
+random moves, or against another bot with `VS` (`VS=rated` lets the ratings choose):
+
+```sh
+BOT=brawler VS=rated luajit tools/bot_match.lua puzzle_strike.json 4 1
+```
 
 ### Saving a game, and picking it up
 

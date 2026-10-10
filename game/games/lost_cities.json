@@ -27,10 +27,14 @@
       "start": 0
     }
   ],
-  "bot": {
-    "comment": "An expedition holds at most twelve cards, so (count + 11) / 12 is 1 once it is started and 0 before.",
-    "value": "(sum:value@mine.red - 20 * ((count@mine.red + 11) / 12)) * (1 + count:wager@mine.red) + (sum:value@mine.green - 20 * ((count@mine.green + 11) / 12)) * (1 + count:wager@mine.green) + (sum:value@mine.blue - 20 * ((count@mine.blue + 11) / 12)) * (1 + count:wager@mine.blue) + (sum:value@mine.white - 20 * ((count@mine.white + 11) / 12)) * (1 + count:wager@mine.white) + (sum:value@mine.yellow - 20 * ((count@mine.yellow + 11) / 12)) * (1 + count:wager@mine.yellow) - (sum:value@enemy.red - 20 * ((count@enemy.red + 11) / 12)) * (1 + count:wager@enemy.red) - (sum:value@enemy.green - 20 * ((count@enemy.green + 11) / 12)) * (1 + count:wager@enemy.green) - (sum:value@enemy.blue - 20 * ((count@enemy.blue + 11) / 12)) * (1 + count:wager@enemy.blue) - (sum:value@enemy.white - 20 * ((count@enemy.white + 11) / 12)) * (1 + count:wager@enemy.white) - (sum:value@enemy.yellow - 20 * ((count@enemy.yellow + 11) / 12)) * (1 + count:wager@enemy.yellow)"
-  },
+  "bots": [
+    {
+      "name": "tally",
+      "description": "Each expedition as the tally would score it now, against the other side's.",
+      "comment": "An expedition holds at most twelve cards, so (count + 11) / 12 is 1 once it is started and 0 before.",
+      "value": "(sum:value@mine.red - 20 * ((count@mine.red + 11) / 12)) * (1 + count:wager@mine.red) + (sum:value@mine.green - 20 * ((count@mine.green + 11) / 12)) * (1 + count:wager@mine.green) + (sum:value@mine.blue - 20 * ((count@mine.blue + 11) / 12)) * (1 + count:wager@mine.blue) + (sum:value@mine.white - 20 * ((count@mine.white + 11) / 12)) * (1 + count:wager@mine.white) + (sum:value@mine.yellow - 20 * ((count@mine.yellow + 11) / 12)) * (1 + count:wager@mine.yellow) - (sum:value@enemy.red - 20 * ((count@enemy.red + 11) / 12)) * (1 + count:wager@enemy.red) - (sum:value@enemy.green - 20 * ((count@enemy.green + 11) / 12)) * (1 + count:wager@enemy.green) - (sum:value@enemy.blue - 20 * ((count@enemy.blue + 11) / 12)) * (1 + count:wager@enemy.blue) - (sum:value@enemy.white - 20 * ((count@enemy.white + 11) / 12)) * (1 + count:wager@enemy.white) - (sum:value@enemy.yellow - 20 * ((count@enemy.yellow + 11) / 12)) * (1 + count:wager@enemy.yellow)"
+    }
+  ],
   "tags": {
     "red_dest": {
       "play": {

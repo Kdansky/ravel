@@ -243,7 +243,7 @@ function M.test_schema_describes_every_shape_reached_through_a_section(check)
 	end
 	local at = { setup = doc.setup, place = exemplar(doc.setup.place),
 		player = exemplar(doc.players), move_rule = rule, prompt = doc.prompt,
-		bot = doc.bot, per_phase = doc.bot and exemplar(doc.bot.per_phase) }
+		bot = exemplar(doc.bots), per_phase = doc.bots and exemplar(exemplar(doc.bots).per_phase) }
 
 	for shape, fields in pairs(validate.SHAPES) do
 		local entry = at[shape]
