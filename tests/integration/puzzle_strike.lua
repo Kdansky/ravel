@@ -368,17 +368,25 @@ function M.test_puzzle_strike_the_turn_opens_with_a_forced_ante(check)
 end
 
 -- The same chip is money out of your hand and weight in your pile, and `value`
--- is one stat on one card rather than two kinds of gem.
+-- is one stat on one card rather than two kinds of gem. Playing one gem plays
+-- every gem in the hand.
 function M.test_puzzle_strike_a_gem_is_money_in_hand_and_weight_in_the_pile(check)
 	opening(7)
 	flow.activate(loose("done_acting").id, {})
 	check("the action phase gives way to buying", phase.current().key == "buy")
+	actions.run({ "create:mine.hand:gem_1:1", "create:mine.hand:gem_3:1" }, {})
 	local before = seat_card("south").stats.money or 0
-	local g = find_in("hand", "gem_1", "south")
-	flow.play_card(g.id, {})
-	check("playing it out of hand is a gem power", (seat_card("south").stats.money or 0) == before + 1)
-	check("and the chip is on the table, not in the gem pile",
-		find_in("table", "gem_1", "south") ~= nil)
+	local gems = 0
+	for _, id in ipairs(zone_of("hand", "south").cards) do
+		local c = entity.get(id)
+		if c.stats.value then gems = gems + c.stats.value end
+	end
+	flow.play_card(find_in("hand", "gem_1", "south").id, {})
+	check("playing them is their gem power", (seat_card("south").stats.money or 0) == before + gems,
+		tostring(seat_card("south").stats.money))
+	check("every one of them", find_in("hand", "gem_1", "south") == nil and find_in("hand", "gem_3", "south") == nil)
+	check("and the chips are on the table, not in the gem pile",
+		find_in("table", "gem_1", "south") ~= nil and find_in("table", "gem_3", "south") ~= nil)
 	check("the pile still holds only the ante", count_in("gem_pile", "south") == 1)
 end
 
@@ -511,6 +519,33 @@ function M.test_puzzle_strike_an_empty_stack_cannot_be_bought(check)
 	pile.stats.stock = 0
 	check("an empty one is not", not flow.can_activate(pile.id))
 	check("and the shelf is still there to be counted", entity.get(pile.id) ~= nil)
+end
+
+-- The stack runs out. A wound handed over from it is not handed over — the
+-- rulebook has no other wound to give — and the turn no longer owes a buy,
+-- since the free chip that made the rule fair is gone.
+function M.test_puzzle_strike_an_empty_wound_stack_gives_nothing_and_owes_nothing(check)
+	opening(7)
+	local pile = loose("wound")
+	pile.stats.stock = 0
+	local function wounds(seat)
+		local n = 0
+		for _, z in ipairs({ "hand", "bag", "discard" }) do n = n + count_in(z, seat, "wound") end
+		return n
+	end
+	local before = wounds("north")
+	local chip = zones.take(find_in("bank", "really_annoying"), zone_of("hand", "south").id)
+	flow.play_card(chip.id, {})
+	while flow.window_locked() do flow.pass_react() end
+	check("the chip was played", entity.get(chip.id).zone_id ~= zone_of("hand", "south").id)
+	check("north gains no wound", wounds("north") == before, wounds("north") .. " against " .. before)
+	check("and the stack is empty, not owing", pile.stats.stock == 0, pile.stats.stock)
+	flow.activate(loose("done_acting").id, {})
+	check("nothing bought", (seat_card("south").stats.bought or 0) == 0)
+	check("and none can be", not flow.can_activate(pile.id))
+	check("yet the turn may end", flow.can_activate(loose("end_turn").id))
+	flow.activate(loose("end_turn").id, {})
+	check("and does", zones.active_seat() == "north")
 end
 
 -- Cleanup sweeps the table and the unplayed hand into the discard and draws a

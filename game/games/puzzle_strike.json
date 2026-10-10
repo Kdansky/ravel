@@ -311,6 +311,11 @@
       "key": "to_pick",
       "value": "10 - count:puzzle@bank",
       "tooltip": "How many Puzzle chips the bank is still short of a game."
+    },
+    {
+      "key": "buy_owed",
+      "value": "stock@bank.wound - 9999 * bought@mine.player",
+      "tooltip": "Above zero while this turn still owes a buy: nothing bought, and a Wound left to take."
     }
   ],
   "computed_tags": {
@@ -322,6 +327,12 @@
   },
   "tags": {
     "red": { "emits": { "play": "attack" } },
+    "gem": {
+      "play": {
+        "phases": ["buy"],
+        "action": ["stat_gain:money@mine.player:sum:value@mine.hand.gem", "move:mine.hand.gem:mine.table"]
+      }
+    },
     "buyable": { "emits": { "activate": "buy" } },
     "discounted": { "buffs": { "price": -1 } },
     "for_sale": {
@@ -371,7 +382,7 @@
         "combine:20",
         "crash_gem:16",
         "double_crash:10",
-        "wound:1000"
+        "wound:50"
       ],
       "tooltip": "Every chip you may buy. A stack says how many are left; when stacks run dry the ante grows."
     },
@@ -674,11 +685,12 @@
       "text": "End turn",
       "tags": ["immutable"],
       "asset": "square:slate",
-      "tooltip": "End your turn. You must have bought at least one chip — a Wound is free, and that is the point.",
+      "tooltip": "End your turn. You must have bought at least one chip — a Wound is free, and that is the point. Once the Wounds run out, you need not buy at all.",
       "abilities": [
         {
           "phases": ["buy"],
-          "needs": { "req": ["bought@mine.player >= 1"] },
+          "compute": ["buy_owed"],
+          "needs": { "req": ["buy_owed < 1"] },
           "action": ["end_phase"]
         }
       ]
@@ -689,12 +701,7 @@
       "tags": ["chip", "trashable", "gem", "gem_1", "upgradable"],
       "asset": "diamond:green",
       "tooltip": "A gem worth 1.",
-      "card_stats": { "value": 1, "price": 1 },
-      "play": {
-        "phases": ["buy"],
-        "action": ["stat_gain:money@mine.player:sum:value@self"],
-        "spent": "mine.table"
-      }
+      "card_stats": { "value": 1, "price": 1 }
     },
     {
       "key": "gem_2",
@@ -702,12 +709,7 @@
       "tags": ["chip", "trashable", "gem", "gem_2", "upgradable"],
       "asset": "diamond:green",
       "tooltip": "A gem worth 2.",
-      "card_stats": { "value": 2, "price": 3 },
-      "play": {
-        "phases": ["buy"],
-        "action": ["stat_gain:money@mine.player:sum:value@self"],
-        "spent": "mine.table"
-      }
+      "card_stats": { "value": 2, "price": 3 }
     },
     {
       "key": "gem_3",
@@ -715,12 +717,7 @@
       "tags": ["chip", "trashable", "gem", "gem_3", "upgradable"],
       "asset": "diamond:green",
       "tooltip": "A gem worth 3.",
-      "card_stats": { "value": 3, "price": 5 },
-      "play": {
-        "phases": ["buy"],
-        "action": ["stat_gain:money@mine.player:sum:value@self"],
-        "spent": "mine.table"
-      }
+      "card_stats": { "value": 3, "price": 5 }
     },
     {
       "key": "gem_4",
@@ -728,12 +725,7 @@
       "tags": ["chip", "trashable", "gem", "gem_4"],
       "asset": "diamond:green",
       "tooltip": "A gem worth 4.",
-      "card_stats": { "value": 4, "price": 7 },
-      "play": {
-        "phases": ["buy"],
-        "action": ["stat_gain:money@mine.player:sum:value@self"],
-        "spent": "mine.table"
-      }
+      "card_stats": { "value": 4, "price": 7 }
     },
     {
       "key": "combine",

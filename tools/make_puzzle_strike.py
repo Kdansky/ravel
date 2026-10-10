@@ -726,13 +726,11 @@ def zones():
          "status": "supply", "applies": ["buyable", "for_sale"], "pos": [0.005, 0.095, 0.225, 0.7],
          "contents": ([f"{gem_key(n)}:{stock}" for n, _, stock in GEMS]
                       + [f"{k}:{stock}" for k, _, _, stock in PURPLES]
-                      # Twenty-four is how many wounds fit in a box, not a rule.
-                      # The rulebook has to say what happens when they run out
-                      # ("you don't have to buy a chip at all that turn") and
-                      # that sentence is a second condition on *End turn* which
-                      # one comparison cannot hold — so the stack is deep enough
-                      # never to ask. A game that gets through five is unusual.
-                      + ["wound:1000"]),
+                      # How many wounds fit in a box is not a rule. The rulebook
+                      # says what happens when they run out — you need not buy
+                      # at all — and End turn reads that, so this only has to
+                      # be deep enough that running out is rare.
+                      + ["wound:50"]),
          "tooltip": "Every chip you may buy. A stack says how many are left; when stacks run dry the ante grows."},
         # The two buttons sit on the middle line between the gem piles, where
         # they belong to whoever is up rather than to either side of the table.
@@ -947,7 +945,10 @@ def styles():
 #
 # A gem is money when played out of hand and a millstone when it lands in the
 # gem pile, and it is the same chip either way — which is why `value` is a stat
-# on the card rather than four different cards' worth of behaviour.
+# on the card rather than four different cards' worth of behaviour. Playing one
+# plays them all (see the gem tag): nothing in the game asks which gems were
+# played, and one at a time was clicks for a person and, for the engine, a run
+# of moves its random play-outs could not see the point of.
 def gem_cards():
     out = []
     for n, cost, _stock in GEMS:
@@ -957,10 +958,8 @@ def gem_cards():
         out.append({
             "key": gem_key(n), "text": "%d-gem" % n, "tags": tags,
             "asset": "diamond:green",
-            "tooltip": "Worth %d. Play it in your buy phase for %d gem power, or let it sit in a gem pile counting against whoever owns it." % (n, n),
+            "tooltip": "Worth %d. Play it in your buy phase for %d gem power, along with every other gem in your hand, or let it sit in a gem pile counting against whoever owns it." % (n, n),
             "card_stats": {"value": n},
-            "play": {"phases": ["buy"],
-                     "action": ["stat_gain:money@mine.player:sum:value@self", "move_to:mine.table"]},
         })
     return out
 
@@ -2096,11 +2095,12 @@ def button_cards():
                                  "pop_phase"]}]},
         {"key": "end_turn", "text": "End turn", "tags": ["immutable"],
          "asset": "square:slate",
-         "tooltip": "End your turn. You must have bought at least one chip — a Wound is free, and that is the point.",
+         "tooltip": "End your turn. You must have bought at least one chip — a Wound is free, and that is the point. "
+                    "Once the Wounds run out, you need not buy at all.",
          # A count, not a payment: the rule is a floor, so this asks whether the
          # floor was reached and takes nothing away for asking — a cost would have
          # spent the one purchase it was checking for.
-         "abilities": [{"phases": ["buy"], "needs": {"req": ["bought@mine.player >= 1"]},
+         "abilities": [{"phases": ["buy"], "compute": ["buy_owed"], "needs": {"req": ["buy_owed < 1"]},
                       "action": ["end_phase"]}]},
     ]
 
@@ -2242,7 +2242,12 @@ def build():
         # nobody drafted. Never negative — you cannot pick an eleventh — so the
         # subtraction wants no floor and needs nothing stored.
         "computes": [{"key": "to_pick", "value": "%d - count:puzzle@bank" % len(DEFAULT_BANK),
-                      "tooltip": "How many Puzzle chips the bank is still short of a game."}],
+                      "tooltip": "How many Puzzle chips the bank is still short of a game."},
+                     # "Bought, or no wound left" as one number: a buy takes off more
+                     # than any stack holds (9999 is the stat's max), and without one
+                     # it is nothing only when the wounds are gone.
+                     {"key": "buy_owed", "value": "stock@bank.wound - 9999 * bought@mine.player",
+                      "tooltip": "Above zero while this turn still owes a buy: nothing bought, and a Wound left to take."}],
         # A stack nobody can buy from any more is what drives the ante up, and
         # it is the plate's own number read as a word.
         "computed_tags": {"spent": {"needs": {"req": ["stock@self < 1"]}},
@@ -2266,6 +2271,11 @@ def build():
         # bank hands "buyable" to whatever lies in it through `applies`, so
         # *buying* announces itself without a single plate knowing.
         "tags": {"red": {"emits": {"play": "attack"}},
+                 # Play one gem, play the hand's: a gem is only ever played for
+                 # its money, and the rest would follow it click by click.
+                 "gem": {"play": {"phases": ["buy"],
+                                  "action": ["stat_gain:money@mine.player:sum:value@mine.hand.gem",
+                                             "move:mine.hand.gem:mine.table"]}},
                  "buyable": {"emits": {"activate": "buy"}},
                  # The sale, and the whole of it. "price@self" in the buy cost
                  # below reads through this without knowing it is there, so
