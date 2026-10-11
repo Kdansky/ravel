@@ -41,7 +41,10 @@ local GAME = [==[{
     { "key": "horn", "text": "Horn", "tags": ["loud"],
       "play": { "action": ["stat_gain:loot@mine.player:1"], "spent": "mine.table" } },
     { "key": "envy", "text": "Envy",
-      "reactions": [{ "to": "shout", "action": ["stat_gain:loot@mine.player:5"], "spent": "mine.table" }] }
+      "reactions": [{ "to": "shout", "action": ["stat_gain:loot@mine.player:5"], "spent": "mine.table" }] },
+    { "key": "sweep", "text": "Sweep up to two",
+      "target": { "type": "card", "min": 0, "max": 2, "owner": "mine", "zones": ["hand"] },
+      "play": { "action": ["purge:target"] } }
   ],
   "setup": {
     "place": [
@@ -472,6 +475,30 @@ function M.test_engine_seat_chosen_on_the_menu_is_the_next_games(check)
 	choose("m_table")
 	check("at the table nobody is the engine", next(opponent.seats) == nil)
 	net.claim_seat(nil)
+end
+
+-- "Up to two" is two moves at least: none and both. Taking only the minimum, the
+-- engine played Degenerate Trasher and trashed nothing.
+function M.test_opponent_tries_an_optional_aim_at_both_ends(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local hand = zone_of("hand", "one")
+		local sweep = zones.add(hand, "sweep")
+		zones.add(hand, "coin")
+		zones.add(hand, "coin")
+		local play, counts = flow.play_card, {}
+		flow.play_card = function(id, targets, ...)
+			if id == sweep.id then counts[#(targets or {})] = true end
+			return play(id, targets, ...)
+		end
+		local ok, err = pcall(function()
+			for _, move in ipairs(opponent.legal()) do flow.rehearse(move) end
+		end)
+		flow.play_card = play
+		if not ok then error(err, 0) end
+		check("it offers sweeping nothing", counts[0])
+		check("and sweeping both", counts[2])
+	end)
 end
 
 return M

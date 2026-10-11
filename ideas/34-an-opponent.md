@@ -121,7 +121,16 @@ took Spellstorm to 0.15 s mean, 0.9 s slowest, and won 3 of 4 against random;
    turn it feared to end; and an Overpower attacker that died in the exchange
    left its `spill` step with nobody to answer it, which is now a rule of dying
    (*a card is never killed halfway through what it is doing*).
-4. **The rollout opponent is random**, so the bot plans against a fool. Playing
-   the rollout with the bot itself is the next step up and costs TRIES² time.
-5. **Only the minimum targets are chosen**, so an optional target is never
-   taken, and a target is picked at random once per move rather than tried.
+4. **The rollout is greedy now, not random**: whoever is up in a try makes the
+   move the bot's value likes best one step on, read as that seat, with
+   `M.WANDER` (one in five) random. One step on is not TRIES² — it rehearses
+   each legal move once per rollout step, so a decision affords fewer tries in
+   its budget. Against the random rollout, bot against bot, sixteen games at 1 s a
+   decision: Puzzle Strike won 11 and lost 5, Spellstorm won 6, lost 9 and left
+   one unfinished. Greedy pays where a plan is two moves long, and in Spellstorm
+   one step on misreads a turn whose worth lands at the reveal. Left: why
+   Spellstorm does not gain, and a rollout looking further than one step.
+5. **An optional aim is tried at both ends** — the fewest targets and the most.
+   Degenerate Trasher, No More Lies and The Hammer had trashed nothing, and
+   Thunderclap and Octavian hit one unit. The counts between are never tried,
+   and an aim wider than two is still drawn at random, once.

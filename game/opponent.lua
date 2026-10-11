@@ -86,33 +86,18 @@ end
 -- Most ways one card can aim, before the search has too many moves to weigh.
 M.AIMS = 12
 
--- The ways to aim a spec, each a list of targets committed now rather than inside
--- the closure: a move that cannot fill its spec is not a move, and the only
--- moment to find that out is while the list is being written. `candidates` is
--- asked rather than `targeting.start`, because starting would wipe the aim a
--- player at this screen is halfway through taking. Empty when it cannot aim.
+-- The ways to aim exactly `n` of `pool`.
 --
 -- An aim at one card or two is a choice worth weighing: which gem to crash is
 -- the whole of a Crash Gem, and a random one is nearly always the smallest. So
 -- each distinct choice is its own move — cards alike in kind and place are one
 -- choice, or a pile of eight 1-gems would be eight moves. A wider aim is still
 -- drawn at random, once.
---
--- Only the minimum is picked. An optional target is therefore never taken,
--- which is a real gap and a small one: nothing in the corpus turns on it.
-local function aims_for(card_id, spec)
-	local min = targeting.bounds(spec)
-	if min == 0 then return { {} } end
-	local pool = targeting.candidates(card_id, spec)
-	if #pool == 0 or (#pool < min and not spec.spread) then return {} end
-	if spec.spread or min > 2 then
-		local out = {}
-		-- An aim that spends points spends picks rather than candidates, so the same
-		-- card may come back — which is also the only way it fills its minimum when
-		-- the board holds fewer things than the aim has points to spread.
-		for k = 1, min do
-			out[k] = spec.spread and pool[math.random(#pool)] or table.remove(pool, math.random(#pool))
-		end
+local function aims_of(pool, n)
+	if n == 0 then return { {} } end
+	if n > 2 then
+		local out, left = {}, { unpack(pool) }
+		for k = 1, n do out[k] = table.remove(left, math.random(#left)) end
 		return { out }
 	end
 	local kinds, of = {}, {}
@@ -128,7 +113,7 @@ local function aims_for(card_id, spec)
 	end
 	local aims = {}
 	for i, a in ipairs(kinds) do
-		if min == 1 then
+		if n == 1 then
 			aims[#aims + 1] = { a[math.random(#a)] }
 		else
 			if #a >= 2 then
@@ -146,7 +131,39 @@ local function aims_for(card_id, spec)
 		local m = math.random(k)
 		aims[k], aims[m] = aims[m], aims[k]
 	end
-	for k = #aims, M.AIMS + 1, -1 do aims[k] = nil end
+	return aims
+end
+
+-- The ways to aim a spec, each a list of targets committed now rather than inside
+-- the closure: a move that cannot fill its spec is not a move, and the only
+-- moment to find that out is while the list is being written. `candidates` is
+-- asked rather than `targeting.start`, because starting would wipe the aim a
+-- player at this screen is halfway through taking. Empty when it cannot aim.
+--
+-- The fewest targets and the most are each a set of moves: taking only the
+-- minimum, Degenerate Trasher trashed nothing and Thunderclap hit one unit. The
+-- counts between are never tried — the most is nearly always what a card's
+-- author meant by "up to". The cap is shared, half each, so neither end crowds
+-- the other out.
+local function aims_for(card_id, spec)
+	local lo, hi = targeting.bounds(spec)
+	if hi == 0 then return { {} } end
+	local pool = targeting.candidates(card_id, spec)
+	if #pool == 0 or (#pool < lo and not spec.spread) then return lo == 0 and { {} } or {} end
+	if spec.spread then
+		-- An aim that spends points spends picks rather than candidates, so the same
+		-- card may come back — which is also the only way it fills its minimum when
+		-- the board holds fewer things than the aim has points to spread.
+		local out = {}
+		for k = 1, lo do out[k] = pool[math.random(#pool)] end
+		return { out }
+	end
+	hi = math.min(hi, #pool)
+	local ends = lo == hi and { aims_of(pool, lo) } or { aims_of(pool, lo), aims_of(pool, hi) }
+	local aims, cap = {}, math.ceil(M.AIMS / #ends)
+	for _, e in ipairs(ends) do
+		for k = 1, math.min(#e, cap) do aims[#aims + 1] = e[k] end
+	end
 	return aims
 end
 
@@ -349,20 +366,6 @@ function M.playing(seat)
 	return p and p.game == declaration.G and p.bot or nil
 end
 
--- Random moves for everybody until the round turns or the game ends: far enough
--- that a card played face down has met the one it was played against. `start`
--- is the round before the tried move, so a move that ends the round is scored
--- where it ends it, not after the next one. False when the reach ran out first.
-local function play_out(start, reach)
-	for _ = 1, reach do
-		if over() or round() ~= start then return true end
-		local moves = M.legal()
-		if #moves == 0 then return true end
-		moves[math.random(#moves)]()
-	end
-	return over() or round() ~= start
-end
-
 local WIN = 1e9
 
 -- The seat's own `won` before anybody's: a cooperative game sets it on every
@@ -374,6 +377,48 @@ local function score(seat, expr)
 	if flow.victor() then return -WIN end
 	zones.as_seat(seat, function() v = predicate.value(expr, {}) end)
 	return v
+end
+
+-- How often a try's move is random rather than the best one step on, so the
+-- tries of one move do not all play the same turn.
+M.WANDER = 0.2
+
+-- The move whoever is up likes best one step on, by the bot's value read as that
+-- seat: a try plays the turn out the way the bot would. Random moves found a
+-- plan two moves long only by luck — Puzzle Strike's Combine is worth the crash
+-- it pays the arrow for, and a crash on its own scored better than a Combine
+-- followed by whatever came up.
+local function greedy(moves, seat, expr)
+	if #moves == 1 or math.random() < M.WANDER then return moves[math.random(#moves)] end
+	seat = zones.active_seat() or seat
+	local best, picks = -math.huge, {}
+	for _, move in ipairs(moves) do
+		local v
+		flow.rehearse(function()
+			move()
+			v = score(seat, expr)
+		end)
+		if v > best then
+			best, picks = v, { move }
+		elseif v == best then
+			picks[#picks + 1] = move
+		end
+	end
+	return picks[math.random(#picks)]
+end
+
+-- Moves for everybody until the round turns or the game ends: far enough that a
+-- card played face down has met the one it was played against. `start` is the
+-- round before the tried move, so a move that ends the round is scored where it
+-- ends it, not after the next one. False when the reach ran out first.
+local function play_out(start, reach, seat, expr)
+	for _ = 1, reach do
+		if over() or round() ~= start then return true end
+		local moves = M.legal()
+		if #moves == 0 then return true end
+		greedy(moves, seat, expr)()
+	end
+	return over() or round() ~= start
 end
 
 -- Nothing a tried move does may reach the screen: the hooks are what record a
@@ -454,7 +499,7 @@ function M.choose(seat, moves)
 						rng.seed(math.random(2 ^ 30))
 						local start = round()
 						moves[i]()
-						if play_out(start, reach) then
+						if play_out(start, reach, seat, expr) then
 							sum[i] = sum[i] + score(seat, expr)
 						else
 							short[i], shorts[i] = short[i] + score(seat, expr), shorts[i] + 1

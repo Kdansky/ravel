@@ -24,6 +24,10 @@ local file, games = arg[1], tonumber(arg[2]) or 6
 opponent.BUDGET = tonumber(arg[3]) or opponent.BUDGET
 opponent.FIRST = tonumber(os.getenv("FIRST")) or opponent.FIRST
 opponent.TRIES = tonumber(os.getenv("TRIES")) or opponent.TRIES
+-- WANDER is how often the engine seat's tries move at random rather than greedily (1 is all random), VS_WANDER the
+-- same for the seats VS plays: a bot fight between two ways of playing a try out.
+local wander = tonumber(os.getenv("WANDER")) or opponent.WANDER
+local vs_wander = tonumber(os.getenv("VS_WANDER")) or wander
 local STEPS = tonumber(os.getenv("STEPS")) or 3000
 local clock = os.clock
 
@@ -55,6 +59,7 @@ for g = 1, games do
 		steps = steps + 1
 		if opponent.due() then
 			local t = clock()
+			opponent.WANDER = zones.active_seat() == mine and wander or vs_wander
 			if not opponent.act() then break end
 			local d = clock() - t
 			spent, decisions, slowest = spent + d, decisions + 1, math.max(slowest, d)

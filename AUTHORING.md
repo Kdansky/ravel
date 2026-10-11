@@ -5667,8 +5667,11 @@ Three numbers say how hard a bot searches, and each may be left out:
 `reach`, the most moves a try is played out for (60). A quick bot is a weaker
 one, which is a way to offer an easy opponent.
 
-Every legal move is tried, each try played out with random moves for everybody
-until the round turns or the game ends. The better half of the moves is tried
+Every legal move is tried, each try played out until the round turns or the
+game ends. Whoever is up in a try makes the move this bot's number likes best one
+step on, read as that seat, and one move in five at random so that the tries of
+one move do not all play the same turn. An aim of "up to" some number is tried at
+both ends — the fewest targets the card allows and the most. The better half of the moves is tried
 twice as often, and so on, until one is left or the best have had `tries`
 tries; `seconds` in, the best average so far is the move.
 A seat whose `won` stat is set is worth more than any number. A move is scored
