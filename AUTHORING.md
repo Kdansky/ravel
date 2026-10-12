@@ -2082,7 +2082,7 @@ cost, a card's `round` block acting by itself, and a reaction answered
 | `status` | Means |
 |---|---|
 | `board` | **In play.** Every rule above means these cards. A `grid` is this without saying so |
-| `offer` | A card lent to a question — nobody's while it is there, and gone when the question is answered. An `options` zone is this without saying so. A question too long to read on one screen **pages**: as many cards as stay big enough for their names, and *Back* / *Next* under them. Which page is showing is the screen's own, not a move |
+| `offer` | A card lent to a question — nobody's while it is there, and gone when the question is answered. An `options` zone is this without saying so. A question too long to read on one screen **scrolls**: cards as big as stays readable for their names, the rest above and below, moved by the wheel, ↑/↓ a row at a time, PgUp/PgDn a screenful, or *Up* / *Down* under it. How far down is the screen's own, not a move |
 | `supply` | **Stock.** A shop's shelves, a bank of tokens, the box a game deals from: visible and countable, but nobody's and not in play |
 | `todo` | **Owed.** A card somebody must play before the game goes on — an imaginary one a copy made. Not in play, and nothing moves while one is lying there |
 | `grave` | **Where the dead land.** What `destroy:` looks for, narrowest first: the card's, its tags', the zone it stands in, its seat's, the table's |

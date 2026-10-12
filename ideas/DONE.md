@@ -1739,21 +1739,29 @@ it borrowed. Two words, split where the cards split:
 
 ---
 
-# An offer too long to read pages
+# An offer too long to read scrolls
 
 Puzzle Strike's bank draft opened all fifty-one Puzzle chips as one offer: four
 rows of thirteen, every name cut to `Drawi…`, no price on any of them. The look
 the plan asked for came first, and it found more than the offer.
 
-**Paging has no word.** `layout: "page"` was the draft's spelling, but `page`
+**Scrolling has no word.** `layout: "page"` was the draft's spelling, but `page`
 already means *each card fills the zone* (the story panel), and one name means
 one thing. A row already promises every card shows its name; an offer that
-cannot keep that promise on any number of lines pages instead: as many cards as
-stay 110px tall (scaled), and *Back* / *Next* under them. Only an offer, because
-only the overlay has room under it for the way. The page is the screen's own —
-`render.lua`'s `pages`, never in a snapshot or on the wire — and resets when the
-question changes. A card on another page has no `place`, so nothing answers the
-mouse where it last was.
+cannot keep that promise on any number of lines scrolls instead, by rows: cards
+sized for a screenful at least 110px tall (scaled), the wheel and ↑/↓ a row,
+PgUp/PgDn and the *Up*/*Down* buttons a screenful, a scrollbar down the right
+edge. It shipped as discrete pages first and was asked to move instead; the
+rows glide to where they are going, and a card already in the offer is placed
+directly rather than tweened, or every scroll step flies every card. Only an
+offer, because only the overlay can clip. The position is the screen's own —
+`render.lua`'s `scrolls`, never in a snapshot or on the wire — and resets when
+the question changes. A card scrolled out of view has no `place`, so nothing
+answers the mouse where it last was.
+
+**A clip inside a clip.** The offer is cut at its edges with a scissor, and
+every card face set and then *cleared* its own scissor, wiping the offer's.
+`clip()` now intersects with an `outer` rect and `unclip()` restores it.
 
 **A look follows a place now.** Styles were settled at load from printed tags,
 so a zone's `applies` could hand out a tag whose style never drew. Puzzle

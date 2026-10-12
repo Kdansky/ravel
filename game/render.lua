@@ -408,9 +408,10 @@ local buttons     = {}    -- name → rect, rebuilt every frame for hit-testing
 -- hundred-chip board is ten thousand predicate reads a frame for a window that
 -- is usually not even open.
 local react_offer = {}
--- Which page of an offer this screen is looking at, by zone id. A view and not
--- state: two players turning pages are not making moves.
-local pages = {}
+-- How far down an offer this screen has scrolled, by zone id: `top` is the row
+-- asked for and `at` the row showing, which glides after it. A view and not
+-- state: two players scrolling are not making moves.
+local scrolls = {}
 -- The card height an offer will not go below, in unscaled pixels: where a title
 -- still fits beside its badges.
 local OFFER_MIN = 110
@@ -602,29 +603,27 @@ local function laid_out(zone_e)
 		return cols, card_h
 	end
 	local cols, card_h = search(n)
-	-- An offer that cannot keep the promise at all pages instead: as many as stay
-	-- readable, and a way to the rest. Only an offer, because only the overlay has
-	-- room under it for the way; a hand on the board shrinks as it always did.
-	local first, m = 1, n
+	-- An offer that cannot keep the promise at all scrolls instead: cards as big as
+	-- a screenful of readable ones, and the rest above and below. Only an offer,
+	-- because only the overlay can clip what runs past its edges; a hand on the
+	-- board shrinks as it always did.
+	local sc
 	if zone_e.status == "offer" and not fill and card_h < OFFER_MIN * S then
-		local per = math.max(1, math.floor((room_w + gap) / (OFFER_MIN * S / CARD_RATIO + gap)))
-			* math.max(1, math.floor((room_h + gap) / (OFFER_MIN * S + gap)))
-		local pg = pages[zone_e.id]
-		-- Another question in the same zone starts again at its first page.
+		local lines = math.max(1, math.floor((room_h + gap) / (OFFER_MIN * S + gap)))
+		cols, card_h = search(math.max(1, math.floor((room_w + gap) / (OFFER_MIN * S / CARD_RATIO + gap))) * lines)
+		sc = scrolls[zone_e.id]
+		-- Another question in the same zone starts again at the top.
 		local asked = zone_e.cards[1] .. ":" .. n
-		if not pg or pg.asked ~= asked then
-			pg = { at = 1, asked = asked }
-			pages[zone_e.id] = pg
+		if not sc or sc.asked ~= asked then
+			sc = { top = 0, at = 0, asked = asked }
+			scrolls[zone_e.id] = sc
 		end
-		pg.of = math.ceil(n / per)
-		pg.at = math.min(pg.at, pg.of)
-		first, m = (pg.at - 1) * per + 1, per
-		cols, card_h = search(per)
+		sc.lines, sc.rows = lines, math.ceil(n / cols)
+		sc.top = math.max(0, math.min(sc.top, sc.rows - lines))
 	else
-		pages[zone_e.id] = nil
+		scrolls[zone_e.id] = nil
 	end
-	local shown = math.min(m, n - first + 1)
-	local rows = math.ceil(m / cols)
+	local rows = sc and sc.lines or math.ceil(n / cols)
 	local card_w
 	if fill then
 		card_w = (room_w - (cols - 1) * gap) / cols
@@ -634,13 +633,17 @@ local function laid_out(zone_e)
 	end
 	local top    = p.y + head + (p.h - head - (rows * card_h + (rows - 1) * gap)) / 2
 	local places = {}
-	for j = 1, shown do
-		local col, row = (j - 1) % cols, math.floor((j - 1) / cols)
+	for i = 1, n do
+		local col, row = (i - 1) % cols, math.floor((i - 1) / cols)
 		-- Every line centred on its own count, so eleven above three reads as a
 		-- block with a short last line rather than as a block hanging off the left.
-		local wide = math.min(cols, shown - row * cols)
+		local wide = math.min(cols, n - row * cols)
 		local left = p.x + (p.w - (wide * card_w + (wide - 1) * gap)) / 2
-		places[first + j - 1] = { x = left + col * (card_w + gap), y = top + row * (card_h + gap), w = card_w, h = card_h }
+		local y = top + (row - (sc and sc.at or 0)) * (card_h + gap)
+		-- Scrolled out of the zone: nowhere, so nothing answers the mouse there.
+		if not sc or (y + card_h > p.y and y < p.y + p.h) then
+			places[i] = { x = left + col * (card_w + gap), y = y, w = card_w, h = card_h }
+		end
 	end
 	return places
 end
@@ -826,10 +829,16 @@ end
 -- everywhere else, which is every zone that is not fanned.
 -- A scissor is in screen pixels whatever the transform says, so a card drawn scaled — one being announced — would be
 -- cut to the rect it has at its own size.
+-- Inside `outer` when something larger is already cut — a scrolled offer — so a card's own clip does not undo it.
+local outer = nil
+local function unclip()
+	if outer then love.graphics.setScissor(unpack(outer)) else love.graphics.setScissor() end
+end
 local function clip(x, y, w, h)
 	local x1, y1 = love.graphics.transformPoint(x, y)
 	local x2, y2 = love.graphics.transformPoint(x + w, y + h)
-	love.graphics.setScissor(x1, y1, math.max(0, x2 - x1), math.max(0, y2 - y1))
+	unclip()
+	love.graphics.intersectScissor(x1, y1, math.max(0, x2 - x1), math.max(0, y2 - y1))
 end
 
 local function draw_card_face(pl, card_e, show_text, vis)
@@ -933,7 +942,7 @@ local function draw_card_face(pl, card_e, show_text, vis)
 			love.graphics.draw(img, pl.x + (pl.w - iw * sc) * 0.5,
 				pl.y + (img_h - ih * sc) * 0.5, 0, sc, sc)
 		end
-		love.graphics.setScissor()
+		unclip()
 	end
 
 	-- What the card has to say, and how much room it can have for it. Whole
@@ -1035,7 +1044,7 @@ local function draw_card_face(pl, card_e, show_text, vis)
 			rich.draw(bf, body_lines, vis.x + pad, y, avail, "center",
 				{ color = C.card_body, outline = { 0, 0, 0, 0.85 } })
 		end
-		love.graphics.setScissor()
+		unclip()
 	end
 	love.graphics.setStencilTest()
 
@@ -1217,7 +1226,7 @@ local function draw_page(pl, card_e)
 	clip(pl.x, y, pl.w, math.max(0, pl.y + pl.h - hint_h - y))
 	prose(label.fill(def and (def.story or def.tooltip) or "", card_e),
 		pl.x + m, y, pl.w - m * 2, "left", { 0.80, 0.88, 1.00 })
-	love.graphics.setScissor()
+	unclip()
 
 	love.graphics.setFont(sf)
 	love.graphics.setColor(0.45, 0.60, 0.80, 0.55 + 0.35 * pulse(3))
@@ -2092,11 +2101,19 @@ function M.draw()
 				printf(label.fill(cur.label, oz), 0, oz.place.y - 30 * S, W, "center")
 				love.graphics.pop()
 			end
+			-- A scrolled offer is cut at its edges, so a row half in view is half drawn rather than lying over the prompt.
+			if scrolls[oz.id] then
+				local p = oz.place
+				outer = { p.x + shx, p.y + shy, p.w, p.h }
+				unclip()
+			end
 			draw_zone(oz)
 			for _, cid in ipairs(oz.cards) do
 				local vpl = anim.visual_place(cid, (entity.get(cid) or {}).place)
 				if vpl then draw_flying_card(vpl, entity.get(cid)) end
 			end
+			outer = nil
+			unclip()
 			-- The way out of a question that may go unanswered, under the cards
 			-- it is about. Right-click and Escape do the same thing and always
 			-- did; neither is discoverable, and on a touch screen neither
@@ -2108,18 +2125,23 @@ function M.draw()
 				draw_button("no_choice", "No choice",
 					oz.place.x + (oz.place.w - bw) * 0.5, oz.place.y + oz.place.h + 8 * S, bw, bh)
 			end
-			local pg = pages[oz.id]
-			if pg and pg.of > 1 then
+			local sc = scrolls[oz.id]
+			if sc then
+				-- Where the view is in the whole, down the right edge: the only sign there is more.
+				local p, w = oz.place, 3 * S
+				local track = p.h - 12 * S
+				love.graphics.push("all")
+				love.graphics.setColor(unpack(C.button_border))
+				love.graphics.rectangle("fill", p.x + p.w - w - 3 * S, p.y + 6 * S + track * sc.at / sc.rows,
+					w, track * sc.lines / sc.rows, w / 2, w / 2)
+				love.graphics.pop()
+				-- And the way for a screen with no wheel and no keys.
 				local mf = love.graphics.getFont()
 				local bh = mf:getHeight() + 12 * S
-				local bw = mf:getWidth("Next ›") + 24 * S
-				local y  = oz.place.y + oz.place.h + 8 * S
-				if pg.at > 1 then draw_button("page_prev", "‹ Back", oz.place.x, y, bw, bh) end
-				if pg.at < pg.of then draw_button("page_next", "Next ›", oz.place.x + oz.place.w - bw, y, bw, bh) end
-				love.graphics.push("all")
-				love.graphics.setColor(unpack(C.card_text))
-				printf(pg.at .. " of " .. pg.of, oz.place.x + bw + 8 * S, y + (bh - mf:getHeight()) * 0.5, oz.place.w * 0.25, "left")
-				love.graphics.pop()
+				local bw = mf:getWidth("Down") + 24 * S
+				local y  = p.y + p.h + 8 * S
+				if sc.top > 0 then draw_button("scroll_up", "Up", p.x, y, bw, bh) end
+				if sc.top < sc.rows - sc.lines then draw_button("scroll_down", "Down", p.x + p.w - bw, y, bw, bh) end
 			end
 		end
 
@@ -2171,6 +2193,12 @@ end
 local laid = {}
 
 function M.sync_places()
+	-- The scroll glides rather than jumps, so the eye can follow where the rows went.
+	local dt = love.timer and love.timer.getDelta and love.timer.getDelta() or 1
+	for _, sc in pairs(scrolls) do
+		sc.at = sc.at + (sc.top - sc.at) * math.min(1, dt * 14)
+		if math.abs(sc.top - sc.at) < 0.01 then sc.at = sc.top end
+	end
 	for z in entity.each("zone") do
 		-- A zone nobody sees has a rect above the window, and a card laid out there on its way through flew off the
 		-- top. It keeps where it was last seen, so it leaves from there. An offer's overlay draws it, so it is laid out.
@@ -2188,7 +2216,10 @@ function M.sync_places()
 		for i, cid in ipairs(z.cards) do
 			local c   = cid and entity.get(cid)
 			local new = zt == "stack" and places[1] or places[i]
-			if c and new then
+			if c and scrolls[z.id] and laid[c.id] == z.id then
+				-- Scrolling, not travelling: a card already in the offer goes where the rows put it, with no flight.
+				c.place = new
+			elseif c and new then
 				-- A card off the top of a pile has never had a place of its own,
 				-- because only a stack's top card is laid out — so a draw
 				-- appeared in the hand instead of travelling to it. It came from
@@ -2226,20 +2257,24 @@ function M.sync_places()
 				local shows = z.visibility ~= "secret" and zones.visible(c)
 				if from then anim.move(c.id, from, new, kind, was and hid == shows) end
 				c.place = new
-			elseif c and pages[z.id] then
-				-- On another page of an offer: nowhere, so nothing answers the mouse there.
+			elseif c and scrolls[z.id] then
+				-- Below or above the view. Counted as laid here, so scrolling it in later does not fly it from where it came.
 				c.place = nil
+				laid[c.id] = z.id
 			end
 		end
 	end
 end
 
--- Turn the open offer's page by `d`, as far as it goes.
-function M.turn_page(d)
-	local cur = phase.current()
+-- Scroll the open offer by `d` rows, or by `d` screenfuls when `by` is "screen". False when there is nothing to
+-- scroll, so the key or the wheel can mean something else.
+function M.scroll(d, by)
+	local cur = phase.is_overlay() and phase.current()
 	local oz  = cur and zones.find(cur.zone or "hand")
-	local pg  = oz and pages[oz.id]
-	if pg then pg.at = math.max(1, math.min(pg.of, pg.at + d)) end
+	local sc  = oz and scrolls[oz.id]
+	if not sc then return false end
+	sc.top = math.max(0, math.min(sc.rows - sc.lines, sc.top + d * (by == "screen" and sc.lines or 1)))
+	return true
 end
 
 function M.set_selected(id) selected_id = id end

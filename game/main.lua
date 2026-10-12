@@ -222,8 +222,8 @@ local function primary_action(x, y)
 	elseif btn == "no_choice" then
 		flow.dismiss_offer()
 		return
-	elseif btn == "page_prev" or btn == "page_next" then
-		render.turn_page(btn == "page_next" and 1 or -1)
+	elseif btn == "scroll_up" or btn == "scroll_down" then
+		render.scroll(btn == "scroll_down" and 1 or -1, "screen")
 		return
 	elseif btn == "pass" then
 		flow.pass_react()
@@ -458,6 +458,9 @@ function love.keypressed(key)
 	if stage.busy() then stage.hurry(); return end
 	-- An offer not drawn yet cannot be answered, and Escape would dismiss it unseen.
 	if render.overlay_held() then return end
+	-- Looking further down a question, not a move, so it stays out of the run.
+	local rows = { up = -1, down = 1, pageup = -1, pagedown = 1 }
+	if rows[key] and render.scroll(rows[key], key:find("^page") and "screen" or "row") then return end
 	stage.arm()
 	if key == "escape" then
 		if render.get_detail() then
@@ -531,7 +534,9 @@ end
 -- by it scrolled the inspector eighty rows a click and the middle of a dump
 -- could not be reached at all.
 function love.wheelmoved(_, dy)
-	if inspecting and dy ~= 0 then inspect.scroll_by(dy > 0 and -6 or 6) end
+	if dy == 0 then return end
+	if inspecting then inspect.scroll_by(dy > 0 and -6 or 6)
+	else render.scroll(dy > 0 and -1 or 1, "row") end
 end
 
 function love.mousereleased(x, y, button)

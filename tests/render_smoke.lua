@@ -53,6 +53,9 @@ love.graphics = setmetatable({
 		assert(not (w and h) or (w >= 0 and h >= 0),
 			("setScissor with a negative size: %s,%s %sx%s"):format(x, y, w, h))
 	end,
+	intersectScissor = function(x, y, w, h)
+		assert(w >= 0 and h >= 0, ("intersectScissor with a negative size: %s,%s %sx%s"):format(x, y, w, h))
+	end,
 	-- Also a check rather than a stub. LÖVE answers malformed UTF-8 by drawing
 	-- nothing and abandoning the rest of the zone, so a title truncated through
 	-- the middle of a character silently deletes cards from the screen. That is
@@ -451,7 +454,7 @@ do
 end
 
 -- A row too long for one line takes another line rather than thinner cards, and
--- an offer too long for any number of lines takes another page. Puzzle Strike's
+-- an offer too long for any number of lines scrolls. Puzzle Strike's
 -- bank draft opens forty-one chip plates in one offer, and a row that only ever
 -- shrinks gave each of them 23px of picture — a strip with no room for the name,
 -- which is the one thing a row exists to show.
@@ -470,51 +473,59 @@ do
 	assert(#offer.cards == 41, "expected the whole chip box in the offer, got " .. #offer.cards)
 	-- Turned through the open question, so the offer has to be the phase's zone.
 	local phase = require("phase")
-	local was = phase.current
+	local was, was_overlay = phase.current, phase.is_overlay
 	phase.current = function() return { zone = "options" } end
+	phase.is_overlay = function() return true end
 	render.sync_places()
 
-	local function page()
+	local function view()
 		local on, first, rows = {}, nil, 1
 		for i, cid in ipairs(offer.cards) do
 			local pl = entity.get(cid).place
 			if pl then
 				on[#on + 1] = i
 				first = first or pl
-				assert(pl.x >= offer.place.x - 1 and pl.y >= offer.place.y - 1
-					and pl.x + pl.w <= offer.place.x + offer.place.w + 1
-					and pl.y + pl.h <= offer.place.y + offer.place.h + 1,
-					"an offered card must stay inside its zone, card " .. i)
 				assert(math.abs(pl.w - first.w) < 0.01 and math.abs(pl.h - first.h) < 0.01,
-					"cards on one page are one size, card " .. i)
+					"cards in one offer are one size, card " .. i)
+				assert(pl.x >= offer.place.x - 1 and pl.x + pl.w <= offer.place.x + offer.place.w + 1,
+					"an offered card stays inside its zone across, card " .. i)
+				assert(pl.y + pl.h > offer.place.y and pl.y < offer.place.y + offer.place.h,
+					"a card with a place is at least partly in view, card " .. i)
 				if pl.y > first.y + 1 then rows = rows + 1 end
 			end
 		end
 		return on, first, rows
 	end
-	local on, first, rows = page()
-	assert(#on > 0 and #on < 41, "forty-one chips are more than one readable page, got " .. #on .. " on it")
-	assert(on[1] == 1 and on[#on] == #on, "the first page is the first cards")
-	assert(rows > 1, "a page still wraps before it pages")
+	local on, first, rows = view()
+	assert(#on > 0 and #on < 41, "forty-one chips are more than one readable view, got " .. #on .. " in it")
+	assert(on[1] == 1, "the view opens at the top")
+	assert(rows > 1, "a view still wraps before it scrolls")
 	-- Measured against the line it replaced rather than against a pixel count, so
 	-- the floor means the same thing at any window size.
 	local wire = offer.place.w / #offer.cards
 	assert(first.w > wire * 3, ("a drafted chip is %.1fpx wide against a wire's %.1f"):format(first.w, wire))
 	-- The window here is the one the scale is 1 at, so this is the floor itself.
-	assert(first.h >= 110, ("a paged chip is %.1fpx tall, under the height a title fits"):format(first.h))
+	assert(first.h >= 110, ("a scrolled chip is %.1fpx tall, under the height a title fits"):format(first.h))
 
-	render.turn_page(1)
+	-- A row down moves every card up by one row's height, and no card is flown there: the timer is stubbed out, so
+	-- the glide lands at once.
+	local cols = 0
+	for _, i in ipairs(on) do if math.abs(entity.get(offer.cards[i]).place.y - first.y) < 0.5 then cols = cols + 1 end end
+	local below = offer.cards[cols * 2 + 1]
+	assert(render.scroll(1, "row"), "an offer this long scrolls")
 	render.sync_places()
-	local next_on, next_first = page()
-	assert(next_on[1] == #on + 1, "the next page starts where the first stopped")
-	assert(math.abs(next_first.h - first.h) < 0.01, "every page lays its cards out the same size")
-	-- Off the last page there is nowhere to go, and a card on no page answers no click.
-	for _ = 1, 10 do render.turn_page(1) end
+	local moved = entity.get(below).place
+	assert(moved, "the third row is in view")
+	assert(math.abs(entity.get(offer.cards[cols + 1]).place.y - first.y) < 0.5, "the second row came up to where the first was")
+	assert(not anim.visual_place(below, moved), "and scrolled rather than flew")
+	-- Past the end there is nowhere to go, and a card scrolled away answers no click.
+	for _ = 1, 10 do render.scroll(1, "screen") end
 	render.sync_places()
-	local last_on = page()
-	assert(last_on[#last_on] == 41, "the last page ends on the last card")
-	assert(zones.card_at(first.x + 2, first.y + 2) ~= offer.cards[1], "a card on another page is not under the mouse")
-	phase.current = was
+	local last_on = view()
+	assert(last_on[#last_on] == 41, "the bottom of the view is the last card")
+	assert(not entity.get(offer.cards[1]).place, "and the first card has scrolled out of it")
+	assert(zones.card_at(first.x + 2, first.y + 2) ~= offer.cards[1], "a card scrolled away is not under the mouse")
+	phase.current, phase.is_overlay = was, was_overlay
 
 	-- And the short question is unchanged: what fits on one line stays on one
 	-- line, because one line is among the shapes the arithmetic tries.
