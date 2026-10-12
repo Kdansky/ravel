@@ -1,7 +1,7 @@
 # 07 — Presentation and the gestures on top of it
 
-**Gaps 1–6 and 8 shipped. Gap 7 is half shipped, and three more arrived from
-Puzzle Strike.** Every item is something a player sees or does, not something the
+**Gaps 1–6 and 8 shipped, and so did the offer of fifty-one (see DONE.md). Gap 7
+is half shipped.** Every item is something a player sees or does, not something the
 engine computes.
 
 ## Shipped — where a game puts its buttons
@@ -92,21 +92,6 @@ already a duplicate of what a hovered card already says. What shipped instead:
   at zero — lower priority now that it is on-demand rather than always
   painted on screen. `badge_zeros: false` (cards, per style) is the
   neighbouring word if this is ever wanted, but has no customer yet.
-
-## Still open — an offer of fifty-one
-
-*From `todo.md`: "The bank draft screen shows all fifty-one plates in one offer,
-which is a lot of cards at once. It works, but it wants a layout of its own."*
-
-The hand branch's row/column search already keeps every card readable by adding
-rows rather than shrinking cards, so fifty-one plates *fit*; what they do not do
-is read as a thing you choose from. [Assumption: what is wanted is not a new
-layout algorithm but the `page` layout the seven fields already reserve
-(`layout: "page"` in [28](28-a-zone-by-its-parts.md)) actually doing something —
-a fixed grid with a next/previous, so an offer is a page of twelve rather than a
-wall of fifty-one.] Worth confirming against the screenshot harness before
-building anything: the draft may only look bad because the two draft buttons in
-the same row are 23px squares, which is the gap above and not this one.
 
 ## Closed — which end of a card the title lives at
 

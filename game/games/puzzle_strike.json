@@ -335,6 +335,11 @@
       "hide": ["zero_badges"]
     },
     "for_sale": { "badges": ["price", "stock"], "badge_run": "down", "hide": ["zero_badges"] },
+    "priced": {
+      "badges": ["price", "value", "plus_pow", "plus_act", "plus_draw", "plus_piggy", "hits", "react"],
+      "badge_run": "down",
+      "hide": ["zero_badges"]
+    },
     "character_card": { "color": [0.24, 0.26, 0.36] },
     "button": { "fit": "fill" }
   },
@@ -426,11 +431,17 @@
       "key": "controls",
       "layout": "grid",
       "use": "abilities",
-      "grid": [5, 1],
+      "grid": [3, 1],
       "tags": ["button"],
       "pos": [0.808, 0.457, 0.995, 0.543]
     },
-    { "key": "options", "layout": "row", "status": "offer", "pos": [0.06, 0.18, 0.94, 0.82] },
+    {
+      "key": "options",
+      "layout": "row",
+      "status": "offer",
+      "applies": ["priced"],
+      "pos": [0.06, 0.18, 0.94, 0.82]
+    },
     { "key": "box", "layout": "stack", "visibility": "secret", "display": "offscreen" },
     { "key": "chip_box", "layout": "stack", "visibility": "secret", "display": "offscreen" },
     { "key": "sys", "layout": "grid", "display": "offscreen", "grid": [1, 1] },
@@ -519,6 +530,14 @@
       "tooltip": "A crash that has been announced and not yet answered. It sits under the bank because it belongs to neither player."
     },
     {
+      "key": "draft",
+      "layout": "grid",
+      "use": "abilities",
+      "grid": [2, 1],
+      "tags": ["button"],
+      "pos": "pending"
+    },
+    {
       "key": "stash",
       "label": "Kept back",
       "layout": "stack",
@@ -565,7 +584,7 @@
     {
       "key": "deal",
       "type": "automatic",
-      "actions": ["each_seat:shuffle:mine.bag", "each_seat:draw_from:mine.bag:mine.hand:5"],
+      "actions": ["purge:draft", "each_seat:shuffle:mine.bag", "each_seat:draw_from:mine.bag:mine.hand:5"],
       "next": [{ "then": "action" }]
     },
     {
@@ -3974,8 +3993,8 @@
       { "card": "done_acting", "zone": "controls", "at": ["a1"] },
       { "card": "end_turn", "zone": "controls", "at": ["b1"] },
       { "card": "finish_shopping", "zone": "controls", "at": ["c1"] },
-      { "card": "pick_chip", "zone": "controls", "at": ["d1"] },
-      { "card": "randomize_bank", "zone": "controls", "at": ["e1"] },
+      { "card": "pick_chip", "zone": "draft", "at": ["a1"] },
+      { "card": "randomize_bank", "zone": "draft", "at": ["b1"] },
       { "card": "chip_damage", "zone": "chip_box" },
       { "card": "combos_are_hard", "zone": "chip_box" },
       { "card": "draw_three", "zone": "chip_box" },

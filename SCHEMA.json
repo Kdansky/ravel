@@ -83,7 +83,7 @@
       "badges": [
         "cards: stat keys drawn as numbers along the bottom edge of the face, left to right — [\"power\", \"health\"] is a creature card. Without it a card shows hp (with its hp_max companion) as a coloured bar's worth and nothing else, which is the default every game before this was written against. A card that carries numbers and names none of them here shows none of them."
       ],
-      "badge_run": "cards: which way that list runs — \"right\", the default, along the bottom edge, or \"down\" the left edge from the top corner. A column is for more numbers than go across a card: a printed price of five gems is the case that asked for it, and it is also how the card being copied prints it. A column leaves the title its full width, where a row makes way for it."
+      "badge_run": "cards: which way that list runs — \"right\", the default, along the bottom edge, or \"down\" the left edge from the top corner, under the cost when the card has one. A column is for more numbers than go across a card: a printed price of five gems is the case that asked for it, and it is also how the card being copied prints it. A column leaves the title its full width, where a row makes way for it."
     }
   },
   "cards": [

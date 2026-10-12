@@ -94,7 +94,7 @@ local DEFAULT_BANK = { "risky_move", "really_annoying", "draw_three", "recklessn
 	"sneak_attack", "gem_essence", "one_two_punch", "one_of_each", "roundhouse", "combo_time" }
 
 local function draft(chips)
-	local button = find_in("controls", "pick_chip")
+	local button = find_in("draft", "pick_chip")
 	for _, chip in ipairs(chips or DEFAULT_BANK) do
 		flow.activate(button.id, {})
 		local shelf = find_in("options", chip)
@@ -169,7 +169,7 @@ function M.test_puzzle_strike_the_bank_is_drafted_from_the_whole_box(check)
 	check("and every Puzzle chip ever printed is in the box",
 		count_in("chip_box") == 51, count_in("chip_box"))
 
-	local button = find_in("controls", "pick_chip")
+	local button = find_in("draft", "pick_chip")
 	flow.activate(button.id, {})
 	check("the box opens face up, all of it", count_in("options") == 51, count_in("options"))
 	local shelf = find_in("options", "the_hammer")
@@ -194,7 +194,7 @@ function M.test_puzzle_strike_randomising_fills_the_rest_of_the_bank(check)
 	draft({ "risky_move", "draw_three" })
 	check("two were chosen by hand", count_in("bank") == 10, count_in("bank"))
 
-	flow.activate(find_in("controls", "randomize_bank").id, {})
+	flow.activate(find_in("draft", "randomize_bank").id, {})
 	check("and the rest arrived", count_in("bank") == 18, count_in("bank"))
 	check("both of the chosen ones are still there",
 		find_in("bank", "risky_move") ~= nil and find_in("bank", "draw_three") ~= nil)
@@ -210,7 +210,7 @@ function M.test_puzzle_strike_a_random_bank_is_reproducible(check)
 		flow.init("puzzle_strike.json", seed)
 		flow.play_card(find_in("options", "char_jaina").id, {})
 		flow.play_card(find_in("options", "char_setsuki").id, {})
-		flow.activate(find_in("controls", "randomize_bank").id, {})
+		flow.activate(find_in("draft", "randomize_bank").id, {})
 		local out = keys_in("bank")
 		table.sort(out)
 		return table.concat(out, ",")

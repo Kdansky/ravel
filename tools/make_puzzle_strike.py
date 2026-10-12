@@ -733,9 +733,9 @@ def zones():
                       # be deep enough that running out is rare.
                       + ["wound:50"]),
          "tooltip": "Every chip you may buy. A stack says how many are left; when stacks run dry the ante grows."},
-        # The two buttons sit on the middle line between the gem piles, where
+        # The three buttons sit on the middle line between the gem piles, where
         # they belong to whoever is up rather than to either side of the table.
-        {"key": "controls", "layout": "grid", "use": "abilities", "grid": [5, 1],
+        {"key": "controls", "layout": "grid", "use": "abilities", "grid": [3, 1],
          "tags": ["button"], "pos": [0.808, 0.457, 0.995, 0.543]},
         # The roster is the injected offer, positioned rather than declared: ten
         # characters wants more of the screen than a choice between two. Nearly
@@ -743,7 +743,9 @@ def zones():
         # bank draft \u2014 forty-one chip plates at once, which needs the height to
         # wrap into a block rather than a wire. The margins are what the prompt
         # above and the "No choice" button below stand in.
-        {"key": "options", "layout": "row", "status": "offer", "pos": [0.06, 0.18, 0.94, 0.82]},
+        # `priced` because the draft is choosing a bank, and what a chip costs
+        # is half of what makes ten of them a good one.
+        {"key": "options", "layout": "row", "status": "offer", "applies": ["priced"], "pos": [0.06, 0.18, 0.94, 0.82]},
         {"key": "box", "layout": "stack", "visibility": "secret", "display": "offscreen"},
         # Every Puzzle chip plate that is not in the bank. Hidden, because it is
         # forty-one plates and nobody needs them on the table \u2014 the draft opens
@@ -820,6 +822,10 @@ def zones():
         {"key": "pending", "label": "Announced", "layout": "stack", "tags": ["stack"],
          "pos": [0.005, 0.712, 0.225, 0.818],
          "tooltip": "A crash that has been announced and not yet answered. It sits under the bank because it belongs to neither player."},
+        # The draft's two buttons, on the announcements' shelf: nothing is
+        # announced before the first turn, and the controls strip has room for
+        # five squares too small to letter. Under the bank they are building.
+        {"key": "draft", "layout": "grid", "use": "abilities", "grid": [2, 1], "tags": ["button"], "pos": "pending"},
         # The piggy bank's shelf: one chip kept out of the cleanup discard, face
         # down until it comes back at the start of the next turn.
         {"key": "stash", "label": "Kept back", "layout": "stack", "visibility": "secret", "copies": "per_seat", "pos": rects["stash"],
@@ -941,6 +947,9 @@ def styles():
     # bank hands out, so the same chip in a hand shows what it does and the one
     # in the shop shows what it costs and how many are left.
     out["for_sale"] = {"badges": ["price", "stock"], "badge_run": "down", "hide": ["zero_badges"]}
+    # What a chip wears in the draft: what it does, and in front of it what it
+    # will cost to buy.
+    out["priced"] = {"badges": ["price"] + out["chip"]["badges"], "badge_run": "down", "hide": ["zero_badges"]}
     out["character_card"] = {"color": [0.24, 0.26, 0.36]}
     # A button is a word you have to be able to read, not a picture of a chip,
     # so it takes the whole cell rather than a card-shaped slice of it.
@@ -2159,7 +2168,7 @@ def phases():
          "label": "Build the bank: ten Puzzle chips, chosen or at random",
          "ends_when": "count:puzzle@bank >= 10", "next": [{"then": "deal"}]},
         {"key": "deal", "type": "automatic",
-         "actions": ["each_seat:shuffle:mine.bag",
+         "actions": ["purge:draft", "each_seat:shuffle:mine.bag",
                      "each_seat:draw_from:mine.bag:mine.hand:%d" % HAND],
          "next": [{"then": "action"}]},
         # The ante is the action phase's own business rather than a phase before
@@ -2439,8 +2448,8 @@ def build():
                             {"card": "done_acting", "zone": "controls", "at": ["a1"]},
                             {"card": "end_turn", "zone": "controls", "at": ["b1"]},
                             {"card": "finish_shopping", "zone": "controls", "at": ["c1"]},
-                            {"card": "pick_chip", "zone": "controls", "at": ["d1"]},
-                            {"card": "randomize_bank", "zone": "controls", "at": ["e1"]}]
+                            {"card": "pick_chip", "zone": "draft", "at": ["a1"]},
+                            {"card": "randomize_bank", "zone": "draft", "at": ["b1"]}]
                            + [{"card": k, "zone": "chip_box"} for k, _, _, _ in PUZZLE_ALL]
                            + [{"card": c["key"], "zone": z} for z, c in rule_cards()]},
     }

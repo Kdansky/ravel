@@ -222,6 +222,9 @@ local function primary_action(x, y)
 	elseif btn == "no_choice" then
 		flow.dismiss_offer()
 		return
+	elseif btn == "page_prev" or btn == "page_next" then
+		render.turn_page(btn == "page_next" and 1 or -1)
+		return
 	elseif btn == "pass" then
 		flow.pass_react()
 		return

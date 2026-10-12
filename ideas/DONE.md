@@ -1736,3 +1736,42 @@ it borrowed. Two words, split where the cards split:
   when `none@mine.h_truth`.
 - **Trap:** a test that `create`s a hero adds a fourth, and a full command zone refuses the walk home,
   so its `leaves` stops before the `emit`. Summon the real one out of command.
+
+---
+
+# An offer too long to read pages
+
+Puzzle Strike's bank draft opened all fifty-one Puzzle chips as one offer: four
+rows of thirteen, every name cut to `Drawi…`, no price on any of them. The look
+the plan asked for came first, and it found more than the offer.
+
+**Paging has no word.** `layout: "page"` was the draft's spelling, but `page`
+already means *each card fills the zone* (the story panel), and one name means
+one thing. A row already promises every card shows its name; an offer that
+cannot keep that promise on any number of lines pages instead: as many cards as
+stay 110px tall (scaled), and *Back* / *Next* under them. Only an offer, because
+only the overlay has room under it for the way. The page is the screen's own —
+`render.lua`'s `pages`, never in a snapshot or on the wire — and resets when the
+question changes. A card on another page has no `place`, so nothing answers the
+mouse where it last was.
+
+**A look follows a place now.** Styles were settled at load from printed tags,
+so a zone's `applies` could hand out a tag whose style never drew. Puzzle
+Strike's bank had handed its chips `for_sale` (price and stock) since it was
+written, and no shelf ever showed either. A style keyed on an applied tag is
+dynamic, like one keyed on a computed tag, and the validator counts a style as
+reading the tag.
+
+**A badge column started on top of the cost pill.** Both claimed the top-left
+corner; a column now starts under the cost when there is one, and its font
+counts the drop.
+
+**The draft's buttons were the worse half.** "Choose a chip" and "Randomise the
+rest" were 28px squares in the controls strip. They moved to a `draft` zone on
+the `pending` shelf under the bank, and the `deal` phase purges it.
+
+**Screenshots of the live window come back black** under Wayland when it is not
+on screen. The harness that works is a scratch copy of `game/` whose `main.lua`
+wraps the real one, drives `flow` from a script, and draws one frame into a
+canvas set with `{ c, stencil = true }` (LÖVE 11 takes no `stencil` in
+`newCanvas`) before `newImageData():encode`.

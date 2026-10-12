@@ -1424,4 +1424,38 @@ function M.test_validator_refuses_opponent_where_there_is_more_than_one(check)
 		long:find("takes nothing after it", 1, true), long)
 end
 
+
+-- A tag a zone hands out only so its cards look different is used, by the style keyed on it, and the look follows the
+-- card in and out of the zone: a style was settled at load from the printed tags, so a draft's offer could hand out a
+-- price badge and draw none.
+function M.test_a_zone_hands_out_a_look(check)
+	local path = "game/games/" .. harness.tmp("applied_look")
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+		"title": "Look",
+		"stats": [{ "key": "price", "min": 0 }],
+		"styles": { "priced": { "badges": ["price"] } },
+		"zones": [
+			{ "key": "shop", "layout": "row", "applies": ["priced"] },
+			{ "key": "hand", "layout": "row" }],
+		"phases": [{ "key": "turn", "type": "player_input" }],
+		"cards": [{ "key": "thing", "text": "Thing", "card_stats": { "price": 3 } }],
+		"setup": { "place": [{ "card": "thing", "zone": "shop" }] }
+	}]==])
+	f:close()
+	local ok, G = pcall(declaration.parse, harness.tmp("applied_look"))
+	if not ok then os.remove(path) error(G, 2) end
+	local said = table.concat(validate.check(G), "; ")
+	check("a tag read only by a style is not 'read by nothing'", not said:find("nothing defines or reads", 1, true), said)
+
+	require("flow").init(harness.tmp("applied_look"), 1)
+	os.remove(path)
+	local zones, cards = require("zones"), require("cards")
+	local id = zones.find("shop").cards[1]
+	local entity = require("entity")
+	check("a card in the zone wears the look", (cards.style(entity.get(id)).badges or {})[1] == "price")
+	zones.move_card(id, zones.find_id("hand"))
+	check("and takes it off on the way out", cards.style(entity.get(id)).badges == nil)
+end
+
 return M

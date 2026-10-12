@@ -914,11 +914,15 @@ function M.parse(filename)
 		end)
 	end
 
-	-- Only a style word that is *also* a computed tag can change under a running
-	-- game; every other look is settled at load. So a game with none pays
-	-- nothing per frame, which is every shipped game today.
+	-- Only a style word that is *also* a computed tag, or a tag some zone hands
+	-- out, can change under a running game; every other look is settled at load.
+	-- So a game with neither pays nothing per frame.
+	local applied = {}
+	for _, zd in ipairs(type(parsed.zones) == "table" and parsed.zones or {}) do
+		for _, t in ipairs(type(zd) == "table" and type(zd.applies) == "table" and zd.applies or {}) do applied[t] = true end
+	end
 	for name in pairs(G.style_defs) do
-		if G.computed_tags[name] then G.dynamic_styles[#G.dynamic_styles + 1] = name end
+		if G.computed_tags[name] or applied[name] then G.dynamic_styles[#G.dynamic_styles + 1] = name end
 	end
 
 	G.raw_patterns = type(parsed.patterns) == "table" and parsed.patterns or {}

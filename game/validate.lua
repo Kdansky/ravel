@@ -3117,8 +3117,9 @@ function M.check(G)
 						warn("%s: hands out '%s', which is a computed tag — those are worked out "
 							.. "from what a card is and cannot be granted. A union may name a tag "
 							.. "this zone hands out; the other way round is a circle", where, tostring(tag))
+					-- A style keyed on the tag reads it: a tag handed out only to change how a card looks is a whole use.
 					elseif not tag_defs[tag] and not card_tags[tag] and not M.ENGINE_TAGS[tag]
-						and not union_members[tag] then
+						and not union_members[tag] and not G.style_defs[tag] then
 						warn("%s: hands out '%s', which nothing defines or reads%s",
 							where, tostring(tag), suggest(tag, known_tags))
 					end

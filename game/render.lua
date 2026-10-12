@@ -408,6 +408,12 @@ local buttons     = {}    -- name → rect, rebuilt every frame for hit-testing
 -- hundred-chip board is ten thousand predicate reads a frame for a window that
 -- is usually not even open.
 local react_offer = {}
+-- Which page of an offer this screen is looking at, by zone id. A view and not
+-- state: two players turning pages are not making moves.
+local pages = {}
+-- The card height an offer will not go below, in unscaled pixels: where a title
+-- still fits beside its badges.
+local OFFER_MIN = 110
 
 function M.set_can_undo(b) can_undo = b end
 
@@ -577,22 +583,48 @@ local function laid_out(zone_e)
 	-- is a promise broken quietly. One line is among the shapes tried, so the
 	-- winner is never smaller than the single line would have been.
 	local fill = zone_e.style.fit == "fill"
-	local cols, card_h, best = n, 0, math.huge
-	for c = 1, n do
-		local r = math.ceil(n / c)
-		local w = (room_w - (c - 1) * gap) / c
-		local h = (room_h - (r - 1) * gap) / r
-		if fill then
-			-- Both sides positive or the ratio says nothing: a column count that
-			-- does not fit is not a layout, it is a negative width.
-			local off = (w > 0 and h > 0) and math.abs(math.log(w / h)) or math.huge
-			if off < best then cols, best = c, off end
-		else
-			h = math.min(h, w * CARD_RATIO)
-			if h > card_h then cols, card_h = c, h end
+	local function search(m)
+		local cols, card_h, best = m, 0, math.huge
+		for c = 1, m do
+			local r = math.ceil(m / c)
+			local w = (room_w - (c - 1) * gap) / c
+			local h = (room_h - (r - 1) * gap) / r
+			if fill then
+				-- Both sides positive or the ratio says nothing: a column count that
+				-- does not fit is not a layout, it is a negative width.
+				local off = (w > 0 and h > 0) and math.abs(math.log(w / h)) or math.huge
+				if off < best then cols, best = c, off end
+			else
+				h = math.min(h, w * CARD_RATIO)
+				if h > card_h then cols, card_h = c, h end
+			end
 		end
+		return cols, card_h
 	end
-	local rows = math.ceil(n / cols)
+	local cols, card_h = search(n)
+	-- An offer that cannot keep the promise at all pages instead: as many as stay
+	-- readable, and a way to the rest. Only an offer, because only the overlay has
+	-- room under it for the way; a hand on the board shrinks as it always did.
+	local first, m = 1, n
+	if zone_e.status == "offer" and not fill and card_h < OFFER_MIN * S then
+		local per = math.max(1, math.floor((room_w + gap) / (OFFER_MIN * S / CARD_RATIO + gap)))
+			* math.max(1, math.floor((room_h + gap) / (OFFER_MIN * S + gap)))
+		local pg = pages[zone_e.id]
+		-- Another question in the same zone starts again at its first page.
+		local asked = zone_e.cards[1] .. ":" .. n
+		if not pg or pg.asked ~= asked then
+			pg = { at = 1, asked = asked }
+			pages[zone_e.id] = pg
+		end
+		pg.of = math.ceil(n / per)
+		pg.at = math.min(pg.at, pg.of)
+		first, m = (pg.at - 1) * per + 1, per
+		cols, card_h = search(per)
+	else
+		pages[zone_e.id] = nil
+	end
+	local shown = math.min(m, n - first + 1)
+	local rows = math.ceil(m / cols)
 	local card_w
 	if fill then
 		card_w = (room_w - (cols - 1) * gap) / cols
@@ -602,13 +634,13 @@ local function laid_out(zone_e)
 	end
 	local top    = p.y + head + (p.h - head - (rows * card_h + (rows - 1) * gap)) / 2
 	local places = {}
-	for i = 1, n do
-		local col, row = (i - 1) % cols, math.floor((i - 1) / cols)
+	for j = 1, shown do
+		local col, row = (j - 1) % cols, math.floor((j - 1) / cols)
 		-- Every line centred on its own count, so eleven above three reads as a
 		-- block with a short last line rather than as a block hanging off the left.
-		local wide = math.min(cols, n - row * cols)
+		local wide = math.min(cols, shown - row * cols)
 		local left = p.x + (p.w - (wide * card_w + (wide - 1) * gap)) / 2
-		places[i] = { x = left + col * (card_w + gap), y = top + row * (card_h + gap), w = card_w, h = card_h }
+		places[first + j - 1] = { x = left + col * (card_w + gap), y = top + row * (card_h + gap), w = card_w, h = card_h }
 	end
 	return places
 end
@@ -711,6 +743,13 @@ local function draw_cost_badge(pl, cost, card_e)
 	end
 end
 
+-- How far down a badge column starts: under the cost pill, which holds the
+-- same corner, when the card has one.
+local function cost_drop(card_e)
+	local def = card_e and cards.def(card_e)
+	return def and def.cost and next(def.cost) and get_small_font():getHeight() + 4 * S + 2 or 0
+end
+
 -- How wide the pill is, and how much of its front the shape takes — nothing,
 -- when the stat says it has none, and then the number closes the gap rather
 -- than sitting behind an empty square. Measured apart from the drawing because
@@ -736,7 +775,7 @@ end
 -- leaves of the card's height and a row takes an eighth of it; a column's share
 -- is never more than a fifth, so one badge is not a poster. Never smaller than
 -- the small font, and capped, so a card blown up to fill the screen does not shout.
-local function badge_font(pl, look, n)
+local function badge_font(pl, look, n, drop)
 	local floor = math.max(8, 8 * S)
 	if look.badge_run ~= "down" then
 		-- A font is ~1.2 of its size.
@@ -745,7 +784,7 @@ local function badge_font(pl, look, n)
 	-- The room is what the title band leaves, measured as draw_card_face lays that band out — the biggest title
 	-- font and its padding — since a column that reaches the band pushes the name aside and cuts it short.
 	local titled = not (look.hide or EMPTY_HIDE).title
-	local room = pl.h - (titled and font_at(12 * S):getHeight() + 6 * S or 0)
+	local room = pl.h - (drop or 0) - (titled and font_at(12 * S):getHeight() + 6 * S or 0)
 	local share = room / math.max(n, 5)
 	-- A line is the font's height and the gap under it, measured rather than estimated: an estimate high by a pixel
 	-- a line is six pixels over at six badges.
@@ -913,8 +952,8 @@ local function draw_card_face(pl, card_e, show_text, vis)
 		local own = card_e.stats
 		local down  = look.badge_run == "down"
 		local keys  = badge_keys(look, card_e)
-		local bf    = badge_font(pl, look, #keys)
-		local row_w, col_h = 0, 0
+		local bf    = badge_font(pl, look, #keys, cost_drop(card_e))
+		local row_w, col_h = 0, down and cost_drop(card_e) or 0
 		for i, key in ipairs(keys) do
 			local w = badge_size(key, badge_text(key, shown_stat(card_e, key)), bf)
 			if down then
@@ -1126,7 +1165,7 @@ local function draw_card_stats_overlay(pl, card_e, by)
 
 	love.graphics.push("all")
 	local keys = badge_keys(look, card_e)
-	local bf   = badge_font(pl, look, #keys)
+	local bf   = badge_font(pl, look, #keys, cost_drop(card_e))
 	local fh   = bf:getHeight()
 	by = by or (pl.y + pl.h - fh - 3 * S)
 	if badges then
@@ -1134,7 +1173,7 @@ local function draw_card_stats_overlay(pl, card_e, by)
 		-- the card, and the title below it has already made room for whichever
 		-- of the two reaches it.
 		local down = look.badge_run == "down"
-		local x, y = pl.x + 2 * S, down and (pl.y + 3 * S) or by
+		local x, y = pl.x + 2 * S, down and (pl.y + 3 * S + cost_drop(card_e)) or by
 		for _, key in ipairs(keys) do
 			local w = draw_badge(key, badge_text(key, shown_stat(card_e, key)), x, y, { 1, 1, 1 }, bf)
 			if down then y = y + fh + 3 * S else x = x + w + 2 * S end
@@ -2069,6 +2108,19 @@ function M.draw()
 				draw_button("no_choice", "No choice",
 					oz.place.x + (oz.place.w - bw) * 0.5, oz.place.y + oz.place.h + 8 * S, bw, bh)
 			end
+			local pg = pages[oz.id]
+			if pg and pg.of > 1 then
+				local mf = love.graphics.getFont()
+				local bh = mf:getHeight() + 12 * S
+				local bw = mf:getWidth("Next ›") + 24 * S
+				local y  = oz.place.y + oz.place.h + 8 * S
+				if pg.at > 1 then draw_button("page_prev", "‹ Back", oz.place.x, y, bw, bh) end
+				if pg.at < pg.of then draw_button("page_next", "Next ›", oz.place.x + oz.place.w - bw, y, bw, bh) end
+				love.graphics.push("all")
+				love.graphics.setColor(unpack(C.card_text))
+				printf(pg.at .. " of " .. pg.of, oz.place.x + bw + 8 * S, y + (bh - mf:getHeight()) * 0.5, oz.place.w * 0.25, "left")
+				love.graphics.pop()
+			end
 		end
 
 		-- An ending screen announces itself: banner, run summary, flourish.
@@ -2174,9 +2226,20 @@ function M.sync_places()
 				local shows = z.visibility ~= "secret" and zones.visible(c)
 				if from then anim.move(c.id, from, new, kind, was and hid == shows) end
 				c.place = new
+			elseif c and pages[z.id] then
+				-- On another page of an offer: nowhere, so nothing answers the mouse there.
+				c.place = nil
 			end
 		end
 	end
+end
+
+-- Turn the open offer's page by `d`, as far as it goes.
+function M.turn_page(d)
+	local cur = phase.current()
+	local oz  = cur and zones.find(cur.zone or "hand")
+	local pg  = oz and pages[oz.id]
+	if pg then pg.at = math.max(1, math.min(pg.of, pg.at + d)) end
 end
 
 function M.set_selected(id) selected_id = id end

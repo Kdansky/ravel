@@ -2082,7 +2082,7 @@ cost, a card's `round` block acting by itself, and a reaction answered
 | `status` | Means |
 |---|---|
 | `board` | **In play.** Every rule above means these cards. A `grid` is this without saying so |
-| `offer` | A card lent to a question — nobody's while it is there, and gone when the question is answered. An `options` zone is this without saying so |
+| `offer` | A card lent to a question — nobody's while it is there, and gone when the question is answered. An `options` zone is this without saying so. A question too long to read on one screen **pages**: as many cards as stay big enough for their names, and *Back* / *Next* under them. Which page is showing is the screen's own, not a move |
 | `supply` | **Stock.** A shop's shelves, a bank of tokens, the box a game deals from: visible and countable, but nobody's and not in play |
 | `todo` | **Owed.** A card somebody must play before the game goes on — an imaginary one a copy made. Not in play, and nothing moves while one is lying there |
 | `grave` | **Where the dead land.** What `destroy:` looks for, narrowest first: the card's, its tags', the zone it stands in, its seat's, the table's |
@@ -3214,7 +3214,7 @@ A style carries everything about how a thing *looks*, for cards and zones alike:
 | `ratio` | zones | the shape it keeps whatever the window is — width over height, or `"grid"` to read it from the cell count |
 | `chequer` | grid zones | two colours alternated across the squares. **The first is a1's** — the bottom-left square — and a board wanting the other way round swaps the two strings. There is no flag for it |
 | `badges` | cards | the stat keys drawn as numbers along the bottom of the face, left to right: `["power", "health"]` is a creature card. Without it a card shows `hp` and nothing else — **a card that carries numbers and names none of them here shows none of them**. Read off the **card**, so a style only a zone claims draws nothing; the validator says so |
-| `badge_run` | cards | which way that list runs: `"right"` (default) along the bottom, or `"down"` the left edge from the top corner, for more numbers than go across a card. A column leaves the title its full width; a row makes way for it |
+| `badge_run` | cards | which way that list runs: `"right"` (default) along the bottom, or `"down"` the left edge from the top corner — under the cost, when the card has one — for more numbers than go across a card. A column leaves the title its full width; a row makes way for it |
 | `paint` | grid zones | `{ "<absolute pattern>": colour-or-filename }` — terrain, goal rows, home rows |
 
 **`hide` is what a look leaves out**, and there are five parts to name:
@@ -3226,6 +3226,12 @@ A style carries everything about how a thing *looks*, for cards and zones alike:
 | `plate` | the colour behind the art, so a transparent PNG shows the board through it |
 | `cell_outline` | grid zones: the outline on empty cells. Eligible squares still light up during a move |
 | `zero_badges` | a badge whose number is nought — a market card's cost of no rubies is not a line of the price, while a creature's zero power is a fact and still draws |
+
+**A look can go with a place.** A style keyed on a tag a zone `applies` is worn
+while the card lies there and taken off when it leaves — Puzzle Strike's bank
+hands its chips `for_sale`, so a chip on the shelf shows its price and stock
+and the same chip in a hand shows what it does. A tag handed out for its look
+alone is used, and the validator says nothing about it.
 
 One field rather than five taking only `false`, because what a look leaves out
 is one question, and a chess piece answers three of it at once. Two styles on
